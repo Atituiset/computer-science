@@ -42,6 +42,7 @@
 - [6. Tokenizer 与 Embedding: BPE / WordPiece / SentencePiece / 位置编码](tokenizer.md)
 - [7. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF](rl.md)
 - [8. 大模型训练工程: DP/PP/TP/ZeRO/FSDP/Checkpoint](training-at-scale.md)
+- [9. 表示学习与对比学习: SimCLR / CLIP / InfoNCE](contrastive-learning.md)
 
 ## 与各部分的接口表
 

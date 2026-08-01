@@ -344,6 +344,7 @@
 - [6. Tokenizer 与 Embedding: BPE / WordPiece / SentencePiece / 位置编码](ai-ml/tokenizer.md)
 - [7. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF](ai-ml/rl.md)
 - [8. 大模型训练工程: DP/PP/TP/ZeRO/FSDP/Checkpoint](ai-ml/training-at-scale.md)
+- [9. 表示学习与对比学习: SimCLR / CLIP / InfoNCE](ai-ml/contrastive-learning.md)
 
 ---
 
@@ -359,3 +360,25 @@
 - [5. 编程语言运行时：四种实现语义](_meta/runtime-semantics.md)
 - [6. 并发与一致性：单机到分布式同构](_meta/concurrency-consistency.md)
 - [7. 推理链：硬件层如何决定软件设计](_meta/hardware-shapes-software.md)
+
+---
+
+# 形式化方法卷 · 用数学证明"系统是对的"
+
+> 测试能证明有 bug, 但永远不能证明没 bug。模型检查穷举状态空间, 定理证明验证数学证明, 程序验证把证明连到真实代码——Raft 有 TLA+、CompCert 用 Coq、seL4 被 Isabelle 证明。
+
+- [开篇: 用数学证明"系统是对的"](formal/README.md)
+  - [1. 模型检查与 TLA+: 穷举状态空间找反例](formal/model-checking-tla.md)
+  - [2. 定理证明: Coq / Lean / 依赖类型 / Curry-Howard](formal/coq-lean.md)
+  - [3. 程序验证: Hoare 逻辑 / 符号执行 / 形式语义](formal/program-verification.md)
+
+---
+
+# 量子计算卷 · 用量子比特重新定义"计算"
+
+> 量子比特叠加 + 纠缠带来对特定问题的指数/平方加速。基础 (Dirac 记号 / 门 / 测量) → 算法 (Deutsch-Jozsa / Grover / Shor) → 纠错 (surface code / 逻辑 qubit) 一路讲透, 并给出现实的 Y2Q 判断。
+
+- [开篇: 用量子比特重新定义"计算"](quantum/README.md)
+  - [1. 量子计算基础: Dirac 记号 / qubit / 量子门 / 测量](quantum/basics.md)
+  - [2. 量子算法: Deutsch-Jozsa / Grover / Shor](quantum/algorithms.md)
+  - [3. 量子纠错: 逻辑 qubit / surface code / 现实挑战](quantum/error-correction.md)

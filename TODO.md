@@ -1,9 +1,19 @@
 # TODO — 待补充模块
 
-> 当前导论卷 + 工程化实践轴 + 第零部分 + 13 主题，构建通过，~53.8K 行 / 263 个 .md（导论 ~1.8K / 6 章，工程化 ~3.5K / 11 章，数学 ~1.8K / 5 章，主题 ~46.7K / 其余各章）。
+> 当前导论卷 + 工程化实践轴 + 第零部分 + 13 主题 + 形式化卷 + 量子卷，构建通过，~55.5K 行 / 272 个 .md。
 
 ## 已完成
 
+- [x] **形式化方法卷**（独立卷）
+  - 模型检查与 TLA+: 规格语言 / 不变量 / Safety-Liveness / TLC / Raft-Paxos 实战
+  - 定理证明: Coq / Lean / 依赖类型 / Curry-Howard / CompCert-seL4
+  - 程序验证: Hoare 逻辑 / 最弱前置条件 / 符号执行 / 形式语义
+- [x] **量子计算卷**（独立卷）
+  - 基础: Dirac 记号 / qubit / 量子门 / 测量 / 纠缠
+  - 算法: Deutsch-Jozsa / Grover / Shor / 量子模拟
+  - 纠错: 逻辑 qubit / surface code / 阈值定理 / Y2Q 现实
+- [x] **第十二部分 AI/ML 补充**（第 9 章）
+  - 表示学习与对比学习: SimCLR / CLIP / InfoNCE / 自监督
 - [x] **工程化实践轴 · 让代码真正跑进生产**（独立轴，11 章）
   - Git 与版本控制: 对象模型 / 分支模型 / 合并策略 / 回滚恢复 / 团队协作
   - 测试工程: 测试金字塔 / 单元/集成/契约/E2E / mock / flaky 治理 / 覆盖率
@@ -68,10 +78,12 @@
   - [x] Tokenizer 与 Embedding 详解（BPE / WordPiece / SentencePiece / 位置编码 RoPE / ALiBi）→ `ai-ml/tokenizer.md`
   - [x] 强化学习基础与 RLHF（MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF / DPO / GRPO）→ `ai-ml/rl.md`
   - [x] 大模型训练工程（DP / PP / TP / ZeRO / FSDP / checkpoint / 量化）→ `ai-ml/training-at-scale.md`
-- [ ] 表示学习与对比学习（SimCLR / CLIP / contrastive loss）
-- [ ] 形式化方法（Coq / Lean / TLA+ 模型检查与证明）
-- [ ] 程序验证与定理证明
-- [ ] 量子计算基础（Deutsch–Jozsa, Shor, 基础量子纠错 surface code）— 需第零部分线代 + 概率已就位
+- [x] ~~表示学习与对比学习（SimCLR / CLIP / contrastive loss）~~ → `ai-ml/contrastive-learning.md`
+- [x] ~~形式化方法（Coq / Lean / TLA+ 模型检查与证明）~~ → `formal/` 独立卷
+- [x] ~~程序验证与定理证明~~ → `formal/program-verification.md`
+- [x] ~~量子计算基础（Deutsch–Jozsa, Shor, 基础量子纠错 surface code）~~ → `quantum/` 独立卷
+
+后续按需增补（无固定待办）：AI/ML 的 Agent / 多模态、工程化的专项实操、形式化的更深工具链、量子的物理实现细节。
 
 ## 各部分章节大纲
 
