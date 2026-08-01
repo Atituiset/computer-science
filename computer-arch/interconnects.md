@@ -649,9 +649,9 @@ Infinity Fabric 的带宽通常在 32-64 GB/s/方向（取决于代与链路宽�
 | 通道数 | 可聚合多 lane |
 | 拓扑 | 支持 all-to-all（类似 NVSwitch 的 crossbar） |
 | 一致性 | 支持 cache coherent memory sharing（类似 CXL.cache + CXL.mem） |
-| 目标产品 | AMD MI400, Intel Falcon Shores, Broadcom AI ASIC (2026+) |
+| 目标产品 | AMD MI450, Intel Jaguar Shores, Broadcom AI ASIC (2026+) |
 
-UALink 本质上是 CXL 的超集——在 CXL 的缓存一致性基础上加了 NVLink 级别的高带宽 GPU 间直连。如果成功，UALink 将允许 AMD MI400、Falcon Shores 和自研 ASIC 在同一个服务器内共享缓存一致的内存并高带宽互联——打破 NVIDIA NVLink 和 NVSwitch 的生态锁定。
+UALink 本质上是 CXL 的超集——在 CXL 的缓存一致性基础上加了 NVLink 级别的高带宽 GPU 间直连。如果成功，UALink 将允许 AMD MI450、Jaguar Shores 和自研 ASIC 在同一个服务器内共享缓存一致的内存并高带宽互联——打破 NVIDIA NVLink 和 NVSwitch 的生态锁定。
 
 但有个残酷的事实：NVIDIA NVLink 已经迭代了 5 代（6 年），UALink 还在规范定义的初期。NVIDIA 每年把 NVLink 带宽翻 1.5-2 倍，而 UALink 的开放标准需要通过多厂商共识——这样的速度差，让 UALink 在短期内永远追不上 NVLink。
 

@@ -262,7 +262,7 @@ OS 文件系统只承诺 "字节流", 没说"原子写 / 多 client 并发 / cra
                             ↓
                   GPU / NPU / TPU / 异构 XPU
                             ↓
-                  HBM4 + NVLink + CXL 3.0
+                  HBM4 + NVLink + CXL 3.x
                             ↓
                   Agent + MCP + 推理 SDK
                             ↓

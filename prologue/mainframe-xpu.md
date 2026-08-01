@@ -211,7 +211,7 @@
 | 类 | 用途 | 当前主流 (2024-2026) |
 |----|------|------|
 | **CPU** | 控制流 + 低并发 | x86, ARM, RISC-V, Power |
-| **GPU** | 大并行张量 | NVIDIA H100/H200/B200/GB200, AMD MI300/MI400, Intel Arc/Battlemage/Falcon Shores |
+| **GPU** | 大并行张量 | NVIDIA H100/H200/B200/GB200, AMD MI300/MI450, Intel Arc/Battlemage/Jaguar Shores |
 | **TPU** | 张量 ASIC | Google TPU v5p/v6 Trillium |
 | **NPU** | 端侧 AI 推理 | Apple Neural Engine, 骁龙 Hexagon, MediaTek APU, Intel / AMD NPU, 华为 Ascend NPU |
 | **DPU / IPU** | 网络与存储 off-load | NVIDIA Bluefield-3, Fungible / Pensando / 阿里 CIPU |
@@ -225,12 +225,12 @@
 - Dennard scaling 2005 止 → 单核不再提速 → 必须 SIMD / 多核 / 加速器.
 - AI 训练 = 矩阵 × 矩阵 (GEMM) 大规模并发, CPU SIMD 的乱序调度远不如 GPU 的 SIMT.
 - 推理 latency / 功耗关键, NPU 在 50-200 GOPS/W 比通用 CPU 5-10x 能效.
-- 摩尔放缓 → 工程师换 vertical specialization: 每类算力做专门芯片 → 形成多 die + 互联 (NVLink 5 / CXL 3.0 / UALink / Infinity Fabric).
+- 摩尔放缓 → 工程师换 vertical specialization: 每类算力做专门芯片 → 形成多 die + 互联 (NVLink 5/6 / CXL 3.x / UALink / Infinity Fabric).
 
 ### 8.3 互联 (interconnect) 与 memory hierarchy 重塑
 
 - 关键事实: 2024-2026 大模型训练, **算力不卡 GPU 而卡 GPU 间带宽 + HBM 容量**.
-- HBM4 + CXL 3.0 + NVLink 5 / Infinity Fabric 让"memory pool" 成为单数据中心级资源.
+- HBM4 + CXL 3.x + NVLink 5/6 / Infinity Fabric 让"memory pool" 成为单数据中心级资源.
 - **背景**: 见 [第八部分 / interconnects](../computer-arch/interconnects.md) 与 [memory-hierarchy](../computer-arch/memory-hierarchy.md).
 
 ### 8.4 XPU 上的"用户" 是谁

@@ -6,10 +6,10 @@
 
 每一节都讲: **那年发生了什么 / 缔造了什么契约 / 把什么写进了"已经不可能回退"的清单**.
 
-读完应能: 用 20 分钟讲清计算机从 Turing → GPT-5 的关键节点, 每个节点一句话点破质变.
+读完应能: 用 20 分钟讲清计算机从 Turing → 2026 推理模型时代的关键节点, 每个节点一句话点破质变.
 
-> [!WARNING]
-> 2025-2026 段落凭作者训练记忆整理, 力求准确但不担保数字与月份精确; 看到错漏请直接在 md 上批注或 PR 修。
+> [!NOTE]
+> 2025-2026 段落已按 2026-08 公开资料（原厂 release note / 主流媒体）核对；模型发布与数字以官方口径为准。
 
 ---
 
@@ -37,13 +37,13 @@
 2022   ChatGPT —— 5 天注册破 100M; RLHF 出现工程化
 2023   LLaMA / Qwen / DeepSeek 系; 开源 70B 可单机推理
 2024   NPU / H100 / TPU v5p / Groq / Cerebras / 量子计算长征
-       Blackwell B200 / GB200 NVL72 (NVIDIA); DeepSeek-V3 / R1 开源踩西方定价
-2025   GPT-5 / Claude 4.x / Grok 4 / Qwen-3 推理模型常态化;
-       Agentic AI + MCP 协议; 上下文 >1M tokens; HBM4;
-       量子纠错 logical qubit 多实验室进展
-2026   Anthropic Sonnet/Opus 4.5+; 国产 7nm 自洽流片;
-       CXL 3.0 / HBM4 量产; Intel Falcon Shores / AMD MI400;
-       量子-经典混合协议雏形
+       Blackwell B200 / GB200 NVL72 (NVIDIA); DeepSeek-V3 开源 (12 月)
+2025   GPT-5 统一 o 系; Claude 4.x / Gemini 3 / Grok 4 推理模型常态化;
+       DeepSeek-R1 "时刻"; Agentic AI + MCP; gpt-oss 开源; HBM4 量产;
+       Google Willow 低于阈值量子纠错
+2026   GPT-5.x→5.6 / Claude 5 / Gemini 3.6 Flash / DeepSeek R2 快节奏迭代;
+       NVIDIA Rubin 量产 + AMD MI450; 昇腾 950 超节点 (1024 卡);
+       HBM4 三家量产 (~2 TB/s/stack) + CXL 3.2; 量子数十逻辑 qubit
 ```
 
 ---
@@ -255,54 +255,58 @@ Tim Berners-Lee 在 CERN 部署第一个 web server, HTTP 0.9 / HTML. 1993 Marc 
 
 ## 八·5、2025-2026: 推理模型、Agentic AI 与 Blackwell 时代
 
-> 凭记忆整理; 数字与月份以原厂 paper / announcement 为准.
+> 按 2026-08 公开资料 (原厂 release note / 主流媒体) 核对; 模型发布与数字以官方口径为准.
 
 ### 8.5.1 推理模型 (Reasoning Models) 主流化
 
-- **OpenAI o1** (2024 末) 与 **o3** (2025): 把 Chain-of-Thought 显式化训练, 用 RL 学习"长内部喵题"过程; "test-time compute" 成为新维度.
-- **Anthropic Claude 3.7 / 4.x** Sonnet/Opus (2025) 内置 "extended thinking"; 模型可在回答前显式启用多步思考预算.
+- **OpenAI o1** (2024 末) 与 **o3** (2025): 把 Chain-of-Thought 显式化训练, 用 RL 学习"长内部思考"过程; "test-time compute" 成为新维度.
 - **DeepSeek-R1** (2025-01): 完全开源的 reasoning 模型, 凭冷启动 + 规则奖励 RL 训出一阶性能接近 o1; 价格却只有零头, 一夜踩穿美国闭源厂商定价 → "**DeepSeek 时刻**".
-- **Grok 4** (xai 2025): 自研训练栈贴近超大规模集群, 在 reasoning benchmark 与 coding 上冲顶.
-- **Qwen3 / Kimi-Reasoning / GLM-Z1**: 中国开源 reasoning 路线齐发; 多家把 RL + verifier + 过程奖励走通.
+- **GPT-5 统一 o 系** (2025-08): OpenAI 把 o 系并入 GPT-5 按需切换推理 / 普通模式, 同周开源 **gpt-oss-120b/20b** (2025-08-05, Apache 2.0); 此后按"月"迭代 (5.1 → 5.2 → … → 5.6), 2026-07 的 **GPT-5.6** 再分成 Sol / Terra / Luna 三档能力层.
+- **Anthropic** (2025-2026): Claude 3.7 / 4.x 把 "extended thinking" 做成内置开关; 2026-02 **Sonnet 4.6** 首搭 1M context, 2026-06/07 进入 **Claude 5 时代** (Sonnet 5 / Opus 5), agentic 编程与超长上下文成为默认能力.
+- **Google / xAI** (2025-11): **Gemini 3 Pro** 与 **Grok 4.1** 同期发布; 2026-07 Google 出 **Gemini 3.6 Flash / 3.5 Flash-Lite / 3.5 Flash Cyber** 主打 agent 效率, Grok 5 却一再跳票、只更新到 4.5 —— 大版本节奏第一次被拉开.
+- **中国开源路线齐发** (2025-2026): DeepSeek V3.2 → **R2** (2026 初)、Qwen3-Max → **Qwen3.5** (2026-02)、Kimi K2.5、GLM-Z1 等, 把 RL + verifier + 过程奖励走通并保持开源权重.
 
-→ **统计学含义**: 不再只是 next-token 似然, 而是 MCTS + PRM + verifiable reward 上的策略优化; 模型从"模仿分布" 变 "在状态空间搜解". 这把强化学习 (RL) 从边缘推成 LLM 训练 core 环.
+→ **统计学含义**: 不再只是 next-token 似然, 而是 MCTS + PRM + verifiable reward 上的策略优化; 模型从"模仿分布" 变 "在状态空间搜解". 这把强化学习 (RL) 从边缘推成 LLM 训练 core 环, 且 2026 年推理算力曲线比预训练更陡 —— "推理时算力" 成为新的军备竞赛主轴.
 
 ### 8.5.2 百万 token 上下文与 KV / attention 革新
 
-- 2024 Gemini 1.5 Pro 1M context, 2025 GPT-5 与 Claude 4.x 主流推 1M-2M; 技术栈: sparse attention + sink token + RoPE 外插改进 (YaRN / LongRoPE) + KV 量化 (FP8 / INT4) + PagedAttention.
-- → 把 [第十二部分 §2 MHA](../ai-ml/transformer.md) 与 [§3 backprop](../ai-ml/backprop.md) 里 attention 显存 $O(T^2)$ 的容器打到工程极限.
+- 2024 Gemini 1.5 Pro 首秀 1M context; 2026-03 **Claude Opus 4.6 / Sonnet 4.6 把 1M context 转正为 GA** (标准价、无溢价), Gemini 3 / Claude 5 延续 1M+ 原生支持, OpenAI 400K 走"短上下文快推理" 路线.
+- 技术栈: sparse attention + sink token + RoPE 外插改进 (YaRN / LongRoPE) + KV 量化 (FP8 / INT4) + PagedAttention.
+- → 把 [第十二部分 §2 MHA](../ai-ml/transformer.md) 与 [§3 backprop](../ai-ml/backprop.md) 里 attention 显存 $O(T^2)$ 的容器打到工程极限; 长上下文从"演示指标" 变成"默认产品参数".
 
-### 8.5.3 NVIDIA Blackwell 与 HBM4 / GB200
+### 8.5.3 NVIDIA Blackwell 与 HBM4 / Rubin
 
 - **B200** (2024 发布 / 2025 量产): 双 die, 192 GB HBM3e, 8 PFLOPS FP4. 注意 B200 不再单芯片, 而是 2 个 reticle 用 NV-HBI 互连封装.
 - **GB200 NVL72**: 36 块 Grace CPU + 72 块 B200 通过 1.8 TB/s NVLink 互联构建单机柜巨型张量机.
-- **HBM4** (2025-2026 量产): 12-hi / 16-hi stack, 单 stack 384 GB/s+, 容量与带宽继续翻倍, 撞 CXL 3.0 让 Tiered memory 走向主流.
+- **HBM4** (JEDEC 2025-04 定标; SK 海力士 2025-10 量产 → Samsung 2026-02 → Micron 2026-06 通过 NVIDIA 认证): 位宽 1024→2048 bit, **单 stack 约 2 TB/s**, 8-hi 24 GB / 12-hi 36 GB 起步; 配合 CXL 3.x 让 Tiered memory 走向主流.
+- **Rubin / Vera Rubin** (CES 2026 发布, 2026 下半年量产): 72 Rubin GPU + 36 Vera CPU, NVLink 6 (每 GPU 3.6 TB/s) + ConnectX-9, 把"整柜张量机"再推上机架级 NVLink Domain; 2026 起 AI 硬件竞争从单卡打到整机柜.
 
 ### 8.5.4 ASIC 与 XPU 谱系扩展
 
-- **Google TPU v5p / v6 Trillium** / **Intel Falcon Shores** (Gaudi 后) / **AMD MI400** (2026) / **AWS Trainium 2**: 都朝"张量 + 互联" 押大注.
-- **Groq LPU** 类比"流式推理"几十到几百 tok/s 单卡.
+- **Google TPU v6 Trillium** / **AMD Instinct MI450** (2026, 432 GB HBM4, 19.6 TB/s, Helios 机架) / **AWS Trainium 2**: 都朝"张量 + 互联" 押大注; Intel **Falcon Shores 2025-01 取消** (仅作内部测试芯片), 转向机架级 **Jaguar Shores** —— 路线图再一次证明竞争重心在"系统" 而非"单卡".
+- **Groq LPU** 主打"流式推理"几十到几百 tok/s 单卡.
 - **Cerebras WSE-3** 与 **SambaNova SN40L**: 整片晶圆级芯片 + 长上下文推理 SDK.
-- **Apple M3-M5 Neural Engine** + **骁龙 X Elite NPU** 终端推理普及; 一台笔记本上跑百亿参数成产品级.
-- **国产**: 华为昇腾 910C 开始大规模国产替代; 寒武纪思元 590 / 阿里平头哥 倚天 / 含光 也成熟.
+- **Apple M5** (2025-10) / **M5 Pro/Max** (2026-03) Neural Engine + **骁龙 X Elite NPU** 终端推理普及; 一台笔记本上跑百亿参数成产品级.
+- **国产**: 昇腾 910C 大规模国产替代 → **昇腾 950 超节点 Atlas 950 SuperPoD** (2026 WAIC 首展: 1024 卡互联, 1 EFLOPS FP8 / 2 EFLOPS FP4, 256 TB 统一内存), 昇腾 384 超节点已商用 750+ 套; SMIC N+2 (7nm 等效) 2026 年底产能目标 7 万片/月; 寒武纪思元 590 / 阿里倚天 / 含光 亦成熟.
 
 ### 8.5.5 Agentic AI + MCP 协议
 
 - 2024 末 Anthropic 提出 **MCP** (Model Context Protocol) 让 LLM 与外部工具 / 数据源通过标准 JSON-RPC 协议交互.
-- 2025 GPT-5 / Claude 4.x / Gemini 2.x 把 tool use / 多轮调用 / sub-agents 工程化; "Agent = LLM + tool loop + memory" 成主流范式.
-- 由此工具调用从单 API 进化为"企业应用总线"; 安全与沙箱 (Yamada / eBPF 隔离) 同步兴起.
+- 2025-2026 GPT-5.x / Claude 5 / Gemini 3.x 把 tool use / 多轮调用 / sub-agents 工程化; **Codex / claude-code 等 coding agent 成为首个"产品级 agent" 品类**, "Agent = LLM + tool loop + memory" 成主流范式.
+- 由此工具调用从单 API 进化为"企业应用总线"; 安全与沙箱 (Yamada / eBPF 隔离) 同步兴起, agent 从 demo 走向生产.
 
 ### 8.5.6 量子计算 "logical qubit" 时代
 
-- 2024-2025 多个实验室分别证明 logical qubit error rate < physical qubit error rate (Google Diagonal div 阶段里程碑).
-- 2026 大型超导与 trapped ion 设备同时抵达 ~100 logical qubit 门槛, 指数纠错效率继续往上.
+- **Google Willow** (2024-12, 105 qubit): 首次演示表面码**低于阈值 (below threshold)** —— 错误率随码距增大指数下降, 纠错从理论变成工程曲线.
+- **Quantinuum Helios** (2025-11): 98 物理 qubit 编码出 **48 个逻辑 qubit**, 2Q 门平均保真 99.92%, 是目前逻辑 qubit 的最高纪录.
+- 2026 现实: 主流设备落在 **10-48 逻辑 qubit**, 尚未抵达 "~100 logical" 门槛; IBM 200 逻辑 qubit 的 Starling 预期 2028-2029.
 - 但 **Shor 还要 100 万-1 千万物理 qubit** 才能威胁 RSA-2048; 业内"Y2Q (years to quantum)" 估计仍在 10-30 年.
 
 
 
 ---
 
-## 九、用一条数学线把 1936-2024 拉直
+## 九、用一条数学线把 1936-2026 拉直
 
 ```
 1936 TM        ──── "可计算" 形式化
@@ -321,11 +325,11 @@ Tim Berners-Lee 在 CERN 部署第一个 web server, HTTP 0.9 / HTML. 1993 Marc 
 2025 推理模型 + Agent = RL + verifier + 显式思维链;
        Blackwell B200 把"芯片"从单片推到多 reticle 系统
                                               │
-2026 7nm 自洽 + HBM4 + CXL + 量子逻辑 qubit:
+2026 HBM4 (~2 TB/s) + CXL 3.2 + 昇腾 950 超节点 + 量子数十逻辑 qubit:
        数学调度不止 on-die, 跨 memory / chiplet / quantum 同步推上日程
 ```
 
-**这条线告诉读者**: 数学在第零部分不是孤立基础, 而是**在 1936-2024 这 90 年里每隔十几年就被换一次主角**, 从离散的 TM → 概率的信息论 → 协议的不变式 → 数论的密码学 → 优化的 AI.
+**这条线告诉读者**: 数学在第零部分不是孤立基础, 而是**在 1936-2026 这 90 年里每隔十几年就被换一次主角**, 从离散的 TM → 概率的信息论 → 协议的不变式 → 数论的密码学 → 优化的 AI.
 
 ---
 
@@ -351,7 +355,8 @@ Tim Berners-Lee 在 CERN 部署第一个 web server, HTTP 0.9 / HTML. 1993 Marc 
 | 2025 | 推理模型 / DeepSeek 时刻 | 把"LLM"从续写推到 RL 增强推理; 开源踩穿定价 |
 | 2025 | Blackwell B200 / GB200 | 把"GPU"从单片推到 multi-reticle + 整柜张量机 |
 | 2025 | MCP / Agentic AI | 把"LLM"从问答推到工具总线 + 多轮 Agent |
-| 2026 | 7nm 自洽国产 + HBM4 + CXL 3.0 | 把"硬件"从西方单一供应链推到多源分工 |
+| 2026 | HBM4 三家量产 + Rubin / MI450 + 昇腾 950 | 把"算力"从单供应商单片推到整柜多源分工 |
+| 2026 | 量子 10-48 逻辑 qubit | 把纠错从物理实验推到工程爬坡 |
 
 ---
 
@@ -378,7 +383,7 @@ Tim Berners-Lee 在 CERN 部署第一个 web server, HTTP 0.9 / HTML. 1993 Marc 
 > - **2025 Reasoning + Blackwell**: 推理模型把 RL 推上 LLM 主舞台; B200 / GB200 把 GPU 推到整柜张量机.
 > - **2025 DeepSeek 时刻**: 开源踩穿闭源定价; 中国开源路线齐发.
 > - **2025 MCP / Agentic**: LLM 进化为 Agent + tool bus.
-> - **2026 HBM4 + CXL 3.0 + 7nm 自洽**: 异构内存 / 跨供应商分工进一步煎饼化.
+> - **2026 HBM4 (2 TB/s) + Rubin / MI450 + 昇腾 950 + 量子数十逻辑 qubit**: 整柜算力 + 多源供应链; 逻辑 qubit 纠错进入工程爬坡.
 
 ---
 
