@@ -10,6 +10,7 @@
 - [文件系统](fs/index.html)
 - [进程与线程调度](sched/index.html)
 - [锁与同步原语](lock/index.html)
+- [虚拟化与容器](virtualization.md)
 - [IO 与网络栈](net/index.html)
 
 ## 阅读策略

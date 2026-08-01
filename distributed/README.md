@@ -20,11 +20,12 @@ API 高层：用户 `POST /api/order`，看似一个简单 RPC 调用——
 
 请求每一次成功 commit 都涉及：网络多跳、consensus 算法、持久化、leader election / membership change。这一层是**字面意义决定高可用或永久数据丢失的关键**——李飞飞团队 2017 Spanner 论文证明了 CRDT 不足以做银行账户；Apple WebObjects 2007 事故证明了 Paxos 错误实施可直接让集群锁死 30 小时。理解分布式系统不是"加更多机器让事务变快"，而是"在 partial failure 下证明你的 promise 仍 hold"。
 
-## 5 个章节
+## 6 个章节
 
 - [基础概念](concepts/index.html) — CAP / PACELC / BASE / 一致性等级 / 故障模型
 - [共识](consensus/index.html) — Paxos / Multi-Paxos / Raft / ZAB
 - [复制](replication/index.html) — 主从 / 多主 / 无主 / CRDT
+- [分布式事务](transactions.md) — 2PC / Saga / TCC / Outbox / Spanner
 - [时钟与顺序](clock/index.html) — Logical Clock / Vector Clock / HLC / TrueTime / DAG
 - [分布式存储与容错](fault/index.html) — Quorum / Erasure Coding / 调度器
 
@@ -36,6 +37,7 @@ API 高层：用户 `POST /api/order`，看似一个简单 RPC 调用——
 4. Vector clock 怎么检测并发写、HLC 怎么无 GPS 提供 causal consistency
 5. Erasure code RS(10,4) vs 3 副本在存储与可用性的折中
 6. Google Spanner 用 TrueTime 实现 external consistency 的代价 (commit wait)
+7. 2PC 协调者崩溃为什么阻塞、Saga 为什么拿不到原子性、Outbox 如何保证"写库+发事件"原子
 
 ## 历史 1：1978 Lamport "Time, Clocks"
 

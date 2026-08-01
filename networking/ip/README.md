@@ -36,3 +36,4 @@ DNS 给出名 `api.example.com` -> 通过 socket 给应用 IP -> IP 层判断目
 - [DHCP / ARP / NDP](arp-dhcp.md)：地址解析、地址分配、跨网段 relay、安全陷阱
 - [BGP / OSPF 路由](bgp-ospf.md)：链路状态 vs 路径向量、收敛对比、生产场景选择
 - [NAT 与 conntrack](nat.md)：5 元组 conntrack 表、Cone vs Symmetric NAT、P2P 打洞失败根因
+- [DNS](dns.md)：递归/权威分层、TTL 与缓存、CDN 调度、DNSSEC / DoH / HTTPDNS

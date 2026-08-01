@@ -1,6 +1,6 @@
 # TODO — 待补充模块
 
-> 当前导论卷 + 工程化实践轴 + 第零部分 + 13 主题 + 形式化卷 + 量子卷，构建通过，~55.5K 行 / 272 个 .md。
+> 当前导论卷 + 工程化实践轴 + 第零部分 + 13 主题 + 形式化卷 + 量子卷，构建通过，~57.6K 行 / 281 个 .md。
 
 ## 已完成
 
@@ -14,6 +14,15 @@
   - 纠错: 逻辑 qubit / surface code / 阈值定理 / Y2Q 现实
 - [x] **第十二部分 AI/ML 补充**（第 9 章）
   - 表示学习与对比学习: SimCLR / CLIP / InfoNCE / 自监督
+- [x] **第十二部分 AI/ML 再补充**（共 13 章）
+  - 经典机器学习与树模型: 决策树 / 随机森林 / GBDT / XGBoost / SVM / 核技巧
+  - LLM 推理与部署: KV cache / PagedAttention / 连续批处理 / 投机解码 / W4A16 量化 / PD 分离
+- [x] **网络补充**：DNS（递归/权威分层、TTL 与 CDN 调度、DNSSEC / DoH / HTTPDNS）
+- [x] **数据库补充**：倒排索引与全文检索（Lucene segment / BM25 / ES 分布式搜索）
+- [x] **分布式补充**：分布式事务（2PC / 3PC / Saga / TCC / Outbox / Spanner）
+- [x] **操作系统补充**：虚拟化与容器（KVM / EPT / namespaces+cgroups / gVisor / Kata / Firecracker）
+- [x] **计算机组成补充**：存储硬件（NAND SLC-TLC/QLC / FTL / 写入放大 / NVMe / ZNS）
+- [x] **DSA 深度重写**：贪心（交换论证 + Go/Python 实现）、回溯（四类剪枝 + 去重语义）
 - [x] **工程化实践轴 · 让代码真正跑进生产**（独立轴，11 章）
   - Git 与版本控制: 对象模型 / 分支模型 / 合并策略 / 回滚恢复 / 团队协作
   - 测试工程: 测试金字塔 / 单元/集成/契约/E2E / mock / flaky 治理 / 覆盖率
@@ -78,12 +87,15 @@
   - [x] Tokenizer 与 Embedding 详解（BPE / WordPiece / SentencePiece / 位置编码 RoPE / ALiBi）→ `ai-ml/tokenizer.md`
   - [x] 强化学习基础与 RLHF（MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF / DPO / GRPO）→ `ai-ml/rl.md`
   - [x] 大模型训练工程（DP / PP / TP / ZeRO / FSDP / checkpoint / 量化）→ `ai-ml/training-at-scale.md`
-- [x] ~~表示学习与对比学习（SimCLR / CLIP / contrastive loss）~~ → `ai-ml/contrastive-learning.md`
+- [x] ~~表示学习与对比学习（SimCLR / CLIP / contrastive loss)~~ → `ai-ml/contrastive-learning.md`
 - [x] ~~形式化方法（Coq / Lean / TLA+ 模型检查与证明）~~ → `formal/` 独立卷
 - [x] ~~程序验证与定理证明~~ → `formal/program-verification.md`
 - [x] ~~量子计算基础（Deutsch–Jozsa, Shor, 基础量子纠错 surface code）~~ → `quantum/` 独立卷
+- [x] ~~AI/ML Agent / 多模态~~ → 已补 2 章:
+  - [x] LLM Agent: Tool Use / ReAct / Plan-Execute / Multi-Agent / Memory → `ai-ml/agents.md`
+  - [x] 多模态: 跨注意力 / Flamingo / LLaVA / BLIP-2 / 扩散多模态 → `ai-ml/multimodal.md`
 
-后续按需增补（无固定待办）：AI/ML 的 Agent / 多模态、工程化的专项实操、形式化的更深工具链、量子的物理实现细节。
+后续按需增补（无固定待办）：工程化的专项实操、形式化的更深工具链、量子的物理实现细节。
 
 ## 各部分章节大纲
 

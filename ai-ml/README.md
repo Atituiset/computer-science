@@ -39,10 +39,14 @@
 - [3. Transformer: self-attention / MHA / FFN / LayerNorm / 残差 / Encoder-Decoder / 训练损失](transformer.md)
 - [4. Optimizers & Training Dynamics: Adam/AdamW/二阶 + 初始化/LayerNorm/warmup/checkpoint](optimizers.md)
 - [5. Generative Models: VAE & ELBO / 扩散模型 / AR 采样 / speculative decoding](generative.md)
-- [6. Tokenizer 与 Embedding: BPE / WordPiece / SentencePiece / 位置编码](tokenizer.md)
-- [7. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF](rl.md)
-- [8. 大模型训练工程: DP/PP/TP/ZeRO/FSDP/Checkpoint](training-at-scale.md)
-- [9. 表示学习与对比学习: SimCLR / CLIP / InfoNCE](contrastive-learning.md)
+- [6. 经典机器学习与树模型: 决策树 / GBDT / XGBoost / SVM](classical-ml.md)
+- [7. Tokenizer 与 Embedding: BPE / WordPiece / SentencePiece / 位置编码](tokenizer.md)
+- [8. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF](rl.md)
+- [9. 大模型训练工程: DP/PP/TP/ZeRO/FSDP/Checkpoint](training-at-scale.md)
+- [10. 表示学习与对比学习: SimCLR / CLIP / InfoNCE](contrastive-learning.md)
+- [11. LLM Agent: Tool Use / ReAct / Plan-Execute / Multi-Agent / Memory](agents.md)
+- [12. 多模态: 跨注意力 / Flamingo / LLaVA / BLIP-2 / 扩散多模态](multimodal.md)
+- [13. LLM 推理与部署: KV Cache / PagedAttention / 连续批处理 / 量化](llm-inference.md)
 
 ## 与各部分的接口表
 
@@ -57,7 +61,7 @@
 
 ## 不在本部分讲什么
 
-- **传统 ML (SVM / 决策树 / 随机森林 / Boosting / k-means / PCA)**: 这些是金融/推荐系统/统计 ML 的入口, 但与深度学习主线相对独立, 本部分默认读者已通过基础课熟悉, 不展开; MLE/MAP 与 SVM 的 KKT 推导见第零部分 §4 凸优化.
+- **传统 ML 的剩下半壁 (k-means / PCA / 聚类与降维)**: 已在 §6 树模型与 SVM 之外的部分仍按需自学; 聚类与降维与深度表示学习(§10)在目标上同构, 数学基础 (MLE/MAP, KKT, SVD) 都在第零部分.
 - **形式化方法 / 程序验证**: Coq / Lean / TLA+ 见 TODO 未来方向.
 - **量子计算**: Deutsch–Jozsa / Shor / 量子纠错见 TODO 未来方向.
 
@@ -80,12 +84,13 @@
 ## 阅读路径建议
 
 ```
-对 ML 完全陌生:           §1 → §2 → §3 → §4 → §5
+对 ML 完全陌生:           §1 → §2 → §3 → §4 → §5 → §6
 只想懂 Transformer:       第零部分线代 §6 → §2 → §3
-只想懂训练工程:            §4 → §8 (并行/显存)
+只想懂训练工程:            §4 → §9 (并行/显存) → §13 (推理)
 只想懂生成模型:            第零部分概率 §5/§7 → §5
-准备读 RLHF / 对齐:        §3 → §7 (RLHF/DPO/GRPO)
-想读懂开源模型 config:      §6 (tokenizer) → §7 → §8
+准备读 RLHF / 对齐:        §3 → §8 (RLHF/DPO/GRPO)
+想读懂开源模型 config:      §7 (tokenizer) → §8 → §9
+表格数据建模:               §1 → §6 (决策树/GBDT/XGBoost/SVM)
 ```
 
 ---

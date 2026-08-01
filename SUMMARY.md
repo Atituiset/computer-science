@@ -112,6 +112,7 @@
   - [RCU、seqlock、brlock](os/lock/rcu.md)
   - [内存模型与 memory barrier](os/lock/memory-barrier.md)
   - [lock-free/wait-free 数据结构](os/lock/lockfree.md)
+- [虚拟化与容器: VM / KVM / namespaces / gVisor](os/virtualization.md)
 - [IO 与网络栈](os/net/README.md)
   - [epoll / kqueue / io_uring 对比](os/net/epoll-iouring.md)
   - [Zero copy：sendfile / splice / MSG_ZEROCOPY](os/net/zero-copy.md)
@@ -131,6 +132,7 @@
   - [DHCP / ARP / NDP](networking/ip/arp-dhcp.md)
   - [BGP / OSPF 路由](networking/ip/bgp-ospf.md)
   - [NAT 与 conntrack](networking/ip/nat.md)
+  - [DNS: 名字解析 / 缓存 / CDN 调度 / DNSSEC](networking/ip/dns.md)
 - [TCP/UDP](networking/tcp/README.md)
   - [三次握手 / 四次挥手 / TIME_WAIT](networking/tcp/handshake.md)
   - [拥塞控制：Reno / Cubic / BBR](networking/tcp/congestion.md)
@@ -159,6 +161,7 @@
   - [B+ 树索引与覆盖索引](databases/indexing/btree.md)
   - [LSM-Tree 与 SSTable](databases/indexing/lsm.md)
   - [Hash index、GIN、GiST、BRIN](databases/indexing/specialized.md)
+  - [倒排索引与全文检索: Lucene / BM25 / Elasticsearch](databases/indexing/inverted-index.md)
   - [执行计划：explain analyze 怎么读](databases/indexing/explain.md)
 - [日志与崩溃恢复](databases/recovery/README.md)
   - [WAL 协议、ARIES](databases/recovery/aries.md)
@@ -213,6 +216,7 @@
   - [主从 / 多主 / 无主复制](distributed/replication/topologies.md)
   - [CRDT：无冲突数据类型](distributed/replication/crdt.md)
   - [读修复 / 反熵 / hinted handoff](distributed/replication/repair.md)
+- [分布式事务: 2PC / Saga / TCC / Outbox / Spanner](distributed/transactions.md)
 - [时钟与顺序](distributed/clock/README.md)
   - [逻辑时钟、向量时钟、HLC](distributed/clock/logical.md)
   - [TrueTime / HLC / attestation](distributed/clock/physical.md)
@@ -269,6 +273,7 @@
 - [GPU 架构：SM / CUDA Core / Tensor Core](computer-arch/gpu-architecture.md)
 - [AI 加速器：TPU / NPU / FPGA](computer-arch/ai-accelerators.md)
 - [总线与互联：PCIe / CXL / NVLink / RDMA](computer-arch/interconnects.md)
+- [存储硬件: NAND Flash / SSD FTL / 写入放大 / NVMe](computer-arch/ssd-storage.md)
 - [指令集架构：x86 / ARM / RISC-V](computer-arch/isa-design.md)
 
 ---
@@ -339,10 +344,14 @@
 - [3. Transformer: self-attention / MHA / FFN / LayerNorm / 残差 / Encoder-Decoder / 训练损失](ai-ml/transformer.md)
 - [4. Optimizers & Training Dynamics: Adam/AdamW/二阶 + 初始化/LayerNorm/warmup/checkpoint](ai-ml/optimizers.md)
 - [5. Generative Models: VAE & ELBO / 扩散模型 / AR 采样 / speculative decoding](ai-ml/generative.md)
-- [6. Tokenizer 与 Embedding: BPE / WordPiece / SentencePiece / 位置编码](ai-ml/tokenizer.md)
-- [7. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF](ai-ml/rl.md)
-- [8. 大模型训练工程: DP/PP/TP/ZeRO/FSDP/Checkpoint](ai-ml/training-at-scale.md)
-- [9. 表示学习与对比学习: SimCLR / CLIP / InfoNCE](ai-ml/contrastive-learning.md)
+- [6. 经典机器学习与树模型: 决策树 / GBDT / XGBoost / SVM](ai-ml/classical-ml.md)
+- [7. Tokenizer 与 Embedding: BPE / WordPiece / SentencePiece / 位置编码](ai-ml/tokenizer.md)
+- [8. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF](ai-ml/rl.md)
+- [9. 大模型训练工程: DP/PP/TP/ZeRO/FSDP/Checkpoint](ai-ml/training-at-scale.md)
+- [10. 表示学习与对比学习: SimCLR / CLIP / InfoNCE](ai-ml/contrastive-learning.md)
+- [11. LLM Agent: Tool Use / ReAct / Plan-Execute / Multi-Agent / Memory](ai-ml/agents.md)
+- [12. 多模态: 跨注意力 / Flamingo / LLaVA / BLIP-2 / 扩散多模态](ai-ml/multimodal.md)
+- [13. LLM 推理与部署: KV Cache / PagedAttention / 连续批处理 / 量化](ai-ml/llm-inference.md)
 
 ---
 

@@ -1,4 +1,4 @@
-# 6. Tokenizer 与 Embedding: BPE / WordPiece / SentencePiece / 位置编码
+# 7. Tokenizer 与 Embedding: BPE / WordPiece / SentencePiece / 位置编码
 
 ## TL;DR
 
@@ -322,4 +322,4 @@ print(len(tok))                 # 128256 (vocab size)
 
 ---
 
-下一篇: [7. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF](rl.md).
+下一篇: [8. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF](rl.md).

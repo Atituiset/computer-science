@@ -1,4 +1,4 @@
-# 8. 大模型训练工程: DP/PP/TP/ZeRO/FSDP/Checkpoint
+# 9. 大模型训练工程: DP/PP/TP/ZeRO/FSDP/Checkpoint
 
 ## TL;DR
 

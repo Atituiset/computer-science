@@ -1,4 +1,4 @@
-# 9. 表示学习与对比学习: SimCLR / CLIP / InfoNCE
+# 10. 表示学习与对比学习: SimCLR / CLIP / InfoNCE
 
 ## TL;DR
 

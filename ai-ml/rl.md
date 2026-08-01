@@ -1,4 +1,4 @@
-# 7. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF
+# 8. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF
 
 ## TL;DR
 
@@ -271,4 +271,4 @@ $$L_{DPO}(\theta) = -E_{(x,y_w,y_l)} \log \sigma\left( \beta \log\frac{\pi_\thet
 
 ---
 
-下一篇: [8. 大模型训练工程: DP/PP/TP/ZeRO/FSDP/checkpoint](training-at-scale.md).
+下一篇: [9. 大模型训练工程: DP/PP/TP/ZeRO/FSDP/checkpoint](training-at-scale.md).

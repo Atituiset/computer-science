@@ -309,7 +309,7 @@ $$ \mathrm{PE}_{t, 2k} = \sin(t / 10000^{2 k / d}), \quad \mathrm{PE}_{t, 2k+1} 
 - **RoPE** (Su 2021): 在复数空间旋转, 类 sinusoidal 但作为 query/key 的旋转; LLaMA / GPT-NeoX 默认, 外推好.
 - **YaRN / LongRoPE**: RoPE 外插改进, 让 model 上 1M 上下文.
 
-完整推导与实现见 [第 6 章 Tokenizer 与位置编码](tokenizer.md) §6.
+完整推导与实现见 [第 7 章 Tokenizer 与位置编码](tokenizer.md) §7.
 
 > [!WARNING]
 > 把 RoPE 只看作"加了位置的旋转"会错过细节: 它在 $d$ 维空间内 $d/2$ 个 2D 子空间各自不同频率. 反向时, RoPE 的反操作 (rotate by $-\theta_i$) 直接得回原 (无参).
@@ -337,7 +337,7 @@ $$ \mathcal{L}_{\text{LM}} = -\sum_{t=1}^{T} \log p_\theta(x_t | x_{<t}) $$
 ### 7.4 入口: SFT / RLHF (后面 RL 章会详谈)
 
 - SFT (supervised fine-tune) = 在指令数据上继续 `next-token` CE 跑.
-- RLHF (Reinforcement Learning from Human Feedback): 用 reward model + PPO 在 SFT 后对 generation 做策略优化, 让模型符合人类偏好. 详见今日待补的第 6 章 RL.
+- RLHF (Reinforcement Learning from Human Feedback): 用 reward model + PPO 在 SFT 后对 generation 做策略优化, 让模型符合人类偏好. 详见第 8 章 RL.
 
 ---
 

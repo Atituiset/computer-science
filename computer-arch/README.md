@@ -31,6 +31,7 @@
 - [GPU 架构：SM / CUDA Core / Tensor Core](gpu-architecture.md) — SIMT / warp / 共享内存 / Tensor Core 内部
 - [AI 加速器：TPU / NPU / FPGA](ai-accelerators.md) — 脉动阵列 / 数据流架构 / FPGA 推理 / Cerebras/Groq
 - [总线与互联：PCIe / CXL / NVLink / RDMA](interconnects.md) — PCIe 拓扑、CXL.mem/cache、NVSwitch、InfiniBand
+- [存储硬件：NAND / SSD FTL / 写入放大 / NVMe](ssd-storage.md) — SLC-TLC/QLC、磨损均衡、GC、TRIM、OP、队列模型
 - [指令集架构：x86 / ARM / RISC-V](isa-design.md) — RISC vs CISC、SIMD 扩展、微码、解码器
 
 读完应能回答:
