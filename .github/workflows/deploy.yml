@@ -22,7 +22,9 @@ jobs:
 
       - name: Install mdBook & preprocessors
         run: |
-          cargo install mdbook mdbook-mermaid mdbook-alerts --locked
+          cargo install mdbook --version 0.4.52 --locked
+          cargo install mdbook-mermaid --version 0.14.1 --locked
+          cargo install mdbook-alerts --version 0.8.0 --locked
 
       - name: Build book
         run: mdbook build

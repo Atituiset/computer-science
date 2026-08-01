@@ -10,6 +10,7 @@ build-dir = "book"
 create-missing = false
 
 [preprocessor.alerts]
+enabled = true
 
 [preprocessor.mermaid]
 command = "mdbook-mermaid"
