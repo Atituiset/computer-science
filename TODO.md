@@ -1,6 +1,6 @@
 # TODO — 待补充模块
 
-> 当前第零部分 + 13 主题，构建通过，~49K 行（含数学前置 ~1.8K 行 / 5 章 + 主题 ~43.7K 行 / 38 章）。
+> 当前导论卷 + 第零部分 + 13 主题，构建通过，~49.4K 行 / 249 个 .md（导论 ~1.8K / 6 章，数学 ~1.8K / 5 章，主题 ~45.8K / 其余各章）。
 
 ## 已完成
 
@@ -53,11 +53,11 @@
 
 ## 未来可继续扩展方向
 
-- [ ] 第十二部分 AI/ML 主干之外的子主题（按需增补）:
-  - Tokenizer 与 Embedding 详解（BPE / WordPiece / SentencePiece / 位置编码）
-  - 强化学习基础（MDP / Bellman / Q-learning / Policy Gradient / PPO/RLHF）
-  - 大模型训练工程（pipeline / tensor 并行、ZeRO、Megatron、FSDP、checkpoint 重物化）
-  - 表示学习与对比学习（SimCLR / CLIP / contrastive loss）
+- [x] ~~第十二部分 AI/ML 主干之外的子主题~~ → 已补 3 章:
+  - [x] Tokenizer 与 Embedding 详解（BPE / WordPiece / SentencePiece / 位置编码 RoPE / ALiBi）→ `ai-ml/tokenizer.md`
+  - [x] 强化学习基础与 RLHF（MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF / DPO / GRPO）→ `ai-ml/rl.md`
+  - [x] 大模型训练工程（DP / PP / TP / ZeRO / FSDP / checkpoint / 量化）→ `ai-ml/training-at-scale.md`
+- [ ] 表示学习与对比学习（SimCLR / CLIP / contrastive loss）
 - [ ] 形式化方法（Coq / Lean / TLA+ 模型检查与证明）
 - [ ] 程序验证与定理证明
 - [ ] 量子计算基础（Deutsch–Jozsa, Shor, 基础量子纠错 surface code）— 需第零部分线代 + 概率已就位

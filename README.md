@@ -1,8 +1,9 @@
 # Computer Science Notes
 
-## 这份笔记的定位
-
 一份基于 mdBook 的个人 CS 知识库，目标是对计算机科学的核心知识做**全面、深入、可工程化落地**的整理, 并以"一纵一横"的结构呈现: **导论卷**沿时间 / 抽象层级 / 形态 / 承接四视图搭骨架, **第零到第十三部分**按学科横切做工程级深度。
+
+> [!NOTE]
+> 在线版已部署到 GitHub Pages: <https://atituiset.github.io/computer-science/>
 
 ## 这份笔记的定位
 
@@ -39,10 +40,10 @@
 | 9 | 计算理论（自动机 / 复杂度） | [`theory/`](theory/README.md) | 10 / 2.1K |
 | 10 | 密码学与安全 | [`crypto/`](crypto/README.md) | 13 / 2.8K |
 | 11 | 信息论与编码 | [`info-theory/`](info-theory/README.md) | 12 / 2.0K |
-| 12 | 人工智能与机器学习 | [`ai-ml/`](ai-ml/README.md) | 6 / 2.0K |
+| 12 | 人工智能与机器学习 | [`ai-ml/`](ai-ml/README.md) | 9 / 2.8K |
 | 13 | 元抽象（跨章节大主题） | [`_meta/`](_meta/README.md) | 8 / 1.3K |
 
-合计：**导论卷 + 第零部分（前置数学）+ 13 主题部分**，~246 个 `.md` / ~49K 行 / ~52 个一线章节。
+合计：**导论卷 + 第零部分（前置数学）+ 13 主题部分**，~252 个 `.md` / ~50K 行 / ~55 个一线章节。
 
 骨架的设计原则是「一纵一横」：**导论卷**沿时间轴（1936 → 2026）+ 抽象层级（晶体管 → AI 模型）+ 形态演进（大型机 → XPU）+ 承接链（CPU/内存 → AI）四视图把全书串起来；**第零部分到第十三部分**按学科横切，每个专题做工程级深度。读者通过 [prologue/map.md](prologue/map.md) 的一张矩阵可以一眼定位任何一部分所在位置。
 
@@ -102,7 +103,7 @@ mdbook serve --open
 
 后续可继续扩展方向见 [`TODO.md`](TODO.md)，目前未完成项：
 
-- 第十二部分 AI/ML 主干之外的子主题（按需增补）：Tokenizer/Embedding、强化学习与 RLHF、大模型训练工程（Megatron/ZeRO/FSDP/pipeline）、表示学习与对比学习。
+- 第十二部分 AI/ML 可选增补：表示学习与对比学习（SimCLR / CLIP）。
 - 形式化方法（Coq / Lean / TLA+）。
 - 程序验证与定理证明。
 - 量子计算基础——需第零部分线代 + 概率为前置。

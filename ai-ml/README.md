@@ -39,6 +39,9 @@
 - [3. Transformer: self-attention / MHA / FFN / LayerNorm / 残差 / Encoder-Decoder / 训练损失](transformer.md)
 - [4. Optimizers & Training Dynamics: Adam/AdamW/二阶 + 初始化/LayerNorm/warmup/checkpoint](optimizers.md)
 - [5. Generative Models: VAE & ELBO / 扩散模型 / AR 采样 / speculative decoding](generative.md)
+- [6. Tokenizer 与 Embedding: BPE / WordPiece / SentencePiece / 位置编码](tokenizer.md)
+- [7. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF](rl.md)
+- [8. 大模型训练工程: DP/PP/TP/ZeRO/FSDP/Checkpoint](training-at-scale.md)
 
 ## 与各部分的接口表
 
@@ -53,10 +56,9 @@
 
 ## 不在本部分讲什么
 
-- **Tokenizer / Embedding 详解**: BPE / WordPiece / SentencePiece / 位置编码 roPE / ALiBi 见 TODO 待补充.
-- **强化学习基础与 RLHF**: MDP / Bellman / Q-learning / Policy Gradient / PPO/TRPO / RLHF 见 TODO 待补充; 本部分 §5 仅简述生成模型如何为 RLHF 提供采样接口.
-- **大模型训练工程**: Megatron / ZeRO / FSDP / Pipeline/Tensor Parallel 见 TODO 待补充; 本部分 §4 只在显存与并行直觉上点到为止.
 - **传统 ML (SVM / 决策树 / 随机森林 / Boosting / k-means / PCA)**: 这些是金融/推荐系统/统计 ML 的入口, 但与深度学习主线相对独立, 本部分默认读者已通过基础课熟悉, 不展开; MLE/MAP 与 SVM 的 KKT 推导见第零部分 §4 凸优化.
+- **形式化方法 / 程序验证**: Coq / Lean / TLA+ 见 TODO 未来方向.
+- **量子计算**: Deutsch–Jozsa / Shor / 量子纠错见 TODO 未来方向.
 
 ## 历史 1: 1957 - 1986 三起三落
 
@@ -79,9 +81,10 @@
 ```
 对 ML 完全陌生:           §1 → §2 → §3 → §4 → §5
 只想懂 Transformer:       第零部分线代 §6 → §2 → §3
-只想懂训练工程:            §4 → (回 §3 看 attention 实验)
+只想懂训练工程:            §4 → §8 (并行/显存)
 只想懂生成模型:            第零部分概率 §5/§7 → §5
-准备读 RLHF 后续章节:       §5 → 待补强化学习章节
+准备读 RLHF / 对齐:        §3 → §7 (RLHF/DPO/GRPO)
+想读懂开源模型 config:      §6 (tokenizer) → §7 → §8
 ```
 
 ---

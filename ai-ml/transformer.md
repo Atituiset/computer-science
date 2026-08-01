@@ -309,7 +309,7 @@ $$ \mathrm{PE}_{t, 2k} = \sin(t / 10000^{2 k / d}), \quad \mathrm{PE}_{t, 2k+1} 
 - **RoPE** (Su 2021): 在复数空间旋转, 类 sinusoidal 但作为 query/key 的旋转; LLaMA / GPT-NeoX 默认, 外推好.
 - **YaRN / LongRoPE**: RoPE 外插改进, 让 model 上 1M 上下文.
 
-详见 tokenizer-embedding 章节 (TODO 待补).
+完整推导与实现见 [第 6 章 Tokenizer 与位置编码](tokenizer.md) §6.
 
 > [!WARNING]
 > 把 RoPE 只看作"加了位置的旋转"会错过细节: 它在 $d$ 维空间内 $d/2$ 个 2D 子空间各自不同频率. 反向时, RoPE 的反操作 (rotate by $-\theta_i$) 直接得回原 (无参).

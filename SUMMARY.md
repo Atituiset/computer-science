@@ -323,6 +323,9 @@
 - [3. Transformer: self-attention / MHA / FFN / LayerNorm / 残差 / Encoder-Decoder / 训练损失](ai-ml/transformer.md)
 - [4. Optimizers & Training Dynamics: Adam/AdamW/二阶 + 初始化/LayerNorm/warmup/checkpoint](ai-ml/optimizers.md)
 - [5. Generative Models: VAE & ELBO / 扩散模型 / AR 采样 / speculative decoding](ai-ml/generative.md)
+- [6. Tokenizer 与 Embedding: BPE / WordPiece / SentencePiece / 位置编码](ai-ml/tokenizer.md)
+- [7. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF](ai-ml/rl.md)
+- [8. 大模型训练工程: DP/PP/TP/ZeRO/FSDP/Checkpoint](ai-ml/training-at-scale.md)
 
 ---
 
