@@ -30,6 +30,9 @@
 - [5. 应用安全: OWASP Top 10 / 认证授权 / 数据安全 / 供应链](app-security.md)
 - [6. 代码质量: 重构 / code review / 复杂度治理 / DDD 落地](code-quality.md)
 - [7. 可观测性实操: metrics/logs/traces 打点 / OpenTelemetry / SLO](observability-practice.md)
+- [8. GitHub Actions 实战: workflow / expression / 缓存 / 矩阵 / reusable / 自托管](gh-actions-deepdive.md)
+- [9. 云原生发布与 GitOps: K8s 应用 / Helm / ArgoCD / Flux / 服务网格](gitops-k8s.md)
+- [10. SRE 工程: 错误预算 / 容量 / 变更 / 事件响应 / 生产就绪](sre-engineering.md)
 
 ## 与其余各部分的接口表
 
@@ -48,12 +51,13 @@
 - **不是**重复原理章节（不重讲 B+树 / TCP / 哈希）。它假设你已经会，讲的是**怎么用、怎么落地、怎么诊断**。
 - **不是**某一门语言的教程（不教 Go 语法）。例子用 Go/Python/TS 等，但方法通用。
 - **不是**工程管理/软技能（不谈绩效、团队协作）。
+- **不是**某一家云厂商/单一平台的完整文档（GitHub Actions / K8s 为实例，但方法论通用）。
 
 ## 阅读路径
 
-- **1-5 年工程师**：§1 Git → §2 测试 → §3 CI/CD → §5 应用安全（先建立规范直觉）
-- **5-15 年工程师**：§4 性能 → §6 代码质量 → §7 可观测性（深入到方法学）
-- **想横通**：按 `Git → 测试 → CI/CD → 发布 → 可观测 → 性能 → 安全 → 重构` 的交付闭环顺序走
+- **1-5 年工程师**：§1 Git → §2 测试 → §3 CI/CD → §8 GitHub Actions → §5 应用安全（先建立规范直觉）
+- **5-15 年工程师**：§4 性能 → §6 代码质量 → §7 可观测性 → §9 GitOps → §10 SRE（深入到方法学）
+- **想横通**：按 `Git → 测试 → CI/CD → Actions → 发布/GitOps → 可观测 → 性能 → 安全 → 重构 → SRE` 的交付闭环顺序走
 
 ---
 

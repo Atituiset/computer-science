@@ -43,6 +43,9 @@
   - [5. 应用安全: OWASP Top 10 / 认证授权 / 数据安全 / 供应链](engineering/app-security.md)
   - [6. 代码质量: 重构 / code review / 复杂度治理 / DDD 落地](engineering/code-quality.md)
   - [7. 可观测性实操: metrics/logs/traces 打点 / OpenTelemetry / SLO](engineering/observability-practice.md)
+  - [8. GitHub Actions 实战: workflow / expression / 缓存 / 矩阵 / reusable / 自托管](engineering/gh-actions-deepdive.md)
+  - [9. 云原生发布与 GitOps: K8s 应用 / Helm / ArgoCD / Flux / 服务网格](engineering/gitops-k8s.md)
+  - [10. SRE 工程: 错误预算 / 容量 / 变更 / 事件响应 / 生产就绪](engineering/sre-engineering.md)
 
 ---
 
