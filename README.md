@@ -87,7 +87,7 @@ mdbook serve --open
 
 **渲染特性**：
 
-- 数学公式：MathJax 已启用，行内 `\( ... \)` / 块 `$$ ... $$`。
+- 数学公式：KaTeX 渲染，行内 `$ ... $` / 块级 `$$ ... $$`。
 - 流程图：mermaid v10 本地化嵌入（`mermaid.min.js` + `mermaid-init.js`）。
 - 代码高亮：mdBook 内置 highlight.js 配合 `language-xxx` 标注。
 

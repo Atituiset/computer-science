@@ -18,9 +18,10 @@ command = "mdbook-mermaid"
 [output.html]
 default-theme = "navy"
 preferred-dark-theme = "navy"
-smart-punctuation = true
-mathjax-support = true
-additional-js = ["mermaid.min.js", "mermaid-init.js"]
+smart-punctuation = false
+mathjax-support = false
+additional-css = ["katex/katex.min.css"]
+additional-js = ["katex/katex.min.js", "katex/contrib/auto-render.min.js", "katex-init.js", "mermaid.min.js", "mermaid-init.js"]
 
 [output.html.fold]
 enable = true
