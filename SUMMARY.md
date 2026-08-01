@@ -31,6 +31,21 @@
 
 ---
 
+# 工程化实践轴 · 让代码真正跑进生产
+
+> 与 14 部分"计算机原理"互补的手艺轴：Git 版本控制 / 测试工程 / CI-CD 发布 / 性能工程 / 应用安全 / 代码质量 / 可观测性。定位是"1-20 年工程师把基础落地到生产"。
+
+- [开篇: 工程化 = 让代码跑进生产的手艺](engineering/README.md)
+  - [1. Git 与版本控制: 原理 / 分支模型 / 合并策略 / 进阶命令](engineering/git-workflow.md)
+  - [2. 测试工程: 测试金字塔 / 单元/集成/契约/E2E / mock / flaky 治理](engineering/testing.md)
+  - [3. CI/CD 与发布工程: 管线 / 镜像 / 蓝绿金丝雀 / IaC](engineering/cicd-devops.md)
+  - [4. 性能工程: profiling / 火焰图 / 缓存与批处理方法论](engineering/performance-engineering.md)
+  - [5. 应用安全: OWASP Top 10 / 认证授权 / 数据安全 / 供应链](engineering/app-security.md)
+  - [6. 代码质量: 重构 / code review / 复杂度治理 / DDD 落地](engineering/code-quality.md)
+  - [7. 可观测性实操: metrics/logs/traces 打点 / OpenTelemetry / SLO](engineering/observability-practice.md)
+
+---
+
 # 第一部分 · 数据结构与算法（DSA）
 
 - [开篇：为什么从头学 DSA](dsa/README.md)
