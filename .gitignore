@@ -1,0 +1,34 @@
+# mdBook build 产物 (CI 会重新构建并推送到 gh-pages)
+book/
+
+# 系统 / 编辑器垃圾文件
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.*~
+.vscode/
+.idea/
+
+# 会话 / 临时
+.env
+.env.*
+!.env.example
+*.log
+*.tmp
+.cache/
+tmp/
+
+# 其他可能的依赖
+node_modules/
+target/
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Claude / opencode 本地 agent 配置（如不复用全局可去掉）
+.claude/
+.opencode/
+
+# 旧仓库 .opencode 备份
+.opencode.bak/

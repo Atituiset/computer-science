@@ -1,0 +1,38 @@
+name: Deploy mdBook to GitHub Pages
+
+on:
+  # 手动触发：GitHub Actions → Run workflow
+  workflow_dispatch:
+  # 推送到 main 分支时触发
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install mdBook & preprocessors
+        run: |
+          cargo install mdbook mdbook-mermaid mdbook-alerts --locked
+
+      - name: Build book
+        run: mdbook build
+
+      - name: Deploy to GitHub Pages (gh-pages branch)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./book
+          publish_branch: gh-pages
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: '41898282+github-actions[bot]@users.noreply.github.com'
