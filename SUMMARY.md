@@ -1,7 +1,5 @@
 # Summary
 
-# Computer Science Notes
-
 [前言](README.md)
 
 ---
@@ -382,3 +380,7 @@
   - [1. 量子计算基础: Dirac 记号 / qubit / 量子门 / 测量](quantum/basics.md)
   - [2. 量子算法: Deutsch-Jozsa / Grover / Shor](quantum/algorithms.md)
   - [3. 量子纠错: 逻辑 qubit / surface code / 现实挑战](quantum/error-correction.md)
+
+---
+
+[TODO / 待补充模块](TODO.md)

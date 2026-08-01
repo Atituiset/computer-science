@@ -272,4 +272,4 @@ GROUP BY key 基数 极高 → hash table 50 GB > RAM → killed。
 
 ## 下一节 →
 
-[OLAP 与现代数据栈](../olap/README.md) — ClickHouse / DuckDB / Snowflake 设计
+[OLAP 与现代数据栈](../olap/index.html) — ClickHouse / DuckDB / Snowflake 设计

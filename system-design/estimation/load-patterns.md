@@ -311,4 +311,4 @@ Reddit Top-of-front page Una documented cause cluster API fracas: "top-choice ho
 
 ---
 
-下一节 → [存储选型与内部](../storage/README.md)
+下一节 → [存储选型与内部](../storage/index.html)

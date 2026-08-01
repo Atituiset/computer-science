@@ -405,4 +405,4 @@ CXL.mem: Host CPU 可以 load/store 远端内存，延迟 ~300ns (vs 本地 DRAM
 
 - 软件工程中最昂贵的错误不是写错一行代码，而是在错误的抽象层做优化。**理解硬件不是目的——是在正确的抽象层做正确决策的前提。** 当你在 memcached 的 hash table 上加了复杂的 LRU 却忘了 NUMA-aware sharding，你是在抽象层优化物理层的问题——这个错误在第 6 步反射框架的第一行就能避免。
 
-返回 → [README](../README.md)
+返回 → [README](../index.html)

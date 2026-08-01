@@ -23,7 +23,7 @@
 
 ## 章节
 
-- [开篇：从正则到不可判定，计算的四级爬升](README.md) ← 当前
+- [开篇：从正则到不可判定，计算的四级爬升](index.html) ← 当前
 - [1. 自动机：DFA → NFA → ε-NFA → 子集构造 → DFA 最小化](automata.md)
 - [2. 正则语言与泵引理](regular.md)
 - [3. 下推自动机（PDA）与上下文无关文法（CFG）](cfg-pda.md)

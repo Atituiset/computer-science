@@ -284,4 +284,4 @@ IOTA 早期自定义 cryptographic hash function "Curl" unsound。 2018 MIT disc
 
 ---
 
-下一节 → [分布式存储与容错](../fault/README.md)
+下一节 → [分布式存储与容错](../fault/index.html)

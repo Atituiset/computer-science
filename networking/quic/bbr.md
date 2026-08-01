@@ -288,4 +288,4 @@ QUIC 起 DPLPMTUD probe，发现 1500B 但实际对方 router 节流 ICMP PTB �
 
 ## 下一节 →
 
-[Part 4 · 数据库系统](../../databases/README.md) — SQLite 与 Postgres、MySQL、Redis；存储引擎：B-tree / LSM / Page；事务：MVCC / WAL / 2PL；查询：RBO / CBO / HashJoin / SortMergeJoin。
+[Part 4 · 数据库系统](../../databases/index.html) — SQLite 与 Postgres、MySQL、Redis；存储引擎：B-tree / LSM / Page；事务：MVCC / WAL / 2PL；查询：RBO / CBO / HashJoin / SortMergeJoin。

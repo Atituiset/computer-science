@@ -33,7 +33,7 @@
 
 ## 章节结构
 
-- [开篇: 用量子比特重新定义"计算"](README.md) ← 当前
+- [开篇: 用量子比特重新定义"计算"](index.html) ← 当前
 - [1. 量子计算基础: Dirac 记号 / qubit / 量子门 / 测量](basics.md)
 - [2. 量子算法: Deutsch-Jozsa / Grover / Shor](algorithms.md)
 - [3. 量子纠错: 逻辑 qubit / surface code / 现实挑战](error-correction.md)

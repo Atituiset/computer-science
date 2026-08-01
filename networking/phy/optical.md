@@ -185,4 +185,4 @@ Margin: -4.4 - (-20) = 15.6 dB  (留 5-10 dB 应付老化/温度变化)
 3. QSFP-DD / OSFP / CPO 是数据中心带宽增长曲线；CPO + LPO (Linear-drive Pluggable Optics) 是 22.4T 时代的赛点
 4. 光纤布线是面积、电源、热量的三重博弈：温升让 SFP 漂出工作点 → 链路抖动，必须做 OTDR + 温度监控兜底
 
-下一节 → [IP / 路由](../ip/README.md)
+下一节 → [IP / 路由](../ip/index.html)

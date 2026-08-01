@@ -198,4 +198,4 @@ CXL.mem 让一台 4 TB 内存的服务器把"远端 1 TB 内存池"视为远端 
 - CXL 是 NUMA 互连在网络层扩展, 同抽象可拓到机柜级;
 - allocator (jemalloc) 内嵌 NUMA arena 是 OS 层 + 运行时层共同优化的同构示例.
 
-下一节 → [文件系统](../fs/README.md)
+下一节 → [文件系统](../fs/index.html)

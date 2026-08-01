@@ -29,13 +29,13 @@ Client
 
 ## 8 个章节
 
-- [负载与容量估算](estimation/README.md) — back-of-envelope、Little's Law、负载模式
-- [存储选型与内部](storage/README.md) — 选什么数据库 (KV / 关系 / 列存 / 文档 / 时序) + WAL/LSM/B-tree 内部
-- [缓存](cache/README.md) — 多级 cache、常见 pattern、failure modes (缓存雪崩、缓存穿透、缓存击穿)
-- [消息队列与异步](queue/README.md) — Kafka/Pulsar/SQS + Outbox pattern + semantics (at-most/at-least/exactly-once)
-- [可观测性](monitor/README.md) — Three pillars (metrics/logs/traces)、SLO/SLI、监控 stack
-- [扩展与可用性](scale/README.md) — sharding + replication + multi-region + resilience
-- [经典系统案例](case/README.md) — Google Bigtable/Spanner/Chubby + Dynamo family + Snowflake + K8s control plane
+- [负载与容量估算](estimation/index.html) — back-of-envelope、Little's Law、负载模式
+- [存储选型与内部](storage/index.html) — 选什么数据库 (KV / 关系 / 列存 / 文档 / 时序) + WAL/LSM/B-tree 内部
+- [缓存](cache/index.html) — 多级 cache、常见 pattern、failure modes (缓存雪崩、缓存穿透、缓存击穿)
+- [消息队列与异步](queue/index.html) — Kafka/Pulsar/SQS + Outbox pattern + semantics (at-most/at-least/exactly-once)
+- [可观测性](monitor/index.html) — Three pillars (metrics/logs/traces)、SLO/SLI、监控 stack
+- [扩展与可用性](scale/index.html) — sharding + replication + multi-region + resilience
+- [经典系统案例](case/index.html) — Google Bigtable/Spanner/Chubby + Dynamo family + Snowflake + K8s control plane
 
 读完应能回答:
 
@@ -48,4 +48,4 @@ Client
 
 ---
 
-下一节 → [负载与容量估算](estimation/README.md)
+下一节 → [负载与容量估算](estimation/index.html)

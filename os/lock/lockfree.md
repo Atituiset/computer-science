@@ -136,4 +136,4 @@ wait-free: 严格 stronger. 任何 thread 在限步内完成 → 一般上在生
 - lock-free **不一定比 mutex 快**: 高 contended 多核下 1.5-2×, 低 contended 反而慢;
 - 工程上 lock-free 复杂度集中在 memory reclamation, 不在数据结构本身.
 
-下一节 → [IO 与网络栈](../net/README.md)
+下一节 → [IO 与网络栈](../net/index.html)

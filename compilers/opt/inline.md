@@ -302,4 +302,4 @@ profile 收集每个 call site 被调用的实际类型、每条 branch 的触�
 
 ---
 
-下一节 → [Codegen 总览](../codegen/README.md)
+下一节 → [Codegen 总览](../codegen/index.html)

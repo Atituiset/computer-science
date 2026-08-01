@@ -235,4 +235,4 @@ recovery_target_lsn = '0/12345678';  # PG10+ 用 LSN
 
 ## 下一节 →
 
-[查询优化](../optimization/README.md) — RBO/CBO、join 算法、向量化执行
+[查询优化](../optimization/index.html) — RBO/CBO、join 算法、向量化执行

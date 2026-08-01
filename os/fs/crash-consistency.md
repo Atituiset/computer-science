@@ -182,4 +182,4 @@ pgbench -c 16 -j 4 -T 60 -M prepared --protocol=prepared mydb
 - fsync P99 是数据库 commit P99 上界, group commit 拿到 100× throughput;
 - NVMe cache / FUA / barrier=1 是 fsync 与 device 层的合作 contact.
 
-下一节 → [进程与线程调度](../sched/README.md)
+下一节 → [进程与线程调度](../sched/index.html)

@@ -354,4 +354,4 @@ InnoDB `innodb_max_dirty_pages_pct = 75` 太低 → checkpoint 频繁 flush → 
 
 ## 下一节 →
 
-[索引与存储结构](../indexing/README.md) — B+ tree / LSM-Tree / Hash / GIN / GiST / BRIN / explain analyze 解读
+[索引与存储结构](../indexing/index.html) — B+ tree / LSM-Tree / Hash / GIN / GiST / BRIN / explain analyze 解读

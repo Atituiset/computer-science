@@ -27,24 +27,24 @@
 
 | # | 部分 | 目录 | 文件数 / 行数 |
 |---|------|------|--------------|
-| – | **导论卷 · 计算机基础知识体系** | [`prologue/`](prologue/README.md) | 6 / 1.6K |
-| – | **工程化实践轴 · 让代码跑进生产** | [`engineering/`](engineering/README.md) | 11 / 3.5K |
-| 0 | **工程数学与离散数学基础** | [`math/`](math/README.md) | 5 / 1.8K |
-| 1 | 数据结构与算法（DSA） | [`dsa/`](dsa/README.md) | 36 / 3.7K |
-| 2 | 操作系统 | [`os/`](os/README.md) | 27 / 3.4K |
-| 3 | 计算机网络 | [`networking/`](networking/README.md) | 22 / 6.0K |
-| 4 | 数据库系统 | [`databases/`](databases/README.md) | 22 / 4.5K |
-| 5 | 编译原理 | [`compilers/`](compilers/README.md) | 19 / 3.3K |
-| 6 | 分布式系统 | [`distributed/`](distributed/README.md) | 21 / 3.6K |
-| 7 | 系统设计 | [`system-design/`](system-design/README.md) | 30 / 6.0K |
-| 8 | 计算机组成原理 | [`computer-arch/`](computer-arch/README.md) | 9 / 4.6K |
-| 9 | 计算理论（自动机 / 复杂度） | [`theory/`](theory/README.md) | 10 / 2.1K |
-| 10 | 密码学与安全 | [`crypto/`](crypto/README.md) | 13 / 2.8K |
-| 11 | 信息论与编码 | [`info-theory/`](info-theory/README.md) | 12 / 2.0K |
-| 12 | 人工智能与机器学习 | [`ai-ml/`](ai-ml/README.md) | 10 / 3.4K |
-| 13 | 元抽象（跨章节大主题） | [`_meta/`](_meta/README.md) | 8 / 1.3K |
-| – | **形式化方法卷** | [`formal/`](formal/README.md) | 4 / 1.3K |
-| – | **量子计算卷** | [`quantum/`](quantum/README.md) | 4 / 0.7K |
+| – | **导论卷 · 计算机基础知识体系** | [`prologue/`](prologue/index.html) | 6 / 1.6K |
+| – | **工程化实践轴 · 让代码跑进生产** | [`engineering/`](engineering/index.html) | 11 / 3.5K |
+| 0 | **工程数学与离散数学基础** | [`math/`](math/index.html) | 5 / 1.8K |
+| 1 | 数据结构与算法（DSA） | [`dsa/`](dsa/index.html) | 36 / 3.7K |
+| 2 | 操作系统 | [`os/`](os/index.html) | 27 / 3.4K |
+| 3 | 计算机网络 | [`networking/`](networking/index.html) | 22 / 6.0K |
+| 4 | 数据库系统 | [`databases/`](databases/index.html) | 22 / 4.5K |
+| 5 | 编译原理 | [`compilers/`](compilers/index.html) | 19 / 3.3K |
+| 6 | 分布式系统 | [`distributed/`](distributed/index.html) | 21 / 3.6K |
+| 7 | 系统设计 | [`system-design/`](system-design/index.html) | 30 / 6.0K |
+| 8 | 计算机组成原理 | [`computer-arch/`](computer-arch/index.html) | 9 / 4.6K |
+| 9 | 计算理论（自动机 / 复杂度） | [`theory/`](theory/index.html) | 10 / 2.1K |
+| 10 | 密码学与安全 | [`crypto/`](crypto/index.html) | 13 / 2.8K |
+| 11 | 信息论与编码 | [`info-theory/`](info-theory/index.html) | 12 / 2.0K |
+| 12 | 人工智能与机器学习 | [`ai-ml/`](ai-ml/index.html) | 10 / 3.4K |
+| 13 | 元抽象（跨章节大主题） | [`_meta/`](_meta/index.html) | 8 / 1.3K |
+| – | **形式化方法卷** | [`formal/`](formal/index.html) | 4 / 1.3K |
+| – | **量子计算卷** | [`quantum/`](quantum/index.html) | 4 / 0.7K |
 
 合计：**导论卷 + 工程化实践轴 + 第零部分（前置数学）+ 13 主题 + 形式化卷 + 量子卷**，~272 个 `.md` / ~55.5K 行 / ~70 个一线章节。
 
@@ -52,16 +52,16 @@
 
 ## 阅读路径
 
-**起点推荐（新读者）**: 先读 [导论卷](prologue/README.md) — 用 4 个视图（时间 / 抽象层级 / 形态演进 / 承接链）把全书骨架在脑子里搭起来, 然后任选下面三条按背景分型的路径下钻.
+**起点推荐（新读者）**: 先读 [导论卷](prologue/index.html) — 用 4 个视图（时间 / 抽象层级 / 形态演进 / 承接链）把全书骨架在脑子里搭起来, 然后任选下面三条按背景分型的路径下钻.
 
 **按背景分型**:
 
 1. **应用工程背景 / 看论文吃力**
-   → 先 [导论](prologue/README.md) → [第零部分 数学](math/README.md) → [线代](math/linalg.md) → [概率](math/prob.md) → [微积分与优化](math/calc-opt.md) → 再回主线.
+   → 先 [导论](prologue/index.html) → [第零部分 数学](math/index.html) → [线代](math/linalg.md) → [概率](math/prob.md) → [微积分与优化](math/calc-opt.md) → 再回主线.
 2. **没系统学过 CS 理论**
-   → [导论](prologue/README.md) → [数学 · 离散篇](math/discrete.md) → [DSA](dsa/README.md) → [计算理论](theory/README.md).
+   → [导论](prologue/index.html) → [数学 · 离散篇](math/discrete.md) → [DSA](dsa/index.html) → [计算理论](theory/index.html).
 3. **学习 Transformer 优先**
-   → [导论 · 形态演进](prologue/mainframe-xpu.md) (XPU 段) → [线代](math/linalg.md) → [概率](math/prob.md) → [微积分](math/calc-opt.md) → [第十二部分 AI/ML](ai-ml/README.md).
+   → [导论 · 形态演进](prologue/mainframe-xpu.md) (XPU 段) → [线代](math/linalg.md) → [概率](math/prob.md) → [微积分](math/calc-opt.md) → [第十二部分 AI/ML](ai-ml/index.html).
 
 主线推荐顺序（已系统学过、想横通 CS）：
 
@@ -100,7 +100,7 @@ mdbook serve --open
   - `> [!NOTE]` — 关键观察、跨章引用入口
   - `> [!WARNING]` — 反直觉、常见误用、踩坑警告
   - `> [!TIP]` — 速查表 / 速记口诀
-- **数学记号**统一见 [`math/README.md` §记号约定](math/README.md#数学记号约定)。
+- **数学记号**统一见 [`math/README.md` §记号约定](math/index.html#数学记号约定)。
 
 ## 与 TODO 的对齐
 

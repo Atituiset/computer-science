@@ -105,4 +105,4 @@
 
 ---
 
-下一节 → [信息论与编码 README](../info-theory/README.md)
+下一节 → [信息论与编码 README](../info-theory/index.html)

@@ -189,4 +189,4 @@ TCP NAT hole punching 比 UDP 复杂很多，因为 TCP 三次握手+状态机�
 4. CGN 是国家规模 NAT 的边缘；每 CGN IP 只服务 ~100 个家庭避免单 IP 全局被 ban
 5. UDP STUN + Cone NAT 是 WebRTC 端到端直连的基础；TCP hole punching 几乎不实用
 
-下一节 → [TCP/UDP](../tcp/README.md)
+下一节 → [TCP/UDP](../tcp/index.html)

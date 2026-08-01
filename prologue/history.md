@@ -110,7 +110,7 @@ Ken Thompson & Dennis Ritchie 在 Bell Labs 为 PDP-7 写"unics" (-> Unix), 后�
 
 **贡献**: 文件即字节流 / 进程 / fork-exec / pipe / 小工具组合的 shell 哲学 / 网络套接字.
 
-→ 本书 [第二部分 OS](../os/README.md) 几乎是 Unix 与 Linux 工程化的延伸.
+→ 本书 [第二部分 OS](../os/index.html) 几乎是 Unix 与 Linux 工程化的延伸.
 
 ### 3.2 ARPANET (1969)
 
@@ -146,7 +146,7 @@ Pop Electronics 1975 封面 Altair 8800 → 哈佛大二学生 Bill Gates 与 Pa
 ### 4.3 LAN 与数据库
 
 - 1980 Novell NetWare / 3Com Ethernet 网卡让办公室组 LAN 成常态.
-- **关系数据库** 1970 Codd 论文 → Oracle (1979) / IBM DB2 (1983) / PostgreSQL前身 Postgres (1996). 这是 [第四部分数据库](../databases/README.md) 的源头.
+- **关系数据库** 1970 Codd 论文 → Oracle (1979) / IBM DB2 (1983) / PostgreSQL前身 Postgres (1996). 这是 [第四部分数据库](../databases/index.html) 的源头.
 
 ---
 
@@ -162,7 +162,7 @@ Linus Torvalds 在赫尔辛基大学宿舍写 Linux 0.01 (1991-08-25 公告), 19
 
 Tim Berners-Lee 在 CERN 部署第一个 web server, HTTP 0.9 / HTML. 1993 Marc Andreessen 写 Mosaic 浏览器 → Netscape (1994) → 商业化 web.
 
-→ 后续影响 [第三部分网络](../networking/README.md) 的一切. HTTP 是几乎所有协议层的"最后一公里".
+→ 后续影响 [第三部分网络](../networking/index.html) 的一切. HTTP 是几乎所有协议层的"最后一公里".
 
 ### 5.3 开源浪潮
 
@@ -193,7 +193,7 @@ Tim Berners-Lee 在 CERN 部署第一个 web server, HTTP 0.9 / HTML. 1993 Marc 
 - 1999 VMware; 2003 Xen; 2006 EC2; 2008 KVM 入 Linux 主干.
 - "弹性的服务器"成为商品 → 创业公司不需自买机架 + 上架.
 
-→ [第七部分系统设计](../system-design/README.md) 的所有 case (Twitter Snowflake / Google 三件套 / Kubernetes 控制平面) 都默认这套云底座.
+→ [第七部分系统设计](../system-design/index.html) 的所有 case (Twitter Snowflake / Google 三件套 / Kubernetes 控制平面) 都默认这套云底座.
 
 ---
 
@@ -212,7 +212,7 @@ Tim Berners-Lee 在 CERN 部署第一个 web server, HTTP 0.9 / HTML. 1993 Marc 
 - 2006 BigTable paper → Cassandra (2008) / HBase / Dynamo (2007) / Redis (2009).
 - 2014 Kubernetes; 2015 Docker 1.0 主流; 2018 service mesh / Istio / Envoy.
 
-→ [第六部分分布式系统](../distributed/README.md) 的 CAP / Paxos / Raft / K8s 全靠这十年开源沉淀.
+→ [第六部分分布式系统](../distributed/index.html) 的 CAP / Paxos / Raft / K8s 全靠这十年开源沉淀.
 
 ### 7.3 CPU 增长遇阻 + 多核 + 加速器登场
 
@@ -220,7 +220,7 @@ Tim Berners-Lee 在 CERN 部署第一个 web server, HTTP 0.9 / HTML. 1993 Marc 
 - 2010 后 GPU / TPU / FPGA 在数据中心占比上升 → **异构计算**开篇.
 - 2017 RISC-V 基金会成立; ISA 开源化大潮.
 
-→ 直接铺垫 [第八部分组成原理](../computer-arch/README.md) 里的 GPU / TPU / NPU 章节.
+→ 直接铺垫 [第八部分组成原理](../computer-arch/index.html) 里的 GPU / TPU / NPU 章节.
 
 ---
 

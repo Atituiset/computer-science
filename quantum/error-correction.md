@@ -210,4 +210,4 @@ Surface code 把物理 qubit 排成 2D 网格：
 
 ---
 
-回主目录: [量子计算卷 README](README.md).
+回主目录: [量子计算卷 README](index.html).

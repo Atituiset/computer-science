@@ -299,4 +299,4 @@ Develop multi-line JSON queries error loaded in Loki; search within massive quer
 
 ---
 
-下一节 → [扩展与可用性](../scale/README.md)
+下一节 → [扩展与可用性](../scale/index.html)

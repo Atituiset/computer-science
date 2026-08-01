@@ -25,7 +25,7 @@ Shannon 1948 "A Mathematical Theory of Communication" 提出:**信息 (informati
 
 ## 章节
 
-- [开篇：从 Shannon 1948 到 5G NR 编解码设计](README.md) ← 当前
+- [开篇：从 Shannon 1948 到 5G NR 编解码设计](index.html) ← 当前
 - [1. Shannon Entropy: 离散源熵 / 联合熵 / 条件熵 / 互信息](entropy.md)
 - [2. 信道容量: 香农公式 C = B · log₂(1 + SNR)](capacity.md)
 - [3. 无损压缩: 哈夫曼 / LZ77 / LZ78 / zstd / 算术编码 / ANS](compression.md)

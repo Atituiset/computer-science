@@ -328,4 +328,4 @@ replica.lag.time.max.ms=30000   # 30s ISR lag tolerance
 
 ---
 
-下一节 → [可观测性](../monitor/README.md)
+下一节 → [可观测性](../monitor/index.html)
