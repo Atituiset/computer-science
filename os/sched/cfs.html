@@ -1,0 +1,426 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Linux CFS 调度器 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="linux-cfs-调度器"><a class="header" href="#linux-cfs-调度器">Linux CFS 调度器</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>"完全公平调度器" <code>CFS = Completely Fair Scheduler</code> 是 2.6.23-2007 引入的 Linux 默认调度类. 名字叫"完全公平" — 它真的试图做到<strong>任何任务的机会都按 weight 加权 fair share CPU 时间</strong>.  但 CFS 的物理实现是<strong>红黑树 + vruntime</strong>, 而不是朴素 weighted round-robin. 这章把红黑树和 vruntime 这两个抽象放在一起, 让你看清"50-char 算法选择到 OS 内核"的真实工程.</p>
+<h2 id="1-需要调度的本质"><a class="header" href="#1-需要调度的本质">1. 需要调度的本质</a></h2>
+<p>5000 个线程抢 64 个核. 每线程不一定"想" 跑多久:</p>
+<ul>
+<li>一个 web server 处理一个请求大概 100 μs;</li>
+<li>一个 ML 训练线程每次 inference ~30 ms;</li>
+<li>一个 daemon wake up 处理 ping ~1 ms;</li>
+</ul>
+<p>调度器的工作是: <strong>每核每 1-10 ms 内, 选一个最有权获得 CPU 的 runnable thread 跑</strong>, 然后定期 preempt, 让下一个 thread 跑.</p>
+<p>传统 Unix Unix 调度器 (2.4 / 2.5 之前): 是 priority + timestep (类似 priority RR). 但 priority RR 有几个问题:</p>
+<ul>
+<li>"nice" 的 metric 是糟糕的 ( nice 0 的 vs nice 10 不是平沙发, 实际差距 +10-12 临界);</li>
+<li>多核不友, 对称 boom lock;</li>
+<li>不能 account actual cpu time (虚拟化场景里真实 CPU 和真实 wall clock 偏差).</li>
+</ul>
+<p><strong>CFS 用 vruntime 取代 priority RR</strong>: 把"已经多跑过 CPU" 累计起来, 让多跑的退后让位.</p>
+<h2 id="2-vruntime-公平的核心数据"><a class="header" href="#2-vruntime-公平的核心数据">2. vruntime: 公平的核心数据</a></h2>
+<p>定义:</p>
+<pre><code>vruntime = ∑ (实际运行时间 × 优先级权重倒数)
+</code></pre>
+<ul>
+<li>跑得多的 thread 累计 vruntime 大;</li>
+<li>vruntime 小的 thread 表示"等待 CPU 已久"或"曾经被偷走过 budget";</li>
+<li>CFS 试图选 vruntime 最小的 runnable thread.</li>
+</ul>
+<p>nice 值从 -20 → 19, default nice=0. 它对应一个 weight (kernel/sched/sched.h 中 <code>prio_to_weight</code>:</p>
+<pre><code class="language-c">static const int prio_to_weight[40] = {
+ /* -20 */     88761,    71755,   56483,   46273,    36291,    29154,    23254,    18705,
+ /* -12 */     14949,    11916,    9548,    7620,     6100,     4904,     3906,     3121,
+ /*  -4 */      2501,     1991,    1586,    1277,     1024,      820,      655,      526,
+ /*   4 */       423,      335,     272,     215,      172,      137,      110,       87,
+ /*  12 */        70,       56,      45,      36,       29,       23,       18,       15,
+};
+</code></pre>
+<p>每个 nice 调一挡差 ~25% (注意: 多挡差是几何递降). nice 19  vs nice -20 差距 ~88761/15 ≈ 5900×.</p>
+<p>这意味着:</p>
+<ul>
+<li>nice 0 weight=1024 (default), 1 sec 跑后 vruntime 增 1 sec;</li>
+<li>nice 19 weight=15, 1 sec 跑后 vruntime 增 1 sec × 1024 / 15 = ~68 sec.</li>
+</ul>
+<p><strong>vruntime 增长率反比 weight</strong> —— nice 高的 (低优先) vruntime 增长快, 几秒就排到最后. CFS 即用 nice 但 fail ACL 不公平.</p>
+<h2 id="3-红黑树-维护-vruntime-有序集"><a class="header" href="#3-红黑树-维护-vruntime-有序集">3. 红黑树: 维护 vruntime 有序集</a></h2>
+<p>每 CPU 自己一个运行队列, 是一颗红黑树 ( per-cpu rq.cfs_timeline ), key = vruntime:</p>
+<ul>
+<li>每次选下一个 thread 跑: 树最左 = vruntime 最小;</li>
+<li>red-black trees 提供插入 / 删除 O(log N) 保证.</li>
+</ul>
+<p>N (runnable thread 数)在一台 server 上可到几千. 每毫秒重新挑下个 thread O(log N) = &lt;15 步 非常便宜.</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>这里是 DSA 章节红黑树 + 红黑写入旋转 ≤ 3 在 OS 内核里的真实物化. 行业里你极少直接手写 red-black tree, 但你天天用它.</p>
+</div>
+<h2 id="4-preempt-节拍--tick"><a class="header" href="#4-preempt-节拍--tick">4. preempt: 节拍 + tick</a></h2>
+<pre><code>每次 thread 进入 kernel mode (syscall),
+ 或 被 interrupt (timer / I/O completions → IPI),
+scheduler_tick() 减当前 thread 的 time slice 余额;
+当 残额 ≤ 0, set TIF_NEED_RESCHED flag.
+中断返回用户态前点 schedule() → 选下一个 thread.
+</code></pre>
+<p>CFS 默认 time slice = <code>sysctl_sched_latency / N</code>, 一般 sched_latency=6 ms, N=runnable 数.</p>
+<ul>
+<li>N=10: 每 thread ~600 μs 跑一片;</li>
+<li>N=100: 每 thread ~60 μs, 但 min granularity floor (sched_min_granularity = 0.75 ms default) 强制 ≥ 0.75 ms.</li>
+</ul>
+<p>保证每个 thread 至少跑够 min_granularity, 不被抢过快导致 cache trashing.</p>
+<h2 id="5-eevdf-linux-66-后的新模型"><a class="header" href="#5-eevdf-linux-66-后的新模型">5. EEVDF: Linux 6.6+ 后的新模型</a></h2>
+<p>CFS 用 15 年后, Linux 6.6 引入 EEVDF (Earliest Eligible Virtual Deadline First) 替换 CFS.</p>
+<p>核心:</p>
+<ul>
+<li>vruntime 演化 = eligible lag = actual_cpu - weight_cpu. lag &gt; 0 表示欠 CPU, lag &lt; 0 表示多跑了;
+-eligible = lag ≥ 0 才可被调度;</li>
+<li>在 eligible 集合中用 deadline (按 nice weight 计算的虚拟 deadline) 排序.</li>
+</ul>
+<p>EEVDF 解决的问题:</p>
+<ul>
+<li>CFS 在 weight 不齐负载下偏 GAINS 高优先 thread, latency 不一致;</li>
+<li>CFS 没显式 latency bound, 不能保 哈高优先低延迟个bit EEVDF;</li>
+<li>EEVDF 在 ML inference 训练 (动态调整 nice)+ 高低优先混合好.</li>
+</ul>
+<p>EEVDF 仍 vruntime-based, 仍 per-cpu rq 队列, 仍红黑树 — 工程实现 90% 类似 CFS. 替换只把挑选算法换成 deadline first + eligibility check.</p>
+<h2 id="6-多核负载均衡"><a class="header" href="#6-多核负载均衡">6. 多核负载均衡</a></h2>
+<p>每核有自己的 rq, scheduler 必须 lazy 把 task 在核间移动:</p>
+<pre><code>周期性 load_balance():
+  每隔 sched_period 一次 (e.g. 100 ms);
+  比较各 CPU 的 load (sum weight);
+  找最忙与最闲 CPU;
+  把一定数 task 从忙 → 闲, 但考虑 cache locality + NUMA 复位.
+</code></pre>
+<p><code>numa_balancing</code> 是 NUMA 自动迁移支持: <code>echo 1 &gt; /proc/sys/kernel/numa_balancing</code>. 默认 on 在 NUMA 系统.</p>
+<p><strong>坑</strong>: 任务边界可能 cross-socket. 线程 A 在 socket 0, 任务切到 B 在 socket 1, B 找内存 在 socket 0 ⇒ 跨 NUMA. 解决: pthread_setaffinity_np (cpu affinity) 锁住.</p>
+<h2 id="7-实测影响"><a class="header" href="#7-实测影响">7. 实测影响</a></h2>
+<p>(由于历史 CFS 上, 高低优先混) 现在主流 Linux 早就 5.x+ / 6.x, EEVDF 也是好, 但仍:</p>
+<ul>
+<li>32 核 机器跑 1000 低 nice 容器 + 100 通常次 nice 守护 = latencies maintained sched_normal 排队 &gt; 6 ms / 守护.</li>
+<li>gig niced web server thread = bad path = potential starvation.</li>
+<li>nice 单值差异 工程上 5 次 ≈ ~2× 差距, 10 次 ≈ ~5×, 多次叠加几乎无法归还.</li>
+</ul>
+<p>补丁 nice RR.  fix -20 (nice 0) vs nice 0 (nice 0) 之间差 6× 可竞争抛入跑. 工程上 nice 不再使用很好. <strong>建议 cgroup + cpu.shares / cpu.max 替代 nice</strong>.</p>
+<h2 id="8-多语言--多运行时"><a class="header" href="#8-多语言--多运行时">8. 多语言 / 多运行时</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>语言</th><th>user 调度</th><th>kernel 看见什么</th></tr></thead><tbody>
+<tr><td>C pthread</td><td>kernel thread</td><td>1:1 M:N kernel thread</td></tr>
+<tr><td>Java Thread (1:1)</td><td>kernel thread</td><td>同上</td></tr>
+<tr><td>Go goroutine</td><td>runtime 自己 scheduler (GMP)</td><td>M less than G, M 是 OS thread</td></tr>
+<tr><td>Erlang process</td><td>BEAM scheduler</td><td>同 M:N</td></tr>
+<tr><td>Rust tokio</td><td>自己 scheduler</td><td>runtime over M threads, async fn</td></tr>
+</tbody></table>
+</div>
+<p>kernel 只看 OS thread. 用户态协程是 runtime 中 scheduler 自 mange. 这就是"用户态调度器" 与"OS 调度器" 是同构dispatcher抽象 在不同本身 layer.</p>
+<h2 id="9-这章带走的东西"><a class="header" href="#9-这章带走的东西">9. 这章带走的东西</a></h2>
+<ul>
+<li>vruntime + nice weight 让 CFS "更公平" 视觉对比 + nice 弱化主线;</li>
+<li>红黑树是 OS 内 kernel 里数据结构魔抗现实 (你们 feedback 1 thread 5000 个选呢);</li>
+<li>EEVDF 6.6+ 替换 CFS, 同 vruntime + eligible lag + deadline first;</li>
+<li>Linux 多核负载均衡 自然 + NUMA affinity 控制位置;</li>
+<li>高 nice 实际可调范围</li>
+</ul>
+<p>下一节 → <a href="rt.html">实时调度</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../os/sched/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../os/sched/rt.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../os/sched/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../os/sched/rt.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

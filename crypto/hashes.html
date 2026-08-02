@@ -1,0 +1,510 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>6. 哈希: SHA-256 / SHA-3 / BLAKE3 / 抗碰撞史 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="6-哈希-sha-256--sha-3-keccak--blake3"><a class="header" href="#6-哈希-sha-256--sha-3-keccak--blake3">6. 哈希: SHA-256 / SHA-3 (Keccak) / BLAKE3</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>密码学哈希函数 $h: {0,1}^* \to {0,1}^{n}$ 满足:</p>
+<ol>
+<li><strong>Preimage resistance</strong>: 给 $y$ 找 $x$ 使 $H(x) = y$ 困难 (~ $2^n$ attempts).</li>
+<li><strong>Second-preimage resistance</strong>: 给 $x$ 找 $x' \neq x$ 使 $H(x) = H(x')$ 困难 (~$2^n$).</li>
+<li><strong>Collision resistance</strong>: 找任意 $x, x'$ 使 $H(x) = H(x')$ 困难 (~$2^{n/2}$ by birthday).</li>
+</ol>
+<p>3 个工业选:</p>
+<ul>
+<li><strong>SHA-256</strong>: Merkle-Damgård + Davies-Meyer, since 2001. 抗量子前最流行; NIST still standard.</li>
+<li><strong>SHA-3 (Keccak)</strong>: 海绵构造 (sponge), 2015, FIPS 202. 抗长度扩展, 双标准与 SHA-2 平行.</li>
+<li><strong>BLAKE3</strong>: 基于 BLAKE2 + Merkle tree, 2020, parallel + SIMD 极快.</li>
+</ul>
+<hr />
+<h2 id="一sha-256-merkle-damgård"><a class="header" href="#一sha-256-merkle-damgård">一、SHA-256 (Merkle-Damgård)</a></h2>
+<h3 id="11-merkle-damgård"><a class="header" href="#11-merkle-damgård">1.1 Merkle-Damgård</a></h3>
+<pre><code>state IV (256 bit固定)
+schleife over 512-bit block:
+    state = compression(state, message_block)
+output state XOR 是最终 state
+</code></pre>
+<p>加上 padding: append <code>1</code> bit + zero pad + final 64-bit length.</p>
+<h3 id="12-compression"><a class="header" href="#12-compression">1.2 Compression</a></h3>
+<pre><code>state: 8×32 bit words (a..h), 从 IV 收
+每 block 64 rounds of:
+    T1 = h + Σ1(e) + Ch(e,f,g) + K[i] + W[i]
+    T2 = Σ0(a) + Maj(a,b,c)
+    h = g; g = f; f = e; e = d + T1
+    d = c; c = b; b = a; a = T1 + T2
+</code></pre>
+<p>K[i] 是 64 个 32-bit 个 (use cubic root fractional of primes from 2-311).
+W[i]: 前 16 from current block, 后 48 derived by rotate/xor chain message schedule.</p>
+<h3 id="13-输出长度--安全"><a class="header" href="#13-输出长度--安全">1.3 输出长度 / 安全</a></h3>
+<ul>
+<li>256-bit output.</li>
+<li>birthday attack cost $2^{128}$ ⇒ collision hard until quantum time.</li>
+</ul>
+<h3 id="14-长度扩展攻击"><a class="header" href="#14-长度扩展攻击">1.4 长度扩展攻击</a></h3>
+<p>Merkle-Damgård 的副产品: 给 <code>H(secret || msg)</code>, 攻击者可计算 <code>H(secret || msg || padding || extension)</code> 无需已知 secret. 因 state = current final state. Hash-based MAC (HMAC) 规避 — outer hash 包住 一次 formancée 一个 accelerationdont.</p>
+<hr />
+<h2 id="二sha-3-keccak-海绵构造"><a class="header" href="#二sha-3-keccak-海绵构造">二、SHA-3 (Keccak, 海绵构造)</a></h2>
+<p>2012 NIST 选 Keccak 5 个 designer 之 择利际化胜事; SHA-3-256/384/512 spec.</p>
+<h3 id="21-sponge-absorbtion--squeezing"><a class="header" href="#21-sponge-absorbtion--squeezing">2.1 Sponge absorbtion + squeezing</a></h3>
+<p>state: 1600-bit internal state.</p>
+<pre><code>Absorb:
+  for each rate r block:
+    state ^= block
+    Keccak-f(state)
+Squeeze:
+  output = state[:capacity-r]
+  while more output:
+    Keccak-f(state)
+    output += state[:rate]
+</code></pre>
+<p><code>rate = 1088</code> for SHA3-256 (24 keccak-f rounds).</p>
+<h3 id="22-keccak-f-permutation"><a class="header" href="#22-keccak-f-permutation">2.2 Keccak-f permutation</a></h3>
+<p>7 transformations repeated 24 rounds: theta / rho / pi / chi / iota. Operation on 5×5×64 word 'cube' state.</p>
+<ul>
+<li><strong>chi</strong>: only nonlinear step (bitwise AND+NOT+XOR).</li>
+<li><strong>iota</strong>: add round constant Singleton.</li>
+</ul>
+<h3 id="23-properties"><a class="header" href="#23-properties">2.3 Properties</a></h3>
+<ul>
+<li>✓ No length extension attack — output XOR 状态 部分隐藏 "capacity" 内边界.</li>
+<li>✓ Generic sponge: rates 差异 → variable-length output 's extend.</li>
+<li>✓ Used in NIST PQC (Dilithium operations vest state) and TLS。</li>
+</ul>
+<hr />
+<h2 id="三blake3"><a class="header" href="#三blake3">三、BLAKE3</a></h2>
+<p>BLAKE3 (brand O'Connor, Aumasson, et al 2020) 是 B2 (BLAKE2) 升级版用 Merkle mode 后潜出 fast in software AVX2 高 GPU.</p>
+<h3 id="31-架构"><a class="header" href="#31-架构">3.1 架构</a></h3>
+<ul>
+<li>chunk size = 1024 bytes</li>
+<li>每个 chunk 单独压缩</li>
+<li>chunks build binary Merkle tree with chained chaining 大 跨 展 map.</li>
+</ul>
+<pre><code>        ROOT
+        /  \
+      N     ...
+     / \
+    A   B
+   /|   |\
+ chunk chunk chunk
+</code></pre>
+<h3 id="32-优"><a class="header" href="#32-优">3.2 优</a></h3>
+<ul>
+<li><strong>Parallelizable</strong>: 所有 chunk 压缩独立, SIMD 8-wide throughput 巨高, 1-10 GB/s 软端.</li>
+<li><strong>Streaming</strong>: 内部 chunked tree — 大文件逐块 hash 不必 cache 全文件 in memory.</li>
+<li><strong>Tree hashing</strong>: extend 中衍生 MAC / KDF / PRF for tree of leaves.</li>
+<li><strong>Merkle proof</strong>: 给任 leaf 提供 sibling path → 验证 fixed file hash without re-read whole file.</li>
+</ul>
+<h3 id="33-工程接口"><a class="header" href="#33-工程接口">3.3 工程接口</a></h3>
+<pre><code class="language-python">import blake3
+print(blake3.blake3(b"hello").hexdigest())
+# 24eab52c2dde57d2e7d6f0d3f8c44e1ab1a1c5ee4e7b1a4d80b20f4a0e5d5b09
+</code></pre>
+<hr />
+<h2 id="四sha-256-vs-sha-3-vs-blake3-comparison"><a class="header" href="#四sha-256-vs-sha-3-vs-blake3-comparison">四、SHA-256 vs SHA-3 vs BLAKE3 Comparison</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>SHA-256</th><th>SHA-3-256</th><th>BLAKE3</th></tr></thead><tbody>
+<tr><td>整体速度 (architecture AVX2)</td><td>1.5 GB/s</td><td>0.6 GB/s</td><td>7-10 GB/s (parallel, AVX2 8x)</td></tr>
+<tr><td>Padding</td><td>length-extension vulnerable</td><td>invulnerable</td><td>invulnerably tree</td></tr>
+<tr><td>Security</td><td>128-bit collision</td><td>128-bit collision</td><td>128-bit collision</td></tr>
+<tr><td>Special input</td><td>(no guidance)</td><td>variable output table scaling</td><td>variable output</td></tr>
+<tr><td>Hardware accel</td><td>SHA-NI ~1 GB/s; AES-NI 上 shim-provided &amp;</td><td>不用 sha-ni, 软件中等</td><td>SIMD-vector AVX2 ~8 GB/s</td></tr>
+<tr><td>Standardization</td><td>FIPS 180-4 (2001)</td><td>FIPS 202 (2015)</td><td>RFC draft, 2020</td></tr>
+<tr><td>用 use 默认 case</td><td>TLS, IPsec, Bitcoin</td><td>NIST选项, PQ crypto</td><td>modern general-purpose 哈希</td></tr>
+</tbody></table>
+</div>
+<p>工程选:</p>
+<ul>
+<li><strong>代码pered protocols</strong> (TLS, IPSec) 用 SHA-256 or SHA-3 (双选 in TLS 1.3 cipher suites).</li>
+<li><strong>New systems 挖 摆满</strong> — 宝 BLAKE3 in Rust 流标 other coder hand 提速 ✓ 跑 SHA-NI / faster SIMD 使用 SHA-2 hardware 攻 上 SSE-installed.</li>
+<li><strong>Post-quantum</strong> cryptography algorithm (FIPS 205 SLH-DSA hashes Rock params if state — directly 用 Hash-based signatures珠宝依 SHA-2/SHA-3 that's why).</li>
+</ul>
+<hr />
+<h2 id="五hmac-hash-based-mac"><a class="header" href="#五hmac-hash-based-mac">五、HMAC (Hash-based MAC)</a></h2>
+<pre><code>HMAC(K, m) = H((K ⊕ opad) ‖ H((K ⊕ ipad) ‖ m))
+</code></pre>
+<p><code>ipad = 0x36</code>, <code>opad = 0x5c</code> repeated padding block 长度.</p>
+<h3 id="51-安全属性"><a class="header" href="#51-安全属性">5.1 安全属性</a></h3>
+<ul>
+<li>任意 secure PRF (<strong>H secure</strong>) 给 HMAC K-MAC secure (Bellare-Canetti-Krawczyk 1996).</li>
+<li>抗长度扩展 优势 over plain Hash(K ‖ m) (broken by length extension).</li>
+<li>HMAC-SHA-256 是 JWT/SAML 标准. Sign message 用 MAC, msg self-contained.</li>
+</ul>
+<h3 id="52-python-の"><a class="header" href="#52-python-の">5.2 Python の</a></h3>
+<pre><code class="language-python">import hmac, hashlib
+
+def hmac_sha256(key: bytes, msg: bytes) -&gt; bytes:
+    return hmac.new(key, msg, hashlib.sha256).digest()
+
+# constant-time verify:
+hmac.compare_digest(m resigned tag bytes, received tag bytes)
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>Naive <code>tag_a == tag_b</code> 是<strong>not constant-time</strong> in Python 由于 short-circuit. 用 <code>hmac.compare_digest</code> 或 C <code>CRYPTO_memcmp</code>.</p>
+</div>
+<hr />
+<h2 id="六hkdf-rfc-5869"><a class="header" href="#六hkdf-rfc-5869">六、HKDF (RFC 5869)</a></h2>
+<pre><code>extract: PRK = HMAC(salt, IKM)            (pseudo-random key)
+expand:  OKM = T(1) || T(2) || ... where T(i) = HMAC(PRK, T(i-1) || info || i)
+</code></pre>
+<p>KDF 链长拒绝扩展出 255*HashLen bytes. 实际零期 account look op hello used for TLS1.3 deraved each context different <code>info</code> 简化 secrets separation.</p>
+<h3 id="61-工师-helper"><a class="header" href="#61-工师-helper">6.1 工师 helper</a></h3>
+<pre><code class="language-python">def hkdf_sha256(salt: bytes, ikm: bytes, info: bytes, length: int) -&gt; bytes:
+    prk = hmac.new(salt, ikm, hashlib.sha256).digest()
+    okm = b""; t = b""; i = 1
+    while len(okm) &lt; length:
+        t = hmac.new(prk, t + info + bytes([i]), hashlib.sha256).digest()
+        okm += t; i += 1
+    return okm[:length]
+</code></pre>
+<hr />
+<h2 id="七密码学哈希-use-case-table"><a class="header" href="#七密码学哈希-use-case-table">七、密码学哈希 use case table</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>用途</th><th>推荐算法</th><th>Placeholder 实例</th></tr></thead><tbody>
+<tr><td>File hash/integrity</td><td>SHA-256 or SHA-3-256</td><td>Git tree hashish: SHA-1 still (replacing with SHA-2 in new Git)</td></tr>
+<tr><td>MAC</td><td>HMAC-SHA256 or Poly1305</td><td>TLS AEAD, JWT</td></tr>
+<tr><td>KDF</td><td>HKDF-SHA256</td><td>TLS1.3 secret derivation</td></tr>
+<tr><td>PoW</td><td>SHA-256</td><td>Bitcoin block hash</td></tr>
+<tr><td>VRF (verifiable random function)</td><td>EC VRF (Ed25519 VRF)</td><td>Algorand、中国 IPFS IPNS sign path</td></tr>
+<tr><td>Password hashing</td><td><strong>Argon2id</strong> or bcrypt/scrypt</td><td>✓ SHA-256 alone is unsafe due to speed</td></tr>
+<tr><td>Key commitment</td><td>BLAKE3</td><td>fast derive pool</td></tr>
+<tr><td>Content addressing</td><td>SHA-256 / SHA-3-256 / BLAKE3</td><td>IPFS uses SHA-256 family</td></tr>
+<tr><td>Tree hash</td><td>BLAKE3 or RFC 6966 (RFC6962)</td><td>CT log Merkle tree hash</td></tr>
+</tbody></table>
+</div>
+<h3 id="71-password-hashing-special-注意"><a class="header" href="#71-password-hashing-special-注意">7.1 Password hashing Special 注意</a></h3>
+<p>普通 hash 快但 password 用太快 → brute force 提升光速。Use 强哈希 <strong>Argon2id</strong> (PHC winner 2015) — memory-hard randomized.</p>
+<pre><code class="language-python">from argon2 import PasswordHasher
+ph = PasswordHasher()
+hash_str = ph.hash(b"password")   # stored: param-salt-hash one-liner
+ph.verify(hash_str, b"password")
+</code></pre>
+<hr />
+<h2 id="八merkle-tree-实践"><a class="header" href="#八merkle-tree-实践">八、Merkle tree 实践</a></h2>
+<p>比特币 block hash = SHA-256d (double SHA-256) of block header. Merkle root = pairwise hash leaves pair.</p>
+<pre><code class="language-python">import hashlib
+
+def sha256d(b):
+    return hashlib.sha256(hashlib.sha256(b).digest()).digest()
+
+def merkle_root(leaves: list[bytes]) -&gt; bytes:
+    if not leaves:
+        return b'\x00' * 32
+    while len(leaves) &gt; 1:
+        if len(leaves) % 2 == 1:
+            leaves.append(leaves[-1])
+        leaves = [sha256d(leaves[i] + leaves[i+1]) for i in range(0, len(leaves), 2)]
+    return leaves[0]
+</code></pre>
+<p>Ceph used CRUSH 计算 hash (using Robert Jenkins hash) distribute 不 competent 弘取 files 而非 truly auth 加密哈希; 用户放心 (non cryptographic).</p>
+<hr />
+<h2 id="九桥梁"><a class="header" href="#九桥梁">九、桥梁</a></h2>
+<ul>
+<li><strong>asymmetric.md</strong>: Keccak sponge is the basis for PQC (CRYSTALS-Dilithium hashing).</li>
+<li><strong>distributed/fault/erasure.md</strong>: Merkle tree witnesses for RS / merkle proof of inclusion.</li>
+<li><strong>databases WAL</strong>: WAL checksum (CRC32C / xxHash) — 这些不是 cryptographic hash, BC focus fast error detection.</li>
+<li><strong>theory/complexity</strong>: ideal hashes are random oracles → e.g. random oracle model for design proofs: HMAC-via-keyed hash proof formal in this modelrevolution.</li>
+</ul>
+<hr />
+<p>下一节 → <a href="tls13.html">TLS 1.3 握手</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../crypto/signatures.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../crypto/tls13.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../crypto/signatures.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../crypto/tls13.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

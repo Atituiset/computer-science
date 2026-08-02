@@ -1,0 +1,434 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>4. 汉明码: 可纠 1-bit 错误的鼻祖 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="4-汉明码-可纠-1-bit-错误的鼻祖"><a class="header" href="#4-汉明码-可纠-1-bit-错误的鼻祖">4. 汉明码: 可纠 1-bit 错误的鼻祖</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>Hamming (7, 4) 是第一个 systematic error-correcting code, 1950Hamming 在 Bell 实验室中亲自为解决 weekend computer relay error 而设计. 编码 4 bit data → 7 bit codeword (3 bit redundancy), 可纠任意 1 bit 错误. 实现 encoding-decoding 用小 parity check matrix H 给 syndrome 计算—Compute syndrome $\vec{s} = H \vec{r}$ ⇒ 错的 bit position = $\vec{s}$ 二进制解读 (or 0 = 正确). 加 1 个 overall parity → SECDED (可纠 1 单 bit + 检测 2 bit error). 现代 ECC RAM 跑的就是 SECDED.</p>
+<hr />
+<h2 id="一hamming-7-4-设计"><a class="header" href="#一hamming-7-4-设计">一、Hamming (7, 4) 设计</a></h2>
+<h3 id="11-structure"><a class="header" href="#11-structure">1.1 Structure</a></h3>
+<p>4 data bits $d_1, d_2, d_3, d_4$ → 7 bit code. 三 parity bits $p_1, p_2, p_3$ 位于位置 1, 2, 4 (2 的幂位置留给 parity, 其余给 data). At positions:</p>
+<p>$$ c_1 = p_1,; c_2 = p_2,; c_3 = d_1,; c_4 = p_3,; c_5 = d_2,; c_6 = d_3,; c_7 = d_4 $$</p>
+<p>Parity bits 覆盖一组 positions (which binary index has its corresponding parity's bit set):</p>
+<ul>
+<li>$p_1$ 覆盖 positions with bit 0 set in index: 1, 3, 5, 7</li>
+<li>$p_2$ 覆盖 positions with bit 1 set: 2, 3, 6, 7</li>
+<li>$p_3$ 覆盖 positions with bit 2 set: 4, 5, 6, 7</li>
+</ul>
+<p>parity $p_i$ = XOR of data bits in its covers.</p>
+<h3 id="12-parity-check-matrix-h"><a class="header" href="#12-parity-check-matrix-h">1.2 Parity check matrix H</a></h3>
+<p>$$ H = \begin{bmatrix} 1 &amp; 0 &amp; 1 &amp; 0 &amp; 1 &amp; 0 &amp; 1 \ 0 &amp; 1 &amp; 1 &amp; 0 &amp; 0 &amp; 1 &amp; 1 \ 0 &amp; 0 &amp; 0 &amp; 1 &amp; 1 &amp; 1 &amp; 1 \end{bmatrix} $$</p>
+<pre><code class="language-python">import numpy as np
+H = np.array([
+    [1,0,1,0,1,0,1],
+    [0,1,1,0,0,1,1],
+    [0,0,0,1,1,1,1],
+])
+G = np.array([
+    [1,1,0,1,0,0,0],
+    [0,1,1,0,1,0,0],
+    [1,1,1,1,0,1,0],
+    [0,1,1,0,0,0,1],
+]) % 2  # generator
+</code></pre>
+<h3 id="13-encoding"><a class="header" href="#13-encoding">1.3 Encoding</a></h3>
+<p>$c = d G \mod 2$ where G 是 generator matrix.</p>
+<pre><code class="language-python">def hamming_encode(data: list[int]) -&gt; list[int]:
+    """4 data bits → 7 code bit."""
+    return [int(x % 2) for x in np.dot(data, G) % 2]
+</code></pre>
+<h3 id="14-decoding-with-syndrome"><a class="header" href="#14-decoding-with-syndrome">1.4 Decoding with syndrome</a></h3>
+<pre><code>r = received 7 bits
+s = H @ r mod 2     # syndrome 3 bit
+if s == 0:     no error
+else:          bit position = interpret s as binary (1..7), flip that bit
+</code></pre>
+<pre><code class="language-python">def hamming_decode(r: list[int]) -&gt; list[int]:
+    s = H.dot(r) % 2
+    if not s.any():
+        return r[2], r[4], r[5], r[6]   # d1 d2 d3 d4
+    pos = int(s.dot([1, 2, 4]))         # position (1=first)
+    r[pos - 1] ^= 1                     # flip
+    return r[2], r[4], r[5], r[6]
+</code></pre>
+<h3 id="15-examples"><a class="header" href="#15-examples">1.5 Examples</a></h3>
+<ul>
+<li>Correct transmit <code>c = [1,0,1,0,1,0,1]</code>, receive OK ⇒ syndrome 0.</li>
+<li>Error bit 5: receive <code>[1,0,1,0,0,0,1]</code>. Compute syndrome: H · r mod 2 = [1, 0, 1] = 5 (binary 101). Flip bit 5 ⇒ recover.</li>
+</ul>
+<hr />
+<h2 id="二hamming-distance--detecting-capacity"><a class="header" href="#二hamming-distance--detecting-capacity">二、Hamming distance &amp; detecting capacity</a></h2>
+<h3 id="21-hamming-distance"><a class="header" href="#21-hamming-distance">2.1 Hamming distance</a></h3>
+<p>两 codewords 不同的 bit 数. Hamming (7,4) 最小 distance $d_{\min} = 3$.</p>
+<ul>
+<li>可检测 $d_{\min} - 1 = 2$ bit errors.</li>
+<li>可纠正 $\lfloor (d_{\min}-1) / 2 \rfloor = 1$ bit errors.</li>
+</ul>
+<h3 id="22-singleton-bound"><a class="header" href="#22-singleton-bound">2.2 Singleton bound</a></h3>
+<p>Code with min distance $d$, $R = k/n$ rate has:
+$$ d \leq n - k + 1 $$</p>
+<p>Hamming codes reach this.故 Hamming(7,4) $d_{\min}=3$, $n-k+1 = 4$, not optimal, but useful for short code.</p>
+<h3 id="23-sphere-packing-bound"><a class="header" href="#23-sphere-packing-bound">2.3 Sphere packing bound</a></h3>
+<p>若 code $C$ $(n, k, d)$ with $d = 2t + 1$:
+$$ 2^k \cdot \sum_{i=0}^{t} \binom{n}{i} \leq 2^n $$</p>
+<p>Hamming code is <strong>perfect</strong>—saturates sphere packing bound (for $t = 1$): $2^4 \cdot (1 + 7) = 2^7$. 完全 cover 全 2^7 space.</p>
+<hr />
+<h2 id="三扩展-hamming-8-4-secded"><a class="header" href="#三扩展-hamming-8-4-secded">三、扩展 Hamming (8, 4) SECDED</a></h2>
+<p>Add overall parity bit (sum of all):</p>
+<ul>
+<li>可纠任意 1 bit.</li>
+<li>可检测 (但不纠) 任意 2 bit error.</li>
+</ul>
+<p>服务器 ECC RAM 使用 SECDED (short for Single Error Correction, Double Error Detection). 对 64 bit RAM, 通常用 Hamming(72, 64) Hammond variant: 64 datatext + 8 parity.</p>
+<pre><code class="language-python">def secded_encode(data_4: list[int]) -&gt; list[int]:
+    c7 = hamming_encode(data_4)
+    p = sum(c7) % 2
+    return c7 + [p]
+
+def secded_decode(r8: list[int]) -&gt; tuple:
+    c7, p = r8[:7], r8[7]
+    s = H.dot(c7) % 2
+    overall = sum(r8) % 2
+    if not s.any() and overall == 0:
+        return c7[2], c7[4], c7[5], c7[6], 'OK'
+    if not s.any() and overall == 1:
+        return None, 'D2 error detected'
+    if s.any() and overall == 1:
+        # single error in c7; fix
+        pos = int(s.dot([1, 2, 4]))
+        c7[pos - 1] ^= 1
+        return c7[2], c7[4], c7[5], c7[6], '1-bit corrected'
+    if s.any() and overall == 0:
+        # double error - uncorrectable
+        return None, 'D2 error, uncorrectable'
+</code></pre>
+<hr />
+<h2 id="四hamming-distance其它使用"><a class="header" href="#四hamming-distance其它使用">四、Hamming distance其它使用</a></h2>
+<h3 id="41-ml--codeword-距离最近邻-球够不-安全设距离-修正"><a class="header" href="#41-ml--codeword-距离最近邻-球够不-安全设距离-修正">4.1 ML / codeword/ 距离最近邻 (球够不 安全设距离) 修正:</a></h3>
+<p>hamming NetE achievable edit-distance nearest codeword格给出从嘿嘿 case 转 Euler channel ramblе.</p>
+<h3 id="42-indexed-整数-set"><a class="header" href="#42-indexed-整数-set">4.2 Indexed 整数 set</a></h3>
+<p>加速查询 high-dimensional integers / bitset: search index 使用 "fewest bit difference" = 文件 → database dedupe. Sense of approximate nearest neighbor.</p>
+<hr />
+<h2 id="五与-5g--cpri--wifi-实际-工程"><a class="header" href="#五与-5g--cpri--wifi-实际-工程">五、与 5G / CPRI / WiFi 实际 工程</a></h2>
+<p>5G transport 网络回程屡用 BCH / Reed-Solomon + LDPC 通过 fiber. Hamming code <strong>核心接地</strong> only on-cache L1 microcode hill warm 出 → fault-tolerant RAM, satellite deep-space link (Voyager 1977 RS+CC concatenated).</p>
+<p>Hyperloop-Net TCP-IP level 用校验 checksums &amp; CRC32C (比 Hamming 复杂 cyclic code 各 derivative).</p>
+<hr />
+<h2 id="六局限性"><a class="header" href="#六局限性">六、局限性</a></h2>
+<ul>
+<li>1 bit error correctable; 数据率给 4/7 ~ 57% ⇒ redundancy 75%. Real 链 比例 ≥ Hamming(ii)多项式 distance.</li>
+<li>多 bit error (especially burst) 不断 → 必须 interleaving 后才 LDPCTurbo 嵌入 next.</li>
+<li>距离随 length 增加 (Sophisticated code 覆 uses dmin=12+ tight stronger).</li>
+</ul>
+<p>→ CD / DVD / satellite link 用 RS / convolutional concatenate.</p>
+<hr />
+<h2 id="七桥梁"><a class="header" href="#七桥梁">七、桥梁</a></h2>
+<ul>
+<li><strong>complexity.md</strong> / <strong>reduce</strong>: Hamming code-realization importances keep通道 channel coding process performance tradeoff.</li>
+<li><strong>capacity.md prev</strong>: distance from Shannon limit; Hamming(7,4)距 ≈3 dB.</li>
+<li><strong>reed-solomon.md next</strong> 自然Nü error correction 大 blockerror model 帮决定 selection.</li>
+<li><strong>crypto/hashes.md</strong>: ECC RAM cross-seen Hamming 硬件实现 是 necessary为 rowHammer őd PT co-prac-tice.</li>
+<li><strong>os/memory/virtual-memory</strong>: ECC RAM is the leaf protection layer hardening working connections, layered system add on top virtual memory pinning.</li>
+</ul>
+<hr />
+<p>下一节 → <a href="reed-solomon.html">Reed-Solomon 码</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../info-theory/compression.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../info-theory/reed-solomon.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../info-theory/compression.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../info-theory/reed-solomon.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

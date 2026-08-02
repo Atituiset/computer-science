@@ -1,0 +1,406 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>5. 编程语言运行时：四种实现语义 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="5-编程语言运行时-四种实现语义"><a class="header" href="#5-编程语言运行时-四种实现语义">5. 编程语言运行时: 四种实现语义</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>Go / TS / Python / C++ 表面上是四种语言, 但<strong>语言背后的运行时语义决定了数据结构的物理化、内存模型、GC 行为、并发选择</strong>. 同一个 std::vector 在 C++ 与 Rust 里 differ 不大, 但在 Go 切片里多了 (ptr, len, cap) 三元组语义; Python list 用指针数组 + PyObject; JS Array 是 dense backstore + sparse hash fallback. <strong>每一个差异都在暴露运行时设计取舍</strong>.</p>
+<h2 id="主要差异维度"><a class="header" href="#主要差异维度">主要差异维度</a></h2>
+<p>四种主流语言 (Go / TS / Python / C++) 的运行时在四个维度的不同:</p>
+<h3 id="1-内存布局"><a class="header" href="#1-内存布局">1. 内存布局</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>语言</th><th>列表底层</th><th>字符串</th><th>结构体内存</th></tr></thead><tbody>
+<tr><td>C++</td><td>紧排 <code>T[]</code></td><td>SSO 字符数组 + heap 指针</td><td>struct 默认 packed</td></tr>
+<tr><td>Go</td><td>(ptr, len, cap) 三元组 backing</td><td>Uint8 数组 (不可变 string header)</td><td>field 对齐 + padding</td></tr>
+<tr><td>Rust</td><td><code>Vec&lt;T&gt;</code> = (ptr, len, cap) 紧排</td><td><code>String</code> = <code>Vec&lt;u8&gt;</code> + utf8 不变量</td><td>默认紧排, #[repr(C)] 强制 C-ABI 对齐</td></tr>
+<tr><td>Python</td><td>PyObject** 指针数组</td><td>字符串对象内嵌 ASCII, 否则堆</td><td>dict + gc</td></tr>
+<tr><td>Java</td><td>引用数组 + JVM VM compacted</td><td>heap String + substring 共享底层</td><td>JVM 字段默认可重排优化</td></tr>
+<tr><td>TS (V8)</td><td>Smi/HeapNumber Array 双模式</td><td>Two-bytes / Latin1 UTF16 不同编码</td><td>JS object 用 hidden class 字段重排</td></tr>
+</tbody></table>
+</div>
+<h3 id="2-内存回收"><a class="header" href="#2-内存回收">2. 内存回收</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>语言</th><th>回收方式</th><th>副 / 主代价</th></tr></thead><tbody>
+<tr><td>C++</td><td>析构 + RAII</td><td>0 (无 GC)</td></tr>
+<tr><td>Rust</td><td>ownership/borrow + Drop</td><td>0</td></tr>
+<tr><td>Go</td><td>concurrent_tracing_mark_sweep STW 极短</td><td>periodic stop-the-world + 该 batch</td></tr>
+<tr><td>Python</td><td>引用计数 + 周期性 GC 标记循环</td><td>引用计数分散开销</td></tr>
+<tr><td>Java</td><td>G1 / ZGC / Shenandoah 可选</td><td>不同 latency profile</td></tr>
+<tr><td>TS V8</td><td>分代+ compacting</td><td>GC 平均 50-200 μs pause</td></tr>
+</tbody></table>
+</div>
+<p>GC 的 stw 时间是工程上"硬实时" 问题的关键. 这就是为什么 HRT (high reliability timing) 通常要求无 GC 或确控的 ZGC.</p>
+<h3 id="3-并发模型"><a class="header" href="#3-并发模型">3. 并发模型</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>语言</th><th>并发原语</th><th>编程模型</th></tr></thead><tbody>
+<tr><td>C++</td><td>std::thread + mutex + atomic</td><td>pthread / 内核线程</td></tr>
+<tr><td>Rust</td><td>std::thread + Send/Sync</td><td>所有权转移 + sync safety 由 type system 保护</td></tr>
+<tr><td>Go</td><td>goroutine + channel (CSP 模型) + GMP 调度器</td><td>协程轻量级 (2 KB / goroutine)</td></tr>
+<tr><td>Python</td><td>GIL 阻碍 + multiprocessing</td><td>GIL 是 python 主要瓶颈</td></tr>
+<tr><td>Java</td><td>thread + lock + JUC</td><td>volatile / synchronized / Lock</td></tr>
+<tr><td>TS</td><td>event loop + Promise + Promise.all = CSP 式</td><td>JS event loop 单线程 + webworker</td></tr>
+</tbody></table>
+</div>
+<p>并发模型决定了:<strong>一句 <code>shared map[k]++</code> 在各语言语义不同</strong>:</p>
+<ul>
+<li>C++/Rust: 必须 atomic / lock;</li>
+<li>Go: 用 channel 消息更稳, 否则 sync.Map;</li>
+<li>Python: 锁 (因 GIL 在 CPython 里通常 100% 单核, 写都很安全);</li>
+<li>Java: synchronized 或 ConcurrentHashMap 或 LongAdder;</li>
+<li>TS: event loop 串行, 没真并发 (除非 webworker);</li>
+<li>多 worker 之间用 SharedArrayBuffer.</li>
+</ul>
+<h3 id="4-抽象类型系统"><a class="header" href="#4-抽象类型系统">4. 抽象类型系统</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>语言</th><th>类型系统</th><th>泛型实现</th></tr></thead><tbody>
+<tr><td>C++</td><td>templates 静态 + 多态</td><td>compile-time monomorphization</td></tr>
+<tr><td>Rust</td><td>trait + lifetime 类型系统</td><td>compile-time monomorphization</td></tr>
+<tr><td>Go</td><td>1.18 加 type params 参数化</td><td>dict 风格 GC-aware</td></tr>
+<tr><td>Python</td><td>鸭子类型 + 强动态</td><td>运行时 dispatch</td></tr>
+<tr><td>Java</td><td>静态类型 + generic box</td><td>type erasure + javac 检查</td></tr>
+<tr><td>TS</td><td>静态类型检查但 runtime type erased</td><td>半结构静态</td></tr>
+</tbody></table>
+</div>
+<p>C++/Rust 的 monomorphization = 编译为类型专用代码 (快) — 但二进制尺寸膨胀. Go 用 dict 实现 = 慢但是 binary 小. 这就是为什么 Rust 写 <code>Vec&lt;u8&gt;</code> 和 <code>Vec&lt;u64&gt;</code> 性能差; Go 的 <code>[]int</code> 和 <code>[]byte</code> 在泛型上区别不那么大.</p>
+<h2 id="同一抽象不同物化-4-语言-vector-push-实测"><a class="header" href="#同一抽象不同物化-4-语言-vector-push-实测">同一抽象不同物化: 4 语言 vector push 实测</a></h2>
+<p>"为 <code>Vec&lt;int&gt;</code> push_back 1M 元素" 在四种语言下的真实表现:</p>
+<pre><code>C++ / std::vector&lt;int&gt;  push_back 1M:
+  - 1M × (1 cycle insert + amortized copy) ≈ 5 ms
+
+Rust / Vec&lt;i32&gt;  push 1M:
+  - 类似 C++, 5 ms (LLVM 优化等同于 -O2)
+
+Go / []int  append 1M:
+  - 慢一些 ≈ 12 ms (扩容策略略保守 + bounds check + GC bookkeep)
+
+Python list.append 1M:
+  - 50-80 ms (ref count + dict overhead)
+
+Java ArrayList&lt;Integer&gt;.add 1M:
+  - 60 ms (boxing Integer + indirection)
+  - int[] 1M &lt; 5 ms
+</code></pre>
+<p><strong>同一种"动态数组 push"</strong>  在 4 种语言之间差 <strong>10× 量级</strong>; 全部进入"摊还 O(1)". <strong>这就是为什么"复杂度 O()" 在 4 种语言里没法直接比较</strong> - 工程常数被各自运行时折算进来.</p>
+<h2 id="同构与抽象"><a class="header" href="#同构与抽象">同构与抽象</a></h2>
+<p>把这些"语言运行时差异" 抽离出来, 实际只有 4 个"选择的轴":</p>
+<ol>
+<li>内存的紧排性 (C++/Rust 紧排, Python/JS 引用稀疏);</li>
+<li>内存回收的延迟 profile (RAII vs GC vs ref count);</li>
+<li>并发模型 (线程 vs CSP vs event loop vs GIL);</li>
+<li>类型系统 monomorphization vs dynamic dispatch.</li>
+</ol>
+<p>这就是我让你建立"跨语言看抽象"能力的 concret实例: <strong>看四种语言时, 不是看语法 sugar, 而是看这 4 条轴上的各自站队</strong>.</p>
+<h2 id="同一抽象的硬件层"><a class="header" href="#同一抽象的硬件层">同一抽象的硬件层</a></h2>
+<p>有趣的是:这 4 条轴<strong>在硬件层同样适用</strong>:</p>
+<pre><code>1. 数据紧排：cache-friendly row-major vs linked;
+2. 回收：手动 free / 自 delete / GC;
+   - FPGA 上的数据通路通常手动管理, 类似 RAII;
+3. 并发：硬件层线程 + axi-stream + atomic;
+4. 类型 / 多态：VLIW 指令 vs SIMD 多通道 vs dynamic dispatch.
+</code></pre>
+<p>这次我们发现"语言运行时"+"硬件层"在数据通路、回收、并发、多态这 4 个维度上<strong>成对</strong> 同构. 硬件 + 软件语言层共享同一组抽象决定.</p>
+<h2 id="这一章带走的东西"><a class="header" href="#这一章带走的东西">这一章带走的东西</a></h2>
+<ul>
+<li>4 语言的运行时差异可压缩到 4 条轴:内存紧排、GC 模型、并发、类型双编译实现;</li>
+<li>同一算法的常数差可达 10×, "/O/() 在跨语言运行时下不能跨比较" ;</li>
+<li>软件运行时的 4 条轴与硬件的 4 条轴成对同构;</li>
+<li>工程师选语言不仅是 syntactic 偏好, 是对 4 条轴的选择组合;</li>
+<li>学语言时抓住"这 4 条轴上你站在哪里"就是抓住了语言本质.</li>
+</ul>
+<p>下一篇 → <a href="concurrency-consistency.html">6. 并发与一致性: 单机到分布式同构</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../_meta/memory-hierarchy.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../_meta/concurrency-consistency.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../_meta/memory-hierarchy.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../_meta/concurrency-consistency.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

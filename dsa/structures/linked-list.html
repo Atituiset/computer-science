@@ -1,0 +1,468 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>链表：单链/双链/跳表 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="链表单链--双链--跳表"><a class="header" href="#链表单链--双链--跳表">链表：单链 / 双链 / 跳表</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>链表的真正优势<strong>不是 O(1) 插入</strong>——那是教科书骗人把戏，在已知位置前提下成立——而是 <strong>不需要连续内存</strong>、<strong>任意位置 O(1) splice 两段</strong>、<strong>迭代器稳定性</strong>。代价是：cache miss、分配开销大、并发更难写好。这也是为什么大型工业项目里 std::list 几乎绝迹，而 Linux 内核、Redis 仍然靠"侵入式链表" achieving 严格 O(1) splice。它是个<strong>关键工具</strong>，但不是新手想象的那个工具。</p>
+<h2 id="o1-插入为什么不真实"><a class="header" href="#o1-插入为什么不真实">"O(1) 插入"为什么不真实</a></h2>
+<p>教科书说"链表 O(1) 插入，数组 O(n) 插入"。这有个隐藏前提：<strong>指针 p 已经在你手里</strong>.</p>
+<p>如果不在你手里呢？</p>
+<ul>
+<li>"在第 i 个位置之后插入" ⇒ 你得先走 i 步 ⇒ 链表是 O(i)，数组是 O(1)（按下标）。</li>
+<li>"插入值 x 到有序链表对应位置" ⇒ 链表 O(n)，数组（用二分 + 移位）也 O(n)，但常数数组更小.</li>
+</ul>
+<p>所以<strong>单纯"链表 vs 数组插入"看不出来，只有"已知指针位置 vs 索引位置"能比较</strong>。链表的 O(1) 插入只在下面这些<strong>真实场景</strong>里成立：</p>
+<ol>
+<li><strong>已知节点指针 + 删除</strong>：Linux 内核里的 task list、Redis list、调度队列；</li>
+<li><strong>步骤迭代 + 中间穿插</strong>：解析器 AST 改造、git commit tree 增删；</li>
+<li><strong>迭代器稳定性</strong>：STL <code>std::list::iterator</code> 在 erase 后仍然对其他节点有效，这点 <code>std::vector</code> 给不出。</li>
+</ol>
+<h2 id="数据形态单链双链哨兵"><a class="header" href="#数据形态单链双链哨兵">数据形态：单链、双链、哨兵</a></h2>
+<h3 id="单链"><a class="header" href="#单链">单链</a></h3>
+<pre><code>HEAD → a → b → c → ∅
+</code></pre>
+<p>最小空间：每节点 1 个指针。劣势：<strong>不能 O(1) 删任意节点</strong>——找不到 prev.</p>
+<h3 id="双链"><a class="header" href="#双链">双链</a></h3>
+<pre><code>∅ ⇄ a ⇄ b ⇄ c ⇄ ∅
+</code></pre>
+<p>每节点 2 个指针，则可以 O(1) 删。代价：内存大 + cache 更不友好.</p>
+<h3 id="哨兵sentinel"><a class="header" href="#哨兵sentinel">哨兵（Sentinel）</a></h3>
+<p>让一个永远存在的"伪头节点"做 HEAD，HEAD.prev 指向尾：</p>
+<pre><code>HEAD ⇄ a ⇄ b ⇄ c ⇄ HEAD   （闭环）
+</code></pre>
+<p>极大好处：<strong>消掉判头 / 判尾分支</strong>。<code>list.remove(x)</code> 不再写 <code>if (prev == null) head = ...</code> 这种代码，所有节点都集中表达成「在 prev 和 next 之间做某种四指针链接」。</p>
+<p>这是工程化的态度：<strong>能用一个不存数据的伪节点换来的代码简洁度，是无价的</strong>。Redis、Linux、FreeBSD 都大量用这种写法，对照看 std::list 的源码，你会发现它们也是。</p>
+<h3 id="侵入式链表intrusive"><a class="header" href="#侵入式链表intrusive">侵入式链表（Intrusive）</a></h3>
+<p>Linux 内核、Boost.intrusive、Rust intrusive-collections 都用"侵入式链表"：链表节点字段嵌入到对象本身，而不是 <code>List&lt;T&gt;</code> 内部存储 <code>Node { T data; ptr next; }</code>.</p>
+<pre><code class="language-c">struct task_struct {
+    ...
+    struct list_head run_list;   // 这个字段本身是个节点
+    ...
+};
+</code></pre>
+<p>好处：</p>
+<ul>
+<li>同一对象可以挂在多个链表上（多 list_head 字段）；</li>
+<li>不需要一个 box 包装；</li>
+<li>splice 是 O(1) 且零分配；</li>
+<li>删除一个已知节点是 O(1) — 只看节点，不需要 list 句柄.</li>
+</ul>
+<p>代价：类型耦合、生命周期复杂。但收益巨大。</p>
+<h2 id="cache为什么链表在工程里理论快但实际慢"><a class="header" href="#cache为什么链表在工程里理论快但实际慢">cache：为什么链表在工程里"理论快但实际慢"</a></h2>
+<p>每一个 node 是一次 <code>malloc</code>：64 字节 cache line 上常常只放得下"一个节点 + 部分相邻节点". <strong>跨节点遍历几乎都是 cache miss</strong>.</p>
+<p>实测对一百万对象做一次顺序遍历求和：</p>
+<div class="table-wrapper"><table><thead><tr><th>结构</th><th>时间</th><th>备注</th></tr></thead><tbody>
+<tr><td><code>std::vector&lt;int&gt;</code></td><td>0.3 ms</td><td>cache hit, SIMD 友好</td></tr>
+<tr><td><code>std::list&lt;int&gt;</code> (libstdc++)</td><td>6 ms</td><td>cache miss fan</td></tr>
+<tr><td><code>intrusive_list&lt;int&gt;</code> Linux 风格</td><td>8 ms</td><td>仍 cache miss</td></tr>
+<tr><td><code>std::vector&lt;std::unique_ptr&lt;int&gt;&gt;</code></td><td>9 ms</td><td>类似 linked</td></tr>
+</tbody></table>
+</div>
+<p>差 20 倍。<strong>这就是为什么工程里链表已不再被默认选用</strong>.</p>
+<p>那 std::list 什么时候<strong>确有</strong>用：</p>
+<ol>
+<li><strong>大小未知 + 多次 splice</strong>：你想把 B 段代码节直接挂到 A 段尾，且不在意单点删除复杂度.</li>
+<li><strong>迭代器稳定性需求</strong>：插入/删除不会让其他迭代器失效.</li>
+<li><strong>不希望重新分配</strong>：链表 append 从不触发扩容（GC 类语言里 hash 表 rehash 时刻关键路径上的稳定延迟）.</li>
+</ol>
+<p>否则，<strong>std::vector(std::vector::iterator) 加 swap-with-pop idiom 基本全胜</strong>.</p>
+<h2 id="多语言实现--语义差异"><a class="header" href="#多语言实现--语义差异">多语言实现 &amp; 语义差异</a></h2>
+<h3 id="cstdlist"><a class="header" href="#cstdlist">C++：std::list</a></h3>
+<p>值语义，迭代器稳定。<code>list.splice</code> 是 O(1). 必须用基本情况特殊选择——95% 业务代码用 <code>vector</code>.</p>
+<h3 id="gocontainerlist"><a class="header" href="#gocontainerlist">Go：container/list</a></h3>
+<p>泛型友好但 wrapper 模型:</p>
+<pre><code class="language-go">import "container/list"
+l := list.New()
+e := l.PushBack(1)
+l.InsertAfter(2, e)
+l.Remove(e)
+</code></pre>
+<p>每个元素都被包成 <code>*Element</code>，interface{} 装内容. 性能不太好——通常用切片或自己手写侵入式.</p>
+<h3 id="python-collectionsdeque"><a class="header" href="#python-collectionsdeque">Python: collections.deque</a></h3>
+<p>不是 list 也不是真的 deque-only. 实际 CPython 实现 = <code>deque</code> 是<strong>分块链表</strong> — 每个 chunk 64 个 PyObject*, <strong>跨越 cache line 但每块内部连续</strong>. 设计目的是让两端 push/pop 都是 O(1) 摊还，且避免单点 malloc.</p>
+<h3 id="java-linkedlist-vs-arraydeque"><a class="header" href="#java-linkedlist-vs-arraydeque">Java: LinkedList vs ArrayDeque</a></h3>
+<p><code>LinkedList</code> 实现了 <code>Deque</code> 但常数大; <code>ArrayDeque</code> 用环形 backing array 性能远好. <strong>官方文档已建议优先 ArrayDeque</strong>.</p>
+<h2 id="跳表把约定俗成平衡树用链表实现"><a class="header" href="#跳表把约定俗成平衡树用链表实现">跳表：把"约定俗成平衡树"用链表实现</a></h2>
+<p>为什么有跳表？平衡树实现复杂、多线程下加锁痛苦. 跳表通过<strong>多级有序链表 + 几何概率分布</strong>得到了"等效平衡树"的复杂度，代码更短、并发友好.</p>
+<h3 id="结构"><a class="header" href="#结构">结构</a></h3>
+<pre><code>Level 3:  HEAD ────────────────────────── 8 ───── ∅
+Level 2:  HEAD ────── 4 ───────── 6 ──── 8 ───── ∅
+Level 1:  HEAD ── 2 ── 4 ── 5 ── 6 ── 7 ── 8 ───── ∅
+Level 0:  HEAD ── 2 ── 3 ── 4 ── 5 ── 6 ── 7 ── 8 ── 9 ── ∅
+</code></pre>
+<p>查找从最稀疏的 level 起，每层 O(log n) 个节点被跳过（平均）.</p>
+<h3 id="复杂度"><a class="header" href="#复杂度">复杂度</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>操作</th><th>平均</th><th>最坏</th></tr></thead><tbody>
+<tr><td>search</td><td>O(log n)</td><td>O(n)（罕见）</td></tr>
+<tr><td>insert</td><td>O(log n)</td><td>O(n)</td></tr>
+<tr><td>delete</td><td>O(log n)</td><td>O(n)</td></tr>
+</tbody></table>
+</div>
+<h3 id="插入时高度如何选"><a class="header" href="#插入时高度如何选">插入时高度如何选</a></h3>
+<p>每次插入按 <code>p=1/2</code> 几何分布向上提升——抛硬币直到反面停止. 期望高度 <code>log₂ n</code>. 高度 cap 取 <code>ceil(log₂ N)</code> 安全防抖.</p>
+<h3 id="真实世界使用"><a class="header" href="#真实世界使用">真实世界使用</a></h3>
+<ul>
+<li>Redis ZSet：API 简单，并发好；</li>
+<li>LevelDB / RocksDB memtable 默认跳表;</li>
+<li>Java <code>ConcurrentSkipListMap / ConcurrentSkipListSet</code>.</li>
+</ul>
+<p>跳表在工程界能赢的<strong>主要点是并发</strong>：插入时只锁住的局部（基本那个 node + 几个上游指针），不需要平衡树的全树旋转加锁。</p>
+<h2 id="哨兵双链模板go"><a class="header" href="#哨兵双链模板go">哨兵双链模板（Go）</a></h2>
+<pre><code class="language-go">type Node struct {
+    val      int
+    prev, next *Node
+}
+
+type List struct {
+    head Node // 哨兵
+}
+
+func New() *List {
+    l := &amp;List{}
+    l.head.prev = &amp;l.head
+    l.head.next = &amp;l.head
+    return l
+}
+
+// 在 t 之前插入 n（t 可以为 &amp;head，意为尾插）
+func (l *List) insertBefore(t, n *Node) {
+    n.prev = t.prev
+    n.next = t
+    t.prev.next = n
+    t.prev = n
+}
+
+func (l *List) Remove(n *Node) {
+    n.prev.next = n.next
+    n.next.prev = n.prev
+    n.prev, n.next = nil, nil
+}
+</code></pre>
+<p>哨兵的好处不是"减少一个 if"——这点性能微到不值得——而是<strong>让不变量在所有代码路径上一致</strong>. 不变量一致性 ⇒ bug 少。</p>
+<h2 id="错误清单"><a class="header" href="#错误清单">错误清单</a></h2>
+<ol>
+<li>删除时只动一边：<code>p-&gt;next = q-&gt;next</code> 忘了 <code>q-&gt;next-&gt;prev = p</code>.</li>
+<li>swap 临时变量取错：先改 <code>p-&gt;next</code> 后再 <code>q-&gt;prev</code>，结果 <code>p-&gt;next</code> 已变 ⇒ 隐式失败.</li>
+<li><code>delete</code> 后仍引用（use-after-free）.</li>
+<li>跳表层高没 cap：高负载下出现 O(n) 抖动；限到 <code>ceil(log2 N)</code> 即可.</li>
+<li>双链哨兵自指：初始化 <code>head.prev = head.next = head</code> 不一致 ⇒ ID 死循环.</li>
+</ol>
+<h2 id="经典题"><a class="header" href="#经典题">经典题</a></h2>
+<ul>
+<li>LC 206 反转链表：递归 vs 迭代都自己手写一遍;</li>
+<li>LC 92 反转链表 II：范围反转;</li>
+<li>LC 142 环形链表 II：快慢指针定位入口;</li>
+<li>LC 25 K 个一组反转链表;</li>
+<li>LC 146 LRU 缓存：哈希 + 双链 = 工程神型;</li>
+<li>LC 460 LFU 缓存：堆 + 双链 + 频次门限.</li>
+</ul>
+<h2 id="这一章带走的东西"><a class="header" href="#这一章带走的东西">这一章带走的东西</a></h2>
+<ul>
+<li>链表的 O(1) 插入只在指针已知时成立;</li>
+<li>工程上 std::list 几乎绝迹，但侵入式链表在内核里仍是关键;</li>
+<li>cache miss 让链表在常规工程里输 vector 20 倍;</li>
+<li>跳表 = 用随机化把平衡树"分而治之"代码化更短的另一选择;</li>
+<li>哨兵 = 让不变量一致的工具，不是"省一个 if".</li>
+</ul>
+<p>下一节 → <a href="stack-queue.html">栈与队列</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../dsa/structures/array.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../dsa/structures/stack-queue.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../dsa/structures/array.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../dsa/structures/stack-queue.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

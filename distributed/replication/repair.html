@@ -1,0 +1,483 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>读修复 / 反熵 / hinted handoff - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="读修复--反熵--hinted-handoff"><a class="header" href="#读修复--反熵--hinted-handoff">读修复 / 反熵 / hinted handoff</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>AP 系统 (Cassandra / Riak / Dynamo / Voldemort) 在 partition 或 transient node failure 时, <strong>W=quorum</strong> 未达成全副本复制, 一些副本持有 stale 版本。 复制差异最终必须<strong>修复 (anti-entropy repair)</strong>, 让所有副本最终收敛一致 state。 三种主流修复路径:</p>
+<ol>
+<li><strong>读修复 (Read Repair)</strong>: read 时若发现副本返回 stale value, 立即推 修复—— 顺路修复, 不消耗额外 background IO。 高频 read key 友好, 但 cold key 收敛慢。</li>
+<li><strong>反熵修复 (Anti-Entropy Repair)</strong>: 后台周期性扫, 用 Merkle Tree 算"diff 副本它们不同 range", 只推 missing / newer ranges。 跨大副本 / 数据量大时必备, 代价是后台 IO 与 CPU。</li>
+<li><strong>Hinted Handoff</strong>: 副本 unavailable 时, coordinator 把 write 暂存本地 (hint), 该副本回来后 coordinator 转发 hint。 短期 outage 的 hot-path repair。</li>
+</ol>
+<hr />
+<h2 id="一读修复-read-repair"><a class="header" href="#一读修复-read-repair">一、读修复 (Read Repair)</a></h2>
+<h3 id="算法"><a class="header" href="#算法">算法</a></h3>
+<p>Cassandra 等 Dynamo-style AP 存储 default path:</p>
+<ol>
+<li>Client <code>get(key)</code> → coordinator。</li>
+<li>coordinator 选 R replicas (R = read consistency level, 比如 LOCAL_QUORUM=2 / ALL=3)。</li>
+<li>各副本回 value + 写 timestamp (或 vector clock)。</li>
+<li>coordinator 比较所有 R 回响应, detect stalest replicas。</li>
+<li>coordinator <strong>(异步 / 同步)</strong> 推 修复 write 给 stalest replicas (read repair)。</li>
+<li>coordinator 给 client 返回 newest value。</li>
+</ol>
+<h3 id="cassandra-配置项"><a class="header" href="#cassandra-配置项">Cassandra 配置项</a></h3>
+<ul>
+<li><strong><code>read_repair='BLOCKING'</code></strong> (3.x): coordinator 等 read repair ack → reply client; 一致性最严 + 延迟长 (slowest replica 的 latency 影响 P99)。</li>
+<li><strong><code>read_repair='NONE'</code></strong> (4.0 default): 不修复, 立刻 reply client, 假设 background anti-entropy 修复 staleness。</li>
+<li><strong><code>read_repair='BACKGROUND'</code></strong> (3.x 有些版): reply client 立刻, async 修复。</li>
+<li><strong><code>speculative_retry</code></strong>: if first R-1 副本 50ms 内未回 → speculative 再发 RTT 触发额外 read; 提升 P99 latency 避开慢副本。</li>
+</ul>
+<h3 id="riak-default"><a class="header" href="#riak-default">Riak Default</a></h3>
+<p>Riak 设 bucket property <code>allow_mult=true</code> 时返回 vector clock siblings 给 client, 客户端要 resolve + push back 来修复 (推荐 pattern)。 <code>last_write_wins</code> mode 下 Riak 自动 LWW 决定, read repair 写 newest value 到 stalest replica。</p>
+<h3 id="read-repair-cost"><a class="header" href="#read-repair-cost">Read Repair Cost</a></h3>
+<ul>
+<li><strong>Hot path 延迟</strong>: 同步模式 = slowest replica latency (可能 +50-200ms)。</li>
+<li><strong>Bandwidth</strong>: 重要 read data ~500B + 写回 stale replica ~500B 每修复。</li>
+<li><strong>Effectiveness</strong>: 高频 read / popular keys 修复 fast; <strong>cold keys</strong> 从未被 read → read repair 不触发 → 必须靠 anti-entropy。</li>
+</ul>
+<h3 id="适用场景"><a class="header" href="#适用场景">适用场景</a></h3>
+<ul>
+<li>小 / 中等 key 高频 read (e.g., 用户 profile, session data)。</li>
+<li>replicas 基本同步, 偶发 divergence。</li>
+<li>不适场景: archive, 写冷数据 → cold-key cover 需 anti-entropy。</li>
+</ul>
+<hr />
+<h2 id="二反熵修复-anti-entropy-repair-与-merkle-tree"><a class="header" href="#二反熵修复-anti-entropy-repair-与-merkle-tree">二、反熵修复 (Anti-Entropy Repair) 与 Merkle Tree</a></h2>
+<h3 id="原理"><a class="header" href="#原理">原理</a></h3>
+<p>定期 / on-demand 后台扫各 replica, 找出 range 内 data differences, 推送 missing writes 给 stale replica. Brute force 不行——拷贝几 TB data 比较 byte 不现实。 <strong>Merkle Tree</strong> 是分布式 hash 树:</p>
+<pre><code>                  [root hash]
+                  /     |     \
+           [h_a]   [h_b]   [h_c]
+           /  \    /  \    /  \
+       [leaf] [leaf] ...
+       hash(key1+val1)
+</code></pre>
+<ul>
+<li>叶子 leaf = hash(key + value + timestamp + vclock)。</li>
+<li>内部 node = hash(子哈希)。</li>
+<li>root hash 字符串拷贝便宜; 若两副本 root 相同 → range 不需 repair。</li>
+<li>子树深度递归下钻, 直到找出 diverged leaves, transcribe 仅 missing keys。</li>
+</ul>
+<h3 id="cassandra-nodetool-repair"><a class="header" href="#cassandra-nodetool-repair">Cassandra <code>nodetool repair</code></a></h3>
+<ul>
+<li><strong><code>-pr</code> (partitioner range)</strong>: 仅本地 token 范围, 减少跨节点做 work (Cassandra 4.0+ default)。</li>
+<li><strong><code>-seq</code> / <code>-full</code></strong>: 整 ring 全检, 慢但 comprehensive。</li>
+<li><strong><code>-inc</code> (incremental)</strong>: 增量修复, 只修上次修复后变化的 range; 4.0+ recommended。</li>
+<li><strong><code>-local</code></strong>: 只本 DC repair 节点。</li>
+</ul>
+<p>predicted 量: 100GB incremental ~30 min; full 5-8 hours。</p>
+<h3 id="riak-active-anti-entropy-aae"><a class="header" href="#riak-active-anti-entropy-aae">Riak Active Anti-Entropy (AAE)</a></h3>
+<p>Riak 1.4+ 全自动 AAE:</p>
+<ul>
+<li>后台 process 周期 (per vnode, 默认每 1 小时) 扫各 vnode Merkle Tree。</li>
+<li>Hot key Index: hash index 键 + bucket 时间, quick detect diff。</li>
+<li>difference detected → 自动 parallel read_repair per vnode。</li>
+</ul>
+<h3 id="dynamo-2007--anti-entropy-origin"><a class="header" href="#dynamo-2007--anti-entropy-origin">Dynamo 2007 — Anti-Entropy Origin</a></h3>
+<p>Amazon Dynamo 2007 paper 提了 anti-entropy + read repair 作为修复机制。 Dynamo 用 Merkle Tree per replication group, 周期 + on-demand 调用。</p>
+<hr />
+<h2 id="三hinted-handoff"><a class="header" href="#三hinted-handoff">三、Hinted Handoff</a></h2>
+<h3 id="算法-1"><a class="header" href="#算法-1">算法</a></h3>
+<p>如果 coordinator 应该 write 给 replica B, 但 B unavailable:</p>
+<ul>
+<li>Coordinator 把 write 暂存本地 "hint", 配置 hint TTL (Cassandra <code>max_hint_window_in_ms=3h</code> default)。</li>
+<li>B 回来 → coordinator 把所有 hint 转发给 B, 顺序应用。</li>
+<li>Hint 在 coordinator 重启后也持久化保不丢。</li>
+</ul>
+<pre><code class="language-python">def handle_write(key, value):
+    live_replicas = []
+    for r in target_replicas:
+        if write_to(r, key, value).ok:
+            live_replicas.append(r)
+        else:
+            store_hint(locally, r, key, value, expire_at=now + 3h)
+    if len(live_replicas) &gt;= W:
+        return OK        # quorum met
+    return WRITE_FAILURE
+
+# 后台 loop periodically retry hint:
+for hint in local_hints:
+    if hint.target_node.alive:
+        send hint to target_node
+        if send.ok:
+            delete local_hint
+        if hint.expired:
+            delete      # 警告: hint expired = RPO 可能丢数据
+</code></pre>
+<h3 id="cassandra-hinted-handoff"><a class="header" href="#cassandra-hinted-handoff">Cassandra Hinted Handoff</a></h3>
+<ul>
+<li>持久化 hint 到本地 commit log + hint file。</li>
+<li><code>max_hint_window_in_ms</code> 默认 3h; 超过窗口不用 hinted handoff, 等下次 anti-entropy repair。</li>
+<li>Beta 4.0+ 提供 <code>hinted_handoff_throttle</code> 限速, 防 hint replay 风暴打 target CPU。</li>
+<li>Hint 重启后读 hint 文件 replay。</li>
+</ul>
+<h3 id="dynamo-2007-hinted-handoff"><a class="header" href="#dynamo-2007-hinted-handoff">Dynamo 2007 Hinted Handoff</a></h3>
+<p>Dynamo 用 hinted handoff + Merkle 周期性 sweep 同时修复 + 客户端 put / get 继续走 quorum — 短期 outage 透明。</p>
+<h3 id="riak--voldemort-类似"><a class="header" href="#riak--voldemort-类似">Riak / Voldemort 类似</a></h3>
+<p>Riak 与 Voldemort 类似 hinted handoff: Coordinator 写给某 replica fail → store locally; Later node 回来 → forward。</p>
+<hr />
+<h2 id="四何时用哪种修复"><a class="header" href="#四何时用哪种修复">四、何时用哪种修复</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>修复</th><th>触发</th><th>修复时间</th><th>修复范围</th><th>用例</th></tr></thead><tbody>
+<tr><td>Read Repair</td><td>client read 时</td><td>立即 (on read path)</td><td>仅该 read 的 key</td><td>高频 read key 修, 突发 partition 短断</td></tr>
+<tr><td>Hinted Handoff</td><td>target replica unavailable 时 write</td><td>节点恢复后</td><td>仅 temporarily down node 的 keys</td><td>短期网络 partition / 滚动 rolling restart</td></tr>
+<tr><td>Anti-Entropy</td><td>后台周期 sweep</td><td>minutes-hours</td><td>整 token range merkle tree diff</td><td>cold-key 修, 长期 divergence 收敛, node add/drop 后 re-balance</td></tr>
+</tbody></table>
+</div>
+<p>工业 best practice:</p>
+<ul>
+<li>短期 outage: Hinted Handoff (小时级别)。</li>
+<li>持续 divergence (cold keys, compaction 后 stale): anti-entropy scheduled 每周 (+ incremental repair)。</li>
+<li>高频 read popular: Read Repair (自动)。</li>
+</ul>
+<p>三种修复不冲突——并行 run。</p>
+<hr />
+<h2 id="五merkle-tree-实现细节"><a class="header" href="#五merkle-tree-实现细节">五、Merkle Tree 实现细节</a></h2>
+<h3 id="sub-range-hashing"><a class="header" href="#sub-range-hashing">Sub-Range Hashing</a></h3>
+<p>Cassandra: Merkle Tree per token-range (默认 16-256MB per range)。</p>
+<p>Cassandra <code>nodetool repair</code> 流程:</p>
+<ol>
+<li>coordinator 选 partner 节点, exchange Merkle root hashes per range。</li>
+<li>若 root 不等, 递归 exchange 子树 (e.g., 256KB sub-range, 16-level depth)。</li>
+<li>找到 diverged leaves, 仅传 missing keys。</li>
+</ol>
+<h3 id="compression-友好"><a class="header" href="#compression-友好">Compression 友好</a></h3>
+<p>Cassandra Memtable flushes 转换为 SSTable + bloom filter (range filter); compaction 阶段产 leaf hash derived from row-level hash per token; diff derived streams 转化成 "newest timestamp entries" pulled over stream replication。</p>
+<h3 id="full-vs-incremental"><a class="header" href="#full-vs-incremental">Full vs Incremental</a></h3>
+<ul>
+<li><strong>Full repair</strong>: 重新读整个 range, 重新算 Merkle Tree, 节点间交换。</li>
+<li><strong>Incremental repair</strong> (Cassandra 4.x default): 监控表维护 <code>repaired_at</code> timestamp per range, 基于 sstable max timestamp 仅修 recent 改动。 性能 ≈ 增量 repair 坦率性更高。</li>
+</ul>
+<p>Riak &amp; Voldemort 也有类似概念。</p>
+<hr />
+<h2 id="六典型事故"><a class="header" href="#六典型事故">六、典型事故</a></h2>
+<h3 id="cassandra-hinted-handoff-迟滞-死亡信封-2014"><a class="header" href="#cassandra-hinted-handoff-迟滞-死亡信封-2014">Cassandra "Hinted Handoff 迟滞 死亡信封" 2014</a></h3>
+<p>某用户 9 节点 Cassandra cluster, 5 节点 rolling restart, 各累计 ~40 GB hints 等待 transfer。 重启节点承接 40GB hint replay 5 小时, throughput 降到 1/10。 Fix: <code>hinted_handoff_throttle_in_kb=1024</code> 限速 + <code>max_hint_window_in_ms=1h</code> 短保更大窗口原始 accumulation。</p>
+<h3 id="riak-active-anti-entropy-后台-memory-spike"><a class="header" href="#riak-active-anti-entropy-后台-memory-spike">Riak Active Anti-Entropy 后台 Memory Spike</a></h3>
+<p>Riak AAE 30 分钟扫 all keys build Merkle Tree, 100GB keys 内存写入 ~1GB Merkle Hash-tree, full spike 推 OOM。 Fix: 后台 AAE 限速 + 滚动 segment 设置 (<code>anti_entropy_slice_size</code> 调小)。</p>
+<h3 id="cassandra-full-repair-long-window"><a class="header" href="#cassandra-full-repair-long-window">Cassandra Full Repair Long Window</a></h3>
+<p>2018 NoSQL benchmark: full repair 5 hours 在 50M-key cluster, 期间流量被 backend read 争 IO 拖降 throughput。 Fix: incremental repair + 分批 parallel <code>-pr</code> 修 range。</p>
+<hr />
+<h2 id="七易错清单"><a class="header" href="#七易错清单">七、易错清单</a></h2>
+<ol>
+<li><strong>Hinted Handoff 必须持久化至 disk</strong>: coordinator crash 后重启才能 replay hints; Cassandra <code>hints_directory</code> 配置默认在 data 目录, 写满 disk 会拒绝新 hint。</li>
+<li><strong><code>max_hint_window</code> 不能太长</strong>: 长时间 partition 累 hints 风暴; 超过窗口的 write 不再保, 必须靠 anti-entropy 修。</li>
+<li><strong>Read Repair 不修冷 key</strong>: 用 monitoring 看 read-throughput; cold-key 数据必跑定期 anti-entropy。</li>
+<li><strong>Anti-Entropy repair 不要在峰值跑</strong>: 它吃 IO + CPU + 网络带宽, 与 production 流量争资源, 通常选夜间 / weekend 窗口。</li>
+<li><strong>Merkle Tree 内存代价</strong>: 树大小与 range size + key count 成正比, 大 cluster 必须 range partition 加 incremental, 不能全 ring sweep。</li>
+<li><strong>Anti-Entropy 加 token black-list</strong>: 把 corrupt key 加入 quarantine, 不然 anti-entropy 让 corrupt 键 propagate 到 healthy replica → silent 数据丢失。</li>
+<li><strong>Hint expired 不重写</strong>: 超过 <code>max_hint_window</code> 后 write 未送, 客户端已收 ack → 默默丢失; retention SLA 必须明确接受多长 window。</li>
+</ol>
+<hr />
+<h2 id="八这一章带走的东西"><a class="header" href="#八这一章带走的东西">八、这一章带走的东西</a></h2>
+<ol>
+<li>读修复 在 read path 顺手修 stalest replica, 高频 read keys 收敛快但 cold-key 靠 anti-entropy。</li>
+<li>Hinted Handoff 是 short-outage 透明写入 + 节点恢复 replay; TTL 受限不然 hint expire → 行 SLA 风险。</li>
+<li>Anti-Entropy repair 用 Merkle Tree 计算 range diff, 增量修复 + 周期性 full repair 兼顾。</li>
+<li>三 修复路径不冲突——并行 run; 工程实践中 hint &lt; hour outage, anti-entropy 每周 / 每 12 小时 incremental。</li>
+<li>Merkle Tree 内存代价 + IO 代价是反熵约束, 大 cluster 用 range 分片 + incremental <code>[pr]</code> 模式修。</li>
+<li>Anti-Entropy 必须 durability 检查; 否则 corrupt 键 propagate 到 healthy replica 是 silent 数据丢失最可怕的事故。</li>
+</ol>
+<hr />
+<p>下一节 → <a href="../clock/index.html">时钟与顺序</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../distributed/replication/crdt.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../distributed/transactions.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../distributed/replication/crdt.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../distributed/transactions.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

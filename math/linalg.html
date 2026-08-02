@@ -1,0 +1,602 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>2. 线性代数: 向量空间 / 矩阵 / 谱 / SVD / 张量 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="2-线性代数-向量空间--矩阵--谱--svd--张量"><a class="header" href="#2-线性代数-向量空间--矩阵--谱--svd--张量">2. 线性代数: 向量空间 / 矩阵 / 谱 / SVD / 张量</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>线性代数是<strong>计算机里所有"高维空间"的总称</strong>——一份 1B 参数权重、一帧图像的像素张量、一次 attention 的 $Q K V$ 矩阵、PageRank 的转移矩阵, 在数学上<strong>完全等价于一组线性变换</strong>. 这一篇覆盖六件工具:</p>
+<ol>
+<li><strong>向量空间</strong>: 集合 + 加 + 数乘; 列向量是 $\mathbb{R}^n$ 的元素.</li>
+<li><strong>矩阵 = 线性变换</strong>: 乘法、秩、迹、行列式.</li>
+<li><strong>特征分解</strong>: $A v = \lambda v$; 不变子空间.</li>
+<li><strong>SVD</strong>: 任意 $m \times n$ 矩阵的"正交对角"分解, 几乎是工程 (PageRank / PCA / 推荐系统 / LoRA) 的瑞士军刀.</li>
+<li><strong>正定矩阵与范数</strong>: 几何度量 / 内积 / 投影.</li>
+<li><strong>张量</strong>: 从向量到矩阵到 3 阶 4 阶; Transformer 里 $\mathrm{softmax}, \text{attention}$ 全是张量收缩.</li>
+</ol>
+<p>目标: 看论文里 <code>$Q K^\top \in \mathbb{R}^{n \times n}$</code> / <code>softmax over axis=-1</code> / <code>rank-$r$ approximation</code> 不再绕路查.</p>
+<hr />
+<h2 id="一向量空间"><a class="header" href="#一向量空间">一、向量空间</a></h2>
+<h3 id="11-定义"><a class="header" href="#11-定义">1.1 定义</a></h3>
+<p>向量空间 $V$ 在域 $\mathbb{F}$ (默认 $\mathbb{R}$) 上: 元素 $u, v \in V$ 满足加法+数乘封闭, 且遵循 8 条公理 (加法系 Abelian 群 + 数乘结合/分配).</p>
+<p>工程直觉: $\mathbb{R}^n$ 是最熟悉的实例; 一张 $28 \times 28$ 图像是 $\mathbb{R}^{784}$ 的一个点; 一个 768 维 embedding 也是.</p>
+<h3 id="12-线性无关--维数"><a class="header" href="#12-线性无关--维数">1.2 线性无关 / 维数</a></h3>
+<ul>
+<li>一组向量 ${v_1, \ldots, v_k}$ 线性无关: $\sum c_i v_i = 0 \iff c_i = 0$.</li>
+<li>极大无关组叫<strong>基</strong>; 基的大小叫<strong>维数</strong> $\dim V$.</li>
+<li>子空间 $W \subseteq V$: 自身成空间.</li>
+</ul>
+<h3 id="13-四个核心子空间-任意矩阵"><a class="header" href="#13-四个核心子空间-任意矩阵">1.3 四个核心子空间 (任意矩阵)</a></h3>
+<p>矩阵 $A \in \mathbb{R}^{m \times n}$ 自动定义四个子空间:</p>
+<div class="table-wrapper"><table><thead><tr><th>子空间</th><th>维数</th><th>含义</th></tr></thead><tbody>
+<tr><td>列空间 $\mathcal{R}(A) = \operatorname{col}(A) \subseteq \mathbb{R}^m$</td><td>$r = \operatorname{rank} A$</td><td>$A x$ 能取到的所有 $y$</td></tr>
+<tr><td>行空间 $\operatorname{row}(A) \subseteq \mathbb{R}^n$</td><td>$r$</td><td>$A^\top x$ 的取值范围</td></tr>
+<tr><td>零空间 $\mathcal{N}(A) \subseteq \mathbb{R}^n$</td><td>$n - r$</td><td>$Ax = 0$ 的解集</td></tr>
+<tr><td>左零空间 $\mathcal{N}(A^\top) \subseteq \mathbb{R}^m$</td><td>$m - r$</td><td>$A^\top y = 0$ 的解集</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>任意 $Ax = b$ 有解 $\Leftrightarrow b \in \mathcal{R}(A)$. 解唯一 $\Leftrightarrow \mathcal{N}(A) = {0}$. 这是数据库查询系统解线性约束的根.</p>
+</div>
+<h3 id="14-内积与范数"><a class="header" href="#14-内积与范数">1.4 内积与范数</a></h3>
+<p>内积 $\langle u, v \rangle = \sum u_i v_i = u^\top v$. 诱导范数:</p>
+<p>$$ |u|_2 = \sqrt{\langle u, u\rangle}, \quad |u|<em>1 = \sum |u_i|, \quad |u|</em>\infty = \max |u_i| $$</p>
+<ul>
+<li>柯西-施瓦茨: $|\langle u, v\rangle| \leq |u|_2 |v|_2$.</li>
+<li>三角不等式: $|u + v| \leq |u| + |v|$.</li>
+<li>余弦相似度: $\cos \theta = \frac{\langle u, v\rangle}{|u| |v|}$, 这是 embedding 检索的核心度量.</li>
+</ul>
+<hr />
+<h2 id="二矩阵与线性变换"><a class="header" href="#二矩阵与线性变换">二、矩阵与线性变换</a></h2>
+<h3 id="21-矩阵--线性变换"><a class="header" href="#21-矩阵--线性变换">2.1 矩阵 = 线性变换</a></h3>
+<p>矩阵 $A \in \mathbb{R}^{m \times n}$ 表示 $\mathbb{R}^n \to \mathbb{R}^m$ 的线性变换: $x \mapsto A x$.</p>
+<p><strong>叠加性</strong>: $A(u + v) = A u + A v$; $A(c u) = c A(u)$ 一旦满足即线性.</p>
+<p><strong>关键矩阵</strong>:</p>
+<div class="table-wrapper"><table><thead><tr><th>类型</th><th>形式</th><th>性质 / 用途</th></tr></thead><tbody>
+<tr><td>单位 $I$</td><td>$\delta_{ij}$</td><td>任何矩阵的幺元</td></tr>
+<tr><td>对角 $D$</td><td>$d_i \delta_{ij}$</td><td>缩放; 特征值全在 $d_i$</td></tr>
+<tr><td>对称 $S$</td><td>$A = A^\top$</td><td>特征值全实, 可正交对角化</td></tr>
+<tr><td>正交 $Q$</td><td>$Q^\top Q = I$</td><td>旋转/反射, 保范数</td></tr>
+<tr><td>三角 $U, L$</td><td>上下三角</td><td>LU 分解, 回代求解</td></tr>
+<tr><td>置换 $P$</td><td>每行恰一 1</td><td>决定行/列顺序</td></tr>
+<tr><td>投影 $P^2 = P$</td><td>幂等</td><td>$P^\top = P$ 即正交投影</td></tr>
+</tbody></table>
+</div>
+<h3 id="22-矩阵运算"><a class="header" href="#22-矩阵运算">2.2 矩阵运算</a></h3>
+<p>$$ (AB)^\top = B^\top A^\top, \quad (AB)^{-1} = B^{-1} A^{-1}, \quad \operatorname{tr}(AB) = \operatorname{tr}(BA) $$</p>
+<p>$$ \det(AB) = \det(A) \det(B), \quad \det(A^{-1}) = 1/\det(A) $$</p>
+<p><strong>迹性质</strong>: $\operatorname{tr}(A) = \sum_i A_{ii} = \sum \lambda_i$ (任意方阵特征值和).
+<strong>行列式</strong>: $\det A = \prod \lambda_i$; 几何意 = 列向量张成平行多面体体积.</p>
+<h3 id="23-秩与可逆"><a class="header" href="#23-秩与可逆">2.3 秩与可逆</a></h3>
+<p>$\operatorname{rank} A$ = 列空间 (行空间) 维数.</p>
+<ul>
+<li>$A$ 可逆 $\Leftrightarrow$ 满秩; $A^\top A$ 正定 $\Leftrightarrow A$ 列满秩.</li>
+<li><strong>秩-零度定理</strong>: $\operatorname{rank} A + \dim \mathcal{N}(A) = n$.</li>
+</ul>
+<h3 id="24-矩阵分解速查"><a class="header" href="#24-矩阵分解速查">2.4 矩阵分解速查</a></h3>
+<p>工程上"求逆/解方程"通常先做分解:</p>
+<div class="table-wrapper"><table><thead><tr><th>分解</th><th>$A = $</th><th>用途</th></tr></thead><tbody>
+<tr><td><strong>LU</strong></td><td>$L U$ (可能加 $P$ 行置换)</td><td>解线性方程, 一次分解多解</td></tr>
+<tr><td><strong>Cholesky</strong></td><td>$L L^\top$ ($A$ 正定)</td><td>比 LU 省一半; ML Hessian</td></tr>
+<tr><td><strong>QR</strong></td><td>$Q R$ (正交 × 三角)</td><td>最小二乘, 稳定</td></tr>
+<tr><td><strong>特征分解</strong></td><td>$Q \Lambda Q^{-1}$ ($A$ 对角化)</td><td>当 $A$ 对称易</td></tr>
+<tr><td><strong>SVD</strong></td><td>$U \Sigma V^\top$</td><td>任意矩阵; <strong>永不动摇</strong></td></tr>
+<tr><td><strong>Schur</strong></td><td>$Q T Q^\top$ (上三角 $T$)</td><td>一般矩阵稳定特征分解</td></tr>
+</tbody></table>
+</div>
+<pre><code class="language-python">import numpy as np
+A = np.random.randn(5, 3)
+U, s, Vt = np.linalg.svd(A)            # 任意 A 都是 U Σ V^T
+print(U.shape, s.shape, Vt.shape)        # (5,5) (3,) (3,3)
+# 列空间 = U[:, :3] 张成; 奇异值 = s
+# 奇异值越大 → 该方向越"重" → 用于压缩
+</code></pre>
+<hr />
+<h2 id="三特征值与特征向量"><a class="header" href="#三特征值与特征向量">三、特征值与特征向量</a></h2>
+<h3 id="31-定义"><a class="header" href="#31-定义">3.1 定义</a></h3>
+<p>$$ A v = \lambda v \quad (v \neq 0) $$</p>
+<p>$\lambda$ 称 $A$ 的特征值, $v$ 对应特征向量. 组合起来 ${(\lambda_i, v_i)}$ 即 $A$ 的<strong>谱</strong>.</p>
+<p>特征值几何意: 在 $v$ 方向上, $A$ 只缩放 (不改变方向); 矩阵的整体"行为"分布在各方向上的缩放因子.</p>
+<h3 id="32-关键性质"><a class="header" href="#32-关键性质">3.2 关键性质</a></h3>
+<ul>
+<li>$A$ 对称 ⇒ 特征值全实 + 特征向量可正交选取.</li>
+<li>$\det A = \prod_i \lambda_i$; $\operatorname{tr} A = \sum_i \lambda_i$.</li>
+<li>$A^k$ 的特征值 = $\lambda_i^k$; 一句话推出 PageRank 一致收敛.</li>
+<li><strong>谱半径</strong> $\rho(A) = \max |\lambda_i|$; 决定 $A^k$ 是否发散.</li>
+</ul>
+<h3 id="33-谱定理-实对称矩阵"><a class="header" href="#33-谱定理-实对称矩阵">3.3 谱定理 (实对称矩阵)</a></h3>
+<p>对称矩阵 $A$ 永远正交对角化:</p>
+<p>$$ A = Q \Lambda Q^\top, \quad Q^\top Q = I, \quad \Lambda = \operatorname{diag}(\lambda_i) $$</p>
+<p><strong>含义</strong>: 对称矩阵只是"沿正交方向独立缩放"。这是 PCA、谱聚类、协方差分析的根; 也解释为什么 <code>np.cov</code> 是对称的.</p>
+<h3 id="34-应用-markov-链--pagerank"><a class="header" href="#34-应用-markov-链--pagerank">3.4 应用: Markov 链 + PageRank</a></h3>
+<p>设 $A$ 是行随机矩阵; $\lambda_1 = 1$ 是最大特征值, 对应特征向量是平稳分布. PageRank 即:</p>
+<p>$$ r = \alpha S r + (1 - \alpha) \frac{\mathbf{1}}{n} $$</p>
+<p>幂迭代 $r_{k+1} = \alpha S r_k + \cdots$ 收敛到唯一平稳分布, 由 Perron-Frobenius 保证.</p>
+<hr />
+<h2 id="四svd-通用瑞士军刀"><a class="header" href="#四svd-通用瑞士军刀">四、SVD: 通用瑞士军刀</a></h2>
+<h3 id="41-定理"><a class="header" href="#41-定理">4.1 定理</a></h3>
+<p>任意 $A \in \mathbb{R}^{m \times n}$ 可分解为:</p>
+<p>$$ A = U \Sigma V^\top, \quad U \in \mathbb{R}^{m \times m}, V \in \mathbb{R}^{n \times n}, \Sigma = \operatorname{diag}(\sigma_1, \ldots, \sigma_{\min(m,n)}) $$</p>
+<ul>
+<li>$U, V$ 正交, $\Sigma$ 唯一对角奇异值 $\sigma_1 \geq \ldots \geq 0$.</li>
+<li>$\sigma_i = \sqrt{\lambda_i(A^\top A)} = \sqrt{\lambda_i(A A^\top)}$.</li>
+<li>$\operatorname{rank} A = $ 非零奇异值个数.</li>
+</ul>
+<h3 id="42-低秩近似-eckart-young"><a class="header" href="#42-低秩近似-eckart-young">4.2 低秩近似 (Eckart-Young)</a></h3>
+<p>$$ A_k = \sum_{i=1}^k \sigma_i u_i v_i^\top $$</p>
+<p>是所有秩-$k$ 矩阵中最佳 (Frobenius 与 $L_2$ 范数) 近似 $A$.</p>
+<p><strong>应用</strong>:</p>
+<ul>
+<li><strong>PCA</strong>: 把协方差矩阵做 $A U$ 投影到主分量, 数据压缩 $k \ll n$.</li>
+<li><strong>LSA</strong>: 搜索引擎把词-文档矩阵 SVD 取 top-$k$ 维.</li>
+<li><strong>推荐系统</strong> (collaborative filtering 的 baseline): 评分矩阵 SVD.</li>
+<li><strong>LoRA</strong>: $W = W_0 + B A$, $A, B$ 低秩 → 参数省至 $r \cdot (m + n)$.</li>
+</ul>
+<h3 id="43-数值秩与极大秩近似的工程直觉"><a class="header" href="#43-数值秩与极大秩近似的工程直觉">4.3 数值秩与极大秩近似的工程直觉</a></h3>
+<p>奇异值衰减快 ⇒ 矩阵"近似秩"小 ⇒ 可被低秩参数化压缩; 衰减慢 ⇒ 信息等分布在各方向.</p>
+<p>→ 这就是 HuggingFace 上 LoRA 试不同 $r$ (通常 8 / 16 / 32) 的根源: $r$ 取多大决定能拟合多少"低秩修正".</p>
+<hr />
+<h2 id="五正定矩阵与范数"><a class="header" href="#五正定矩阵与范数">五、正定矩阵与范数</a></h2>
+<h3 id="51-正定矩阵"><a class="header" href="#51-正定矩阵">5.1 正定矩阵</a></h3>
+<p>对称矩阵 $A \succeq 0$: $\forall x \neq 0: x^\top A x \geq 0$.</p>
+<p>$A \succ 0$ (正定): $x^\top A x &gt; 0$ 对任意 $x \neq 0$.</p>
+<p><strong>等价条件</strong>: 特征值全正; $A = L L^\top$ (Cholesky 存在); 行列式、主子式全正.</p>
+<p><strong>用途</strong>:</p>
+<ul>
+<li>协方差矩阵是正定; KL 散度在海森度量下表现.</li>
+<li>优化: Hessian 正定 ⇒ 局部极小是凸.</li>
+<li>Mahalanobis 距离 $d(x, \mu) = \sqrt{(x - \mu)^\top \Sigma^{-1}(x - \mu)}$ ⇒ 协方差逆度量.</li>
+</ul>
+<h3 id="52-矩阵范数"><a class="header" href="#52-矩阵范数">5.2 矩阵范数</a></h3>
+<ul>
+<li><strong>Frobenius</strong>: $|A|<em>F = \sqrt{\sum a</em>{ij}^2} = \sqrt{\operatorname{tr}(A^\top A)}$.</li>
+<li><strong>谱范数</strong> (2-范数): $|A|<em>2 = \sigma</em>{\max}(A)$.</li>
+<li><strong>1 范数</strong>: 列求和最大.</li>
+<li><strong>$\infty$ 范数</strong>: 行求和最大.</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>Transformer 自注意力里 $\mathrm{softmax}(Q K^\top / \sqrt{d_k})$, 除以 $\sqrt{d_k}$ 就是控制 $|Q K^\top|$ 量级 (注意 $K$ 的列向量范数期望 $\sqrt{d_k}$).</p>
+</div>
+<hr />
+<h2 id="六张量-从-2-阶到-n-阶"><a class="header" href="#六张量-从-2-阶到-n-阶">六、张量: 从 2 阶到 N 阶</a></h2>
+<h3 id="61-定义"><a class="header" href="#61-定义">6.1 定义</a></h3>
+<p>张量 (此处指多维数组, 物理学晶格张量定义同源不同语境) 是矩阵的推广:</p>
+<ul>
+<li>0 阶张量: 标量 $a$.</li>
+<li>1 阶: 向量 $v \in \mathbb{R}^n$.</li>
+<li>2 阶: 矩阵 $A \in \mathbb{R}^{m \times n}$.</li>
+<li>3 阶: $T \in \mathbb{R}^{m \times n \times k}$ — 例如 batch × token × embedding.</li>
+<li>4 阶: batch × channel × height × width (CNN 卷积核).</li>
+</ul>
+<p><strong>Transformer 维度速查</strong>:</p>
+<div class="table-wrapper"><table><thead><tr><th>张量</th><th>阶</th><th>形状典型</th></tr></thead><tbody>
+<tr><td>Token embedding $x$</td><td>3</td><td><code>[B, T, d]</code> (batch × seq × emb)</td></tr>
+<tr><td>权重 $W_Q, W_K, W_V$</td><td>2</td><td><code>[d, d_h]</code> (head dim)</td></tr>
+<tr><td>Query $Q = x W_Q$</td><td>3</td><td><code>[B, T, d_h]</code></td></tr>
+<tr><td>Attention scores $Q K^\top$</td><td>3</td><td><code>[B, T, T]</code> (query × key)</td></tr>
+<tr><td>After softmax: $\alpha$</td><td>3</td><td><code>[B, T, T]</code>, 行和=1</td></tr>
+<tr><td>Output $\alpha V$</td><td>3</td><td><code>[B, T, d_h]</code></td></tr>
+</tbody></table>
+</div>
+<h3 id="62-张量收缩-contraction"><a class="header" href="#62-张量收缩-contraction">6.2 张量收缩 (contraction)</a></h3>
+<p>矩阵乘法 $\sum_k A_{ik} B_{kj} = (AB)_{ij}$ 是 2 阶张量沿 $k$ 阶的收缩. 高阶张量收缩 = 在 N 阶任意选定一对轴求和.</p>
+<p><strong>例</strong> (Self-attention 核心):</p>
+<p>$$ \mathrm{Att}(Q,K,V) = \mathrm{softmax}\left(\frac{Q K^\top}{\sqrt{d_k}}\right) V $$</p>
+<ul>
+<li>$Q K^\top$: <code>[B, T, d_h] × [B, d_h, T] → [B, T, T]</code> (batched matmul).</li>
+<li>softmax 沿 last axis: $[\sum_j e^{s_{ij}} = 1]$.</li>
+<li>再 $\times V$ → <code>[B, T, d_h]</code>.</li>
+</ul>
+<p>工程上 PyTorch / JAX 的 <code>torch.einsum('btd,bhd-&gt;bth', X, W)</code> 就是把任意张量收缩按 Einstein 求和约定写出来.</p>
+<pre><code class="language-python">import torch
+# Multi-head self-attention 的核心一步
+# X: [B, T, d]; Wq/Wk/Wv: [d, H, d_h]
+def attention(X, Wq, Wk, Wv):
+    Q = torch.einsum('btd,dhs-&gt;bhts', X, Wq)    # [B, H, T, d_h]
+    K = torch.einsum('btd,dhs-&gt;bhts', X, Wk)
+    V = torch.einsum('btd,dhs-&gt;bhts', X, Wv)
+    scores = Q @ K.transpose(-2, -1) / (Q.shape[-1] ** 0.5)  # [B,H,T,T]
+    alpha = scores.softmax(dim=-1)
+    return alpha @ V                              # [B, H, T, d_h]
+</code></pre>
+<pre><code class="language-typescript">// 纯 TS 教学版: 单头注意力, 假装 d=64, T=16
+function softmaxRows(M: number[][]): number[][] {
+  return M.map(row =&gt; {
+    const m = Math.max(...row);
+    const e = row.map(x =&gt; Math.exp(x - m));
+    const Z = e.reduce((a, b) =&gt; a + b, 0);
+    return e.map(x =&gt; x / Z);
+  });
+}
+function attention(Q: number[][], K: number[][], V: number[][]): number[][] {
+  // Q, K, V 皆为 [T, d]
+  const d = Q[0].length;
+  const T = Q.length;
+  const scores: number[][] = Array.from({ length: T }, () =&gt; Array(T).fill(0));
+  for (let i = 0; i &lt; T; i++)
+    for (let j = 0; j &lt; T; j++) {
+      let s = 0;
+      for (let k = 0; k &lt; d; k++) s += Q[i][k] * K[j][k];
+      scores[i][j] = s / Math.sqrt(d);
+    }
+  const alpha = softmaxRows(scores);          // [T,T], 行和=1
+  const out: number[][] = Array.from({ length: T }, () =&gt; Array(d).fill(0));
+  for (let i = 0; i &lt; T; i++)
+    for (let j = 0; j &lt; T; j++) {
+      const a = alpha[i][j];
+      for (let k = 0; k &lt; d; k++) out[i][k] += a * V[j][k];
+    }
+  return out;
+}
+</code></pre>
+<h3 id="63-广播-broadcasting"><a class="header" href="#63-广播-broadcasting">6.3 广播 (broadcasting)</a></h3>
+<p>NumPy / PyTorch 的广播规则:</p>
+<ol>
+<li>形状从右往左对齐.</li>
+<li>缺轴视为 1; 维度 1 沿该轴复制.</li>
+<li>不同维且 &gt;1 ⇒ 报错.</li>
+</ol>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>Transformer 代码里 <code>W[:, None, :]</code> 这种加轴操作背后的数学本质就是 reshape; 跟张量阶数 +1 等价, 不影响内容.</p>
+</div>
+<hr />
+<h2 id="七四个工程界必备小公式"><a class="header" href="#七四个工程界必备小公式">七、四个工程界必备"小公式"</a></h2>
+<h3 id="71-ml--optimization-反复出现的恒等"><a class="header" href="#71-ml--optimization-反复出现的恒等">7.1 ML / Optimization 反复出现的恒等</a></h3>
+<p>$$ \frac{\partial}{\partial X} \mathbf{1}^\top X \boldsymbol{w} = \boldsymbol{w} \boldsymbol{1}^\top $$</p>
+<p>$$ \frac{\partial}{\partial W} (X W) = X^\top \cdot (\text{梯度对 } XW) $$</p>
+<p>记忆法: "<strong>梯度比原式少一个 W 的轴, 求导后留下 X 转置</strong>". 这是反向传播 (§4 微积分) 的本质.</p>
+<h3 id="72-矩阵微分三件套"><a class="header" href="#72-矩阵微分三件套">7.2 矩阵微分三件套</a></h3>
+<pre><code class="language-text">forward                          backward (相同链路反向)
+X -&gt; XW -&gt; P = softmax(XW)  -&gt; loss   P - y   (对 score 的梯度)
+                               ^^^
+ W 的梯度 = X^T @ (P - y)        (链式法则的"收缩")
+</code></pre>
+<h3 id="73-列--行视图相同"><a class="header" href="#73-列--行视图相同">7.3 列 / 行视图相同</a></h3>
+<p>$Ax = b$ 可视为:</p>
+<ul>
+<li><strong>列视图</strong>: $b$ 是 A 列的线性组合, 权重 = $x$ 的对应元素.</li>
+<li><strong>行视图</strong>: 每行是一个超平面方程, 解 = 所有超平面交点.</li>
+</ul>
+<p>→ 在 ML 里 <strong>列视图</strong> 是特征聚合, <strong>行视图</strong> 是样本边界判别. 这是 SVM 与 PCA 的对偶视角.</p>
+<h3 id="74-投影"><a class="header" href="#74-投影">7.4 投影</a></h3>
+<p>正交投影到列空间 $\mathcal{R}(A)$ 的矩阵:</p>
+<p>$$ P_A = A (A^\top A)^{-1} A^\top $$</p>
+<p>最小二乘解 $x = (A^\top A)^{-1} A^\top y$ 给出"投影后的坐标".</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>数据库代价估计 / ML 线性回归 / 任何拟合直线的最小二乘都用这个公式. 它是 §4 微积分篇推导"梯度下降等价于迭代投影"的入口.</p>
+</div>
+<hr />
+<h2 id="八结束--速查表"><a class="header" href="#八结束--速查表">八、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回:</p>
+<ul>
+<li><strong>矩阵 = 线性变换</strong>: $\det A = \prod \lambda_i$, $\operatorname{tr} A = \sum \lambda_i$.</li>
+<li><strong>秩-零度</strong>: $\operatorname{rank} A + \dim \mathcal{N}(A) = n$.</li>
+<li><strong>正定</strong>: ⇔ 对称 + 特征值全正 ⇔ $A = L L^\top$.</li>
+<li><strong>谱范数</strong> $|A|<em>2 = \sigma</em>{\max}(A)$; Frobenius $|A|_F = \sqrt{\operatorname{tr}(A^\top A)}$.</li>
+<li><strong>SVD</strong>: 永远存在, $A = U \Sigma V^\top$; Top-k 奇异值是最佳 low-rank 近似.</li>
+<li><strong>Cauchy-Schwarz</strong>: $|\langle u, v\rangle| \leq |u| |v|$.</li>
+<li><strong>正交投影</strong>: $P = A(A^\top A)^{-1} A^\top$.</li>
+<li><strong>张量总收缩</strong>: $\sum$ along 对应轴, softmax 维 -1 在最后一轴归一.</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="prob.html">3. 概率统计: 分布 / 贝叶斯 / MLE / MAP / 极限 / KL</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../math/discrete.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../math/prob.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../math/discrete.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../math/prob.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

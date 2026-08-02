@@ -1,0 +1,486 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>2. 定理证明: Coq / Lean / 依赖类型 / Curry-Howard - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="2-定理证明-coq--lean--依赖类型--curry-howard"><a class="header" href="#2-定理证明-coq--lean--依赖类型--curry-howard">2. 定理证明: Coq / Lean / 依赖类型 / Curry-Howard</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>模型检查在"小规模"上穷举；<strong>定理证明（Interactive Theorem Proving）<strong>在"任意规模"上用逻辑推理证明命题——本质是</strong>让计算机验证你的证明每一步是否合法</strong>。Coq 和 Lean 是两类主流证明助手，它们的根基是<strong>依赖类型</strong>和 <strong>Curry-Howard 对应</strong>（命题 = 类型，证明 = 程序）。这一章给心智模型 + 最小可跑示例，让你能看懂 <code>Theorem ... := ...</code> 和证明脚本，理解 CompCert / seL4 / F* 这类"被证明的系统"。</p>
+<p>读完应能：</p>
+<ol>
+<li>理解 Curry-Howard：为什么"证明一个命题"等价于"构造一个类型的程序"。</li>
+<li>理解依赖类型与普通类型系统的区别（类型可以依赖值）。</li>
+<li>读一个简单的 Coq / Lean 证明，理解 <code>Proof</code> / <code>Qed</code> / tactics 是什么。</li>
+<li>知道 Coq / Lean / Isabelle 的区别与代表成果（CompCert / seL4 / mathlib）。</li>
+<li>理解定理证明的成本与适用场景（编译器/内核/密码关键实现）。</li>
+</ol>
+<hr />
+<h2 id="一curry-howard-对应命题即类型证明即程序"><a class="header" href="#一curry-howard-对应命题即类型证明即程序">一、Curry-Howard 对应：命题即类型，证明即程序</a></h2>
+<h3 id="11-核心对应"><a class="header" href="#11-核心对应">1.1 核心对应</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>逻辑</th><th>类型论</th></tr></thead><tbody>
+<tr><td>命题 A</td><td>类型 A</td></tr>
+<tr><td>A 的证明</td><td>类型 A 的一个程序（term）</td></tr>
+<tr><td>A ∧ B</td><td>积类型 (A × B)</td></tr>
+<tr><td>A ∨ B</td><td>和类型 (A + B)</td></tr>
+<tr><td>A ⇒ B</td><td>函数类型 (A → B)</td></tr>
+<tr><td>∀x, P(x)</td><td>依赖函数 (∀ x, P x)</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p><strong>Curry-Howard</strong>：证明"若 A 则 B" = 写一个函数 <code>A → B</code>（输入 A 的证明，输出 B 的证明）。证明"存在 x 使 P(x)" = 构造一个具体的 x 和它的证明。这就是为什么<strong>写证明像写程序</strong>——证明助手本质是个"带类型检查的编程语言"。</p>
+</div>
+<h3 id="12-为什么这很重要"><a class="header" href="#12-为什么这很重要">1.2 为什么这很重要</a></h3>
+<ul>
+<li><strong>程序即证明</strong>：你写一个满足类型的 term，就是给出一个证明。</li>
+<li><strong>类型检查即验证</strong>：计算机自动检查 term 类型是否合法 = 自动验证证明步骤。</li>
+<li><strong>反例即类型错误</strong>：证明有漏洞 → 类型检查不过 → 编译器拒绝。</li>
+</ul>
+<hr />
+<h2 id="二依赖类型类型可以依赖值"><a class="header" href="#二依赖类型类型可以依赖值">二、依赖类型：类型可以依赖值</a></h2>
+<h3 id="21-普通类型系统"><a class="header" href="#21-普通类型系统">2.1 普通类型系统</a></h3>
+<p><code>List&lt;Int&gt;</code>：类型参数是类型（<code>Int</code>），不是值。</p>
+<h3 id="22-依赖类型"><a class="header" href="#22-依赖类型">2.2 依赖类型</a></h3>
+<p>类型可以<strong>依赖具体值</strong>：</p>
+<pre><code class="language-coq">(* 长度索引的向量: Vec A n 是长度为 n 的 A 列表 *)
+Inductive Vec (A : Type) : nat -&gt; Type :=
+  | nil  : Vec A 0
+  | cons : forall n, A -&gt; Vec A n -&gt; Vec A (S n).
+</code></pre>
+<ul>
+<li><code>Vec A 3</code> 是"长度恰好为 3 的向量"——<strong>长度是类型的一部分</strong>。</li>
+<li>好处：<code>head</code> 函数可以只在"非空向量"上定义（类型系统强制），空向量调 head 编译都不过。</li>
+</ul>
+<h3 id="23-例子头元素只对非空合法"><a class="header" href="#23-例子头元素只对非空合法">2.3 例子：头元素只对非空合法</a></h3>
+<pre><code class="language-coq">Definition head (A : Type) (n : nat) (v : Vec A (S n)) : A :=
+  match v with
+  | cons _ a _ =&gt; a
+  end.
+(* 注意: 没有 nil 分支! 因为类型 Vec A (S n) 保证非空, 编译器不接受 nil *)
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>这正是依赖类型 vs 普通类型系统的分水岭：普通系统在运行时查 <code>null</code> / 抛异常；依赖类型<strong>在编译期就把非法状态排除</strong>。代价是写证明（构造类型）更难。</p>
+</div>
+<hr />
+<h2 id="三coq一个最小的证明"><a class="header" href="#三coq一个最小的证明">三、Coq：一个最小的证明</a></h2>
+<h3 id="31-环境"><a class="header" href="#31-环境">3.1 环境</a></h3>
+<p>Coq 是一个依赖类型语言 + 证明助手（CIC 演算），配合 IDE（CoqIDE / VS Code + vscoq）。</p>
+<h3 id="32-一个简单定理"><a class="header" href="#32-一个简单定理">3.2 一个简单定理</a></h3>
+<pre><code class="language-coq">(* 证明: 对任意自然数 n, n + 0 = n *)
+Theorem plus_0_r : forall n : nat, n + 0 = n.
+Proof.
+  intros n.
+  induction n as [| n' IH].
+  - reflexivity.              (* 0 + 0 = 0, 直接化简成立 *)
+  - simpl. rewrite IH. reflexivity.   (* S n' + 0 = S (n'+0) = S n' *)
+Qed.
+</code></pre>
+<ul>
+<li><code>intros n</code>：把 <code>forall n</code> 的 n 引入上下文。</li>
+<li><code>induction n</code>：归纳法（基础情形 + 归纳步骤）。</li>
+<li><code>reflexivity</code> / <code>rewrite IH</code>：tactic（策略），驱动证明。</li>
+<li><code>Qed</code>：证明完成，定理被登记为可信。</li>
+</ul>
+<h3 id="33-证明本质上是指导类型检查器"><a class="header" href="#33-证明本质上是指导类型检查器">3.3 证明本质上是"指导类型检查器"</a></h3>
+<p>每步 tactic 都在<strong>改变证明项（term）</strong>，最终形成一个类型为"该定理"的 term——<code>Qed</code> 让 Coq 内核独立校验这个 term。<strong>即使是复杂 tactic，最终证明都要过内核的语法检查</strong>（这就是可信内核的关键设计）。</p>
+<h3 id="34-证明被编译进程序可提取"><a class="header" href="#34-证明被编译进程序可提取">3.4 证明被编译进程序（可提取）</a></h3>
+<pre><code class="language-coq">(* 程序提取: 把证明中的可计算部分提成 OCaml/Haskell *)
+Extraction "sorted.ml" sort_spec.
+</code></pre>
+<hr />
+<h2 id="四lean现代证明助手"><a class="header" href="#四lean现代证明助手">四、Lean：现代证明助手</a></h2>
+<h3 id="41-与-coq-的区别"><a class="header" href="#41-与-coq-的区别">4.1 与 Coq 的区别</a></h3>
+<div class="table-wrapper"><table><thead><tr><th></th><th>Coq</th><th>Lean</th></tr></thead><tbody>
+<tr><td>系统</td><td>CIC 演算（依赖类型）</td><td>依赖类型 + 商类型</td></tr>
+<tr><td>定位</td><td>程序验证成熟（CompCert）</td><td>数学库 + 验证并重（mathlib）</td></tr>
+<tr><td>元编程</td><td>Ltac（较老）</td><td>Lean 4 用自身（宏）</td></tr>
+<tr><td>风格</td><td>偏"程序"</td><td>偏"数学 + 程序"</td></tr>
+<tr><td>代表</td><td>CompCert, VST</td><td>mathlib (数学), Verifiable C</td></tr>
+</tbody></table>
+</div>
+<h3 id="42-lean-例子"><a class="header" href="#42-lean-例子">4.2 Lean 例子</a></h3>
+<pre><code class="language-lean">-- 证明: 对任意自然数 n, n + 0 = n
+theorem plus_zero_right (n : Nat) : n + 0 = n := by
+  induction n with
+  | zero =&gt; rfl
+  | succ n ih =&gt; simp [ih]
+
+-- 或更函数式:
+def addZero : (n : Nat) → n + 0 = n
+  | 0 =&gt; rfl
+  | n+1 =&gt; by simp [addZero]
+</code></pre>
+<h3 id="43-mathlib最大的数学证明库"><a class="header" href="#43-mathlib最大的数学证明库">4.3 mathlib：最大的数学证明库</a></h3>
+<ul>
+<li>mathlib 是 Lean 的数学库，包含大量现代数学的形式化证明。</li>
+<li>意义：<strong>定理证明已经证明"庞大数学理论"</strong>，不只是玩具。</li>
+</ul>
+<hr />
+<h2 id="五被证明的系统为什么值得"><a class="header" href="#五被证明的系统为什么值得">五、被证明的系统：为什么值得</a></h2>
+<h3 id="51-compcert被证明的-c-编译器"><a class="header" href="#51-compcert被证明的-c-编译器">5.1 CompCert（被证明的 C 编译器）</a></h3>
+<ul>
+<li>用 Coq 证明：<strong>编译器的每次变换都保持程序语义</strong>。</li>
+<li>结论：C 程序在 CompCert 编译下"正确运行" = 在数学意义上被保证（无编译器 bug）。</li>
+<li>价值：安全关键软件（航空、汽车）用 CompCert 消除"编译器引入的 bug"。</li>
+</ul>
+<h3 id="52-sel4被证明的操作系统内核"><a class="header" href="#52-sel4被证明的操作系统内核">5.2 seL4（被证明的操作系统内核）</a></h3>
+<ul>
+<li>用 Isabelle/HOL 证明 seL4 微内核满足功能规格。</li>
+<li>这是第一个"操作系统内核功能正确性"的机械验证。</li>
+<li>影响：验证安全关键系统（军用、汽车）的基石。</li>
+</ul>
+<h3 id="53-其他"><a class="header" href="#53-其他">5.3 其他</a></h3>
+<ul>
+<li><em><em>F</em> / F</em>*：依赖类型验证语言，用于加密实现（EverCrypt 用 F* 生成 C/汇编加密库）。</li>
+<li><strong>VST (Verified Software Toolchain)</strong>：Coq 里验证 C 程序的工具。</li>
+<li><strong>RustBelt</strong>：证明 Rust 的类型系统 + unsafe 内存安全。</li>
+</ul>
+<hr />
+<h2 id="六什么时候用定理证明"><a class="header" href="#六什么时候用定理证明">六、什么时候用定理证明</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>用</th><th>不用</th></tr></thead><tbody>
+<tr><td>编译器 / 内核 / 加密原语（不可有 bug）</td><td>普通应用（bug 可接受、迭代快）</td></tr>
+<tr><td>协议关键性质（共识、时间）</td><td>已有测试足够的系统</td></tr>
+<tr><td>数学/逻辑研究</td><td>快速原型</td></tr>
+</tbody></table>
+</div>
+<p><strong>成本</strong>：CompCert 用了数人年、几十万行证明。这是<strong>每行证明的成本远高于每行代码</strong>的领域。</p>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>工程上的务实做法：<strong>只在"正确性代价极高"的组件用</strong>（如加密库、内存安全边界、共识核心），其余用测试。现代趋势是"形式化 + 测试"混合（如 Rust 生态里用证明验证 unsafe 部分）。</p>
+</div>
+<hr />
+<h2 id="七与前面章节的接口"><a class="header" href="#七与前面章节的接口">七、与前面章节的接口</a></h2>
+<ul>
+<li>依赖类型 = 类型系统（编译 §type-system）+ 数学（理论 §形式语言）。</li>
+<li>Curry-Howard = 逻辑（数学 §逻辑）在类型里的实现。</li>
+<li>Hoare 逻辑（下一章）是"程序验证"用逻辑证明代码性质，定理证明是它的执行工具。</li>
+</ul>
+<hr />
+<h2 id="八结束--速查表"><a class="header" href="#八结束--速查表">八、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回：</p>
+<ul>
+<li><strong>Curry-Howard</strong>：命题=类型、证明=程序、证明检查=类型检查。</li>
+<li><strong>依赖类型</strong>：类型依赖值（<code>Vec A n</code>），编译期排除非法状态。</li>
+<li><strong>Coq</strong>：CIC 演算 + tactics（<code>intros</code>/<code>induction</code>/<code>reflexivity</code>/<code>rewrite</code>），<code>Qed</code> 过内核校验。</li>
+<li><strong>Lean</strong>：现代证明助手，mathlib 数学库，验证 + 数学并重。</li>
+<li><strong>证明 = 指导类型检查器</strong>：即使复杂 tactic，最终 term 要过内核。</li>
+<li><strong>代表成果</strong>：CompCert（C 编译器）、seL4（OS 内核）、EverCrypt（加密）、RustBelt（Rust）。</li>
+<li><strong>成本极高</strong>：只在正确性关键处用；"证明每行"比"写每行"贵得多。</li>
+<li><strong>工程趋势</strong>：形式化 + 测试混合（关键组件证明，其余测试）。</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="program-verification.html">3. 程序验证: Hoare 逻辑 / 符号执行 / 形式语义</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../formal/model-checking-tla.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../formal/program-verification.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../formal/model-checking-tla.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../formal/program-verification.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

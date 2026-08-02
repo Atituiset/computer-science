@@ -1,0 +1,582 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>1. Git 与版本控制: 原理 / 分支模型 / 合并策略 / 进阶命令 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="1-git-与版本控制-原理--分支模型--合并策略--进阶命令"><a class="header" href="#1-git-与版本控制-原理--分支模型--合并策略--进阶命令">1. Git 与版本控制: 原理 / 分支模型 / 合并策略 / 进阶命令</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>Git 是工程师每天用最多、却最容易被"记命令"蒙混过的工具。理解 Git 的<strong>底层模型</strong>（内容寻址 DAG）后，几乎所有"诡异行为"都能推理出来，而不是靠背 <code>git reset --hard</code>。这一章讲透：</p>
+<ol>
+<li><strong>对象模型</strong>：blob / tree / commit / tag 都是什么，Git 为什么是"内容寻址存储"。</li>
+<li><strong>引用与 HEAD</strong>：branch / tag / HEAD 的真相，<code>detached HEAD</code> 是什么。</li>
+<li><strong>暂存区与工作区</strong>：<code>add/commit/checkout/reset</code> 到底在动什么。</li>
+<li><strong>分支模型</strong>：GitFlow / GitHub Flow / Trunk-Based 对比，怎么选。</li>
+<li><strong>合并与变基</strong>：merge vs rebase vs cherry-pick，冲突解决。</li>
+<li><strong>回滚与恢复</strong>：<code>reset</code> 三种模式、<code>revert</code>、<code>reflog</code> 救命。</li>
+<li><strong>团队协作</strong>：pull request / 保护分支 / 语义化提交。</li>
+</ol>
+<p>读完应能：不慌任何 Git 场景——合并冲突、误删、改错分支、把 WIP 弄丢、多分支拉错。</p>
+<hr />
+<h2 id="一git-的对象模型一切的根"><a class="header" href="#一git-的对象模型一切的根">一、Git 的对象模型（一切的根）</a></h2>
+<h3 id="11-四个对象类型"><a class="header" href="#11-四个对象类型">1.1 四个对象类型</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>对象</th><th>内容</th><th>特点</th></tr></thead><tbody>
+<tr><td><strong>blob</strong></td><td>一个文件的内容</td><td>无文件名，只存内容</td></tr>
+<tr><td><strong>tree</strong></td><td>一个目录：文件名 → blob/tree 映射</td><td>记录目录结构</td></tr>
+<tr><td><strong>commit</strong></td><td>一次提交：指向 tree + parent(s) + 作者/时间/消息</td><td>不可变快照</td></tr>
+<tr><td><strong>tag</strong></td><td>指向某个 commit（或带注释）</td><td>命名的锚点</td></tr>
+</tbody></table>
+</div>
+<h3 id="12-内容寻址"><a class="header" href="#12-内容寻址">1.2 内容寻址</a></h3>
+<p>所有对象都用 <strong>SHA-1/SHA-256 哈希</strong>（内容哈希）作为地址。同样的内容永远得到同样的哈希——<strong>这是 Git 一切特性（去重、快照、不可变）的根</strong>。</p>
+<pre><code>commit  (哈希 = f(内容))
+  ├─→ tree      (整个目录快照)
+  │     ├─→ blob "main.go"     (文件内容)
+  │     └─→ tree "pkg/"
+  └─→ parent commit (父提交, 可多个 = merge)
+</code></pre>
+<h3 id="13-为什么-git-快"><a class="header" href="#13-为什么-git-快">1.3 为什么 Git 快</a></h3>
+<ul>
+<li><strong>快照而非 diff</strong>：每个 commit 存整棵 tree，但 blob 按内容去重——没改的文件复用同一 blob 哈希，只存一次。</li>
+<li><strong>不可变</strong>：commit 生成后内容不变，新提交只新增。这保证历史可信任、可审计。</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>理解了这个，<code>git log</code> 为什么是"沿 parent 指针走 DAG"、<code>git diff A B</code> 为什么能精确算差异、<code>.git</code> 为什么能瘦身——全都有了解释。Git 就是"分布式 §DAG 章节"的活实例。</p>
+</div>
+<hr />
+<h2 id="二引用head-与三区"><a class="header" href="#二引用head-与三区">二、引用、HEAD 与三区</a></h2>
+<h3 id="21-三区模型"><a class="header" href="#21-三区模型">2.1 三区模型</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>区域</th><th>是什么</th><th>命令影响它</th></tr></thead><tbody>
+<tr><td>工作区</td><td>你看到的文件</td><td>所有编辑</td></tr>
+<tr><td>暂存区（index）</td><td>准备提交的快照</td><td><code>git add</code></td></tr>
+<tr><td>仓库（.git）</td><td>已提交的历史</td><td><code>git commit</code></td></tr>
+</tbody></table>
+</div>
+<pre><code>工作区  --git add--&gt;  暂存区  --git commit--&gt;  仓库
+  ↑                     ↑                        ↑
+git checkout          git reset (mixed)       git reset --hard
+</code></pre>
+<h3 id="22-引用refs与-head"><a class="header" href="#22-引用refs与-head">2.2 引用（refs）与 HEAD</a></h3>
+<ul>
+<li><strong>branch</strong> 是一个指向 commit 的指针（<code>.git/refs/heads/xxx</code>）。</li>
+<li><strong>HEAD</strong> 是一个特殊指针，指向"当前在哪个分支/commit"。</li>
+<li>分支不是"装提交的容器"，只是<strong>会移动的指针</strong>——commit 本身在全球共享的 DAG 里。</li>
+</ul>
+<h3 id="23-detached-head"><a class="header" href="#23-detached-head">2.3 detached HEAD</a></h3>
+<p>当 HEAD 不指向任何分支（<code>git checkout &lt;commit&gt;</code>）时进入 detached 状态：你可以在任何 commit 上工作，但新提交<strong>不挂在任何分支名下</strong>，切走就可能"丢"（其实 reflog 里还在）。</p>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>在 detached HEAD 上做了想保留的改动：立刻 <code>git switch -c &lt;新分支名&gt;</code> 建分支保住，否则切走后只能靠 <code>git reflog</code> 捞。</p>
+</div>
+<hr />
+<h2 id="三分支模型三种主流"><a class="header" href="#三分支模型三种主流">三、分支模型：三种主流</a></h2>
+<h3 id="31-gitflow经典但重"><a class="header" href="#31-gitflow经典但重">3.1 GitFlow（经典但重）</a></h3>
+<pre><code>master ───────────────────────────────
+         \                    /
+          \ develop ─────────/──────
+                \       /
+                 \ feature
+</code></pre>
+<ul>
+<li><code>master</code> 只接受 release；<code>develop</code> 是集成分支；feature/release/hotfix 围绕它。</li>
+<li><strong>适用</strong>：固定发布周期、版本化产品（传统企业）。</li>
+<li><strong>问题</strong>：分支多、合并复杂，对持续发布偏重。</li>
+</ul>
+<h3 id="32-github-flow轻量主流"><a class="header" href="#32-github-flow轻量主流">3.2 GitHub Flow（轻量主流）</a></h3>
+<ul>
+<li>只有 <code>main</code>，永远可部署；每个改动开短命分支 → PR → 合并回 main。</li>
+<li><strong>适用</strong>：持续交付的互联网产品（主流现代团队）。</li>
+<li>特点：PR 即审核 + CI + 自动部署。</li>
+</ul>
+<h3 id="33-trunk-based极致-ci"><a class="header" href="#33-trunk-based极致-ci">3.3 Trunk-Based（极致 CI）</a></h3>
+<ul>
+<li>所有人直接往 <code>main</code> 提交（或短命分支 &lt; 1 天），靠 feature flag 控制上线。</li>
+<li><strong>适用</strong>：强 CI/CD、Google/Netflix 风格、高频发布。</li>
+<li>特点：集成冲突最少、但要求测试覆盖与自动化极强。</li>
+</ul>
+<div class="table-wrapper"><table><thead><tr><th>模型</th><th>分支复杂度</th><th>发布频率</th><th>适合</th></tr></thead><tbody>
+<tr><td>GitFlow</td><td>高</td><td>低（版本化）</td><td>传统产品、发布周期</td></tr>
+<tr><td>GitHub Flow</td><td>中</td><td>高</td><td>互联网产品默认</td></tr>
+<tr><td>Trunk-Based</td><td>低</td><td>极高</td><td>强 CI/CD 团队</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="四合并策略merge--rebase--cherry-pick"><a class="header" href="#四合并策略merge--rebase--cherry-pick">四、合并策略：merge / rebase / cherry-pick</a></h2>
+<h3 id="41-merge保留历史分叉"><a class="header" href="#41-merge保留历史分叉">4.1 merge（保留历史分叉）</a></h3>
+<pre><code class="language-bash">git switch main &amp;&amp; git merge feature
+</code></pre>
+<p>产生一个 merge commit，历史保留两分支的真实形状。<strong>历史忠实但分叉多</strong>。</p>
+<h3 id="42-rebase线性化历史"><a class="header" href="#42-rebase线性化历史">4.2 rebase（线性化历史）</a></h3>
+<pre><code class="language-bash">git switch feature &amp;&amp; git rebase main
+</code></pre>
+<p>把 feature 的提交"搬到" main 顶端重新应用，产生线性历史。</p>
+<div class="table-wrapper"><table><thead><tr><th></th><th>merge</th><th>rebase</th></tr></thead><tbody>
+<tr><td>历史形状</td><td>分叉 + merge commit</td><td>线性</td></tr>
+<tr><td>提交哈希</td><td>不变</td><td><strong>会变</strong>（新提交）</td></tr>
+<tr><td>什么时候用</td><td>公共分支、保留真相</td><td>私有分支、整理历史</td></tr>
+<tr><td>风险</td><td>低</td><td>已 push 的分支 rebase 会出问题</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p><strong>永远不要 rebase 已 push 到共享的分支</strong>。别人基于旧哈希的提交会错乱。规则：rebase 只用于<strong>自己还没推过的私有提交</strong>；共享分支用 merge。</p>
+</div>
+<h3 id="43-cherry-pick挑单个提交"><a class="header" href="#43-cherry-pick挑单个提交">4.3 cherry-pick（挑单个提交）</a></h3>
+<pre><code class="language-bash">git cherry-pick &lt;commit-hash&gt;
+</code></pre>
+<p>把别的分支上的单个提交应用到当前分支。用于热修复、挑某个修复进 release。</p>
+<h3 id="44-冲突解决"><a class="header" href="#44-冲突解决">4.4 冲突解决</a></h3>
+<p>冲突标记：<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> / 你的代码 / <code>=======</code> / 对方的代码 / <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; branch</code>。</p>
+<pre><code class="language-bash">git merge main          # 报冲突
+# 编辑文件解决冲突 → 删除冲突标记
+git add 文件
+git commit              # merge 场景：直接 commit 完成
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>大冲突别硬解：先 <code>git merge --abort</code> 冷静，用 <code>git merge-base A B</code> 看分歧点，或者 <code>git checkout --theirs/--ours 文件</code> 选一边再改。</p>
+</div>
+<hr />
+<h2 id="五回滚与恢复reset--revert--reflog"><a class="header" href="#五回滚与恢复reset--revert--reflog">五、回滚与恢复：reset / revert / reflog</a></h2>
+<h3 id="51-reset-三模式"><a class="header" href="#51-reset-三模式">5.1 reset 三模式</a></h3>
+<pre><code class="language-bash">git reset --soft  &lt;commit&gt;   # 只移 HEAD, 暂存区和工作区不动
+git reset        &lt;commit&gt;   # mixed: 移 HEAD + 清暂存区, 工作区不动（默认）
+git reset --hard &lt;commit&gt;   # 全清: 工作区也丢弃改动 ⚠️危险
+</code></pre>
+<h3 id="52-revert安全回滚推荐用于已推送"><a class="header" href="#52-revert安全回滚推荐用于已推送">5.2 revert（安全回滚，推荐用于已推送）</a></h3>
+<pre><code class="language-bash">git revert &lt;commit&gt;
+</code></pre>
+<p><strong>产生一个"反向提交"</strong>，不改历史，只是加一个新提交抵消那个提交的改动。<strong>适合已 push / 公共分支</strong>，因为不动历史，别人 pull 无冲突。</p>
+<h3 id="53-reflog救命日志"><a class="header" href="#53-reflog救命日志">5.3 reflog（救命日志）</a></h3>
+<pre><code class="language-bash">git reflog     # 列出 HEAD 移动的全部记录（含被删的分支/commit）
+git reflog --all
+git reset --hard HEAD@{5}   # 回到 5 步前的状态
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>Git 的对象在 reflog 过期前<strong>不会真正删除</strong>（默认 90 天）。误删分支、reset 过头、checkout 丢了 WIP，都先查 <code>git reflog</code> 再行动。这几乎是"Git 数据恢复"的第一手段。</p>
+</div>
+<hr />
+<h2 id="六团队协作实践"><a class="header" href="#六团队协作实践">六、团队协作实践</a></h2>
+<h3 id="61-pull-request-流程github-flow-标配"><a class="header" href="#61-pull-request-流程github-flow-标配">6.1 Pull Request 流程（GitHub Flow 标配）</a></h3>
+<pre><code>feature 分支 → git push origin feature
+→ 开 PR → CI 跑测试 → code review → 合并（squash / merge / rebase-merge）
+</code></pre>
+<p>三种合并方式：</p>
+<div class="table-wrapper"><table><thead><tr><th>方式</th><th>效果</th><th>适用</th></tr></thead><tbody>
+<tr><td><strong>Squash merge</strong></td><td>整条分支压成 1 个提交</td><td>特性合并进 main，历史整洁</td></tr>
+<tr><td>Merge commit</td><td>保留分叉</td><td>想保留分支历史</td></tr>
+<tr><td>Rebase merge</td><td>线性化</td><td>已通过 rebase 整理的分支</td></tr>
+</tbody></table>
+</div>
+<h3 id="62-保护分支protected-branch"><a class="header" href="#62-保护分支protected-branch">6.2 保护分支（protected branch）</a></h3>
+<p><code>main</code> 应设置：不允许直接 push、必须有 PR + 至少 1 人 approve、CI 必须通过、线性历史。这是团队的"最后防线"。</p>
+<h3 id="63-语义化提交conventional-commits"><a class="header" href="#63-语义化提交conventional-commits">6.3 语义化提交（Conventional Commits）</a></h3>
+<pre><code>feat(api): 新增用户查询接口
+fix(cache): 修复 key 过期竞态
+docs(readme): 更新部署说明
+refactor(db): 拆分连接池
+</code></pre>
+<p><code>feat</code>/<code>fix</code> 直接驱动 changelog 和语义化版本（semver）：<code>feat</code> → minor，<code>fix</code> → patch，<code>BREAKING CHANGE</code> → major。让提交消息变成机器可读的元数据。</p>
+<h3 id="64-子模块与-monorepo"><a class="header" href="#64-子模块与-monorepo">6.4 子模块与 monorepo</a></h3>
+<ul>
+<li><strong>monorepo</strong>：全代码一个仓（Google/字节模式），靠 build system 隔离，PR 全局可见。</li>
+<li><strong>submodule</strong>：嵌套仓库，但要小心（子模块不自动跟随父仓 checkout）。</li>
+<li>现在更多团队用 <strong>workspace</strong>（pnpm/yarn workspaces、Go workspaces）替代 submodule。</li>
+</ul>
+<hr />
+<h2 id="七常用命令速查"><a class="header" href="#七常用命令速查">七、常用命令速查</a></h2>
+<pre><code class="language-bash"># 诊断
+git status / git log --oneline --graph / git diff / git diff --staged
+git branch -a / git remote -v
+
+# 提交
+git add -p           # 交互式分块暂存
+git commit --amend   # 修改上一次提交消息（未推送时）
+git stash / git stash pop    # 暂存 WIP
+git stash list / git stash drop
+
+# 分支
+git switch -c feature    # 建并切换
+git branch -d feature    # 删已合并分支
+git fetch --prune        # 清理远端已删分支
+
+# 撤销
+git restore 文件         # 丢弃工作区改动（替代 checkout -- 文件）
+git restore --staged 文件 # 取消暂存
+git reset --hard HEAD    # 丢弃全部未提交（小心）
+
+# 高级
+git blame 文件           # 谁改的
+git log -S 字符串        # 找哪次提交加了/删了该字符串
+git bisect start         # 二分找引入 bug 的提交
+git clean -fd            # 清理未跟踪文件（小心）
+git filter-repo          # 重写历史（慎用）
+</code></pre>
+<hr />
+<h2 id="八实战场景"><a class="header" href="#八实战场景">八、实战场景</a></h2>
+<h3 id="81-场景-1改错了分支"><a class="header" href="#81-场景-1改错了分支">8.1 场景 1：改错了分支</a></h3>
+<pre><code class="language-bash"># 在 main 上改了 feature 的代码，还没提交
+git stash                          # 暂存改动
+git switch feature
+git stash pop                      # 恢复改动到 feature
+</code></pre>
+<h3 id="82-场景-2提交到-main-想挪到-feature"><a class="header" href="#82-场景-2提交到-main-想挪到-feature">8.2 场景 2：提交到 main 想挪到 feature</a></h3>
+<pre><code class="language-bash"># 已有 commit 在 main
+git switch -c feature              # 分支带上当前状态
+git switch main
+git reset --hard HEAD~1            # main 后退一提交（本地）
+git push origin main --force-with-lease   # 覆盖远端（注意：只对没共享的分支）
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p><code>--force</code> vs <code>--force-with-lease</code>：后者先检查远端是否被其他人更新过，防止覆盖他人提交。<strong>永远优先用 <code>--force-with-lease</code></strong>。</p>
+</div>
+<h3 id="83-场景-3误删分支--丢失提交"><a class="header" href="#83-场景-3误删分支--丢失提交">8.3 场景 3：误删分支 / 丢失提交</a></h3>
+<pre><code class="language-bash">git reflog          # 找到那个提交的哈希
+git branch -c &lt;哈希&gt; recovered   # 从哈希建回分支
+</code></pre>
+<h3 id="84-场景-4wip-弄丢"><a class="header" href="#84-场景-4wip-弄丢">8.4 场景 4：WIP 弄丢</a></h3>
+<pre><code class="language-bash">git fsck --lost-found        # 找 dangling 对象
+# 或 reflog 找 stash 记录
+git stash list &amp;&amp; git stash apply stash@{0}
+</code></pre>
+<hr />
+<h2 id="九结束--速查表"><a class="header" href="#九结束--速查表">九、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回：</p>
+<ul>
+<li><strong>Git = 内容寻址 DAG</strong>：blob/tree/commit/tag，哈希即地址，不可变、去重、可快照。</li>
+<li><strong>三区</strong>：工作区 → add → 暂存区 → commit → 仓库。</li>
+<li><strong>分支 = 会移动的指针</strong>；HEAD 指向当前。</li>
+<li><strong>rebase 只用于未推送的私有提交</strong>；共享分支用 merge。</li>
+<li><strong>回滚</strong>：<code>reset --hard</code> 危险（动历史），<code>revert</code> 安全（加反向提交），<code>reflog</code> 是救命日志。</li>
+<li><strong>分支模型</strong>：GitFlow（重）/ GitHub Flow（主流）/ Trunk-Based（极致 CI）。</li>
+<li><strong>保护分支</strong>：PR + approve + CI 通过 + 线性历史。</li>
+<li><strong>语义化提交</strong>：feat/fix/docs → 驱动 changelog + semver。</li>
+<li><strong>数据恢复</strong>：先 reflog，再 fsck --lost-found。</li>
+<li><strong>force push 用 <code>--force-with-lease</code></strong>，不要裸 <code>--force</code>。</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="testing.html">2. 测试工程: 测试金字塔 / 单元/集成/契约/E2E / mock / flaky 治理</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../engineering/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../engineering/testing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../engineering/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../engineering/testing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

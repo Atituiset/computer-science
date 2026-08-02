@@ -1,0 +1,584 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>WAL / redo / undo / 2PL - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="wal--redo--undo--2pl"><a class="header" href="#wal--redo--undo--2pl">WAL / redo / undo / 2PL</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>WAL（Write-Ahead Logging）是数据库所有持久性保障的基础。Mohan 1992 ARIES 是工业级 WAL + recovery 标准协议（Postgres/MySQL/Oracle/SQL Server 全变体于此）。本节把 WAL 原则、物理 vs 逻辑日志、ARIES 三阶段（analysis / redo / undo + CLR）、fuzzy checkpoint、S2PL 防 cascading abort、2PC 协议、fsync 真实行为（FS + SSD cache）一次走通。理解 WAL = 理解数据库"为什么 commit 这么慢" + "为什么崩溃不丢" + "为什么 2PC 阻塞无法避免"。</p>
+<hr />
+<h2 id="一wal-原则"><a class="header" href="#一wal-原则">一、WAL 原则</a></h2>
+<blockquote>
+<p>"Before any modified data page can be flushed to disk, the WAL record describing that modification must be persisted (fsync) to durable storage."</p>
+</blockquote>
+<p>术语：</p>
+<ul>
+<li>data page：B+ tree 的叶节点 / heap 块 / index 叶子</li>
+<li>WAL redo log：append-only 文件 (segment 通常环形)</li>
+<li>buffer pool / page cache：内存中的 data page 副本</li>
+<li>LSN (Log Sequence Number)：WAL 每条 record 的单调 ID</li>
+</ul>
+<p>修改流程：</p>
+<pre><code>1. T1 begins
+2. T1 INSERT row → mutate page P_x in buffer pool
+3. WAL redo log append: "LSN=100, txn=T1, page=P_x, after-image"
+4. T1 UPDATE → mutate page P_y
+5. WAL redo log append: "LSN=101, txn=T1, page=P_y"
+6. T1 COMMIT → append "LSN=102, txn=T1, commit" → fsync(WAL)
+7. commit returned to client
+8. checkpoint 或 replacement 策略 flush data pages P_x, P_y to disk
+</code></pre>
+<p>WAL 原则：步骤 8 flush data page 前必须保证 LSN 100/101 都已在 disk WAL。否则 page 写盘后 disk 上 data 是 modified 内容，但 WAL 没有 → 崩溃时无法重放。</p>
+<p>PostgreSQL：data page 每页都存 LSN (page LSN = max WAL record affecting this page)。flush page 前比 WAL flush 到 LSN ≥ 该页 page LSN → 强 consistency。</p>
+<hr />
+<h2 id="二redo-log-与-undo-log"><a class="header" href="#二redo-log-与-undo-log">二、redo log 与 undo log</a></h2>
+<h3 id="21-redo-log"><a class="header" href="#21-redo-log">2.1 redo log</a></h3>
+<p>记录"动作发生了什么"——崩溃后 replay 重做：</p>
+<ul>
+<li><strong>物理 redo</strong>："page id=0x1000 byte offset 0x10 = value 0xCAFE"
+<ul>
+<li>重放简单（保证 page ID 不变 → 重做不会破）</li>
+<li>跨版本 page layout 兼容差</li>
+<li>MySQL InnoDB / SQL Server 用物理 redo</li>
+</ul>
+</li>
+<li><strong>逻辑 redo</strong>：在 row 语义层面记录
+<ul>
+<li>"INSERT row id=5 to users, columns={name='Alice'}"</li>
+<li>重放复杂：需要"找 users 表 / 找合适位置"</li>
+<li>跨版本 page layout 兼容强</li>
+<li>PostgreSQL redo 是逻辑记录（page-level：覆写整页的 column value）</li>
+</ul>
+</li>
+</ul>
+<p>PostgreSQL 还保留 <strong>FPI（Full Page Image）</strong>：第一次修改某 page 时把整页 snapshot 到 WAL，保证 redo 之前 page 状态完整可验。</p>
+<h3 id="22-undo-log"><a class="header" href="#22-undo-log">2.2 undo log</a></h3>
+<p>记录"如何反向操作"——rollback 用：</p>
+<ul>
+<li><strong>物理 undo</strong>："page id=0x1000 byte offset 0x10 = value 0xBEEF"（旧值）</li>
+<li><strong>逻辑 undo</strong>："INSERT row id=5 的反向 = DELETE row=5"</li>
+</ul>
+<p>InnoDB undo log 同时用来：</p>
+<ol>
+<li>rollback 事务</li>
+<li>MVCC history chain（旧版本数据存在 undo log）</li>
+</ol>
+<p>PostgreSQL 不使用 undo log——旧版本永远在 heap 中。rollback 只需把 commit marker 改成 aborted 即可，heap 中的旧 tuple 被 vacuum 清。</p>
+<h3 id="23-各引擎对比"><a class="header" href="#23-各引擎对比">2.3 各引擎对比</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>引擎</th><th>redo 类型</th><th>undo 类型</th></tr></thead><tbody>
+<tr><td>PostgreSQL</td><td>物理 + 逻辑混合（带 FPI）</td><td>仅有 abort marker 在 heap</td></tr>
+<tr><td>MySQL InnoDB</td><td>物理（page-level）</td><td>逻辑记录 + 物理 row image</td></tr>
+<tr><td>Oracle</td><td>物理 (LGWR)</td><td>物理 (undo segments)</td></tr>
+<tr><td>SQL Server</td><td>物理 (TL)</td><td>逻辑 (delete/insert 反)</td></tr>
+<tr><td>DB2</td><td>物理 + 逻辑</td><td>物理</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="三aries-三阶段"><a class="header" href="#三aries-三阶段">三、ARIES 三阶段</a></h2>
+<h3 id="31-阶段图"><a class="header" href="#31-阶段图">3.1 阶段图</a></h3>
+<pre><code>崩溃
+   ↓
+[Analysis] 扫描 WAL 从 last_checkpoint LSN
+   - 列出 active_txns (未 commit 未 abort)
+   - 列出 dirty_page_table
+   - 找到 redo_start = earliest dirty page LSN
+
+↓
+[Redo] 从 redo_start 顺序扫 WAL
+   - apply each record again（idempotent）
+   - 完成后所有 disk page 与 crash 前一致
+
+↓
+[Undo] 从 highest_LSN 的事务倒着扫
+   - 对 active_txns 中的每个 txn
+   - 顺序 reverse 该 txn 的 update record
+   - apply undo action
+   - 写 CLR (Compensation Log Record) "已 undo"
+   - 写 final abort record
+</code></pre>
+<h3 id="32-clrcompensation-log-record"><a class="header" href="#32-clrcompensation-log-record">3.2 CLR（Compensation Log Record）</a></h3>
+<p>ARI 创新： undone 动作 也是有恢复性的——如果 undo 操作时再 crash，重启后不应该 re-undo（会重复作用）。</p>
+<p>解决：每次 undo 写 CLR：</p>
+<ul>
+<li>CLR 与原 record LSN 不同（新 LSN）</li>
+<li>CLR 描述"the undo of record @old_lsn is applied"</li>
+<li>CLR 自带 undo_next_lsn，指向之前应该 undo 的下一条 LSN</li>
+</ul>
+<p>→ undo 时即便再次 crash，analysis 看见 CLR 可跳过。</p>
+<h3 id="33-fuzzy-checkpoint"><a class="header" href="#33-fuzzy-checkpoint">3.3 fuzzy checkpoint</a></h3>
+<pre><code>1. write "begin_checkpoint" record to WAL
+2. (短时间内) 收集 buffer pool dirty_pages + active_txns 快照
+3. write "end_checkpoint" record + metadata + fsync
+4. update master_checkpoint_ptr to end_checkpoint_LSN
+</code></pre>
+<p>Between begin/end，其他 transactions 仍可正常工作 → fuzzy。Analysis 时 begin/end 间的 active txn 可能再变化，但 end 已 store 实际值即可。</p>
+<h3 id="34-postgresql-与-aries-差异"><a class="header" href="#34-postgresql-与-aries-差异">3.4 PostgreSQL 与 ARIES 差异</a></h3>
+<p>PostgreSQL <strong>不做</strong>真 undo（startup recovery 阶段中没有 undo pass）：</p>
+<ol>
+<li>PG 没有 undo log，旧版本永远在 heap 中不需 undo</li>
+<li>崩溃后直接把 aborted txn 的 tuple 完成 commit marker 改成 aborted → vacuum 后清理</li>
+<li>redo pass 重放 WAL → 把所有 committed 数据重做到 page；uncommitted 的 tuple 后 mark aborted</li>
+</ol>
+<p>简化 implementation，但 FPI 让 WAL record 量更大。</p>
+<hr />
+<h2 id="四s2pl-与-commit-ordering"><a class="header" href="#四s2pl-与-commit-ordering">四、S2PL 与 commit ordering</a></h2>
+<h3 id="41-cascading-abort"><a class="header" href="#41-cascading-abort">4.1 Cascading Abort</a></h3>
+<pre><code>T1: write row A
+T2: read row A (T1 未 commit，持 S 锁)
+T1: abort → rollback row A
+T2: read 是垃圾数据 → T2 也要 abort → cascading abort
+</code></pre>
+<p>RC 下 + 普通锁会 cascading abort。</p>
+<h3 id="42-s2pl-给解决"><a class="header" href="#42-s2pl-给解决">4.2 S2PL 给解决</a></h3>
+<p>严格 2PL（Strict 2PL）：<strong>X 锁保留到 commit</strong>。S 锁可 mid-txn release，但 X 锁不能。</p>
+<p>→ T2 拿不到 S 锁等 T1 commit / abort 之后。</p>
+<h3 id="43-ss2plrigorous-2pl"><a class="header" href="#43-ss2plrigorous-2pl">4.3 SS2PL（rigorous 2PL）</a></h3>
+<p><strong>所有锁（S+X）保留到 commit</strong>。主流数据库默认 SS2PL：</p>
+<pre><code>T1: BEGIN
+T1: write A, X-lock(A)
+T1: commit → release X-lock(A), S-lock(A), ...
+</code></pre>
+<hr />
+<h2 id="五2pc两阶段提交"><a class="header" href="#五2pc两阶段提交">五、2PC（两阶段提交）</a></h2>
+<p>跨分片 commit：</p>
+<pre><code>                     coordinator
+                           │
+                           │ prepare
+                           ↓
+participant_1                    participant_2
+   prepare → vote YES            prepare → vote YES
+                           ↓
+                  coordinator 决定 commit (若都 YES)
+                           ↓
+   commit + ack                    commit + ack
+                           ↓
+                     coordinator complete
+</code></pre>
+<p>每个参与者：</p>
+<ul>
+<li>prepare：在本地 WAL 写 "prepared" record + fsync 该 record + 持 X 锁</li>
+<li>收 coordinator commit / abort：写相应 record + 释放 X 锁 + ack</li>
+</ul>
+<p><strong>严重阻塞点</strong>：coordinator crash 后，participants 必须<strong>无限阻塞</strong>——不能单方面 abort（可能 coordinator 已发 commit 给某个 alive participant）。</p>
+<h3 id="51-heuristics"><a class="header" href="#51-heuristics">5.1 heuristics</a></h3>
+<p>如果 coordinator 长时间无应答，参与者可用启发式：</p>
+<ul>
+<li><code>heuristically_rollback</code>：假设 abort，本地 rollback（可能误）</li>
+<li><code>heuristically_commit</code>：假设 commit，本地 commit（可能不一致）</li>
+</ul>
+<p>→ 一旦用了启发式 → <strong>可能数据不一致</strong>。所有厂商强烈不推荐。</p>
+<h3 id="52-三阶段提交3pc"><a class="header" href="#52-三阶段提交3pc">5.2 三阶段提交（3PC）</a></h3>
+<p>3PC 避免 coordinator crash 阻塞，但 requires timer + 三阶段通信 + 额外 RPC。实际部署：</p>
+<ul>
+<li>DB 层不用 3PC</li>
+<li>分布式事务一律 2PC + 超短 wait</li>
+<li>业务层 saga / TCC 等补偿模型代替长持有</li>
+</ul>
+<h3 id="53-postgresql-prepared-transaction"><a class="header" href="#53-postgresql-prepared-transaction">5.3 PostgreSQL prepared transaction</a></h3>
+<pre><code class="language-sql">BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+PREPARE TRANSACTION 'transfer_to_dba';
+-- 此事务阻塞，直到 COMMIT/ABORT PREPARED
+COMMIT PREPARED 'transfer_to_dba';
+</code></pre>
+<p><code>max_prepared_transactions</code> 默认 0（禁用）。灾难点：遗忘 prepared → long-held X lock → 阻塞下游写。监控 <code>pg_prepared_xacts</code> 列表：</p>
+<pre><code class="language-sql">SELECT age(now(), prepared) FROM pg_prepared_xacts;
+-- &gt; 5 min 应该告警
+</code></pre>
+<h3 id="54-mysql-xa"><a class="header" href="#54-mysql-xa">5.4 MySQL XA</a></h3>
+<pre><code class="language-sql">XA START 'transfer1';
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+XA END 'transfer1';
+XA PREPARE 'transfer1';
+XA COMMIT 'transfer1';
+</code></pre>
+<p>MySQL XA 与 PG prepared 一样有阻塞点。运维必须监控 XA prepared 超时审计。</p>
+<hr />
+<h2 id="六fsync-行为的玄学"><a class="header" href="#六fsync-行为的玄学">六、fsync 行为的玄学</a></h2>
+<pre><code>client app: writes (data page) to buffer
+kernel: data in page cache
+write(fd, buf) → 仅 copy 到 page cache
+fdatasync(fd) → 内核 require write I/O → SSD controller → SSD cache → NAND
+fsync(fd) → 同上 + 文件 metadata sync
+open(O_DIRECT) → 跳过 page cache 直写
+</code></pre>
+<h3 id="61-fsync-没保证"><a class="header" href="#61-fsync-没保证">6.1 fsync 没保证</a></h3>
+<ul>
+<li>如果 <code>fsync(file_a)</code> 后，磁盘控制器 NVRAM buffer 仍 cache：断电后部分 write 没到 NAND → durability 没保证</li>
+<li>部分型号 SATA SSD "假装" fsync 完成——bug 名："silent data loss"</li>
+<li><code>md-raid</code> <code>writecache</code> 作 promiser - 不可知</li>
+</ul>
+<h3 id="62-内核-panic"><a class="header" href="#62-内核-panic">6.2 内核 panic</a></h3>
+<p>Linux 5.x 的 <code>syncfs()</code> / <code>fsync()</code> 在 server-side 故障模式下静默返回成功 (Ref USENIX OSDI '14 Pillai)。生产必须 verify。</p>
+<h3 id="63-fsync-同-device-与-fsync-其他-file-on-same-device"><a class="header" href="#63-fsync-同-device-与-fsync-其他-file-on-same-device">6.3 fsync 同 device 与 fsync 其他 file on same device</a></h3>
+<ul>
+<li>ext4 / xfs 默认 journal order 全 file write → fsync 一种 file fsync metadata + data</li>
+<li>ext4 <code>data=journal</code>：所有 data 在 journal 中双写</li>
+</ul>
+<h3 id="64-postgresql-wal_sync_method"><a class="header" href="#64-postgresql-wal_sync_method">6.4 PostgreSQL <code>wal_sync_method</code></a></h3>
+<pre><code class="language-bash">$ PG wal_sync_method
+wal_sync_method = fsync      # 默认 Linux
+wal_level = replica
+</code></pre>
+<p>选项：</p>
+<ul>
+<li><code>fsync</code>：标准 fsync() syscall</li>
+<li><code>fdatasync</code>：仅 data 不 metadata（PG 9.6+ Linux 大多数发行版）</li>
+<li><code>open_sync</code>：open(O_SYNC) 每写入 fsync-like</li>
+<li><code>open_datasync</code>：open(O_DSYNC) per write</li>
+</ul>
+<p>性能差异通常：fdatasync ≈ open_datasync &gt; fsync。</p>
+<h3 id="65-真事务安全验证"><a class="header" href="#65-真事务安全验证">6.5 真"事务安全"验证</a></h3>
+<ul>
+<li><code>pg_test_fsync</code>：测试不同 fsync 方法延迟，写 8KB × N</li>
+<li><code>sysbench fileio --file-fsync-flush=on --file-fsync-all=on</code></li>
+<li>严防 fake fsync：consumer SSD 标 "workstation" mode 有时会感觉换 cache</li>
+</ul>
+<h3 id="66-sas-nvme-ssd"><a class="header" href="#66-sas-nvme-ssd">6.6 SAS NVMe SSD</a></h3>
+<ul>
+<li><code>nvme admin-passthru</code> 查 <code>volatile_write_cache</code> 状态</li>
+<li>enterprise NVMe 默认 power-loss protection → fsync 必真实</li>
+<li>consumer NVMe 必查 PLP；必要时禁用 <code>nvme_cache_enable=0</code></li>
+</ul>
+<hr />
+<h2 id="七产线事故"><a class="header" href="#七产线事故">七、产线事故</a></h2>
+<h3 id="71-fsync-不真--崩溃丢已-commit-数据"><a class="header" href="#71-fsync-不真--崩溃丢已-commit-数据">7.1 fsync 不真 → 崩溃丢已 commit 数据</a></h3>
+<p>PG 跑廉价 SATA SSD，断电后已 commit 数据消失。</p>
+<p><strong>根因</strong>：SSD 控制器 cache "battery-free" 假装 fsync 立即完成，NAND not yet fixed。</p>
+<p><strong>修复</strong>：enterprise SSD with PLP；启用 fsync 行为测试（pg_test_fsync）+ <code>wal_sync_method=fsync + synchronous_commit=on</code>。</p>
+<h3 id="72-长事务阻塞-innodb-undo-purge"><a class="header" href="#72-长事务阻塞-innodb-undo-purge">7.2 长事务阻塞 InnoDB undo purge</a></h3>
+<p>业务 5 min 长查询 + 100 QPS 热点表 INSERT → undo tablespace 从 1 GB → 30 GB → 80 GB 警报。</p>
+<p><strong>修复</strong>：长查询走 read-only replica；调 <code>innodb_max_purge_lag = 65536</code> 让大 undo 阻塞新 INSERT。</p>
+<h3 id="73-2pc-coordinator-crash-30-分钟业务阻塞"><a class="header" href="#73-2pc-coordinator-crash-30-分钟业务阻塞">7.3 2PC coordinator crash 30 分钟业务阻塞</a></h3>
+<p>微服务跨分片 2PC，coordinator crash → participants hold lock 30 min wait → 业务吞吐 0。</p>
+<p><strong>修复</strong>：业务换 Saga pattern：业务事件队列 + 接收方幂等消费，避免 in-database 2PC。</p>
+<h3 id="74-checkpoint-频率-vs-recovery-time"><a class="header" href="#74-checkpoint-频率-vs-recovery-time">7.4 checkpoint 频率 vs recovery time</a></h3>
+<p>InnoDB <code>innodb_max_dirty_pages_pct = 75</code> 太低 → checkpoint 频繁 flush → I/O 占满 backup → 崩溃 recovery 时间 5 秒。但 production I/O 饱和。调到 90% + 双 buffer pool flushing → recovery 30 秒，业务延迟降 30%。</p>
+<h3 id="75-pg-synchronous_commit--off-后崩溃丢信"><a class="header" href="#75-pg-synchronous_commit--off-后崩溃丢信">7.5 PG <code>synchronous_commit = off</code> 后崩溃丢信</a></h3>
+<p>某业务开 <code>synchronous_commit=off</code>（追求性能），断电后丢最近 5s 写入。</p>
+<p><strong>根因</strong>：PG commit 返回 client 时不等 fsync。fsync-sensitive 业务不可接受。</p>
+<p><strong>修复</strong>：核心交易路径 <code>synchronous_commit=on, local</code>（仍 commit）。</p>
+<hr />
+<h2 id="八易错清单"><a class="header" href="#八易错清单">八、易错清单</a></h2>
+<ol>
+<li><strong>fsync 不是真物</strong>——廉价 SSD / Linux FS 有许多 silent data loss path</li>
+<li><strong>WAL 只能 fsync 不能 fsync-mixed</strong>：必须先 fsync WAL 再 fsync data page</li>
+<li><strong>PG 没有 undo pass</strong>——与 ARIES 不同。简化实现，但 redo log 含 FPI 量更大</li>
+<li><strong>MySQL <code>innodb_flush_log_at_trx_commit=2</code></strong> 是 fsync=每秒 → DB 可丢 last 1s 数据</li>
+<li><strong>PG prepared transaction 必监控</strong>——coordinator 长时间没决定 → lock 持有无上界</li>
+<li><strong>SSD PLP</strong> (Power Loss Protection) 是 production 必查项</li>
+<li><strong>synchronous_commit=off</strong> 仅性能场景可接受；交易系必须 on</li>
+<li><strong>2PC 必有阻塞</strong>——业务应 saga / TCC 替代</li>
+</ol>
+<hr />
+<h2 id="九这一章带走的东西"><a class="header" href="#九这一章带走的东西">九、这一章带走的东西</a></h2>
+<ol>
+<li>WAL 原则：modified page flush 前 WAL record 必已 fsync 到 platter</li>
+<li>ARIES 三阶段 analysis → redo → undo（含 CLR）；PostgreSQL 不做 undo pass</li>
+<li>物理 vs 逻辑 redo：PostgreSQL 选择逻辑 + FPI；MySQL 选择物理 page-level</li>
+<li>SS2PL：所有锁保持到 commit 防止 cascading abort</li>
+<li>2PC coordinator crash → participants 无限阻塞，业务必须 saga / TCC 替代</li>
+<li>fsync behavior 真实硬件 PLP 是 production 必查项；廉价 SSD 假装已完成 fsync</li>
+<li>checkpoint 调优 = I/O 平面 vs recovery 时间 tradeoff；大 buffer pool + slow flushing 是 best practice</li>
+</ol>
+<h2 id="下一节-"><a class="header" href="#下一节-">下一节 →</a></h2>
+<p><a href="../indexing/index.html">索引与存储结构</a> — B+ tree / LSM-Tree / Hash / GIN / GiST / BRIN / explain analyze 解读</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../databases/relational/mvcc.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../databases/indexing/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../databases/relational/mvcc.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../databases/indexing/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

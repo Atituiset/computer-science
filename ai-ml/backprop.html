@@ -1,0 +1,611 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>2. Backpropagation: 计算图 / 反向模式 AD / 雅可比链式 / 梯度检查 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="2-backpropagation-计算图--反向模式-ad--雅可比链式--梯度检查"><a class="header" href="#2-backpropagation-计算图--反向模式-ad--雅可比链式--梯度检查">2. Backpropagation: 计算图 / 反向模式 AD / 雅可比链式 / 梯度检查</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>反向传播不是一种"特殊算法", 它是<strong>多变量链式法则在计算图上沿拓扑逆序执行</strong>的形式, 配上"中间结果缓存"就成 O(参数数) 的反向模式自动微分 (reverse-mode AD). 数学已在 <a href="../math/calc-opt.html">第零部分微积分 §2 雅可比链式</a> 准备好, 这里把它落到工程:</p>
+<ol>
+<li><strong>计算图</strong> — 把网络表成 DAG, loss 在根, 参数在叶.</li>
+<li><strong>正向 AD vs 反向 AD</strong> — 一阶 O(n) vs 一阶乘 O(1) 评估全部参数.</li>
+<li><strong>链式法则矩阵化</strong> — 雅可比的链式 + softmax / CE / 线性 / 卷积的逐节点局部雅可比.</li>
+<li><strong>梯度检查</strong> — 解析梯度 vs 数值有限差分, 工程上线性传第一件事.</li>
+<li><strong>常见坑</strong> — 梯度消失/爆炸, checkpoint, mixed precision, 反向 release 顺序.</li>
+</ol>
+<p>读完应能: 给一个网络能徒手画计算图、写每个节点的局部雅可比形状, 并在 NumPy 上跑通 <code>grad_check()</code>.</p>
+<hr />
+<h2 id="一为什么反向而不是正向"><a class="header" href="#一为什么反向而不是正向">一、为什么"反向"而不是"正向"</a></h2>
+<h3 id="11-数值导数直接定义"><a class="header" href="#11-数值导数直接定义">1.1 数值导数直接定义</a></h3>
+<p>$$ \frac{\partial f}{\partial x_i} = \lim_{h \to 0} \frac{f(x + h e_i) - f(x)}{h} $$</p>
+<p>对 $\boldsymbol x \in \mathbb{R}^n$: 算全部梯度需要 <strong>$n$ 次</strong> $f$ 评估 (扰一维 ($e_i$), 评估 $f$). 神经网络参数 $n \sim 10^9$, 显然不可行.</p>
+<h3 id="12-前向模式-ad-dual-numbers"><a class="header" href="#12-前向模式-ad-dual-numbers">1.2 前向模式 AD (dual numbers)</a></h3>
+<p>每变量携带一阶梯度 $(v, \dot v)$, $\dot v$ 沿计算传播. 一次前向算出 $f$ 与 $\nabla f$ 在<strong>一个方向</strong> $\dot{\boldsymbol x}$ 上的方向导数 $\nabla f \cdot \dot{\boldsymbol x}$.</p>
+<p>→ 算<strong>全梯度</strong>需要 $n$ 次前向 AD, 与数值差分同阶. 适合 $f: \mathbb{R}^n \to \mathbb{R}^m$ 且 $m \gg n$ (雅可比列方向少).</p>
+<h3 id="13-反向模式-ad-链式法则逆序"><a class="header" href="#13-反向模式-ad-链式法则逆序">1.3 反向模式 AD (链式法则逆序)</a></h3>
+<p><strong>核心</strong>: 链式法则可写为 $\dfrac{\partial \mathcal{L}}{\partial \boldsymbol x} = J_g(\boldsymbol x)^\top \dfrac{\partial \mathcal{L}}{\partial g(\boldsymbol x)}$.</p>
+<p>一次反向<strong>算出 loss 对所有参数的梯度</strong>, 与参数数量同阶 (节点的入边数之和). 适合 $f: \mathbb{R}^n \to \mathbb{R}$ (深度学习损失正是这种).</p>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>前向 AD</th><th>反向 AD</th></tr></thead><tbody>
+<tr><td>一次算什么</td><td>1 个方向导数 $\nabla f \cdot v$</td><td>全部 $\nabla f$ ($n$ 个分量)</td></tr>
+<tr><td>算全部梯度开销</td><td>$O(n)$ 次前向</td><td><strong>$O(1)$ 次反向</strong></td></tr>
+<tr><td>中间结果保存</td><td>不必</td><td><strong>必须</strong> (前向激活值)</td></tr>
+<tr><td>适合</td><td>$n \ll m$</td><td>$m \ll n$ ✓ 深度学习</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>PyTorch / TensorFlow / JAX 默认都是反向模式. 这也是为什么前向计算必须做 cache (<code>x.requires_grad_(True)</code> 后激活保留)、<code>torch.no_grad()</code> 跳过 cache 节省显存.</p>
+</div>
+<h3 id="14-简短历史"><a class="header" href="#14-简短历史">1.4 简短历史</a></h3>
+<ul>
+<li>1970 Seppo Linnainmaa 硕士论文第一次写出自适应反向 AD.</li>
+<li>1974 Paul Werbos 博士论文描述反向传播用于神经网络.</li>
+<li>1986 Rumelhart, Hinton, Williams 在 <em>Nature</em> 推广为现代深度学习训练基础.</li>
+<li>1991-1992 Schmidhuber 与 Hochreiter 实证证明可解 vanishing gradient, 推出 LSTM.</li>
+</ul>
+<hr />
+<h2 id="二计算图"><a class="header" href="#二计算图">二、计算图</a></h2>
+<h3 id="21-网络的-dag-表示"><a class="header" href="#21-网络的-dag-表示">2.1 网络的 DAG 表示</a></h3>
+<p>每个操作 $f = \mathrm{op}(x, y)$ 是图中的节点, 变量 $x, y, f$ 是边. 叶子是输入 / 参数, 根是 loss.</p>
+<p><strong>例: $L = (\sigma(Wx + b) - y)^2$</strong></p>
+<pre><code>        L = ||e||^2            (root)
+            │
+           (e)^2  → (e)        (e = p - y)
+                       │
+                      (p = σ(z))
+                              │
+                           (z = Wx + b)
+                              │
+                ┌─────────────┴────────┐
+              (Wx)   b                x, W
+</code></pre>
+<p>反向 (即拓扑逆序):</p>
+<pre><code>∂L/∂e = 2 e
+∂L/∂p = ∂L/∂e · 1         (因为 e = p - y)
+∂L/∂z = ∂L/∂p · σ'(z)     (链式 + 局部雅可比)
+∂L/∂W = ∂L/∂z · x^T       (因为 z = Wx, J = x^T 见 §3.1)
+∂L/∂x = ∂L/∂z · W         (对输入的梯度, 如要链下层)
+</code></pre>
+<h3 id="22-形状规则速记"><a class="header" href="#22-形状规则速记">2.2 形状规则速记</a></h3>
+<p>设上游梯度 (loss 对当前 op 输出的梯度) 形状为 $G$, 则:</p>
+<ul>
+<li>$z = W x$ ($x \in \mathbb{R}^d, z \in \mathbb{R}^h, W \in \mathbb{R}^{h \times d}$):
+<ul>
+<li>$\partial \mathcal{L}/\partial W = G \cdot x^\top$ 形状 $h \times d$</li>
+<li>$\partial \mathcal{L}/\partial x = W^\top \cdot G$ 形状 $d$</li>
+</ul>
+</li>
+<li>$z = X W$ ($X \in \mathbb{R}^{n \times d}, W \in \mathbb{R}^{d \times h}$, $z \in \mathbb{R}^{n \times h}$):
+<ul>
+<li>$\partial \mathcal{L}/\partial W = X^\top \cdot G$ 形状 $d \times h$</li>
+<li>$\partial \mathcal{L}/\partial X = G \cdot W^\top$ 形状 $n \times d$</li>
+</ul>
+</li>
+</ul>
+<p>→ "丢掉与目标不同的轴, 再配上另一输入的转置"是工程上速记.</p>
+<h3 id="23-pytorch-计算图实战"><a class="header" href="#23-pytorch-计算图实战">2.3 PyTorch 计算图实战</a></h3>
+<pre><code class="language-python">import torch
+x = torch.randn(8, requires_grad=True)        # 输入
+W = torch.randn(4, 8, requires_grad=True)     # 参数
+b = torch.randn(4, requires_grad=True)
+z = W @ x + b                                  # 正向 → 4 维
+p = torch.sigmoid(z)                           # 同形
+y = torch.tensor([1.0, 0.0, 1.0, 0.0])
+L = ((p - y) ** 2).sum()
+L.backward()                                   # 反向; 隐式拓扑逆序
+
+print(x.grad.shape)   # torch.Size([8])
+print(W.grad.shape)    # torch.Size([4, 8])
+print(b.grad.shape)    # torch.Size([4])
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>PyTorch 默认 reverse-mode AD + 即时执行 (eager). 计算图每次 <code>forward</code> 重构, <code>backward()</code> 后释放. 用 <code>torch.compile</code> (PT 2.0+) 才会做算子融合 + 持久图优化.</p>
+</div>
+<hr />
+<h2 id="三逐节点的局部雅可比"><a class="header" href="#三逐节点的局部雅可比">三、逐节点的局部雅可比</a></h2>
+<h3 id="31-仿射变换-z--w-x--b"><a class="header" href="#31-仿射变换-z--w-x--b">3.1 仿射变换 $z = W x + b$</a></h3>
+<p>回忆 $\partial \mathcal{L} / \partial z = g$ 已传到.</p>
+<p>$$ \frac{\partial \mathcal{L}}{\partial W} = g \cdot x^\top, \quad \frac{\partial \mathcal{L}}{\partial x} = W^\top g, \quad \frac{\partial \mathcal{L}}{\partial b} = g $$</p>
+<h3 id="32-sigmoid--tanh"><a class="header" href="#32-sigmoid--tanh">3.2 Sigmoid / Tanh</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>前向</th><th>反向局部梯度</th></tr></thead><tbody>
+<tr><td>$\sigma(a)$</td><td>$\sigma(1 - \sigma)$</td></tr>
+<tr><td>$\tanh a$</td><td>$1 - \tanh^2 a$</td></tr>
+<tr><td>$\mathrm{ReLU}(a)$</td><td>$\mathbb{1}_{a &gt; 0}$</td></tr>
+<tr><td>$\mathrm{GELU}(a) = a\Phi(a)$</td><td>$\Phi(a) + a \phi(a)$</td></tr>
+<tr><td>$\mathrm{SiLU}(a) = a \sigma(a)$</td><td>$\sigma(a) + a \sigma(a)(1 - \sigma(a))$</td></tr>
+</tbody></table>
+</div>
+<h3 id="33-softmax--交叉熵-合算"><a class="header" href="#33-softmax--交叉熵-合算">3.3 Softmax + 交叉熵 (合算)</a></h3>
+<p>前向: $z \xrightarrow{\mathrm{softmax}} s \xrightarrow{\mathrm{CE}_y} \ell$.</p>
+<p>反向 (链式 + 第零部分 §2.3):</p>
+<p>$$ \frac{\partial \ell}{\partial z_i} = s_i - \mathbb{1}[i = y] $$</p>
+<p>→ 一条公式就是 logistic 二元版的推广 (二类时 $s_i - \mathbb{1}[i = y]$ 与 $\hat p - y$ 同).</p>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>反向 AB 工程惯例: <strong>softmax 与 CE 在 backward 里合算</strong> (不显式 $J \cdot \hat{s}$), 因为 $s_i - \mathbb{1}$ 可一步出. 这就是为什么 PyTorch <code>F.cross_entropy(logits, y)</code> 而不是 <code>F.cross_entropy(F.softmax(logits), y)</code> —— 前者数值稳定 (含 log-sum-exp 防 exp overflow) 且 backward 简洁.</p>
+</div>
+<h3 id="34-残差-y--x--fx"><a class="header" href="#34-残差-y--x--fx">3.4 残差 $y = x + f(x)$</a></h3>
+<p>$$ \frac{\partial \mathcal{L}}{\partial x} = g + \frac{\partial \mathcal{L}}{\partial y} \cdot \frac{\partial f(x)}{\partial x} $$</p>
+<p>即"两边梯度都加到 $x$". 这是 ResNet / Transformer 残差链 (深网络可训) 的数学根.</p>
+<h3 id="35-layer-normalization"><a class="header" href="#35-layer-normalization">3.5 Layer Normalization</a></h3>
+<p>$y_i = \gamma \cdot \frac{x_i - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta$, $\mu = \overline{x}, \sigma^2 = \overline{(x - \mu)^2}$.</p>
+<p>反向雅可比较繁 (因 $\mu, \sigma^2$ 都依赖 $x$ 的所有维). 工程上 PyTorch 已有 <code>nn.LayerNorm</code> 优化算子. 数学上记住"反向后 $g_{\text{in}} = \frac{\gamma}{\sigma} \cdot (g_{\text{out}} - \mathrm{proj}_{\text{norm 方向}})$"的存在即可.</p>
+<h3 id="36-卷积"><a class="header" href="#36-卷积">3.6 卷积</a></h3>
+<p>$(I * K)[i, j] = \sum_{a, b} I[i + a, j + b] \cdot K[a, b]$. 反向梯度即为"互相关". 速记: 卷积的反向是扩边后的"恢复原输入与卷积核各自梯度".</p>
+<p>工程上 cuDNN 用 winograd / FFT 加速, 反向与前向共享 kernel 配置.</p>
+<hr />
+<h2 id="四梯度检查-gradient-checking"><a class="header" href="#四梯度检查-gradient-checking">四、梯度检查 (Gradient Checking)</a></h2>
+<h3 id="41-何时必须"><a class="header" href="#41-何时必须">4.1 何时必须</a></h3>
+<ul>
+<li>自己写自定义算子或损失: <strong>上线前必做</strong>.</li>
+<li>调通训练前 sanity check, "loss 不降" 第一定位手段.</li>
+<li>论文复现, attention/autoregressive mask 容易错位.</li>
+</ul>
+<h3 id="42-工程标准"><a class="header" href="#42-工程标准">4.2 工程标准</a></h3>
+<p>数值中心差分:</p>
+<p>$$ g_i^{\text{num}} = \frac{f(\theta + h e_i) - f(\theta - h e_i)}{2 h} $$</p>
+<p>取 $h = 10^{-5}$ (float64 必需), $\epsilon = 10^{-7}$:</p>
+<p>$$ \text{rel-error} = \frac{|g_{\text{num}} - g_{\text{ana}}|}{|g_{\text{num}}| + |g_{\text{ana}}|} $$</p>
+<p>阈值: &lt; $10^{-7}$ 通过, &lt; $10^{-4}$ 警告, $\geq 10^{-3}$ 失败.</p>
+<h3 id="43-实现-numpy"><a class="header" href="#43-实现-numpy">4.3 实现 (NumPy)</a></h3>
+<pre><code class="language-python">import numpy as np
+
+def grad_check(f, theta, analytic_grad, h=1e-5, eps=1e-7, num=10):
+    # 抽样若干维 (避免全维度 O(n) 太贵)
+    rng = np.random.RandomState(0); idx = rng.choice(theta.size, size=num, replace=False)
+    g = analytic_grad(theta).ravel()           # 解析
+    max_rel = 0.0
+    for i in idx:
+        t1 = theta.copy().ravel(); t1[i] += h
+        t2 = theta.copy().ravel(); t2[i] -= h
+        g_num = (f(t1.reshape(theta.shape)) - f(t2.reshape(theta.shape))) / (2 * h)
+        rel = abs(g_num - g[i]) / (abs(g_num) + abs(g[i]) + 1e-12)
+        max_rel = max(max_rel, rel)
+    print(f"max rel error = {max_rel:.2e}")
+    return max_rel &lt; eps
+
+# 示例: 验证 softmax + CE 反向
+def softmax_ce(logits, y):
+    z = logits - logits.max(axis=-1, keepdims=True)
+    e = np.exp(z); s = e / e.sum(axis=-1, keepdims=True)
+    return -np.log(s[..., y] + 1e-12).sum()
+
+def softmax_ce_grad(logits, y):
+    z = logits - logits.max(axis=-1, keepdims=True)
+    e = np.exp(z); s = e / e.sum(axis=-1, keepdims=True)
+    s[..., y] -= 1
+    return s
+
+logits = np.random.randn(8, 10)
+y = np.random.randint(0, 10, size=8)
+ok = grad_check(lambda L: softmax_ce(L, y), logits, lambda L: softmax_ce_grad(L, y))
+print(f"grad check passed: {ok}")
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>float32 下中心差分只到 $10^{-4}$ 量级. 验证时一律先 <code>dtype=np.float64</code>, 否则会以为自己代码错误但实际只是数值精度.</p>
+</div>
+<h3 id="44-常见误差来源"><a class="header" href="#44-常见误差来源">4.4 常见误差来源</a></h3>
+<ol>
+<li><strong>softmax 数值溢出</strong>: 没 <code>logits - logits.max()</code> 时 $e^{1000} \to \infty$.</li>
+<li><strong>mixing dtypes</strong>: <code>int8 * float32</code> 在 numpy 自动降到 float, 梯度 dtype 突然不一致.</li>
+<li><strong>batch/seq 维错位</strong>: attention mask 把 padding 当真位反向.</li>
+<li><strong>non-differentiable points</strong>: ReLU 在 0 不可导, $|x|$ 在 0 也是; 数值与解析都会卡 subgradient 不唯一.</li>
+<li><strong>in-place ops</strong>: NumPy 的 <code>arr += 1</code> 改原数组会破坏 PyTorch 自动版本追踪.</li>
+</ol>
+<hr />
+<h2 id="五内存与显存-checkpoint"><a class="header" href="#五内存与显存-checkpoint">五、内存与显存: checkpoint</a></h2>
+<h3 id="51-反向-ad-的代价"><a class="header" href="#51-反向-ad-的代价">5.1 反向 AD 的代价</a></h3>
+<p>必须保存前向中间激活, 才能反向算雅可比. 深网络激活 ≈ <code>层数 × 隐维 × 序列长</code>. 显存成为瓶颈.</p>
+<p><strong>例</strong>: GPT-3 175B 推理单序列, 单 batch, fp16: 权重 350 GB (Google TPU pod), 激活与 KV cache 又数十 GB.</p>
+<h3 id="52-gradient-checkpointing-chen-2016"><a class="header" href="#52-gradient-checkpointing-chen-2016">5.2 Gradient Checkpointing (Chen 2016)</a></h3>
+<p>舍激活重新计算: 仅在分块边界保存激活, 反向时重新前向子段. 节省 $\sim 30-50%$ 显存, 多 30-50% 计算. 大模型训练 + 微调默认开.</p>
+<pre><code class="language-python"># PyTorch API: torch.utils.checkpoint
+from torch.utils.checkpoint import checkpoint
+
+class TransformerEncoderLayer(nn.Module):
+    def forward(self, x):
+        return checkpoint(self._inner, x, use_reentrant=False)
+</code></pre>
+<h3 id="53-激活重计算-vs-kv-cache"><a class="header" href="#53-激活重计算-vs-kv-cache">5.3 激活重计算 vs KV cache</a></h3>
+<p>训练时: 激活与梯度都需, 反传必须; checkpoint 用来 trade 计算换显存.</p>
+<p>推理 (自回归生成) 时: 上一 token 的 K, V 要保留供下一 token 注意力复用, 这就是 <strong>KV cache</strong>. 这是 LLM 推理显存的主要占用, 量化压缩的入口.</p>
+<hr />
+<h2 id="六混合精度"><a class="header" href="#六混合精度">六、混合精度</a></h2>
+<h3 id="61-fp16--bf16--fp8"><a class="header" href="#61-fp16--bf16--fp8">6.1 fp16 / bf16 / fp8</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>dtype</th><th>bits(mantissa/exp)</th><th>范围</th><th>精度</th><th>用法</th></tr></thead><tbody>
+<tr><td>fp32</td><td>24/8</td><td>$10^{\pm 38}$</td><td>7 位</td><td>默认训练</td></tr>
+<tr><td>fp16</td><td>10/5</td><td>$10^{\pm 5}$</td><td>3 位</td><td>范围窄, 易溢出; 需 loss scaling</td></tr>
+<tr><td>bf16</td><td>7/8</td><td>$10^{\pm 38}$</td><td>2 位</td><td>范围同 fp32, 精度低; A100/H100 推荐</td></tr>
+<tr><td>fp8 (H100)</td><td>4/3 (E4M3) / 5/2 (E5M2)</td><td></td><td></td><td>跨厂商变体, 训练小心翼翼</td></tr>
+</tbody></table>
+</div>
+<h3 id="62-混合精度套路"><a class="header" href="#62-混合精度套路">6.2 混合精度套路</a></h3>
+<ul>
+<li>主权重 fp32 存, 计算转 fp16/bf16:
+<pre><code class="language-python">scaler = torch.cuda.amp.GradScaler()
+with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+    y = model(x); loss = criterion(y, t)
+scaler.scale(loss).backward(); scaler.step(optimizer); scaler.update()
+</code></pre>
+</li>
+<li>bf16 不需 loss scaling, fp16 需要 (防小梯度下溢).</li>
+</ul>
+<h3 id="63-数值陷阱"><a class="header" href="#63-数值陷阱">6.3 数值陷阱</a></h3>
+<ul>
+<li>softmax 必须用 fp32 计算 (log-sum-exp 内部, 跨指数差大).</li>
+<li>累加归一化 (Layer Norm 的方差累加) 用 fp32 防 trip.</li>
+<li>损失反向梯度常用 fp32 综合.</li>
+</ul>
+<hr />
+<h2 id="七vanishing--exploding-gradient"><a class="header" href="#七vanishing--exploding-gradient">七、vanishing / exploding gradient</a></h2>
+<h3 id="71-数学根"><a class="header" href="#71-数学根">7.1 数学根</a></h3>
+<p>深网络反向: $\partial \mathcal{L}/\partial x_0 = \prod_{l=1}^{L} W_l^\top D_l$ 其中 $D_l = \mathrm{diag}(\sigma'(z_l))$.</p>
+<ul>
+<li>乘积的谱 $\rightarrow 0$ (vanishing) ⇔ $\max |W \sigma'| &lt; 1$ 典型: sigmoid $\sigma' \leq 0.25$.</li>
+<li>$\rightarrow \infty$ (exploding) ⇔ 反之.</li>
+</ul>
+<h3 id="72-工程对策"><a class="header" href="#72-工程对策">7.2 工程对策</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>手段</th><th>解决</th><th>出处</th></tr></thead><tbody>
+<tr><td><strong>ReLU / GELU</strong></td><td>偏向大梯度</td><td>Nair 2010</td></tr>
+<tr><td><strong>Xavier / He init</strong></td><td>让 $</td><td>W\sigma'</td></tr>
+<tr><td><strong>Batch Norm / Layer Norm</strong></td><td>归一化中间激活</td><td>Ioffe 2015</td></tr>
+<tr><td><strong>残差连接</strong> $y = x + f(x)$</td><td>梯度直接通路 $\partial y/\partial x \geq 1$</td><td>He 2016 ResNet</td></tr>
+<tr><td><strong>Gradient clipping</strong></td><td>clip 全局范数 $|g| \leq \tau$</td><td>Pascanu 2013</td></tr>
+<tr><td><strong>LSTM / GRU</strong></td><td>设记忆 cell 有加门</td><td>Hochreiter 1997</td></tr>
+<tr><td><strong>Adam / RMSprop</strong></td><td>学习率自适应</td><td>Kingma 2014</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>Transformer 用了: (1) Layer Norm, (2) 残差, (3) GELU, (4) Adam + warmup, (5) Xavier init → <strong>这套组合正是为了反抗深 stack 的 vanishing/exploding</strong>.</p>
+</div>
+<h3 id="73-残差连接的梯度高速公路"><a class="header" href="#73-残差连接的梯度高速公路">7.3 残差连接的"梯度高速公路"</a></h3>
+<p>$y = x + f(x) \Rightarrow \frac{\partial \mathcal{L}}{\partial x} = g + J_f^\top g$. <strong>至少有 "1" 的恒等通路</strong>, 无论 $f$ 怎么退化, 主梯度仍能回传. 这就是为什么 ResNet-152 比经典 30 层 net 可训.</p>
+<hr />
+<h2 id="八与第零部分的接口"><a class="header" href="#八与第零部分的接口">八、与第零部分的接口</a></h2>
+<ul>
+<li>§1 反向 vs 前向 AD ⇐ 第零部分微积分 §2.5 自动求导.</li>
+<li>§2 形状规则 ⇐ 第零部分线代 §6 张量收缩 (Einstein 缩写).</li>
+<li>§3.3 softmax + CE ⇐ 第零部分 §2.3 softmax 雅可比.</li>
+<li>§3.4 残差 ⇐ 第零部分 §6 张量收缩 + 链式.</li>
+<li>§3.5 LayerNorm ⇐ 第零部分线代 §5 正定 + 概率期望.</li>
+<li>§5 checkpoint ⇐ 工程权衡, 无数学新内容.</li>
+<li>§6 mixed precision ⇐ 第零部分概率数值范围无直接, 这是硬件层.</li>
+<li>§7 vanishing ⇐ 第零部分线代 §3 谱半径.</li>
+</ul>
+<hr />
+<h2 id="九结束--速查表"><a class="header" href="#九结束--速查表">九、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回:</p>
+<ul>
+<li><strong>链式</strong>: $\partial(f \circ g)/\partial \boldsymbol x = J_g^\top \nabla f$.</li>
+<li><strong>反向 AD</strong>: 一次反传 = 全梯度, O(节点 + 边), 必须存激活.</li>
+<li><strong>形状</strong>: $z = xW \Rightarrow \partial\mathcal{L}/\partial W = x^\top g$, $\partial\mathcal{L}/\partial x = g W^\top$.</li>
+<li><strong>softmax+CE</strong>: $\partial \mathcal{L}/\partial \text{logits} = s - \text{onehot}$; PyTorch 用 <code>cross_entropy(logits, y)</code>.</li>
+<li><strong>残差</strong>: $y = x + f(x) \Rightarrow \partial\mathcal{L}/\partial x = g + \partial f/\partial x \cdot g$ (恒有 1 通路).</li>
+<li><strong>梯度检查</strong>: float64, $h=10^{-5}$, 中心差分 rel err &lt; $10^{-7}$.</li>
+<li><strong>mixed precision</strong>: 主权重 fp32, 计算 bf16 (推荐); fp16 需 loss scaling.</li>
+<li><strong>gradient checkpoint</strong>: trade 显存 vs 计算; 大模型默认开.</li>
+<li><strong>vanishing/exploding</strong>: 改激活 (ReLU/GELU) + init (He/Xavier) + norm + 残差 + clip + Adam.</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="transformer.html">3. Transformer: self-attention / MHA / FFN / LayerNorm / 残差 / Encoder-Decoder / 训练损失</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../ai-ml/foundations.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../ai-ml/transformer.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../ai-ml/foundations.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../ai-ml/transformer.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

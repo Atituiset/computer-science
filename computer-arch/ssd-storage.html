@@ -1,0 +1,420 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>存储硬件: NAND Flash / SSD FTL / 写入放大 / NVMe - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="存储硬件-nand-flash--ssd-ftl--写入放大--nvme"><a class="header" href="#存储硬件-nand-flash--ssd-ftl--写入放大--nvme">存储硬件: NAND Flash / SSD FTL / 写入放大 / NVMe</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>数据库的 WAL、LSM-Tree 的 compaction、分布式系统的 fsync——所有"持久化"的语义最终都落在 SSD 内部的 NAND flash 上。SSD 不是"快一点的磁盘"：它<strong>不能覆盖写</strong>（只能先擦除后写）、有<strong>寿命上限</strong>（P/E 次数）、内部还有一层把你完全屏蔽的 <strong>FTL（闪存转换层）</strong>。这一章把 NAND 物理特性（SLC/MLC/TLC/QLC）、SSD 内部机制（磨损均衡、垃圾回收、写放大、掉电保护）、NVMe 协议（队列对、多命名空间）讲透，并回答数据库工程师最关心的：<strong>为什么 LSM 写放大要对着 SSD 写放大一起算</strong>。</p>
+<p>读完应能：</p>
+<ol>
+<li>说出 NAND 的"读页 / 写页 / 擦除块"三粒度，以及 SLC→QLC 的寿命与速度差异。</li>
+<li>解释 FTL 的 L2P 映射、磨损均衡、垃圾回收如何共同决定"写放大系数"，并估算 1 次逻辑写实际消耗多少物理写。</li>
+<li>说清 <code>TRIM</code>、OP（预留空间）、掉电保护各自解决什么问题。</li>
+<li>讲出 NVMe 与 AHCI/SCSI 的队列模型差异（多队列、polling、无锁提交/完成）。</li>
+<li>把 SSD 特性翻译成数据库设计决策：WAL 为什么写少量页、LSM 为什么反而被 SSD 喜欢、QLC 时代怎么选盘。</li>
+</ol>
+<hr />
+<h2 id="一hdd-vs-ssd-两种完全不同的物理"><a class="header" href="#一hdd-vs-ssd-两种完全不同的物理">一、HDD vs SSD: 两种完全不同的物理</a></h2>
+<div class="table-wrapper"><table><thead><tr><th></th><th>HDD</th><th>SSD</th></tr></thead><tbody>
+<tr><td>随机读</td><td>寻道 ~10ms</td><td>~50-100µs（受队列深度影响）</td></tr>
+<tr><td>随机写</td><td>寻道 ~10ms</td><td>与顺序写接近（FTL 内做批量）</td></tr>
+<tr><td>写单元</td><td>扇区 512B/4K</td><td><strong>页 4-16KB</strong>（最小写粒度）</td></tr>
+<tr><td>擦除单元</td><td>无</td><td><strong>块 4-16MB</strong>（最小擦除粒度）</td></tr>
+<tr><td>覆盖写</td><td>直接覆写</td><td><strong>必须先擦除</strong>（无覆盖写）</td></tr>
+<tr><td>寿命</td><td>近乎无限</td><td><strong>P/E 次数有限</strong></td></tr>
+</tbody></table>
+</div>
+<blockquote>
+<p>一句话：SSD 把"随机 IO"的物理代价抹平了，但把"寿命 + 空间放大"的账转嫁给了固件和上层软件。</p>
+</blockquote>
+<h2 id="二nand-flash-物理"><a class="header" href="#二nand-flash-物理">二、NAND flash 物理</a></h2>
+<p>NAND 用浮栅/电荷陷阱晶体管存电荷表示 1 位或多位。<strong>每单元存几位</strong>决定密度、速度、寿命的三角关系：</p>
+<div class="table-wrapper"><table><thead><tr><th>类型</th><th>每单元位数</th><th>电压档数</th><th>相对寿命</th><th>相对速度</th><th>用途</th></tr></thead><tbody>
+<tr><td>SLC</td><td>1</td><td>2</td><td>~10x</td><td>快</td><td>企业缓存/系统盘</td></tr>
+<tr><td>MLC</td><td>2</td><td>4</td><td>~4x</td><td>中</td><td>高端消费/企业</td></tr>
+<tr><td>TLC</td><td>3</td><td>8</td><td>1x</td><td>中慢</td><td>主流消费/云</td></tr>
+<tr><td>QLC</td><td>4</td><td>16</td><td>~0.3x</td><td>慢</td><td>大容量冷数据</td></tr>
+</tbody></table>
+</div>
+<p>干扰与衰减：</p>
+<ul>
+<li><strong>写干扰</strong>：向一个页编程会扰动同块其他页的电荷；</li>
+<li><strong>读干扰</strong>：反复读一个页会累积扰动（读多了要先搬移数据再读）；</li>
+<li><strong>数据保持</strong>：电荷随时间泄漏，TLC/QLC 在高温下保持期显著缩短——冷数据盘要定期刷新。</li>
+</ul>
+<h2 id="三ssd-内部-ftl-是那个看不见的数据库"><a class="header" href="#三ssd-内部-ftl-是那个看不见的数据库">三、SSD 内部: FTL 是那个"看不见的数据库"</a></h2>
+<h3 id="31-逻辑到物理映射l2p"><a class="header" href="#31-逻辑到物理映射l2p">3.1 逻辑到物理映射（L2P）</a></h3>
+<p>主机看到的是连续逻辑块（LBA），实际写到哪里由 FTL 决定：</p>
+<pre><code>主机:   LBA 1000 写入 4KB
+FTL:    找空闲页 (可能在任何物理块), 写入, 更新 L2P 表
+        (L2P 表本身按 4KB 粒度记录映射, 1TB 盘 ≈ 256M 条)
+</code></pre>
+<ul>
+<li>这就是为什么 SSD <strong>随机写和顺序写性能接近</strong>——FTL 把随机逻辑写重排成顺序物理写；</li>
+<li>L2P 表大，SRAM 放不下，所以有 DRAM 缓存（断电丢）或 <strong>HMB/无 DRAM 设计</strong>（用主机内存）。</li>
+</ul>
+<h3 id="32-磨损均衡wear-leveling"><a class="header" href="#32-磨损均衡wear-leveling">3.2 磨损均衡（Wear Leveling）</a></h3>
+<p>同一个块不能反复擦除。FTL 记录每个块的擦除次数，尽量均匀使用：</p>
+<ul>
+<li><strong>动态均衡</strong>：只在写时选择最年轻块；</li>
+<li><strong>静态均衡</strong>：把长期不动的冷数据搬到快坏死的块上（让热数据用年轻块）——牺牲一点迁移 IO 换整盘寿命。</li>
+</ul>
+<h3 id="33-垃圾回收与写入放大"><a class="header" href="#33-垃圾回收与写入放大">3.3 垃圾回收与写入放大</a></h3>
+<p>覆盖写 = 把旧页标记无效 + 写新页。无效页要等<strong>块整块回收</strong>：GC 把块里还有效的页搬走，再擦除整块：</p>
+<pre><code>写放大 WA = 实际写入 NAND 的物理字节 / 主机下发的逻辑字节
+典型: TLC 盘顺序写 WA≈1.1-1.5, 随机小写 WA 可达 3-10+
+</code></pre>
+<p>影响 WA 的旋钮：</p>
+<ul>
+<li><strong>OP（Over-Provisioning，预留空间）</strong>：出厂多留 7%-28% 物理块不暴露给主机。OP 越大，GC 越从容、WA 越低、寿命越长；</li>
+<li><strong>TRIM</strong>：主机告诉 SSD"这些 LBA 数据已删除"，FTL 把对应页直接标无效，避免 GC 搬死数据；</li>
+<li><strong>写入模式</strong>：随机 4K 小写是 WA 噩梦；顺序大块写接近 1。</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>数据库与 WA 直接相关：LSM-Tree 的 compaction 把 N 次小写重写成更少的大写，<strong>把 WA 从 3-10 压向 1.x</strong>，所以 LSM 天然适合 SSD（见 <a href="../databases/indexing/lsm.html">databases/indexing/lsm.md</a>）。反过来 B+ 树随机页写要靠 FTL 兜底，WA 更高。</p>
+</div>
+<h3 id="34-掉电保护"><a class="header" href="#34-掉电保护">3.4 掉电保护</a></h3>
+<p>写一半断电，FTL 映射表可能撕裂：</p>
+<ul>
+<li><strong>企业盘</strong>：带电容（power-loss protection），掉电后靠电容把 DRAM 里未落盘的映射表/数据刷进 NAND；</li>
+<li><strong>消费盘</strong>：常无保护——这正是"数据落到 page cache 不代表安全"、"必须 fsync"的硬件注脚。</li>
+</ul>
+<h2 id="四nvme-为并行而生的协议"><a class="header" href="#四nvme-为并行而生的协议">四、NVMe: 为并行而生的协议</a></h2>
+<p>NVMe 替代 SATA/AHCI 的关键是<strong>队列模型</strong>：</p>
+<pre><code>旧 AHCI:  1 个队列, 深度 32, 命令要敲门铃 + 中断 → 单队列串行
+NVMe:     64K 个队列对, 每个队列深 64K
+          Submission Queue (主机→盘) / Completion Queue (盘→主机)
+          doorbell 写一次, 批量取命令; 支持 polling(无中断)
+</code></pre>
+<ul>
+<li>多核 CPU 每个核自己的队列 → <strong>无锁提交</strong>，IOPS 从几万涨到百万级；</li>
+<li>中断聚合（interrupt coalescing）+ polling 模式：低延迟场景（数据库 fsync）用 polling 可把尾延迟降一半；</li>
+<li>多命名空间（namespace）：一块盘切成多个逻辑盘，可独立配额/加密；</li>
+<li><strong>ZNS（Zoned Namespace）</strong>：把"顺序写"语义暴露给主机，让数据库/LSM 直接管理块——省掉 FTL 的部分搬运，下一代存储选型点。</li>
+</ul>
+<h2 id="五对上层软件的三条铁律"><a class="header" href="#五对上层软件的三条铁律">五、对上层软件的三条铁律</a></h2>
+<ol>
+<li><strong>fsync 是昂贵的</strong>：NVMe 单次刷盘 ~10-50µs 但涉及掉电保护语义 + 队列 flush，批量合并 fsync 是 WAL 高吞吐的命门；</li>
+<li><strong>顺序大块 &gt; 随机小块</strong>：能批量就批量；<code>O_DIRECT</code> 大 IO + <code>io_uring</code> 多队列是数据库/存储引擎的标准姿势；</li>
+<li><strong>寿命按 TBW 算预算</strong>：TLC 盘 TBW 有限，日志类高写负载选企业 TLC/MLC + 大 OP，QLC 只放冷数据。</li>
+</ol>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>常见误判：把消费级 NVMe 当企业盘用在高写入日志系统，1-2 年盘就报错掉盘。选盘先看 <strong>TBW（总写入字节）与负载的写入速率</strong>，而不是顺序读速度。</p>
+</div>
+<h2 id="六一页速查"><a class="header" href="#六一页速查">六、一页速查</a></h2>
+<pre><code>粒度:     页(4-16KB, 写) &lt; 块(4-16MB, 擦除); 无覆盖写
+寿命:      SLC&gt;MLC&gt;TLC&gt;QLC; TBW 是预算, 写放大决定实际消耗
+FTL:      L2P 映射 + 磨损均衡 + GC + TRIM + OP + 掉电保护
+写放大:   随机小写 3-10x, 顺序大块 ~1.x, OP/TRIM 压低
+NVMe:     64K 队列对 + polling, 百万 IOPS, ZNS 把顺序语义交还主机
+数据库:   WAL 批量 fsync; LSM 对 SSD 友好; QLC 只放冷数据
+</code></pre>
+<p>下一篇: <a href="interconnects.html">总线与互联: PCIe / CXL / NVLink / RDMA</a>。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../computer-arch/interconnects.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../computer-arch/isa-design.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../computer-arch/interconnects.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../computer-arch/isa-design.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

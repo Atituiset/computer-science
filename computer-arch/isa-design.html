@@ -1,0 +1,715 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>指令集架构：x86 / ARM / RISC-V - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="指令集架构x86--arm--risc-v"><a class="header" href="#指令集架构x86--arm--risc-v">指令集架构：x86 / ARM / RISC-V</a></h1>
+<blockquote>
+<p><strong>TL;DR</strong> — CISC (x86) 以变长指令、内存操作数换取代码密度，代价是前端的解码复杂度；RISC (ARM / RISC-V) 用定长指令和 Load-Store 模型换简单解码与宽发射，代价是静态代码体积。现代 x86 内部早已 RISC 化（μop），ARM 也引入了一些 CISC 特征，边界日渐模糊。真正的分水岭已不在指令长度，而在内存模型、向量扩展策略、特权级设计，以及——是否是开放标准。</p>
+</blockquote>
+<hr />
+<h2 id="1-risc-与-cisc从对立到融合"><a class="header" href="#1-risc-与-cisc从对立到融合">1. RISC 与 CISC：从对立到融合</a></h2>
+<h3 id="11-经典-risc-信条"><a class="header" href="#11-经典-risc-信条">1.1 经典 RISC 信条</a></h3>
+<p>1980 年代初，Patterson（UC Berkeley）与 Hennessy（Stanford）几乎同时提出精简指令集的设计哲学。核心教条可以浓缩为四条：</p>
+<div class="table-wrapper"><table><thead><tr><th>原则</th><th>硬件收益</th></tr></thead><tbody>
+<tr><td><strong>定长指令</strong>（通常 32-bit）</td><td>指令边界检测零成本，并行解码 trivial</td></tr>
+<tr><td><strong>Load-Store 架构</strong></td><td>ALU 只操作寄存器，数据通路规整，无内存锁定</td></tr>
+<tr><td><strong>大寄存器堆</strong>（≥32 个 GPR）</td><td>减少 spill/fill，降低内存带宽压力</td></tr>
+<tr><td><strong>单周期（或少量周期）执行</strong></td><td>流水线均匀，无"惊喜指令"破坏调度</td></tr>
+</tbody></table>
+</div>
+<p>ARM（1985）和 MIPS（1986）是第一代商业 RISC 处理器。SPARC（Sun）、PA-RISC（HP）、PowerPC（AIM 联盟）紧随其后。</p>
+<h3 id="12-经典-cisc-信条"><a class="header" href="#12-经典-cisc-信条">1.2 经典 CISC 信条</a></h3>
+<p>Intel 8086（1978）面对的是汇编程序员而非编译器——每条指令的"表现力"直接影响生产力。CISC 的设计决策几乎每一条都与 RISC 相反：</p>
+<ul>
+<li><strong>变长指令</strong>：x86 指令 1–15 字节，用前缀字节叠加语义（REX、VEX、EVEX）</li>
+<li><strong>内存操作数</strong>：<code>add [mem], reg</code> 单条指令完成读-改-写</li>
+<li><strong>少量架构寄存器</strong>：x86-32 只有 8 个 GPR，x86-64 扩展到 16 个</li>
+<li><strong>复杂指令</strong>：<code>rep movs</code>（串复制）、<code>enter/leave</code>（栈帧）、<code>xlat</code>（查表）</li>
+</ul>
+<p>代价是解码器——每条指令需要前 1-3 个周期"找边界"（pre-decode），这直接限制了前端的宽度。</p>
+<h3 id="13-现代融合边界不再清晰"><a class="header" href="#13-现代融合边界不再清晰">1.3 现代融合：边界不再清晰</a></h3>
+<p>1995 年 Intel Pentium Pro 引入了一个根本性的重构：<strong>把 x86 CISC 指令翻译为类 RISC 的微操作（μop）</strong>。从此，x86 的"外部语言"是变长 CISC，而"内部执行语言"是定长 μop（类似 RISC 三操作数格式）。</p>
+<pre><code>┌─────────────────────────────────────────────┐
+│                   x86 指令流                  │
+│  mov eax, [ebx+ecx*4+8]   (1条CISC)         │
+└──────────────────┬──────────────────────────┘
+                   │ x86 Decoder (MITE)
+                   ▼
+┌─────────────────────────────────────────────┐
+│              μop 序列 (RISC-like)             │
+│  tmp ← load [ebx+ecx*4+8]                   │
+│  eax ← tmp                                  │
+└──────────────────┬──────────────────────────┘
+                   │ μop Cache (DSB)
+                   ▼
+            OoO 调度 / 执行单元
+</code></pre>
+<p>反过来，ARM AArch64 也不纯洁：</p>
+<ul>
+<li><strong><code>ldp</code> / <code>stp</code></strong>：一条指令加载/存储<strong>两个</strong>寄存器（x86 没有直接等价物）</li>
+<li><strong>复杂寻址模式</strong>：<code>ldr x0, [x1, x2, lsl #3]</code>（基址 + 索引 × 移位）</li>
+<li><strong><code>paciasp</code> / <code>autiasp</code></strong>：指针认证指令，融合了加密与内存访问</li>
+</ul>
+<p><strong>结论</strong>：将 RISC 和 CISC 简化为"定长 vs 变长"已经不能描述 2025 年的真实世界。真正的区分维度应当是：解码复杂度、内存模型、向量策略、特权架构。</p>
+<hr />
+<h2 id="2-x86-64-架构深度"><a class="header" href="#2-x86-64-架构深度">2. x86-64 架构深度</a></h2>
+<h3 id="21-寄存器全景"><a class="header" href="#21-寄存器全景">2.1 寄存器全景</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>类别</th><th>寄存器</th><th>宽度</th><th>说明</th></tr></thead><tbody>
+<tr><td>通用</td><td>RAX, RBX, RCX, RDX, RSI, RDI, RBP, RSP, R8–R15</td><td>64-bit</td><td>RSP 专用于栈指针，RBP 为帧指针（可被省略）</td></tr>
+<tr><td>SIMD</td><td>XMM0–XMM15</td><td>128-bit</td><td>SSE 基础，所有 x86-64 处理器必备</td></tr>
+<tr><td>SIMD</td><td>YMM0–YMM15</td><td>256-bit</td><td>AVX/AVX2，XMM 的超集（低 128 位共享）</td></tr>
+<tr><td>SIMD</td><td>ZMM0–ZMM31</td><td>512-bit</td><td>AVX-512，32 个寄存器（EVEX 编码提供 R' 位扩展）</td></tr>
+<tr><td>掩码</td><td>K0–K7</td><td>64-bit</td><td>AVX-512 谓词寄存器，用于按元素掩码</td></tr>
+</tbody></table>
+</div>
+<blockquote>
+<p><strong>注</strong>：在 AVX-512 模式下，YMM/ZMM 寄存器的高位在上下文切换时<strong>不需要</strong>保存（XSAVE 头中的 XSTATE_BV 位图标记实际使用的高位寄存器），但保存/恢复仍很昂贵（~1KB+ 状态）。</p>
+</blockquote>
+<h3 id="22-变长编码解析"><a class="header" href="#22-变长编码解析">2.2 变长编码解析</a></h3>
+<p>x86-64 指令编码从低地址到高地址的结构为：</p>
+<pre><code>[Prefixes] [Opcode 1-3B] [ModR/M] [SIB] [Displacement 1/2/4B] [Immediate 1/2/4/8B]
+</code></pre>
+<ul>
+<li><strong>传统前缀</strong>（Legacy）：<code>0x66</code>（操作数宽度）、<code>0x67</code>（地址宽度）、<code>0xF0</code>（LOCK）、<code>0xF2</code>/<code>0xF3</code>（REP/REPE/REPNE）、段覆盖</li>
+<li><strong>REX 前缀</strong>：<code>0x40–0x4F</code>，用 4 个 bit（W, R, X, B）将 GPR 寻址扩展到 16 个寄存器和 64 位操作数</li>
+<li><strong>VEX 前缀</strong>（AVX）：2 或 3 字节，编码非破坏性三操作数格式（<code>c5</code>/<code>c4</code> 开头）</li>
+<li><strong>EVEX 前缀</strong>（AVX-512）：4 字节，扩展 32 个向量寄存器和掩码/广播/取整模式</li>
+</ul>
+<p>一个极端例子——<code>vaddps zmm20 {k3}{z}, zmm8, [rax+rcx*8+0x1234]</code>（512-bit 向量加，带掩码和零化）：</p>
+<pre><code>EVEX.512.66.0F.W0 58 /r
+62h F1h 3Eh 08h 58h 54h C8h 34h 12h
+│    │   │   │   │   │   │   └── displacement[15:0] = 0x1234
+│    │   │   │   │   │   └────── SIB: scale=3(index=rcx, base=rax)
+│    │   │   │   │   └────────── ModR/M: reg=zmm20, rm=[SIB]+disp32
+│    │   │   │   └────────────── Opcode: 0x58 (VADDPS)
+│    │   │   └────────────────── EVEX.pp=0b01, mm=0b10, W=0, vvvv=zmm8
+│    │   └────────────────────── EVEX.R'R=0b0000 → reg 扩展位
+│    └────────────────────────── EVEX payload 第 2 字节
+└──────────────────────────────── EVEX 标识: 0x62
+</code></pre>
+<p>共 10 字节——这就是变长指令的代价和表现力。</p>
+<h3 id="23-寻址模式"><a class="header" href="#23-寻址模式">2.3 寻址模式</a></h3>
+<p>x86 最著名的"瑞士军刀"寻址：</p>
+<pre><code>Seg:[Base + Index * Scale + Displacement]
+</code></pre>
+<ul>
+<li>Base：任意 GPR</li>
+<li>Index：任意 GPR（除 RSP）</li>
+<li>Scale：1、2、4、8</li>
+<li>Displacement：0、8、16、32 位</li>
+</ul>
+<p><strong>一条指令完成指针算术 + 访存</strong>。这在遍历 <code>struct</code> 数组时极为高效：</p>
+<pre><code class="language-asm">; x86-64: 遍历 struct Node { value(8B), next(8B) }
+; rdi = 指向当前节点的指针
+.loop:
+    mov rax, [rdi]             ; 加载 node-&gt;value
+    add rbx, rax               ; 累加
+    mov rdi, [rdi + 8]         ; node = node-&gt;next（基址+偏移即位移）
+    test rdi, rdi
+    jnz .loop
+</code></pre>
+<p>对比 ARM 的等价位：需要 <strong>两条</strong> 加载指令。</p>
+<h3 id="24-调用约定"><a class="header" href="#24-调用约定">2.4 调用约定</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>项目</th><th>System V AMD64 (Linux/macOS)</th><th>Microsoft x64 (Windows)</th></tr></thead><tbody>
+<tr><td>参数寄存器</td><td>RDI, RSI, RDX, RCX, R8, R9</td><td>RCX, RDX, R8, R9</td></tr>
+<tr><td>返回值</td><td>RAX (以及 RDX 用于 128-bit)</td><td>RAX</td></tr>
+<tr><td>被调用者保存</td><td>RBX, RBP, R12–R15</td><td>RBX, RBP, RDI, RSI, R12–R15</td></tr>
+<tr><td>调用者保存</td><td>其余全部</td><td>其余全部</td></tr>
+<tr><td>栈对齐</td><td>16 字节（调用前）</td><td>16 字节</td></tr>
+<tr><td>阴影空间</td><td>无</td><td>32 字节（调用者分配，给被调用者用）</td></tr>
+</tbody></table>
+</div>
+<p>两种约定不可混用，这是跨平台 ABI 调试中常见的深坑（Windows 的阴影空间常常被 Linux 开发者忽略）。</p>
+<hr />
+<h2 id="3-arm-aarch64-架构"><a class="header" href="#3-arm-aarch64-架构">3. ARM AArch64 架构</a></h2>
+<h3 id="31-寄存器布局"><a class="header" href="#31-寄存器布局">3.1 寄存器布局</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>寄存器</th><th>别名 / 用途</th></tr></thead><tbody>
+<tr><td>X0–X7</td><td>参数 / 返回值（X0 也接收返回值）</td></tr>
+<tr><td>X8</td><td>间接结果寄存器（如返回大型 struct）</td></tr>
+<tr><td>X9–X15</td><td>调用者保存的临时寄存器</td></tr>
+<tr><td>X16–X17</td><td>过程内调用暂存（IP0, IP1）</td></tr>
+<tr><td>X18</td><td><strong>平台寄存器</strong>（Windows 的 TLS 指针，Linux 通用）</td></tr>
+<tr><td>X19–X28</td><td>被调用者保存</td></tr>
+<tr><td>X29</td><td>帧指针（FP）</td></tr>
+<tr><td>X30</td><td>链接寄存器（LR，存放返回地址）</td></tr>
+<tr><td>XZR / SP</td><td>X31，指令中根据上下文解释为零寄存器或栈指针</td></tr>
+</tbody></table>
+</div>
+<p>32 个 GPR 意味着编译器几乎不需要 spill 临时变量——这对 ISA 的编译友好性贡献极大。</p>
+<h3 id="32-load-store-铁律"><a class="header" href="#32-load-store-铁律">3.2 Load-Store 铁律</a></h3>
+<p>ARM 不存在 <code>add [mem], reg</code> 这类指令。任何内存操作必须经过：</p>
+<ol>
+<li><strong>Load</strong>：从内存拉到寄存器</li>
+<li><strong>Operate</strong>：在寄存器上执行 ALU</li>
+<li><strong>Store</strong>：从寄存器推回内存</li>
+</ol>
+<p>这保证了所有 ALU 操作的延迟可预测，数据通路无需与内存控制器耦合。</p>
+<pre><code class="language-asm">; AArch64: 遍历 Node 链表
+; x0 = 当前节点指针
+.loop:
+    ldr x1, [x0]               ; x1 = node-&gt;value (load)
+    add x19, x19, x1           ; 累加到被调用者保存寄存器
+    ldr x0, [x0, #8]           ; x0 = node-&gt;next (基址+偏移寻址)
+    cbnz x0, .loop             ; 比较并分支（一条指令）
+</code></pre>
+<h3 id="33-条件执行从-arm32-到-aarch64"><a class="header" href="#33-条件执行从-arm32-到-aarch64">3.3 条件执行：从 ARM32 到 AArch64</a></h3>
+<p>ARM32（A32/T32）的标志性特征是<strong>几乎每条指令都可条件执行</strong>——指令的高 4 位是条件码（EQ、NE、CS、MI 等 15 种条件）。这省去了大量分支跳转，但也消耗了编码空间。</p>
+<p>AArch64 大幅削减了这一机制：</p>
+<ul>
+<li>移除了通用条件执行字段</li>
+<li><strong>仅保留少数条件指令</strong>：<code>csel</code>（条件选择）、<code>cset</code>（条件设值）、<code>ccmp</code>（条件比较）、<code>cinc</code>（条件自增）</li>
+<li>分支仍然使用 <code>b.eq</code>、<code>b.ne</code> 等（条件码来自 NZCV 标志，由 <code>cmp</code> / <code>tst</code> 等设置）</li>
+</ul>
+<pre><code class="language-asm">; AArch64: abs(x0) 无分支
+    cmp x0, #0
+    cneg x0, x0, lt            ; 若 x0 &lt; 0 则 x0 = -x0，否则不变
+</code></pre>
+<h3 id="34-调用约定aapcs64"><a class="header" href="#34-调用约定aapcs64">3.4 调用约定（AAPCS64）</a></h3>
+<pre><code>参数:  X0→X7（整数/指针）, V0→V7（浮点/SIMD）
+返回:  X0（整数）, V0（浮点）
+被调用者保存: X19–X28, V8–V15
+</code></pre>
+<p>苹果平台还有细微修改，统称 Darwin ABI。</p>
+<hr />
+<h2 id="4-risc-v-架构"><a class="header" href="#4-risc-v-架构">4. RISC-V 架构</a></h2>
+<h3 id="41-模块化设计哲学"><a class="header" href="#41-模块化设计哲学">4.1 模块化设计哲学</a></h3>
+<p>RISC-V 最基本的创新不在技术而在<strong>治理</strong>——这是一份自由、开放的 ISA 规范，归属 RISC-V International 而非任何公司。</p>
+<p>ISA 被拆分为基础指令集 + 标准扩展，每种扩展用一个字母标识：</p>
+<div class="table-wrapper"><table><thead><tr><th>扩展</th><th>内容</th></tr></thead><tbody>
+<tr><td><strong>I</strong></td><td>基础整数指令（RV32I / RV64I）</td></tr>
+<tr><td><strong>M</strong></td><td>整数乘除</td></tr>
+<tr><td><strong>A</strong></td><td>原子操作</td></tr>
+<tr><td><strong>F</strong></td><td>单精度浮点</td></tr>
+<tr><td><strong>D</strong></td><td>双精度浮点</td></tr>
+<tr><td><strong>C</strong></td><td>压缩指令（16-bit）</td></tr>
+<tr><td><strong>V</strong></td><td>向量扩展</td></tr>
+<tr><td><strong>Zicsr</strong></td><td>控制和状态寄存器访问</td></tr>
+<tr><td><strong>Zifencei</strong></td><td>指令栅栏</td></tr>
+<tr><td><strong>Zbb</strong></td><td>基础位操作</td></tr>
+<tr><td>……</td><td>总共 40+ 已批准扩展</td></tr>
+</tbody></table>
+</div>
+<p>常见的软件目标：<code>RV64GC</code> = RV64I + M + A + F + D + C。</p>
+<h3 id="42-寄存器与-abi"><a class="header" href="#42-寄存器与-abi">4.2 寄存器与 ABI</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>寄存器</th><th>ABI 名称</th><th>用途</th></tr></thead><tbody>
+<tr><td>x0</td><td>zero</td><td>硬连线 0</td></tr>
+<tr><td>x1</td><td>ra</td><td>返回地址</td></tr>
+<tr><td>x2</td><td>sp</td><td>栈指针</td></tr>
+<tr><td>x3</td><td>gp</td><td>全局指针</td></tr>
+<tr><td>x4</td><td>tp</td><td>线程指针</td></tr>
+<tr><td>x5–x7</td><td>t0–t2</td><td>临时</td></tr>
+<tr><td>x8</td><td>s0/fp</td><td>被调用者保存 / 帧指针</td></tr>
+<tr><td>x9</td><td>s1</td><td>被调用者保存</td></tr>
+<tr><td>x10–x17</td><td>a0–a7</td><td>函数参数 / 返回值</td></tr>
+<tr><td>x18–x27</td><td>s2–s11</td><td>被调用者保存</td></tr>
+<tr><td>x28–x31</td><td>t3–t6</td><td>临时</td></tr>
+</tbody></table>
+</div>
+<p>与 ARM 类似有 32 个 GPR，但 x0 硬编码为 0（读）或 <code>/dev/null</code>（写）——这很巧妙：<code>nop</code> 实际上是 <code>addi x0, x0, 0</code>。</p>
+<h3 id="43-指令格式规整而优雅"><a class="header" href="#43-指令格式规整而优雅">4.3 指令格式：规整而优雅</a></h3>
+<p>所有基础指令严格 32 位，分 4 种格式：</p>
+<pre><code>R-type: funct7(7) | rs2(5) | rs1(5) | funct3(3) | rd(5) | opcode(7)
+I-type: imm[11:0](12) | rs1(5) | funct3(3) | rd(5) | opcode(7)
+S-type: imm[11:5](7) | rs2(5) | rs1(5) | funct3(3) | imm[4:0](5) | opcode(7)
+U-type: imm[31:12](20) | rd(5) | opcode(7)
+</code></pre>
+<p>字段位置在所有格式中对齐——<code>rs1</code> 始终在 bit 15–19，<code>rs2</code> 在 bit 20–24，<code>rd</code> 在 bit 7–11。解码器可以用<strong>一层 MUX</strong> 完成寄存器读取，不需要像 x86 那样先解析 ModR/M 才能定位寄存器字段。</p>
+<h3 id="44-无状态条件码"><a class="header" href="#44-无状态条件码">4.4 无状态条件码</a></h3>
+<p>RISC-V 抛弃了 x86 和 ARM 共享的 <strong>条件码寄存器</strong>（FLAGS / NZCV）设计。比较通过<strong>比较-分支融合</strong>指令完成：</p>
+<pre><code class="language-asm">; RISC-V: 比较并分支（单条指令）
+    blt x5, x6, .L_target      ; if x5 &lt; x6 goto target
+    beq x5, x0, .L_done        ; if x5 == 0 goto done
+</code></pre>
+<p>这消除了条件码作为隐式状态的依赖，简化了乱序执行中的寄存器重命名（不需要单独的条件码物理寄存器堆）。</p>
+<h3 id="45-向量扩展rvv"><a class="header" href="#45-向量扩展rvv">4.5 向量扩展：RVV</a></h3>
+<p>RISC-V Vector Extension (RVV 1.0) 的核心思想借鉴了 Cray-1 的向量模型：</p>
+<ul>
+<li><strong>向量长度不可知</strong>（Vector Length Agnostic）：同一代码可在 128-bit 到 65536-bit 的实现上无修改运行</li>
+<li>使用 <code>vsetvl</code> 指令在运行时设置向量长度（基于硬件 VLEN 和应用元素宽度）</li>
+<li>三种加载模式：单元步进（unit-stride）、步幅（strided）、索引（indexed）</li>
+</ul>
+<pre><code class="language-asm">; RISC-V RVV: VA + VB → VC（任意长度）
+    vsetvli t0, a0, e32, m1    ; 配置: 32-bit 元素, LMUL=1, 设置 vl = min(VLEN/32, a0)
+    vle32.v v1, (a1)            ; 加载 A（单元步进）
+    vle32.v v2, (a2)            ; 加载 B
+    vadd.vv v3, v1, v2          ; 向量加法
+    vse32.v v3, (a3)            ; 存储到 C
+    sub a0, a0, t0              ; 剩余元素数
+    bnez a0, .loop              ; 尾循环处理超长向量
+</code></pre>
+<h3 id="46-特权架构"><a class="header" href="#46-特权架构">4.6 特权架构</a></h3>
+<p>RISC-V 定义了三个标准特权级：Machine (M)、Supervisor (S)、User (U)，外加可选的 Hypervisor (H)。</p>
+<ul>
+<li><strong>M-mode</strong>：始终存在，用于固件/安全监控（类比 ARM EL3）</li>
+<li><strong>S-mode</strong>：操作系统内核（类比 x86 Ring 0）</li>
+<li><strong>U-mode</strong>：用户空间（类比 x86 Ring 3）</li>
+</ul>
+<p>分页方案：Sv39（3 级页表，39-bit VA，512 GB 地址空间），Sv48（4 级，48-bit VA），Sv57（5 级，57-bit VA）。Linux 内核主线已完整支持 RISC-V，发行版（Ubuntu、Fedora、Debian）均提供 RV64GC 镜像。</p>
+<hr />
+<h2 id="5-simd-扩展对比"><a class="header" href="#5-simd-扩展对比">5. SIMD 扩展对比</a></h2>
+<h3 id="51-演进路径"><a class="header" href="#51-演进路径">5.1 演进路径</a></h3>
+<pre><code>x86:    MMX(64b,'97) → SSE(128b,'99) → AVX(256b,'11) → AVX-512(512b,'16)
+ARM:    NEON(128b,'05) ────────────────→ SVE(variable,'19) → SVE2('20)
+RISC-V: ──────────────────────────────→ RVV(1.0,'21)
+</code></pre>
+<p>每一代不仅是宽度翻倍——指令格式、寄存器堆编码、编译器内在函数（intrinsics）全部不同。</p>
+<h3 id="52-x86-avx-512丰富但分裂"><a class="header" href="#52-x86-avx-512丰富但分裂">5.2 x86 AVX-512：丰富但分裂</a></h3>
+<p>AVX-512 最大的工程败笔是 <strong>子集碎片化</strong>。它不是一个整体，而是十几个独立的指令子集：</p>
+<div class="table-wrapper"><table><thead><tr><th>子集</th><th>功能</th></tr></thead><tbody>
+<tr><td>AVX-512<strong>F</strong></td><td>基础（必有）</td></tr>
+<tr><td>AVX-512<strong>CD</strong></td><td>冲突检测</td></tr>
+<tr><td>AVX-512<strong>VL</strong></td><td>128/256-bit 操作数上的 AVX-512 指令</td></tr>
+<tr><td>AVX-512<strong>BW</strong></td><td>字节/字操作</td></tr>
+<tr><td>AVX-512<strong>DQ</strong></td><td>双字/四字</td></tr>
+<tr><td>AVX-512<strong>IFMA</strong></td><td>整数融合乘加</td></tr>
+<tr><td>AVX-512<strong>VBMI</strong></td><td>字节向量位操作</td></tr>
+<tr><td>AVX-512<strong>4VNNIW</strong></td><td>4 字向量神经网络指令</td></tr>
+</tbody></table>
+</div>
+<p>仅 Intel 内部就因 <strong>P-core（支持 AVX-512）vs E-core（不支持）</strong> 而内部打架——线程从 P 核迁移到 E 核时必须保存/恢复 ZMM 状态（~1KB XSAVE 区域），在实时系统中引入不可预测的延迟抖动。最终 Intel 在消费级 12/13 代直接熔断（fuse off）AVX-512。</p>
+<blockquote>
+<p><strong>工程教训</strong>：ISA 扩展必须是全平台统一的承诺。部分芯片有/部分没有 = 编译器无法生成高效代码（除非独占 -march 目标）。</p>
+</blockquote>
+<h3 id="53-arm-svesve2宽度无关"><a class="header" href="#53-arm-svesve2宽度无关">5.3 ARM SVE/SVE2：宽度无关</a></h3>
+<p>SVE 的核心思想：<strong>写一次代码，在所有向量宽度上运行</strong>。</p>
+<pre><code>min(VLEN) = 128 bit, max(VLEN) = 2048 bit (16 字节 → 256 字节)
+</code></pre>
+<p>SVE 没有为每个宽度提供不同的指令——寄存器操作数隐式适应 <code>vl</code>（向量长度）寄存器的值。这消除了 AVX-512 面临的宽度升级问题。指令示例：</p>
+<pre><code class="language-asm">; SVE: 向量加法（宽度自适应）
+    ptrue p0.d                  ; 谓词 = 全真（双字元素）
+    ld1d {z0.d}, p0/z, [x1]    ; 加载（由 vl 决定加载元素数）
+    ld1d {z1.d}, p0/z, [x2]
+    fadd z2.d, z0.d, z1.d      ; 浮点向量加
+    st1d {z2.d}, p0, [x3]
+</code></pre>
+<p><strong>但是</strong>：苹果 M 系列<strong>不实现 SVE</strong>，而是依赖自研的 AMX（Apple Matrix coprocessor）加速矩阵运算。对于可移植性，NEON（128-bit 固定）仍然是最低公分母。</p>
+<h3 id="54-risc-v-vcray-风格的回归"><a class="header" href="#54-risc-v-vcray-风格的回归">5.4 RISC-V V：Cray 风格的回归</a></h3>
+<p>RVV 与 SVE 概念近似但实现不同：</p>
+<ul>
+<li>SVE 用<strong>谓词寄存器</strong>（<code>p0</code>–<code>p15</code>）控制每元素是否操作</li>
+<li>RVV 用<strong>向量长度寄存器</strong>（<code>vl</code>）控制操作元素数，掩码由 <code>v0</code> 向量寄存器提供</li>
+<li>RVV 支持 LMUL（向量长度乘数），允许将多个向量寄存器组合为逻辑寄存器（<code>LMUL=8</code> 时每条指令处理 8×VLEN 位数据）</li>
+</ul>
+<p><strong>三条汇编对比</strong>（向量加法，等效语义）：</p>
+<pre><code class="language-asm">; x86 AVX-512: 固定 16 个 32-bit 元素
+    vaddps zmm0, zmm1, zmm2
+
+; ARM SVE: 宽度自适应（假设 .s = 32-bit 元素）
+    fadd z0.s, z1.s, z2.s
+
+; RISC-V V: LMUL=1, SEW=32
+    vfadd.vv v0, v1, v2
+</code></pre>
+<hr />
+<h2 id="6-isa-对微架构的影响"><a class="header" href="#6-isa-对微架构的影响">6. ISA 对微架构的影响</a></h2>
+<h3 id="61-解码宽度"><a class="header" href="#61-解码宽度">6.1 解码宽度</a></h3>
+<p>解码宽度直接决定超标量处理器的"天花板"：</p>
+<div class="table-wrapper"><table><thead><tr><th>微架构</th><th>ISA</th><th>解码宽度</th><th>关键手段</th></tr></thead><tbody>
+<tr><td>Intel Golden Cove</td><td>x86</td><td>6 宽</td><td>复杂预解码 + μop Cache (4K entries)</td></tr>
+<tr><td>AMD Zen 5</td><td>x86</td><td>4 宽 × 2（双解码簇）</td><td>Op Cache 护航</td></tr>
+<tr><td>Apple M3 (Avalanche)</td><td>ARM AArch64</td><td><strong>9 宽</strong></td><td>定长指令→极简解码</td></tr>
+<tr><td>SiFive P870</td><td>RISC-V</td><td>8 宽</td><td>定长 + 部分压缩指令扩展</td></tr>
+</tbody></table>
+</div>
+<p>ARM / RISC-V 天然更容易宽解码——32-bit 边界对齐意味着解码器可以并行<strong>盲切</strong>指令流，无需像 x86 那样先扫描前缀（LenFinder）。</p>
+<p><strong>但</strong>：RISC-V 的压缩扩展（<code>C</code>，16-bit 指令）破坏了对齐假设。任何地址可以是 16-bit 指令的开始，需要额外的半字对齐检查，复杂度略增。</p>
+<h3 id="62-代码密度"><a class="header" href="#62-代码密度">6.2 代码密度</a></h3>
+<p>变长编码的 CISC 在代码体积上有天然优势：</p>
+<pre><code>int sum(int *arr, int n) { int s=0; for(; n--; ) s += arr[n]; return s; }
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>ISA</th><th>代码字节数</th><th>比例</th></tr></thead><tbody>
+<tr><td>x86-64 (-O2)</td><td>24 字节</td><td>1.00×</td></tr>
+<tr><td>ARM AArch64 (-O2)</td><td>32 字节</td><td>1.33×</td></tr>
+<tr><td>RISC-V RV64GC (-O2)</td><td>28 字节</td><td>1.17×</td></tr>
+<tr><td>RISC-V RV64I (无压缩)</td><td>40 字节</td><td>1.67×</td></tr>
+</tbody></table>
+</div>
+<p>RISC-V 的 <code>C</code> 扩展（16-bit）大幅缩小了与 x86 的差距——但 AVX-512 的长前缀又反向拉大了体积。</p>
+<h3 id="63-内存模型"><a class="header" href="#63-内存模型">6.3 内存模型</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>ISA</th><th>默认模型</th><th>得到顺序时的屏障</th></tr></thead><tbody>
+<tr><td>x86</td><td>TSO（强）</td><td>显式 <code>mfence</code> / <code>lock</code></td></tr>
+<tr><td>ARM</td><td>弱序（RCpc）</td><td><code>dmb ish</code> / <code>dmb ishst</code></td></tr>
+<tr><td>RISC-V</td><td>RVWMO（弱序）</td><td><code>fence rw,rw</code></td></tr>
+</tbody></table>
+</div>
+<p>x86 的强内存模型极大简化了锁算法和无锁数据结构的实现（大多数情况下甚至不需要显式屏障），代价是乱序执行器的自由度受限。ARM/RISC-V 更灵活但更容易写出"在 x86 上能跑、在 ARM 上炸"的代码。</p>
+<hr />
+<h2 id="7-苹果的-isa-策略"><a class="header" href="#7-苹果的-isa-策略">7. 苹果的 ISA 策略</a></h2>
+<p>苹果是全球唯一在 ISA 上完成两次迁移的公司：68k → PowerPC（1994）→ x86（2005）→ ARM（2020）。</p>
+<h3 id="71-自研扩展"><a class="header" href="#71-自研扩展">7.1 自研扩展</a></h3>
+<p>苹果的 M 系列芯片实现 ARM ISA，但硅片上的功能远超 ARM 标准：</p>
+<ul>
+<li><strong>AMX</strong>（Apple Matrix coprocessor）：私有矩阵乘加指令，通过 <code>Accelerate.framework</code> 暴露（不直接汇编可访问）</li>
+<li><strong>APR</strong>（Apple Performance Registers）：私有的性能监控和控制 MSR</li>
+<li><strong>RR</strong>（Return Prediction）：私有的返回地址预测器配置</li>
+<li>苹果不依赖 ARM 的 CoreSight 调试架构，自研 DAP 链</li>
+</ul>
+<p>这套策略等于 <strong>"ARM 是 ABI 兼容层，硅片是我说了算"</strong>。</p>
+<h3 id="72-rosetta-2-与内存排序"><a class="header" href="#72-rosetta-2-与内存排序">7.2 Rosetta 2 与内存排序</a></h3>
+<p>x86 使用<strong>完全存储排序</strong>（Total Store Ordering / TSO）：所有 CPU 核看到的一致性写顺序。ARM 是弱序模型，硬件可重排 store。</p>
+<p>翻译 x86 指令时，若每次 store 后都插入 <code>dmb</code> 屏障，则性能损失约 5–10%。苹果的解法分两步：</p>
+<ol>
+<li><strong>M1</strong>（AOT + JIT）：编译器分析 x86 访存数据依赖，仅在必要处插入屏障</li>
+<li><strong>M2+</strong>：硬件新增 <strong>TSO 模式</strong>（可被 Rosetta 2 运行时启用），硬件强制全序，零软件屏障</li>
+</ol>
+<p>这是典型的"第一代用软件吃痛，第二代用硬件根治"的 Apple 风格。</p>
+<hr />
+<h2 id="8-2025-年格局"><a class="header" href="#8-2025-年格局">8. 2025 年格局</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>x86</th><th>ARM</th><th>RISC-V</th></tr></thead><tbody>
+<tr><td><strong>桌面/笔记本</strong></td><td>Intel Lunar Lake + AMD Zen 5 主导</td><td>Apple M 系列 + Qualcomm Snapdragon X</td><td>未见</td></tr>
+<tr><td><strong>服务器</strong></td><td>AMD EPYC 份额日益增大</td><td>AWS Graviton4 + AmpereOne</td><td>Ventana Veyron V2 (2025)</td></tr>
+<tr><td><strong>嵌入/加速器</strong></td><td>Intel Atom</td><td>Cortex-R/M 占统治地位</td><td>无处不在（NV GPU 控制器、WD SSD、Google Titan）</td></tr>
+<tr><td><strong>生态成熟度</strong></td><td>极致（40 年）</td><td>强（iOS 生态绑定）</td><td>快速追赶（Linux、GCC/LLVM 主线支持完毕）</td></tr>
+<tr><td><strong>许可证</strong></td><td>Intel/AMD 交叉授权</td><td>ARM 商业授权费</td><td><strong>免费 + 开放</strong></td></tr>
+</tbody></table>
+</div>
+<p><strong>RISE 项目</strong>（RISC-V Software Ecosystem）由 Google、Intel、Qualcomm、MediaTek 等共同资助，目标是将 RISC-V 软件堆栈推向生产级——这可能是 RISC-V 从"嵌入式控制 ISA"跃迁到"通用计算 ISA"的关键拐点。</p>
+<hr />
+<h2 id="9-工程事故记录"><a class="header" href="#9-工程事故记录">9. 工程事故记录</a></h2>
+<h3 id="91-intel-avx-512-熔断"><a class="header" href="#91-intel-avx-512-熔断">9.1 Intel AVX-512 熔断</a></h3>
+<p><strong>问题</strong>：12/13 代酷睿采用混合架构（P-core + E-core）。P-core 具备 AVX-512 而 E-core 不具备。当线程在核间迁移时，AVX-512 状态体的 XSAVE/XRSTOR 延迟（~数百周期）破坏实时性。</p>
+<p><strong>对策</strong>：Intel 在微码/熔丝层面禁用 AVX-512，即使硅片支持也不暴露。社区（和某些主板商）尝试通过固件 hack 重新启用——Intel 继续在后续步进中强化熔断。</p>
+<p><strong>教训</strong>：SIMD ISA 必须平台统一。部分实现 = 不可靠实现。</p>
+<h3 id="92-apple-m1-rosetta-2-tso-性能"><a class="header" href="#92-apple-m1-rosetta-2-tso-性能">9.2 Apple M1 Rosetta 2 TSO 性能</a></h3>
+<p>见第 7.2 节。第二教训：<strong>ISA 迁移不仅是解码问题——内存模型是底层的大坑</strong>。</p>
+<h3 id="93-risc-v-向量扩展版本割裂"><a class="header" href="#93-risc-v-向量扩展版本割裂">9.3 RISC-V 向量扩展版本割裂</a></h3>
+<p>RVV 0.7.1 草稿与最终 1.0 规范<strong>不兼容</strong>（指令编码不同）。阿里的玄铁 C910、SiFive 的 X280 等早期核心出货时搭载了 0.7.1。这意味着已部署的硬件无法运行标准 RVV 1.0 代码，且 Rust/GCC 需要同时维护 0.7.1 和 1.0 两套目标。</p>
+<p><strong>教训</strong>：在 ISA 规范未冻结前出货硅片 ≈ 制造永久的生态裂痕。</p>
+<hr />
+<h2 id="10-易错清单面试考试高频陷阱"><a class="header" href="#10-易错清单面试考试高频陷阱">10. 易错清单（面试/考试高频陷阱）</a></h2>
+<ol>
+<li>
+<p><strong>x86 <code>rep movsb</code> 并不总是快</strong> — 仅在 copy &gt; 256 字节且源/目标对齐到 16/32 字节时，微码的 "fast string" 模式才启动。小 copy 用 <code>rep movsb</code> 反而比普通 <code>mov</code> 循环慢很多。</p>
+</li>
+<li>
+<p><strong>ARM <code>ldp</code> / <code>stp</code> 是两条独立操作</strong> — 它分别加载两个寄存器，不是 128-bit 宽度的单次访存。在弱序内存模型下，两条 load 之间可能被其他 store 插序。</p>
+</li>
+<li>
+<p><strong>ARM/AArch64 的 SP 不是真的 X31</strong> — 在大多数指令编码中，X31 的位置被解释为 SP 而非 "寄存器 31"（存在 <code>add x0, sp, #8</code>，但不存在 <code>add x0, x31, #8</code>）。这是编码空间的诡计。</p>
+</li>
+<li>
+<p><strong>RISC-V 压缩指令译码可能产 2 条 μop</strong> — 某些复合压缩指令（如 <code>c.lwsp rd, offset</code>）在宽发射微架构上会被裂解为两条内部操作：先计算地址，再加载。这抵消了部分解码宽度优势。</p>
+</li>
+<li>
+<p><strong>NEON 永远是 128-bit</strong> — ARM NEON 不可扩展。不要将 NEON 与 SVE 混淆。苹果 M 系列只有 NEON（+ AMX），不支持 SVE。Linux 内核可以通过 <code>hwcap</code> 检查 <code>HWCAP_SVE</code>。</p>
+</li>
+<li>
+<p><strong>AVX-512 会降频</strong> — 执行 512-bit 向量指令时，CPU 可能降低 200–400 MHz（thermal budget 重分配）。编译器（GCC <code>-mprefer-vector-width=256</code>）和库（glibc <code>memcpy</code>）通常避免 512-bit 操作以减少频率惩罚。</p>
+</li>
+<li>
+<p><strong>x86 LOCK 前缀的隐式操作</strong> — <code>lock cmpxchg [mem], reg</code> 不仅原子化这条指令，还隐含了<strong>完全内存栅栏</strong>（full memory barrier）——比单独 <code>mfence</code> 更强，因为它强制 store buffer 排空。</p>
+</li>
+</ol>
+<hr />
+<h2 id="这一章带走的东西"><a class="header" href="#这一章带走的东西">这一章带走的东西</a></h2>
+<ul>
+<li><strong>RISC vs CISC 已死</strong>：长话短说，现代 x86 内部是 RISC 的；现代 ARM 也不是纯正的 RISC。真正的分水岭在：解码复杂度、内存模型、向量策略、特权架构。</li>
+<li><strong>选 ISA = 选约束</strong>：x86 给你 40 年生态兼容性和最密代码，代价是解码器的痛。ARM 给你高能效比和宽解码，代价是弱内存模型带来的调试成本。RISC-V 给你自由和免授权费，代价是生态仍在追赶。</li>
+<li><strong>向量扩展是当前最大的 ISA 战场</strong>：AVX-512 强但碎片化，SVE 优雅但苹果不跟，RVV 开放但生态尚未成熟。矩阵乘法加速（AMX、IMMA、MME）是下一个战场。</li>
+<li><strong>不要相信"一次编写处处运行"关于 SIMD 的部分</strong>：即使是同一 ISA 家族（如 AVX-512 的各子集），代码在目标芯片缺失该子集时直接 <code>SIGILL</code>。运行时特性检测（cpuid / hwcap / misa）是必需的前置步骤。</li>
+<li><strong>内存模型在 ISA 选择中同等重要</strong>：x86 TSO 的"安全网"让无数并发 Bug 隐身——把这些代码搬到 ARM 或 RISC-V 上时，它们会以最诡异的方式爆发。</li>
+</ul>
+<hr />
+<blockquote>
+<p><strong>下一节 → <a href="cpu-pipeline.html">CPU 流水线与指令级并行</a></strong></p>
+</blockquote>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../computer-arch/ssd-storage.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../theory/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../computer-arch/ssd-storage.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../theory/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

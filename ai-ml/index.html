@@ -1,0 +1,387 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>开篇：从线性回归到 Transformer 的 70 年 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="第十二部分--人工智能与机器学习"><a class="header" href="#第十二部分--人工智能与机器学习">第十二部分 · 人工智能与机器学习</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>机器学习是一类<strong>用数据替换显式规则</strong>的程序写法: 当规则写不出来、但能定义"做对/做错"时, 让数学优化自动从样本里把函数拟合出来. 70 年路线从<strong>线性回归 (Legendre 1805 / Gauss 1809)</strong> 演到 <strong>MLP (1986)</strong> → <strong>反向传播自动求导 (1970/1986)</strong> → <strong>CNN/RNN (1998/1997)</strong> → <strong>Attention/Transformer (2017)</strong> → <strong>扩散模型 (2020)</strong> → <strong>RLHF 对齐 (2022)</strong>. 我们抽主干 5 章把它一气讲通, 全部数学已在 <a href="../math/index.html">第零部分</a> 准备好, 本部分直接引用.</p>
+<h2 id="思想链"><a class="header" href="#思想链">思想链</a></h2>
+<pre><code>[一堆 (sqft, price) 房价数据]
+  └─&gt; 最小二乘线性回归 (Legendre/Gauss): y = X β, 解 β = (XᵀX)⁻¹Xᵀy
+        └─&gt; 加非线性可表达性 → MLP: ŷ = W₂ σ(W₁ x + b₁) + b₂
+              └─&gt; 怎么训? → 反向传播 = 链式法则 × 计算图 (1970 Linnainmaa, 1986 Rumelhart)
+                    └─&gt; 怎么算众多样本有效? → SGD + mini-batch + Adam (2014)
+                          └─&gt; 序列怎么处理? → Transformer (2017): softmax(QKᵀ/√d) V
+                                └─&gt; 生成式怎么学? → VAE &amp; ELBO (2013) / 扩散模型 (2020)
+                                      └─&gt; 与人类偏好对齐? → RLHF (2022): PPO 约束下的 policy gradient
+                                            └─&gt; 数学尽头都是四个: 线代 / 概率 / 链式法则 / 凸优化 → 全在第零部分
+</code></pre>
+<p>每一步<strong>出现的数学</strong>都能在线代、概率、微积分四篇里找到对应小节, 这就是为何把数学前置.</p>
+<h2 id="你将带走什么"><a class="header" href="#你将带走什么">你将带走什么</a></h2>
+<p>读完应能:</p>
+<ol>
+<li>看到任意 ML 损失函数 $\mathcal{L}(\theta)$ 能立刻判断它属于哪个家族 (回归 / 分类 / 排序 / 对比 / 生成), 知道对应输出层激活 (identity / sigmoid / softmax) 与损失 (MSE / CE / contrastive / ELBO).</li>
+<li>给一个网络能徒手画出<strong>计算图</strong>并标每个节点的局部雅可比, 用反向模式 AD 算出参数梯度; 用数值差分校验自己的解析梯度.</li>
+<li>看到 <code>Attention(Q, K, V) = softmax(QKᵀ/√d)V</code> 能立刻在脑子里展开它的张量形状、forward/backward 的 FLOPs 与显存, 知道为什么除 $\sqrt{d_k}$, 为什么 MHA 比单头更稳.</li>
+<li>看到 <code>Adam → AdamW + cosine warmup</code> 知道为何 warmup 防止初期方差爆炸, 为何 Adam 比 SGD 在Transformer 上更稳, 为何 Hessian 是 Adam 的隐式近似.</li>
+<li>看到 VAE 的 $\mathcal{L} = \mathbb{E}_q[\log p(x|z)] - \mathrm{KL}(q(z|x) | p(z))$ 知道它是 reverse-KL 的最大化, 看到 diffusion 的 $\mathcal{L}_t = \mathbb{E}<em>q| \epsilon - \epsilon</em>\theta(x_t, t)|^2$ 知道它是 ELBO 的等价化简.</li>
+<li>读 "Attention Is All You Need" / "Denoising Diffusion Probabilistic Models" / Adam 原 paper 不再卡在数学记号处.</li>
+</ol>
+<h2 id="章节"><a class="header" href="#章节">章节</a></h2>
+<ul>
+<li><a href="index.html">开篇: 从线性回归到 Transformer 的 70 年</a> ← 当前</li>
+<li><a href="foundations.html">1. Foundations: 线性回归 → 逻辑回归 → MLP → 损失函数谱 → 泛化与正则</a></li>
+<li><a href="backprop.html">2. Backpropagation: 计算图 / 反向模式 AD / 雅可比链式 / 梯度检查</a></li>
+<li><a href="transformer.html">3. Transformer: self-attention / MHA / FFN / LayerNorm / 残差 / Encoder-Decoder / 训练损失</a></li>
+<li><a href="optimizers.html">4. Optimizers &amp; Training Dynamics: Adam/AdamW/二阶 + 初始化/LayerNorm/warmup/checkpoint</a></li>
+<li><a href="generative.html">5. Generative Models: VAE &amp; ELBO / 扩散模型 / AR 采样 / speculative decoding</a></li>
+<li><a href="classical-ml.html">6. 经典机器学习与树模型: 决策树 / GBDT / XGBoost / SVM</a></li>
+<li><a href="tokenizer.html">7. Tokenizer 与 Embedding: BPE / WordPiece / SentencePiece / 位置编码</a></li>
+<li><a href="rl.html">8. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF</a></li>
+<li><a href="training-at-scale.html">9. 大模型训练工程: DP/PP/TP/ZeRO/FSDP/Checkpoint</a></li>
+<li><a href="contrastive-learning.html">10. 表示学习与对比学习: SimCLR / CLIP / InfoNCE</a></li>
+<li><a href="agents.html">11. LLM Agent: Tool Use / ReAct / Plan-Execute / Multi-Agent / Memory</a></li>
+<li><a href="multimodal.html">12. 多模态: 跨注意力 / Flamingo / LLaVA / BLIP-2 / 扩散多模态</a></li>
+<li><a href="llm-inference.html">13. LLM 推理与部署: KV Cache / PagedAttention / 连续批处理 / 量化</a></li>
+</ul>
+<h2 id="与各部分的接口表"><a class="header" href="#与各部分的接口表">与各部分的接口表</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>接口部分</th><th>提供什么</th><th>本部分怎么用</th></tr></thead><tbody>
+<tr><td><a href="../math/linalg.html">第零部分 · 线代</a></td><td>向量 / 矩阵 / 张量 / softmax 雅可比 / SVD</td><td>MLP/attention 的 forward 与 backward 表达, shape 推导</td></tr>
+<tr><td><a href="../math/prob.html">第零部分 · 概率</a></td><td>MLE / MAP / 贝叶斯 / KL / 共轭先验</td><td>MLE = 大多数 ML 损失的本质; VAE / 扩散用 reverse-KL</td></tr>
+<tr><td><a href="../math/calc-opt.html">第零部分 · 微积分与优化</a></td><td>链式法则 / 雅可比 / Hessian / 凸优化 / 一阶优化器谱系 / 信息几何</td><td>反向传播; Adam/AdamW/二阶; 自然梯度 TRPO</td></tr>
+<tr><td><a href="../computer-arch/ai-accelerators.html">第八部分 · GPU/AI 加速器</a></td><td>Tensor Core / SM / bf16 / NVLink</td><td>大模型训练的 FLOPs / 显存估算与并行</td></tr>
+<tr><td><a href="../info-theory/entropy.html">第十一部分 · 信息论</a></td><td>熵 / 互信息 / KL</td><td>交叉熵损失; VAE ELBO; 扩散 ELBO 等价化简</td></tr>
+<tr><td><a href="../theory/complexity.html">第九部分 · 计算理论</a></td><td>P / NP 与不可判定</td><td>学习理论的 PAC 框架与不可学性问题</td></tr>
+</tbody></table>
+</div>
+<h2 id="不在本部分讲什么"><a class="header" href="#不在本部分讲什么">不在本部分讲什么</a></h2>
+<ul>
+<li><strong>传统 ML 的剩下半壁 (k-means / PCA / 聚类与降维)</strong>: 已在 §6 树模型与 SVM 之外的部分仍按需自学; 聚类与降维与深度表示学习(§10)在目标上同构, 数学基础 (MLE/MAP, KKT, SVD) 都在第零部分.</li>
+<li><strong>形式化方法 / 程序验证</strong>: Coq / Lean / TLA+ 见 TODO 未来方向.</li>
+<li><strong>量子计算</strong>: Deutsch–Jozsa / Shor / 量子纠错见 TODO 未来方向.</li>
+</ul>
+<h2 id="历史-1-1957---1986-三起三落"><a class="header" href="#历史-1-1957---1986-三起三落">历史 1: 1957 - 1986 三起三落</a></h2>
+<ul>
+<li><strong>1957 Rosenblatt</strong> perceptron: 第一个可学习的二分类器; 但只能学线性可分数据, 1969 Minsky-Papert 一书指其不能学 XOR, 神经网络跌入第一次寒冬.</li>
+<li><strong>1986 Rumelhart-Hinton-Williams</strong> 反向传播重新发现并推广: 解决了多层训练问题, XOR 不再是问题. <strong>同期 Linnainmaa 1970</strong> 在芬兰硕士论文里已写出反向 AD, 但论文未广泛传播.</li>
+<li><strong>1998 LeCun LeNet</strong> 卷积网络做手写数字; <strong>1997 Hochreiter LSTM</strong> 解决长序列; 2006 Hinton "deep belief net" 让"deep learning"成为术语; 2012 AlexNet ImageNet 一举破纪录, 深度学习时代起.</li>
+</ul>
+<h2 id="历史-2-2017-transformer-一统江湖"><a class="header" href="#历史-2-2017-transformer-一统江湖">历史 2: 2017 Transformer 一统江湖</a></h2>
+<p>2017 Vaswani et al. "Attention Is All You Need": 抛弃 RNN/CNN 用<strong>纯 attention</strong> 做序列建模, 关键好处:</p>
+<ol>
+<li><strong>并行</strong>: 整个序列同时算, 不需 RNN 时间步串联 → GPU 友好.</li>
+<li><strong>长程依赖</strong>: 任意两 token 直接 attention, 不必经过隐藏状态传递.</li>
+<li><strong>scaling law</strong>: 参数 / 数据 / 算力 ↔ 性能呈 power-law (Hoffmann 2022 Chinchilla), 推动大模型时代.</li>
+</ol>
+<p>衍生路线: BERT (2018 编码器派) / GPT (2018 解码器派) / ViT (2020 视觉) / DALL-E (2021 多模态) / ChatGPT (2022 RLHF 对齐) / diffusion (2020-2022) / LLaMA / Qwen / DeepSeek 系列 (2023+) → 主流基础模型几乎全是 Transformer.</p>
+<h2 id="阅读路径建议"><a class="header" href="#阅读路径建议">阅读路径建议</a></h2>
+<pre><code>对 ML 完全陌生:           §1 → §2 → §3 → §4 → §5 → §6
+只想懂 Transformer:       第零部分线代 §6 → §2 → §3
+只想懂训练工程:            §4 → §9 (并行/显存) → §13 (推理)
+只想懂生成模型:            第零部分概率 §5/§7 → §5
+准备读 RLHF / 对齐:        §3 → §8 (RLHF/DPO/GRPO)
+想读懂开源模型 config:      §7 (tokenizer) → §8 → §9
+表格数据建模:               §1 → §6 (决策树/GBDT/XGBoost/SVM)
+</code></pre>
+<hr />
+<p>下一篇: <a href="foundations.html">1. Foundations: 线性回归 → 逻辑回归 → MLP → 损失函数谱 → 泛化与正则</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../info-theory/appendix.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../ai-ml/foundations.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../info-theory/appendix.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../ai-ml/foundations.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,502 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>DAG、git、blockchain 的序 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="daggitblockchain-的序"><a class="header" href="#daggitblockchain-的序">DAG、git、blockchain 的序</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>DAG (Directed Acyclic Graph) 是 partial order 最自然的数据结构——明列每个节点依赖于哪些前驱节点, 拓扑排序保 happens-before。 Git 用 commit DAG + tree object 做版本控制 + artificial merge commit 处理并行开发。 Blockchain 是 linearized DAG (HashChain), 用 PoW / PoS / BFT 在众多候选分支上<strong>强制选唯一主链</strong>实现 total order; Bitcoin / Ethereum / Solana 各有 trade-off。 DAG 区块链 (Nano / IOTA / Avalanche / Hedera) 把 linear chain 扩展到 full 2D DAG, 让无 conflict 的事务并行打包 + 仅 conflict 路径跑共识。</p>
+<hr />
+<h2 id="一dag-as-partial-order"><a class="header" href="#一dag-as-partial-order">一、DAG as Partial Order</a></h2>
+<h3 id="形式"><a class="header" href="#形式">形式</a></h3>
+<p>DAG 是 directed graph, 无 cycles ⇒ 节点 A → B 意味 B 依赖 A (B 在 A 之后发生)。 拓扑序是任意线性化 partial order, 满足 <code>A → B</code> ⇒ A 在 linear 序列前。</p>
+<pre class="mermaid">flowchart TB
+    A[A] --&gt; B[B]
+    A --&gt; C[C]
+    B --&gt; D[D]
+    C --&gt; D
+    D --&gt; E[E]
+</pre>
+<p>合法拓扑序: <code>[A, B, C, D, E]</code> 或 <code>[A, C, B, D, E]</code>. 不合法: <code>[B, A, ...]</code>.</p>
+<h3 id="hasse-diagram"><a class="header" href="#hasse-diagram">Hasse Diagram</a></h3>
+<p>Hasse 图是简洁 DAG 表示——丢弃 transitive edges, 留下 minimal cover (covering relation).</p>
+<h3 id="partial-order-的来源"><a class="header" href="#partial-order-的来源">Partial Order 的来源</a></h3>
+<p>分布式系统里, partial order from:</p>
+<ol>
+<li><strong>Lamport <code>happens-before</code> <code>→</code></strong>: process order + send-recv + 传递闭包。</li>
+<li><strong>Memory consistency</strong>: 多核 CPU 内部指令依赖。</li>
+<li><strong>Causal broadcast</strong>: logical 进程序 + message causal 携带。</li>
+<li><strong>State machine replication</strong>: log order per replica。</li>
+<li><strong>Git commit dependency</strong>: parent commit 必须先发生。</li>
+</ol>
+<hr />
+<h2 id="二gits-dag"><a class="header" href="#二gits-dag">二、Git's DAG</a></h2>
+<h3 id="commit-object"><a class="header" href="#commit-object">Commit Object</a></h3>
+<p>每 git commit 是一个 SHA-1 (或未来 SHA-256) hash 对象:</p>
+<pre><code>tree &lt;tree_hash&gt;
+parent &lt;parent_hash_1&gt;     # 主线第一个 parent, 一般 ancestor
+parent &lt;parent_hash_2&gt;     # merge 的合并第二条 parent (普通 commit 没)
+author Alice &lt;alice@ex.com&gt; 1699999999 +0000
+committer Alice &lt;alice@ex.com&gt; 1699999999 +0000
+
+&lt;commit message&gt;
+</code></pre>
+<p>commit hash 是 SHA-1 of the REST content. <strong>任何 commit 改不能改父, forgery 需 computing equivalent SHA-1 preimage (computational impossible)</strong>。</p>
+<h3 id="tree-object"><a class="header" href="#tree-object">Tree Object</a></h3>
+<p>每 tree 是 hash container of files + subtrees:</p>
+<pre><code>100644 blob &lt;sha1&gt; README.md
+040000 tree &lt;sha1&gt; src
+100755 blob &lt;sha1&gt; build.sh
+</code></pre>
+<p>blob 是 file content hash; tree 是 directory content hash. 递归 tree 嵌套则 nested sub-trees. file modification → blob hash 改 → parent tree hash 改 → ancestor tree hash 改 → commit hash 改.</p>
+<h3 id="refs"><a class="header" href="#refs">Refs</a></h3>
+<ul>
+<li><code>refs/heads/main</code> 指向 main 当前 commit</li>
+<li><code>refs/tags/v1.0</code> 指向某 tagged commit</li>
+<li><code>refs/remotes/origin/main</code> 同 remote</li>
+</ul>
+<p>refs 不是 commit content 一部分; 各 clone repo 可各自有自己 refs.</p>
+<h3 id="dag-operations"><a class="header" href="#dag-operations">DAG Operations</a></h3>
+<pre class="mermaid">flowchart TB
+    BASE[Merge Base&lt;br/&gt;A+B 共同祖先]
+    A[A's commits]
+    B[B's commits]
+    MERGE[Merge commit&lt;br/&gt;2 parents]
+    BASE --&gt; A
+    BASE --&gt; B
+    A --&gt; MERGE
+    B --&gt; MERGE
+</pre>
+<h4 id="git-merge"><a class="header" href="#git-merge"><code>git merge</code></a></h4>
+<p>创建两个 parent 的 merge commit, 引用两 parent 的 tree + 三方向 merge algorithm:</p>
+<ul>
+<li>三个 commit: common ancestor (merge base <code>O</code>), ours <code>A</code>, theirs <code>B</code>。</li>
+<li>三方 diff 执行: 若 same content in A 与 B → 接受。 若仅一方改 → 接受 change。 双都改 → conflict (用户手动 resolve)。</li>
+</ul>
+<h4 id="git-rebase"><a class="header" href="#git-rebase"><code>git rebase</code></a></h4>
+<p>Rebase 重新写 commit DAG: 把当前分支 commits "应用" 到 target branch tip:</p>
+<pre><code>Before:   A - B - C - D (main)
+              \
+                X - Y (feature)
+
+After rebase feature onto main: A - B - C - D - X' - Y' (feature, each commit rewritten)
+                                              old X Y - 暂挂、prune
+</code></pre>
+<p>Rebase 收缩 DAG 线性化, 适合"干净 PR history"; merge 保并行 history。</p>
+<h4 id="git-rebase-与-git-merge-比较"><a class="header" href="#git-rebase-与-git-merge-比较"><code>git rebase</code> 与 <code>git merge</code> 比较</a></h4>
+<ul>
+<li>merge: 保 history 准确切, commits 不重写。 适合 public branch (team-shared main)。</li>
+<li>rebase: rewrite 自己 commits, 冲突可整理。 适合 private branch before opening PR。</li>
+</ul>
+<h3 id="dag-上的序"><a class="header" href="#dag-上的序">DAG 上的序</a></h3>
+<ul>
+<li><code>git log --topo-order</code>: 拓扑序, 父在前。</li>
+<li><code>git log --date-order</code>: wall-clock order, 但保证 partial order 不完整状元。</li>
+<li><code>git log --graph</code>: 同时展示 merge commit 节点 + 边, 让 multi-parent 节点可视化。</li>
+</ul>
+<h3 id="cherry-pick--revert"><a class="header" href="#cherry-pick--revert">Cherry-pick / Revert</a></h3>
+<p><code>git cherry-pick &lt;commit&gt;</code>: 单 commit 复制应用到当前 branch, 创建新 commit hash 但同样 message + diff-content。</p>
+<p><code>git revert &lt;commit&gt;</code>: 创建一个 inverse diff commit。</p>
+<h3 id="git-经验-stored-over-time-model"><a class="header" href="#git-经验-stored-over-time-model">Git 经验: Stored-over-time model</a></h3>
+<p>git 是函数 Stored-over-time 的 with tree immutable DAG, branches 与 tags 是 hashes; commit SHA-1 immutable; 但 refs mutable.</p>
+<hr />
+<h2 id="三blockchain-的-dag"><a class="header" href="#三blockchain-的-dag">三、Blockchain 的 DAG</a></h2>
+<h3 id="bitcoin-linear-hashchain"><a class="header" href="#bitcoin-linear-hashchain">Bitcoin: Linear HashChain</a></h3>
+<p>Bitcoin 不是真正的 DAG——它是 well-defined linear chain:</p>
+<pre><code>block N hash = SHA-256(version || prev_hash || merkle_root || timestamp || nBits || nonce)
+prev_hash = previous block hash  → 强 dependency
+</code></pre>
+<p>按 hash 链, 改任何历史 block 内容 → 其 hash 改 → 下 block invalid → 整 chain post-edit 失效 (像 git commit hash 改变后续 commit hash 全变).</p>
+<h3 id="forks-与-longest-chain-rule"><a class="header" href="#forks-与-longest-chain-rule">Forks 与 Longest-Chain Rule</a></h3>
+<p>Bitcoin 节点可同时挖不同 block (race condition), 产生 fork:</p>
+<pre><code>                 → Block i+1 → Block i+2
+Genesis ... --i &lt;
+                 → Block i+1' → Block i+2' → Block i+3' (longest = canonical)
+</code></pre>
+<p><strong>Nakamoto consensus</strong>: choose longest chain by total work (each block header hashes difficulty); short fork 丢弃, 成为 "orphaned"。</p>
+<p><strong>Longest-Chain Risk</strong>:</p>
+<ul>
+<li>51% attack: 控制 51% hash rate 可挖更 longest faster, overwrite legitimate chain。</li>
+<li>Reorg: blocks on shorter chain become orphaned, containing tx 重新包入 longer chain by miners (or never if excluded) → tx 可能 double-spent if attacker 与 mine simultaneously.</li>
+</ul>
+<h3 id="ghost-greedy-heaviest-observed-sub-tree-rule"><a class="header" href="#ghost-greedy-heaviest-observed-sub-tree-rule">GHOST (Greedy Heaviest-Observed Sub-Tree) Rule</a></h3>
+<p>Ethereum PoW 时代用 GHOST + uncle 加入 main chain:</p>
+<ul>
+<li>若 forked, 走 sub-tree validator 权重最大的 branch。</li>
+<li>让 uncle block 也作 "uncle reward", 仍 divestment sim kind fork over short confirmed time.</li>
+</ul>
+<h3 id="ethereum-pos-post-merge"><a class="header" href="#ethereum-pos-post-merge">Ethereum PoS Post-Merge</a></h3>
+<p>Post-Merge (2022-09-15) Ethereum consensus changed from PoW → PoS:</p>
+<ul>
+<li>Validators stake 32 ETH。</li>
+<li>每 slot (12s): one validator 任 proposer 提出 block. other validators vote <strong>attestation</strong>。</li>
+<li>LMD-GHOST fork-choice: validators see fork, 选择 validator weight 最大 sub-tree。</li>
+<li>Finality: 2 epochs (~13min) finalize; finalized blocks 不可被 invalidate unless 1/3 validators slashable (stake burnt)。</li>
+</ul>
+<h3 id="solana-高吞吐-dag-ish"><a class="header" href="#solana-高吞吐-dag-ish">Solana: 高吞吐 DAG-ish</a></h3>
+<p>Solana PoH (Proof of History) 是 VDF (Verifiable Delay Function) 链: leader 持续 hash pre-image chain, 提交 entries + transactions。 PoH 给每 entry a monotonic timestamp + leader identity 进入。 跨 leader handoff oneraf slots (400ms), 多 leader 排成 epoch。</p>
+<p>不是严格线性 DAG, 但是是 "single-leader linear chain with parallel entries", throughput 65k TPS claim.</p>
+<hr />
+<h2 id="四dag-blockchain-variants"><a class="header" href="#四dag-blockchain-variants">四、DAG Blockchain Variants</a></h2>
+<h3 id="nano-block-lattice"><a class="header" href="#nano-block-lattice">Nano (block-lattice)</a></h3>
+<p>每账户独立一条 blockchain:</p>
+<pre><code>Alice's chain: ... → Send to Bob block_i
+Bob's chain:    ... → Receive from Alice block_j
+</code></pre>
+<p>tx 是 双方链 update send + receive, 异步确认 + no global consensus。 Conflict 限于 单账户 double-send, 用 delegated PoS vote resolve.</p>
+<h3 id="iota-tangle"><a class="header" href="#iota-tangle">IOTA Tangle</a></h3>
+<p>每 transaction 必须 approve 2 前驱 transaction (tip selection). "累积 weight" large = confirmed.</p>
+<pre><code>       T1   T2
+        \  /
+         T3 (新 tx, approves T1 + T2)
+        /
+       T4 ...
+</code></pre>
+<p>无须 miners, low-energy. <strong>Withdrawn by IOTA Foundation</strong> 2020+, 改用 Chrysalis (linear chain plus coo). 原始 Tangle 因 tip selection 攻击困难.</p>
+<h3 id="avalanche-avax"><a class="header" href="#avalanche-avax">Avalanche (AVAX)</a></h3>
+<p>Avalanche 共识: DAG 节点之间 "sub-sampled gossip", 收集 preference 投票; 反复多次收敛超 quorum threshold → "snowball" metastability。</p>
+<p>每用户多次 query random K validators; 多数 vote → adopt; sufficiently consecutive 接连 adopt ⇒ finality probability geometric high.</p>
+<p>优势: sub-second finality, high throughput. 复杂 probability analysis.</p>
+<h3 id="hedera-hashgraph"><a class="header" href="#hedera-hashgraph">Hedera Hashgraph</a></h3>
+<p>Hashgraph 是 "gossip about gossip" + virtual voting. 每节点 pair gossip + exchange known events; events ordered by ancestor relationship。</p>
+<p>每节点独立 compute virtual vote ordering → fair consensus. 不需 PoW. council 39 nodes (verified entities only) — AAP-style BFT.</p>
+<hr />
+<h2 id="五sui--aptos-move-dag"><a class="header" href="#五sui--aptos-move-dag">五、Sui / Aptos Move DAG</a></h2>
+<p>Sui 是 2023 main net, 用 Move language + <strong>programmable transaction blocks</strong> (PTB). 每个 transaction block 含一组 independent objects + operations. DAG 上:</p>
+<ul>
+<li>若 transaction touches 独立 objects (no shared), <strong>拜 pass validation single-validator</strong> (fast path, sub-second finality)。</li>
+<li>若 touches shared objects, 走 <strong>Narwhal+Bullshark DAG consensus</strong> (基于因果传播 + BFT)。</li>
+</ul>
+<p>Sui 与 Aptos 都从 Diem (libra) 项目衍生, 用 Move language 强 fuel 但 consensus 机制不同。 Aptos 用 AptosBFT v4 (HotStuff-1 推 BFT).</p>
+<hr />
+<h2 id="六典型事故"><a class="header" href="#六典型事故">六、典型事故</a></h2>
+<h3 id="git-sha-1-collision-2017-shattered"><a class="header" href="#git-sha-1-collision-2017-shattered">Git SHA-1 collision (2017 SHAttered)</a></h3>
+<p>2017 Google SHAttered paper: SHA-1 collision 可构造 (~6500 year CPU time 算)。 git 现在 detect collision attack mode 但没 mandate migration to SHA-256。 GitHub 用 ContentAddressing storage; SHA-256 migration on road。</p>
+<h3 id="bitcoin-cash-hard-fork-2017"><a class="header" href="#bitcoin-cash-hard-fork-2017">Bitcoin Cash Hard Fork (2017)</a></h3>
+<p>Bitcoin Cash 与 Bitcoin 分叉因 scaling disagreement (block size 1MB vs 8MB)。 硬分叉 (hard fork) 说明 blockchain design 升级非 backward-compatible 时, predecessor chain 与 successor chain 并行存活——这是 DAG 性 (under hashchain)。</p>
+<h3 id="ethereum-dao-hack-rollback-2016"><a class="header" href="#ethereum-dao-hack-rollback-2016">Ethereum DAO Hack Rollback (2016)</a></h3>
+<p>DAO hack 漏 exploited ~3.6M ETH。 Ethereum 社区硬分叉逆转 state 状态。 这展示 "code is law" 与" community governance is law" 的 tension: Nakamoto consensus 是 longest chain wins, 但社区社群选择性 reverse 让只有 "longest chain we morally accept" becomes canonical — 但 "这个 chain 社区 accepted" really (minority chain Ethereum Classic survive)。</p>
+<h3 id="iota-cst-intersection-removal-crisis"><a class="header" href="#iota-cst-intersection-removal-crisis">IOTA CST Intersection Removal Crisis</a></h3>
+<p>IOTA 早期自定义 cryptographic hash function "Curl" unsound。 2018 MIT disclosed vulnerability + disclosed 后 IOTA Foundation 临时 fix + replace Curl entirely with Kerl (Keccak variant). Showed importance of standardized crypto primitives rather than roll-our-own.</p>
+<hr />
+<h2 id="七易错清单"><a class="header" href="#七易错清单">七、易错清单</a></h2>
+<ol>
+<li><strong>Bitcoin's "Longest Chain" 实际是最多 cumulative work 链</strong>: 不是简单 deepest chain. Code 比较 <code>nChainWork</code> 累计 difficulty weight, 不 chain length.</li>
+<li><strong>PoW 不是 fully BFT-resilient</strong>: attacker 持 51% hash rate 可重新组织 chain, rewrite transactions (尤其未 confirmed)。 finality probabilistic, 没有绝对 finality.</li>
+<li><strong>Ethereum finalize 节点被 slashing 必须 ≥1/3 ETH stake burnt</strong>: 跨社交 forkсли 决 exact relevant.</li>
+<li><strong>Git commit hash 不能改但 refs 可以</strong>: history rewrite (git rebase / commit --amend) 改 commit hash, refs 后推新版, 默认 force-lease required.</li>
+<li><strong>Nakamoto consensus 不 collapse under "any" fraction of malicious, but probabilistically under 50%+ hash</strong>: mining attack threshold 51%, 50% enough for some liveness attack, 30% for resource attack.</li>
+<li><strong>DAG blockchain (Nano/IOTA/Avalanche/Hedera) 都有不同的 conflict model</strong>: 不要假设 这是 same thing. Nano 是 "single-chain-per-account async sync, double-spend attacks mitigated via dPOS", IOTA 是 "two-tip-approval tangle with accumulated weight" (deprecated), Avalanche 是 "iterative subsampling voting", Hedera 是 "gossip-about gossip + virtual voting".</li>
+</ol>
+<hr />
+<h2 id="八这一章带走的东西"><a class="header" href="#八这一章带走的东西">八、这一章带走的东西</a></h2>
+<ol>
+<li>DAG 是 partial order 自然数据结构, 拓扑线性化给出全序但保 partial constraint。</li>
+<li>Git 是 immutable DAG (commit + tree + blob) + mutable refs. branch 与 tag 都是 refs 而非 DAG 节点。</li>
+<li>Blockchain 是 linearized DAG (HashChain) + Nakamoto consensus 强加 total order。 Longest-Chain rule 是受理最高 work 链, 不是最长链数量。</li>
+<li>Ethereum PoS post-Merge 用 LMD-GHOST fork-choice + 2-epoch finalize 给 finality, 加上 1/3 slashing 给 safety incentive.</li>
+<li>DAG 区块链 (Nano/IOTA/Avalanche/Hedera) 通过 partial DAG + conflict-confined consensus 实现 high throughput, 各代表不一样 algorithm family。</li>
+<li>Sui/Aptos + Move 这两种 "modern" 区块链, 来源于 Diem 工作, 把 fast-path (无 shared object) 与 consensus-path (有 shared) 分离 DAG 结构. single-validator fast-path 与 Narwhal+Bullshark DAG 协同.</li>
+<li><strong>History rewriting</strong> in blockchain (DAO hack 2016) is technically a hard fork — chain accepts new rules, 中意领袖 社区性 created "real" social 枷锁. 跟 quadratic 上无法 stringify 子.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="../fault/index.html">分布式存储与容错</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../distributed/clock/physical.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../distributed/fault/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../distributed/clock/physical.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../distributed/fault/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

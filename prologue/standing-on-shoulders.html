@@ -1,0 +1,579 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>4. 主干纵贯: CPU/内存 → OS/Linux → 网络/Web → DB → 编译 → 分布式 → AI 的承接链 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="4-主干纵贯-cpu内存--oslinux--网络web--db--编译--分布式--ai-的承接链"><a class="header" href="#4-主干纵贯-cpu内存--oslinux--网络web--db--编译--分布式--ai-的承接链">4. 主干纵贯: CPU/内存 → OS/Linux → 网络/Web → DB → 编译 → 分布式 → AI 的承接链</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>前面 <a href="history.html">history</a> 讲时间线、<a href="abstraction-layers.html">abstraction-layers</a> 讲层级、<a href="mainframe-xpu.html">mainframe-xpu</a> 讲形态. 这一节反过来 — <strong>沿"承接链"反向</strong>回到纵贯主线: 每条技术都因"上层拿它做啥"才有意义, 每条新技术大概率是对上层需求的回响.</p>
+<p><strong>承接链</strong> (dependency-of-statements):</p>
+<pre><code>物理 → 晶体管 → 数字 → ISA → 微架构 → 内存 → OS → 进程 / 虚存
+                                            ↓
+          → 文件系统 → 网络 → Web → 数据库 → 应用 → 业务
+                  ↘
+                   → 编译器 → 高级语言 → 框架
+                                              ↘
+                                               → 分布式 → 共识 → 一致性 → 云
+                                                                   ↓
+                                                                   → AI 训练 → 推理
+</code></pre>
+<p>每一节都讲: <strong>它的上一站契约是什么 / 它对下一站提供什么 / 没有它上一步走不动</strong>.</p>
+<p>读完应能: 把任意一份你做过 / 你读过的工程问题挂到这条承接链某节点上, 知道"上一站是怎么影响它"和"它对下一站指挥谁".</p>
+<hr />
+<h2 id="一cpu-与内存-1945-年那纸契约的开始"><a class="header" href="#一cpu-与内存-1945-年那纸契约的开始">一、CPU 与内存: 1945 年那纸契约的开始</a></h2>
+<h3 id="11-von-neumann-架构"><a class="header" href="#11-von-neumann-架构">1.1 von Neumann 架构</a></h3>
+<pre><code>     CPU  ←─── shared bus ───  Memory
+                                   │
+                                 IO
+</code></pre>
+<p>存储程序 + 共享总线 + 取指 → 解码 → 执行 → 写回. 这套循环在一台机器上仍是 2026 主流 (除 Harvard / NUMA / DSP variant).</p>
+<h3 id="12-第一道承接-性能-vs-内存之间的-frequency-gap"><a class="header" href="#12-第一道承接-性能-vs-内存之间的-frequency-gap">1.2 第一道承接: 性能 vs 内存之间的-frequency gap</a></h3>
+<pre><code>1980  CPU 5MHz, DRAM 100ns     到 CPU 一致
+1995  CPU 100MHz, DRAM 60ns   缓慢拉开
+2000  CPU 1GHz, DRAM 6ns       10x 差距
+2010  CPU 3GHz, DRAM 0.3ns    100x 差距 ← cache 不可缺
+2026  CPU 5GHz, HBM 0.2ns     memory wall; cache + HBM + CXL
+</code></pre>
+<p>→ 这就是为什么 <a href="../computer-arch/memory-hierarchy.html">第八部分 memory-hierarchy</a> / TLB / DRAM / HBM 全是必需. <strong>内存是 CPU 的最薄弱点, 没有第二选项</strong>, 没有它后整个 OS / 编译 / AI 承接链都得重.</p>
+<h3 id="13-为何-os-出现-单机内部多任务化的契约"><a class="header" href="#13-为何-os-出现-单机内部多任务化的契约">1.3 为何 OS 出现: 单机内部多任务化的契约</a></h3>
+<ul>
+<li>主机仍单 CPU 时, OS 把"硬件时序"封成"时序进程"; 进程 / 线程 / 上下文切换 = 虚拟时间 + 虚空间.</li>
+<li>一旦有保护模式 + 虚拟内存 + 系统态分, 用户程序不必对每个硬件细节了如指掌 — 这是 OS 出现的核心动因.</li>
+</ul>
+<hr />
+<h2 id="二oslinux-让程序员不再写硬件"><a class="header" href="#二oslinux-让程序员不再写硬件">二、OS/Linux: 让程序员不再写硬件</a></h2>
+<h3 id="21-进程--虚拟内存--抽象母机"><a class="header" href="#21-进程--虚拟内存--抽象母机">2.1 进程 + 虚拟内存 = 抽象母机</a></h3>
+<ul>
+<li>进程 = 一份拥有独立虚地址空间的执行单位; 内核为每个建 page table, 给"独立空间"幻觉.</li>
+<li>调度器 (Linux CFS / EDF / RT) 将 CPU 时间切片让多进程并发"幻觉".</li>
+<li>上下文切换挂上下文 + TLB; 延迟 ~ 1-10us (见 <a href="../os/sched/index.html">os/sched</a>).</li>
+</ul>
+<h3 id="22-文件系统-让-io-字节流化"><a class="header" href="#22-文件系统-让-io-字节流化">2.2 文件系统: 让 IO 字节流化</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>OS 抽象</th><th>物理对应</th></tr></thead><tbody>
+<tr><td><code>open(path)</code></td><td>inode 解析 + dentry cache</td></tr>
+<tr><td><code>read/write(fd)</code></td><td>page cache + direct IO</td></tr>
+<tr><td><code>mmap(fd)</code></td><td>TLB + page dirty</td></tr>
+<tr><td><code>fsync(fd)</code></td><td>WAL flush + 块设备 cache flush</td></tr>
+<tr><td><code>sendfile(out, in)</code></td><td>zero-copy, DMA</td></tr>
+</tbody></table>
+</div>
+<p>→ 见 <a href="../os/fs/index.html">os/fs</a>.</p>
+<h3 id="23-网络栈与-epollio_uring"><a class="header" href="#23-网络栈与-epollio_uring">2.3 网络栈与 epoll/io_uring</a></h3>
+<ul>
+<li><code>socket()</code> 复用 fd 抽象; TCP 4 层 + IP + 驱动.</li>
+<li>C10K 问题 (2002): 单机 10000 连接压力 → epoll (2002) + kqueue; 后 100K / 1M 由 io_uring (2019) 实现.</li>
+</ul>
+<h3 id="24-同步原语与内存模型"><a class="header" href="#24-同步原语与内存模型">2.4 同步原语与内存模型</a></h3>
+<ul>
+<li>进程内 sync: mutex / semaphore / rwlock; kernel 内 futex + CAS; 浪费大批 lock-free / RCU 设计.</li>
+</ul>
+<p>→ 见 <a href="../os/lock/index.html">os/lock</a>.</p>
+<h3 id="25-os-对承接链承诺的清单一句话"><a class="header" href="#25-os-对承接链承诺的清单一句话">2.5 OS 对承接链"承诺"的清单一句话</a></h3>
+<ul>
+<li>进程隔离的虚空间</li>
+<li>通用 IO 的字节流</li>
+<li>跨进程的协议: socket / IPC / pipe</li>
+<li>命名隔离: filesystem</li>
+<li>安全 / 权限: uid / cgroup / capability</li>
+</ul>
+<p>这一组契约就是后续一切软件的"地基".</p>
+<hr />
+<h2 id="三网络与-web-让孤立的机器互连"><a class="header" href="#三网络与-web-让孤立的机器互连">三、网络与 Web: 让孤立的机器互连</a></h2>
+<h3 id="31-iptcp-契约"><a class="header" href="#31-iptcp-契约">3.1 IP/TCP 契约</a></h3>
+<ul>
+<li>IP: 不可靠的、按 packet; 上层自己保序 / 重传可靠性.</li>
+<li>TCP: reliable byte stream; congestion control (Reno/Cubic/BBR); 3-way handshake + 4-way close.</li>
+</ul>
+<h3 id="32-http--tls-最薄一英里"><a class="header" href="#32-http--tls-最薄一英里">3.2 HTTP / TLS: 最薄一英里</a></h3>
+<ul>
+<li>HTTP/0.9-1.1 一条 TCP 一个 request; HTTP/2 (2015) 一条连接多路 stream; HTTP/3 over QUIC (2022+) → 见 <a href="../networking/quic/index.html">networking/quic</a>.</li>
+<li>TLS 1.3 (2018) 1-RTT + 0-RTT; X.509 + PKI + CT.</li>
+</ul>
+<h3 id="33-web-把客户端拉成终端"><a class="header" href="#33-web-把客户端拉成终端">3.3 Web 把客户端拉成终端</a></h3>
+<ul>
+<li>浏览器是 OS 上的一个 "虚拟机"; HTML/CSS/JS DOM/WASM/WebGPU 成熟.</li>
+<li>2024+ WebGPU 让浏览器可调 GPU 算 + WASI 让 WASM 调本地 file. 浏览器从文档看待器 → 通用客户端 → 实际计算平台.</li>
+</ul>
+<h3 id="34-网络对-db--应用的影响"><a class="header" href="#34-网络对-db--应用的影响">3.4 网络对 DB / 应用的影响</a></h3>
+<ul>
+<li>DB 出现 single machine 邦联后就受网络影响; 网络 RTT 决定 commit 时间 → 数据库 replication 的延迟很关键.</li>
+<li>应用从 monolith → SOA → micro-service → service mesh 全由于网络可靠性 / IP/TLS / k8s / 等成熟.</li>
+</ul>
+<hr />
+<h2 id="四数据库系统-让状态在并发--故障下成立"><a class="header" href="#四数据库系统-让状态在并发--故障下成立">四、数据库系统: 让状态在并发 / 故障下成立</a></h2>
+<h3 id="41-为什么需要-db-而不是文件"><a class="header" href="#41-为什么需要-db-而不是文件">4.1 为什么需要 DB 而不是文件</a></h3>
+<p>OS 文件系统只承诺 "字节流", 没说"原子写 / 多 client 并发 / crash 后一致". DB 把这些不变式钉死:</p>
+<ul>
+<li>ACID (事务原子性 / 一致性 / 隔离性 / 持久性).</li>
+<li>MVCC + WAL + 2PL + snapshot isolation.</li>
+<li>主流: PostgreSQL / MySQL (OLTP), ClickHouse / Snowflake (OLAP), Redis / Dynamo (KV).</li>
+</ul>
+<p>→ 见 <a href="../databases/index.html">databases</a>. 这是承接链 <strong>保存状态</strong> 的核心一层.</p>
+<h3 id="42-数据库如何依赖-os--网络--硬件"><a class="header" href="#42-数据库如何依赖-os--网络--硬件">4.2 数据库如何依赖 OS / 网络 / 硬件</a></h3>
+<ul>
+<li>依赖文件 + fsync 确保持久性 (write-ahead log); 这是个 OS 与块设备之间的契约. 一旦块设备"写入但未 flush" 破坏这一契约, ACID 就有空洞 (e.g. SSD cache 丢).</li>
+<li>依赖网络做 replication; latency → Paxos / Raft 单写 1 RTT trip.</li>
+<li>依赖 page cache / direct IO / io_uring / NVMe 多队列 → 与 OS / 块设备协同.</li>
+</ul>
+<h3 id="43-db-是-web-后端的状态核心"><a class="header" href="#43-db-是-web-后端的状态核心">4.3 DB 是 web 后端的"状态核心"</a></h3>
+<ul>
+<li>Web 上层把所有"状态"丢 DB, 自己做无状态服务 + 容器; K8s + RDS 模型 一切都这么搭.</li>
+<li>DB 与分布式系统的 cap 线 / 一致性范畴都来自这条承接.</li>
+</ul>
+<hr />
+<h2 id="五编译器--高级语言-让机器可读变成人可写"><a class="header" href="#五编译器--高级语言-让机器可读变成人可写">五、编译器 / 高级语言: 让机器可读变成人可写</a></h2>
+<h3 id="51-编译器史的简线"><a class="header" href="#51-编译器史的简线">5.1 编译器史的简线</a></h3>
+<ul>
+<li>1957 FORTRAN; 1972 C; 1990 GCC; 2000 LLVM; 2010 V8 Tiered JIT; 2020 Rust + LLVM + Miri.</li>
+<li>编译器把"人工可写"高级语言转到"机器可执行" ISA, 同时做优化: SSA / CFG / constant folding / dead-code / loop unroll / auto-vectorize / IPO.</li>
+<li>见 <a href="../compilers/index.html">compilers</a>.</li>
+</ul>
+<h3 id="52-编译器承接了os-加上后程序可点点"><a class="header" href="#52-编译器承接了os-加上后程序可点点">5.2 编译器承接了"OS 加上后程序可点点"</a></h3>
+<ul>
+<li>OS 提供 syscall ABI; 编译器知道怎么写出对 ABI 正确的代码 (caller/callee saved regs, stack frame).</li>
+<li>语言层 → 库 → syscall → kernel → driver.</li>
+</ul>
+<h3 id="53-高级语言运行时-抽象-gc-与线程的延展"><a class="header" href="#53-高级语言运行时-抽象-gc-与线程的延展">5.3 高级语言运行时: 抽象 GC 与线程的延展</a></h3>
+<ul>
+<li>Java / Python / Go / Rust / JS 等, 加 GC / 协程 / async / await / Future / channel; 都把 OS 线程 + sqlite / pipe 的细节包到运行时.</li>
+</ul>
+<hr />
+<h2 id="六分布式系统-一台机器不够用后-n-台协同"><a class="header" href="#六分布式系统-一台机器不够用后-n-台协同">六、分布式系统: 一台机器不够用后 N 台协同</a></h2>
+<h3 id="61-必来"><a class="header" href="#61-必来">6.1 必来</a></h3>
+<ul>
+<li>单机扩展到 +10GHz 时 CPU 与内存墙都搅过; 一台机器能跑的 QPS / 数据量 / HA 都不可满足 → 必须多机.</li>
+<li>多机 = 网络 → 延迟 + 故障 + 异构 → 必须协议 (CAP / 一致性).</li>
+<li>Multi-Paxos / Raft / Gossip + CRDT; 见 <a href="../distributed/index.html">distributed</a>.</li>
+</ul>
+<h3 id="62-共识--状态机复制的工具"><a class="header" href="#62-共识--状态机复制的工具">6.2 共识 = 状态机复制的工具</a></h3>
+<ul>
+<li>1990 Lamport Paxos; 2014 Raft.</li>
+<li>任何"被许多机器共享的状态"几乎都用这俩或其变种.
+-共识是承接链中<strong>调度多机</strong>, 把"不可靠网络 + 部分机器丢"转成"一组虚拟主机机".</li>
+</ul>
+<h3 id="63-一致性与时间"><a class="header" href="#63-一致性与时间">6.3 一致性与时间</a></h3>
+<ul>
+<li>物理时钟不可同步全 → logical clock (Lamport, vector clock, HLC) → 全序 / 偏序隔离.</li>
+<li>TrueTime (Spanner) / HLC (CockroachDB) 借 GPS + 原子钟做单亿误差.</li>
+</ul>
+<h3 id="64-把集群抽象成单机"><a class="header" href="#64-把集群抽象成单机">6.4 把"集群"抽象成"单机"</a></h3>
+<ul>
+<li>K8s 把 10000 台集群抽象成一组 control-plane API; 用户提 YAML 即一份声明式资源 → 内部 reconciliation loop → 自动调拨.</li>
+<li>见 <a href="../system-design/case/k8s-control-plane.html">system-design/case/k8s-control-plane</a>.</li>
+</ul>
+<hr />
+<h2 id="七web-后端--微服务--系统设计"><a class="header" href="#七web-后端--微服务--系统设计">七、Web 后端 / 微服务 / 系统设计</a></h2>
+<h3 id="71-估算--缓存--队列--限流"><a class="header" href="#71-估算--缓存--队列--限流">7.1 估算 → 缓存 → 队列 → 限流</a></h3>
+<ul>
+<li>Little's Law + Little's Law → 平均 response = arrival_time / (1 - rho); back-of-envelope 计算 QPS / IOPS / 带宽 / 存储.</li>
+<li>cache-aside / write-through / write-behind; 失效 (穿透 / 击穿 / 雪崩).</li>
+<li>队列 Kafka / Pulsar / SQS; at-least-once vs exactly-once; outbox pattern.</li>
+</ul>
+<h3 id="72-系统设计--反推与分解"><a class="header" href="#72-系统设计--反推与分解">7.2 系统设计 = 反推与分解</a></h3>
+<ul>
+<li>任务需求 → 估算 → 主组件 → 数据流 → 失败模式 → 可观测 → 上云.</li>
+<li>见 <a href="../system-design/index.html">system-design</a>.</li>
+</ul>
+<h3 id="73-微服务网格的承接"><a class="header" href="#73-微服务网格的承接">7.3 微服务网格的承接</a></h3>
+<ul>
+<li>服务网格 (Istio / Linkerd / Envoy) 在 K8s 之上加: mTLS + routing + 重试 / timeout / 熔断 + observability + sidecar proxy.</li>
+</ul>
+<hr />
+<h2 id="八ai-状态机的高维模式化"><a class="header" href="#八ai-状态机的高维模式化">八、AI: 状态机的"高维"模式化</a></h2>
+<h3 id="81-它从哪里踏上承接链"><a class="header" href="#81-它从哪里踏上承接链">8.1 它从哪里踏上承接链</a></h3>
+<ul>
+<li><strong>数学</strong> (第零部分): 反向传播 + 链式法则 + softmax / SVD + 概率分布 → 是 AI 训练算法本身.</li>
+<li><strong>硬件</strong> (第八部分): GPU/TPU/NPU 异构芯片 + HBM + 互联 → 性能 + 显存决定 能不能训.</li>
+<li><strong>OS</strong> (第二部分): Linux + cgroup + nccl + RDMA → GPU 集群的互联.</li>
+<li><strong>网络</strong> (第三部分): RoCE v2 / nvBandwidth → 多卡通信快; HTTPS 推理 API.</li>
+<li><strong>数据库</strong> (第四部分): 训练数据集存储; vector database 给 LLM 工具调用 / RAG.</li>
+<li><strong>分布式</strong> (第六部分): model 并行 / data 并行 / pipeline 并行 / ZeRO-3 → 8 卡变 65K 卡.</li>
+<li><strong>系统设计</strong> (第七部分): inference service 设计 / KV cache 共享 / 多 tenant / autoscaling.</li>
+</ul>
+<h3 id="82-ai-反过来反推这条承接链"><a class="header" href="#82-ai-反过来反推这条承接链">8.2 AI 反过来反推这条承接链</a></h3>
+<ul>
+<li>GPU/NPU 出来前: CPU 单线喂不饱; 现在 GPU 训练一批 7B 模型 1000 卡密集用; <strong>NCCL + RDMA + GPUDirect-RDMA</strong> 是新协议栈; 这把承接链的工具形态全部改.</li>
+<li>LLM 推理: 把反向 AD 的 cache 改成 KV cache, 不是梯度是 attention 中间结果 → 这反过来推 HBM / CXL / 互联带宽.</li>
+<li>Agent (2025+) 反推 RPC / tool/API 框架: MCP 协议让 LLM 配 SQL / fs / browser 成为可工程交互.</li>
+</ul>
+<h3 id="83-新承接-ai--系统--os-的反向输入"><a class="header" href="#83-新承接-ai--系统--os-的反向输入">8.3 新承接: AI → 系统 / OS 的反向输入</a></h3>
+<ul>
+<li>GPU 集群调度: Borg/Omega/Kubernetes 都要支持 device plugin + topology-aware; Linux 内核对 GPU 的 cgroup 隔离还很弱 (2024+ 才有 NVIDIA MIG 与 DPDK 隔离成熟).</li>
+<li>ML 监控与 trace: OpenTelemetry 增强 ML metrics; 单步训练几百次需 trace-blame 与 schema.</li>
+<li>推理直接接 OS syscall (e.g. AI tool use) → 安全沙箱新关注.</li>
+</ul>
+<hr />
+<h2 id="九整个承接链图"><a class="header" href="#九整个承接链图">九、整个承接链图</a></h2>
+<pre><code>物理 ─ 晶体管 ─ 数字 ─ ISA ─ microarch
+                                  ↓
+                            虚拟内存 + CPU cache
+                                  ↓
+            ┌───────── OS (Linux Kernel) ─────┐
+            ↓             ↓                 ↓
+        File System    网络 (TCP/IP)      进程 + 调度
+            ↓             ↓                 ↓
+        块设备 / SSD   HTTP / TLS          线程/协程
+            ↓             ↓                 ↓
+            DB          Web/REST        编译器 / 语言运行时
+            ↓             ↓                 ↓
+            OLAP / OLTP    LAMP/MEAN/MERN   JIT/HotSpot/V8
+            ↓             ↓                 ↓
+            分布式: KV / Queue / Consensus / K8s
+            ↓             ↓                 ↓
+───────────────────────────────────────────
+                            ↓
+                    AI: Training + Inference
+                            ↓
+                  GPU / NPU / TPU / 异构 XPU
+                            ↓
+                  HBM4 + NVLink + CXL 3.x
+                            ↓
+                  Agent + MCP + 推理 SDK
+                            ↓
+                  === 下一波新抽象 ===
+</code></pre>
+<p>每一节点都为前一节点顺承不变式; 跳一节点工程就断了.</p>
+<hr />
+<h2 id="十五个如果是新工程师-你正在哪段承接的练习"><a class="header" href="#十五个如果是新工程师-你正在哪段承接的练习">十、五个"如果是新工程师, 你正在哪段承接"的练习</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>你做的事</th><th>你主要在哪段承接</th></tr></thead><tbody>
+<tr><td>写 Web 后端 + DB RDS</td><td>Web 后端 / DB / OS (epoll+socket)</td></tr>
+<tr><td>写 mobile app</td><td>高级语言运行时 / Android/iOS SDK / NPU</td></tr>
+<tr><td>写 CUDA kernel 训大模型</td><td>物理层之上的 microarch / ISA (PTX) / AI 调度栈</td></tr>
+<tr><td>写 Kubernetes operator</td><td>分布式 / 系统 / OS</td></tr>
+<tr><td>写 Linux 内核 driver</td><td>OS / ISA / 微架构</td></tr>
+</tbody></table>
+</div>
+<p>→ 这套表帮你定位"读完哪几章本书就可以接入你工作".</p>
+<hr />
+<h2 id="十一与第零部分数学的加乘"><a class="header" href="#十一与第零部分数学的加乘">十一、与第零部分数学的加乘</a></h2>
+<p>数学 (第零部分) 不在承接链有自己的节点 — 它<strong>横跨所有节点</strong>:</p>
+<ul>
+<li>第 1-2 物理层 - 信息论/熵与极限.</li>
+<li>ISA 与微架构 - 不必数学.</li>
+<li>OS / 调度 - 概率 + 排队 + 极限.</li>
+<li>网络 - 概率分布 + 信息论熵 / 信道容量.</li>
+<li>DB - 关系代数 + 估计 + 一致性序.</li>
+<li>分布式 - 偏序 + 概率 + 信息论.</li>
+<li>AI - 微积分 + 线代 + 概率 + 优化.</li>
+</ul>
+<p>→ 这就是为什么数学放在第零部分: <strong>每段承接都要用到</strong>, 不能单挑一节点上.</p>
+<hr />
+<h2 id="十二结束--速查表"><a class="header" href="#十二结束--速查表">十二、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页唤回:</p>
+<ul>
+<li><strong>承接链</strong>: 物理 → ISA → 微架构 → 内存 → OS → 进程 + 文件 + 网络 → 编译器 → DB → 分布式 → AI.</li>
+<li>每一段都需要上段提供契约; 没有它下段最后一段不动.</li>
+<li>OS 给"进程 + 字节流文件 + socket"; 没它再好硬件也只是 DSP.</li>
+<li>DB 提供并发 + 故障下状态一致; ACID = WAL + 2PL + MVCC 等.</li>
+<li>网络把孤立机器拥成集群; CAP / 共识 / 一致性序随之而来.</li>
+<li>分布式抽象集群为虚拟机; K8s + Raft + CRDT 这套套餐现成.</li>
+<li>AI 反过来给承接链压力, 推 GPU/互联/HBM/CXL/MCP.</li>
+<li>数学横跨所有节点 = 第零部分必须放最前.</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="map.html">5. 全书地图: 13 部分与导论的交叉索引</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../prologue/mainframe-xpu.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../prologue/map.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../prologue/mainframe-xpu.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../prologue/map.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

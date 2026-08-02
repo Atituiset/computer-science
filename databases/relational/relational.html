@@ -1,0 +1,562 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>关系代数、SQL semantics - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="关系代数与-sql-semantics"><a class="header" href="#关系代数与-sql-semantics">关系代数与 SQL semantics</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>Codd 1970 的关系代数是真"理论"——σ / ∏ / × / ∪ / − / ρ 六个原语 + ⨝ join 衍生。SQL 是关系代数的可读文字形态加上工程便利扩展（GROUP BY / 聚合 / 窗口 / NULL 三值逻辑 / CTE / 递归 / Recursive）。本节从关系代数走到 planner 的 rule-based 重写规则、SQL 三值逻辑的踩雷、CTE decorrelation 实战、window 函数执行模型——这一节是看懂任何 DB 的 explain plan 的入门钥匙。</p>
+<hr />
+<h2 id="一关系代数六个原语"><a class="header" href="#一关系代数六个原语">一、关系代数六个原语</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>符号</th><th>名字</th><th>SQL 对应</th></tr></thead><tbody>
+<tr><td>σ_p(R)</td><td>selection</td><td><code>SELECT * FROM R WHERE p</code></td></tr>
+<tr><td>∏_A(R)</td><td>projection</td><td><code>SELECT A FROM R</code></td></tr>
+<tr><td>R×S</td><td>cartesian product</td><td><code>SELECT * FROM R, S</code> (no join)</td></tr>
+<tr><td>R∪S</td><td>union</td><td><code>UNION</code></td></tr>
+<tr><td>R−S</td><td>set difference</td><td><code>EXCEPT</code></td></tr>
+<tr><td>ρ_N(R)</td><td>rename</td><td><code>R AS N</code></td></tr>
+<tr><td>R⨝_p S</td><td>join (衍生)</td><td><code>JOIN ON p</code></td></tr>
+<tr><td>γ_A,agg(R)</td><td>group-by (衍生)</td><td><code>GROUP BY A</code></td></tr>
+<tr><td>τ(R)</td><td>sort (工程扩展)</td><td><code>ORDER BY</code></td></tr>
+</tbody></table>
+</div>
+<h2 id="二关系代数到-sql-的映射"><a class="header" href="#二关系代数到-sql-的映射">二、关系代数到 SQL 的映射</a></h2>
+<pre><code class="language-sql">SELECT u.name, COUNT(o.id)
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id
+WHERE u.age &gt; 18
+GROUP BY u.name
+HAVING COUNT(o.id) &gt; 5
+ORDER BY COUNT(o.id) DESC
+</code></pre>
+<p>抽象成代数树：</p>
+<pre><code>τ_count desc    ← ORDER BY
+  └─ γ_name, COUNT(id)  HAVING COUNT(id) &gt; 5    ← GROUP BY + HAVING
+       └─ σ_age &gt; 18   ← WHERE
+            └─ ⨝_id=user_id (left)   ← LEFT JOIN
+                 ├─ users (R)
+                 └─ orders (S)
+</code></pre>
+<p>每节点对应一个 physical operator，planner 通过代数规则重排节点顺序以最小化 cost。</p>
+<hr />
+<h2 id="三planner-的代数变换规则"><a class="header" href="#三planner-的代数变换规则">三、planner 的代数变换规则</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>规则</th><th>原始</th><th>重写后</th><th>实际收益</th></tr></thead><tbody>
+<tr><td>predicate pushdown</td><td><code>∏(σ_p(R))</code></td><td><code>σ_p(∏(R))</code></td><td>减少扫描量</td></tr>
+<tr><td>join reordering</td><td><code>R ⨝ (S ⨝ T)</code></td><td><code>(R ⨝ S) ⨝ T</code></td><td>选小/中表先 join</td></tr>
+<tr><td>projection pushdown</td><td><code>∏_{A,B}(σ_p(R))</code></td><td><code>σ_p(∏_{A,B}(R))</code></td><td>列裁剪减 IO</td></tr>
+<tr><td>join predicate pushdown</td><td><code>σ_p(R ⨝ S)</code></td><td><code>σ_p(R) ⨝ S</code></td><td>早过滤</td></tr>
+<tr><td>constant folding</td><td><code>1 + 1 &gt; 2</code></td><td><code>TRUE</code></td><td>简化</td></tr>
+<tr><td>subquery decorrelation</td><td><code>SELECT ... WHERE x IN (SELECT y FROM T)</code></td><td><code>LEFT SEMI JOIN</code></td><td>重写为 join</td></tr>
+<tr><td>common subexpression elimination</td><td><code>∏_∩(σ_p(R) ∪ σ_q(R))</code></td><td><code>∏_∩(σ_{p∨q}(R))</code></td><td>减少重复扫描</td></tr>
+<tr><td>dead branch removal</td><td><code>σ_{0=1}(R)</code></td><td>empty relation</td><td>计算消除</td></tr>
+</tbody></table>
+</div>
+<p>PostgreSQL 用 13.x 的 GEQO (Gen代算法) + dynamic programming 做 join reordering。当 join 数 &gt;12 表时切换到遗传算法避免组合爆炸。MySQL 8.0 起 optimizer 也支持 hash join 重写，之前仅 nested loop。</p>
+<hr />
+<h2 id="四三值逻辑null"><a class="header" href="#四三值逻辑null">四、三值逻辑（NULL）</a></h2>
+<p>SQL 的 <code>NULL</code> 是 <strong>UNKNOWN</strong>（不是 0 也不是 false），引入三值逻辑。老师常忽略：</p>
+<h3 id="and--or--not-真值表"><a class="header" href="#and--or--not-真值表">AND / OR / NOT 真值表</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>AND</th><th>T</th><th>F</th><th>U</th><th>OR</th><th>T</th><th>F</th><th>U</th></tr></thead><tbody>
+<tr><td>T</td><td>T</td><td>F</td><td>U</td><td>T</td><td>T</td><td>T</td><td>T</td></tr>
+<tr><td>F</td><td>F</td><td>F</td><td>F</td><td>F</td><td>T</td><td>F</td><td>U</td></tr>
+<tr><td>U</td><td>U</td><td>F</td><td>U</td><td>U</td><td>T</td><td>U</td><td>U</td></tr>
+</tbody></table>
+</div>
+<h3 id="where-子句与-null"><a class="header" href="#where-子句与-null">WHERE 子句与 NULL</a></h3>
+<p><code>WHERE p</code> 选择 <code>p == TRUE</code>，UNKNOWN 与 FALSE 都被排除：</p>
+<pre><code class="language-sql">SELECT * FROM users WHERE age &gt; 18;       -- age=NULL 不返回，因 UNKNOWN 排除
+SELECT * FROM users WHERE age &lt;= 18 OR age IS NULL;  -- 取得 NULL
+SELECT * FROM users WHERE age != 18;      -- NULL 不返回
+</code></pre>
+<h3 id="aggregate-与-null"><a class="header" href="#aggregate-与-null">Aggregate 与 NULL</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>函数</th><th>行为</th></tr></thead><tbody>
+<tr><td><code>COUNT(*)</code></td><td>数所有行（包括 NULL）</td></tr>
+<tr><td><code>COUNT(col)</code></td><td>跳过 NULL</td></tr>
+<tr><td><code>SUM(col)</code></td><td>跳过 NULL</td></tr>
+<tr><td><code>AVG(col)</code></td><td>跳过 NULL（分母是 non-NULL 计数）</td></tr>
+<tr><td><code>GROUP BY</code></td><td>NULL 算一个组</td></tr>
+<tr><td><code>ORDER BY</code></td><td>PostgreSQL 默认 NULL last (ASC)，MySQL 默认 NULL first</td></tr>
+<tr><td><code>UNION</code></td><td>去重 NULL，与 <code>5</code> 和 <code>NULL</code> 是不同行</td></tr>
+</tbody></table>
+</div>
+<h3 id="实战坑"><a class="header" href="#实战坑">实战坑</a></h3>
+<pre><code class="language-sql">-- ❌ 想找"不为 true"的行
+SELECT * FROM users WHERE active = FALSE;
+-- 返回 active=FALSE 行；忽略 active=NULL
+
+-- ✅ 正确版
+SELECT * FROM users WHERE active IS NOT TRUE;
+-- 返回 active=FALSE 或 NULL
+</code></pre>
+<pre><code class="language-sql">-- 还原窗口 + NULL
+-- LEAD(col) over NULL → 仍返回 NULL
+-- FIRST_VALUE(col) IGNORE NULLS (PostgreSQL 没原生语法，需要 workaround)
+</code></pre>
+<hr />
+<h2 id="五sql1999-olap-扩展"><a class="header" href="#五sql1999-olap-扩展">五、SQL:1999 OLAP 扩展</a></h2>
+<h3 id="51-window-函数"><a class="header" href="#51-window-函数">5.1 window 函数</a></h3>
+<pre><code class="language-sql">SELECT
+    user_id, order_amount,
+    SUM(order_amount) OVER (
+        PARTITION BY user_id
+        ORDER BY created_at
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) AS cum_amount,
+    LAG(order_amount, 1) OVER (
+        PARTITION BY user_id ORDER BY created_at
+    ) AS prev_amount,
+    ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at) AS rn
+FROM orders
+</code></pre>
+<p>执行模型：</p>
+<ol>
+<li>PARTITION BY 按 key 分桶（hash 或 sort）</li>
+<li>ORDER BY 桶内排序</li>
+<li>滑动窗口聚合：每行扫描时按 window frame 移动累加 / 求 sum / min / max</li>
+<li>LEAD/LAG/ROW_NUMBER 通过 sort + 上一行 offset 实现</li>
+<li>NTILE 用 sample count percentile 切分</li>
+</ol>
+<p>PostgreSQL 13 加 <code>RANGE BETWEEN INTERVAL '1 day' PRECEDING AND CURRENT ROW</code> 支持。DuckDB 1.0 支持任意 window frame expression。</p>
+<h3 id="52-cte-common-table-expression"><a class="header" href="#52-cte-common-table-expression">5.2 CTE (Common Table Expression)</a></h3>
+<pre><code class="language-sql">WITH recent_orders AS (
+    SELECT * FROM orders WHERE created_at &gt; '2024-01-01'
+),
+top_users AS (
+    SELECT user_id FROM recent_orders GROUP BY user_id LIMIT 10
+)
+SELECT * FROM top_users;
+</code></pre>
+<p>Postgres 12 之前 CTE 是 <strong>optimizer barrier</strong>——子查询被 materialize 然后注入，inline-replace 在 12 才默认开启。MySQL 8 引入 CTE 时已是 inline 模式。</p>
+<h3 id="53-recursive-cte"><a class="header" href="#53-recursive-cte">5.3 Recursive CTE</a></h3>
+<pre><code class="language-sql">WITH RECURSIVE descendants AS (
+    SELECT id, parent_id, 0 AS depth FROM nodes WHERE parent_id IS NULL
+    UNION ALL
+    SELECT n.id, n.parent_id, d.depth + 1
+    FROM nodes n JOIN descendants d ON n.parent_id = d.id
+    WHERE d.depth &lt; 10
+) SELECT * FROM descendants;
+</code></pre>
+<p>执行模型 iteratively fixpoint：</p>
+<ol>
+<li>base case：第一行 SELECT 算一次结果放 worktable</li>
+<li>recursive case：把 worktable 当表跑下一行 SELECT，产出追加到 worktable</li>
+<li>重复直到递归 case 不再产出新行或 cycle 检测</li>
+</ol>
+<p>应用：组织树、依赖图、ISO 国家代码层级、推荐系统"朋友的朋友"。</p>
+<h3 id="54-anti-semi-join"><a class="header" href="#54-anti-semi-join">5.4 anti-semi join</a></h3>
+<pre><code class="language-sql">SELECT * FROM users WHERE NOT EXISTS (SELECT 1 FROM orders WHERE user_id = users.id);
+</code></pre>
+<p><code>NOT EXISTS</code> 自然对应 anti-semi-join；planner 通常用 hash anti-join 实现，O(M+N)。新手常写 <code>LEFT JOIN + IS NULL</code> 也可重写：</p>
+<pre><code class="language-sql">SELECT u.* FROM users u LEFT JOIN orders o ON u.id = o.user_id WHERE o.user_id IS NULL;
+</code></pre>
+<p>MySQL 5.6 之前 LEFT JOIN + IS NULL 比 NOT EXISTS 快一些；之后两者等价。PostgreSQL 始终两者等价。</p>
+<hr />
+<h2 id="六嵌套子查询与-decorrelation"><a class="header" href="#六嵌套子查询与-decorrelation">六、嵌套子查询与 decorrelation</a></h2>
+<h3 id="61-朴素子查询与性能"><a class="header" href="#61-朴素子查询与性能">6.1 朴素子查询与性能</a></h3>
+<pre><code class="language-sql">-- ❌ 慢：相关子查询，每行 users 跑一次
+SELECT * FROM users u WHERE EXISTS (
+    SELECT 1 FROM orders o WHERE o.user_id = u.id AND o.created_at &gt; '2024-01-01'
+);
+
+-- ✅ planner 重写为 semi-join（PostgreSQL 14+ 自动）
+SELECT u.* FROM users u
+  LEFT SEMI JOIN orders o ON o.user_id = u.id AND o.created_at &gt; '2024-01-01';
+</code></pre>
+<h3 id="62-lateral-joinpostgresql-93"><a class="header" href="#62-lateral-joinpostgresql-93">6.2 Lateral Join（PostgreSQL 9.3+）</a></h3>
+<pre><code class="language-sql">SELECT u.name, recent.order_id
+FROM users u,
+LATERAL (
+    SELECT order_id FROM orders o
+    WHERE o.user_id = u.id
+    ORDER BY created_at DESC LIMIT 3
+) recent;
+</code></pre>
+<p>LATERAL 让子查询引用左边表 u 的列——常用于 top-N per group。</p>
+<p>执行模型：对每行 users 跑一次 LATERAL 子查询，结果集 join。Lateral join + 索引支持可高效（每行用 user_id index lookup）。</p>
+<h3 id="63-correlated-vs-uncorrelated-子查询"><a class="header" href="#63-correlated-vs-uncorrelated-子查询">6.3 correlated vs uncorrelated 子查询</a></h3>
+<pre><code class="language-sql">-- uncorrelated：子查询独立可代入常量
+SELECT * FROM users WHERE age &gt; (SELECT AVG(age) FROM users);
+
+-- correlated：依赖外行
+SELECT u.name, (SELECT COUNT(*) FROM orders WHERE user_id = u.id) AS order_count
+FROM users u;
+</code></pre>
+<p>uncorrelated 子查询可一次性 evaluate，correlated 必须按外行迭代。Planner 用 magic set/decorrelation 把 correlated 重写成 join——但<strong>不是所有 DB 都做</strong>。Postgres 做得到，早期 MySQL 不行。</p>
+<hr />
+<h2 id="七cte-与-optimizer-barrier"><a class="header" href="#七cte-与-optimizer-barrier">七、CTE 与 optimizer barrier</a></h2>
+<h3 id="71-postgresql-12-之前cte-materialize"><a class="header" href="#71-postgresql-12-之前cte-materialize">7.1 PostgreSQL 12 之前：CTE materialize</a></h3>
+<pre><code class="language-sql">-- 在 PG 11 中：
+WITH big_cte AS (SELECT * FROM large_table WHERE x &gt; 10)
+SELECT * FROM big_cte WHERE x &lt; 5;
+</code></pre>
+<p>PG 11 把 large_table ≥10 的所有行写到 worktable，再 filter &lt;5——即使极少数行匹配 x&lt;5。这是 optimizer barrier。</p>
+<p>PG 12 默认 inline：CTE 直接放回 SQL，planner 可下推 filter：</p>
+<pre><code>原 PG 11:    materialize(SELECT * FROM large_table WHERE x &gt; 10) WHERE x &lt; 5
+PG 12+ inline: SELECT * FROM large_table WHERE x &gt; 10 AND x &lt; 5
+</code></pre>
+<h3 id="72-强制-materialize-materialized"><a class="header" href="#72-强制-materialize-materialized">7.2 强制 materialize (<code>MATERIALIZED</code>)</a></h3>
+<p>PG 12+ 给 CTE 加 marker：</p>
+<pre><code class="language-sql">WITH big_cte AS MATERIALIZED (SELECT * FROM large_table WHERE x &gt; 10)
+SELECT * FROM big_cte WHERE x &lt; 5;
+</code></pre>
+<p>适用场景：</p>
+<ol>
+<li>CTE 多次引用且重计算太贵</li>
+<li>planner 试图 inline 但实际代价更高（极复杂子查询里有全表)</li>
+<li>CTE 有副作用（CTE 包 WITH RECURSIVE / DML）</li>
+</ol>
+<hr />
+<h2 id="八产线案例"><a class="header" href="#八产线案例">八、产线案例</a></h2>
+<h3 id="81-null-与-iso-9001-业务逻辑"><a class="header" href="#81-null-与-iso-9001-业务逻辑">8.1 NULL 与 ISO 9001 业务逻辑</a></h3>
+<p>交易系统想"未审核订单不返回":</p>
+<pre><code class="language-sql">-- ❌
+SELECT * FROM orders WHERE approved_by != 'master';
+-- approved_by=NULL 的未审核订单也不出现
+
+-- ✅
+SELECT * FROM orders WHERE approved_by IS DISTINCT FROM 'master';
+-- IS DISTINCT FROM 把 NULL 视为不同值的第三值
+</code></pre>
+<p>MySQL 8 起支持 <code>IS NOT DISTINCT FROM</code>，PG 9 起支持。</p>
+<h3 id="82-窗口函数慢解析"><a class="header" href="#82-窗口函数慢解析">8.2 窗口函数慢解析</a></h3>
+<p>电商"每用户前 3 单"：</p>
+<pre><code class="language-sql">WITH ranked AS (
+    SELECT user_id, order_id,
+           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at) AS rn
+    FROM orders
+)
+SELECT * FROM ranked WHERE rn &lt;= 3;
+</code></pre>
+<p>PostgreSQL：sort on (user_id, created_at) → 行号 ceil；100GB orders 做 break：</p>
+<ul>
+<li>单次 sort 输入-B-tree merge 太慢</li>
+<li>若 user_id 高基数，单排序可行</li>
+<li>若 user_id 低基数（少量 user hstore 单 user 巨量订单）→ track partition hash + per-partition top-k heap → 大幅加速</li>
+</ul>
+<p>DuckDB / ClickHouse 内部都是 partition-aware 的 efficient top-k 实现。</p>
+<h3 id="83-cte-递归爆炸"><a class="header" href="#83-cte-递归爆炸">8.3 CTE 递归爆炸</a></h3>
+<p>依赖图 N=10^8 边，recursive CTE 没限 depth → iter 直至内存爆。MySQL 没硬上限，PG <code>max_stack_depth</code> 可控，但 N 太大 → 显式用 PL/pgSQL cursor 求 workitem batch。</p>
+<hr />
+<h2 id="九易错清单"><a class="header" href="#九易错清单">九、易错清单</a></h2>
+<ol>
+<li><code>WHERE col != 'x'</code> 不返回 NULL——改用 <code>IS DISTINCT FROM</code></li>
+<li><code>COUNT(col)</code> 跳过 NULL；<code>COUNT(*)</code> 全数</li>
+<li><code>ORDER BY col ASC NULLS LAST</code> 必须 explicit</li>
+<li>CTE 在 PG 12 之前是 materialize barrier，旧业务升 PG 后 planner 行为变化</li>
+<li>LATERAL 子查询不可在 MySQL 5.7 用，MySQL 8.0+ 支持 LATERAL</li>
+<li>recursive CTE 必加 stop condition 防 cycle</li>
+<li>anti-join 用 <code>NOT EXISTS</code> 比 <code>LEFT JOIN + IS NULL</code> 在 PG 上等价</li>
+<li>OR 优化：<code>WHERE a = 1 OR b = 2</code> 难用 index；rewrite 为 <code>UNION ALL</code> 后 PG 可走两个 index scan union</li>
+</ol>
+<hr />
+<h2 id="十这一章带走的东西"><a class="header" href="#十这一章带走的东西">十、这一章带走的东西</a></h2>
+<ol>
+<li>SQL 是关系代数 + 工程便利扩展；planner 把 SQL 解析为代数表达式再 rule 重排</li>
+<li>NULL 是 UNKNOWN 第三值；aggregate / WHERE / ORDER BY 不同处理</li>
+<li>CTE PG 12 起默认 inline，老 PG 视为 optimizer barrier（可显式 <code>MATERIALIZED</code> 锁定）</li>
+<li>window 函数执行模型：PARTITION → ORDER → frame sliding → aggregate</li>
+<li>recursive CTE 做 cycle / DAG traversal，必加 stop condition</li>
+<li>anti-join 用 NOT EXISTS，semi-join 用 EXISTS/IN，永远不会 null-join 重复 row</li>
+<li>LATERAL 子查询引用外行 → top-N per group 用得到，性能靠外 side index</li>
+</ol>
+<h2 id="下一节-"><a class="header" href="#下一节-">下一节 →</a></h2>
+<p><a href="isolation.html">事务、ACID、隔离级别与现象</a> — ACID、ANSI SQL 4 隔离级别、Berenson critique、2PL、MVCC、SSI</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../databases/relational/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../databases/relational/isolation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../databases/relational/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../databases/relational/isolation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

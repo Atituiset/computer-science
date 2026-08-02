@@ -1,0 +1,477 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Back-of-envelope：QPS / 带宽 / 存储 / IOPS - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="back-of-envelope-估算"><a class="header" href="#back-of-envelope-估算">Back of Envelope 估算</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p><strong>Back of Envelope (BOE) 估算</strong> 是 Jeff Dean / Google 内 部 docs 流行开来的"贴式估算法"——不写代码, 不查精确值, 用一些<strong>工作功率/带宽/缓存层次参考数字</strong> 在 1 分钟内得到 capex/opex/吞吐数量级。 它的核心是"先估数量级, 再 cap 硬件清单", 而不是 "build 后爆掉"。 一套基础参考数 (latency numbers every programmer should know Brendan Gregg version) 让你立刻知道 1ms 内能做啥: SSD 查 4KB page &lt; DNS round trip &lt; 1 Gbps 网络, 那就是 cache 设计的根。 本章梳理 BOE 参考表, 给 8 个工业例题 + 公司 / 个人估算 思维模版, 指出<strong>最易估算错的几个</strong> (内存带宽、压缩比、多核比例), exercises。</p>
+<hr />
+<h2 id="一基础参考数字"><a class="header" href="#一基础参考数字">一、基础参考数字</a></h2>
+<h3 id="latency-numbers-every-programmer-should-know"><a class="header" href="#latency-numbers-every-programmer-should-know">Latency Numbers Every Programmer Should Know</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>操作</th><th>时间 (2026年数)</th><th>备注</th></tr></thead><tbody>
+<tr><td>L1 cache hit</td><td>~1 ns</td><td>compute-bound kernel core within 1 cycle 锁</td></tr>
+<tr><td>L2 cache hit</td><td>~3-4 ns</td><td>shared within one core's prefetch</td></tr>
+<tr><td>L3 cache hit</td><td>~12 ns</td><td>shared across cores of same socket</td></tr>
+<tr><td>RAM access (DRAM)</td><td>~100 ns</td><td>main memory random read</td></tr>
+<tr><td>SSD 4KB 随机读</td><td>~150 µs (NVMe); ~100 µs (Intel Optane)</td><td>one 4KB page I/O</td></tr>
+<tr><td>HDD 4KB 随机读</td><td>~10 ms (7200rpm)</td><td>seek + rotation</td></tr>
+<tr><td>1Gbps 网络传 1MB</td><td>~10ms</td><td>LAN single link</td></tr>
+<tr><td>25Gbps 网络传 1MB</td><td>~0.4ms</td><td>datacenter link</td></tr>
+<tr><td>同城 DC RTT</td><td>~1-2ms</td><td>P50</td></tr>
+<tr><td>跨美 RTT</td><td>~50-70ms</td><td>P50 沿光纤</td></tr>
+<tr><td>跨洲 RTT</td><td>~150-250ms</td><td>P50</td></tr>
+<tr><td>TXN 写 + fsync (NVMe)</td><td>~1-2ms</td><td>database commit</td></tr>
+</tbody></table>
+</div>
+<h3 id="storage-costs"><a class="header" href="#storage-costs">Storage Costs</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>介质</th><th>$/GB/月 (2026)</th></tr></thead><tbody>
+<tr><td>NVMe SSD (云, gp3 ~$0.08/GB provisioned IOPS)</td><td>~$0.10</td></tr>
+<tr><td>HDD (云, st1, Magnetic)</td><td>~$0.025</td></tr>
+<tr><td>S3 standard</td><td>~$0.023</td></tr>
+<tr><td>Glacier deep archive</td><td>~$0.00099</td></tr>
+<tr><td>RAM (云实例 included)</td><td>~$10 (3000× SSD)</td></tr>
+</tbody></table>
+</div>
+<p>node 上 1GB RAM 是 1GB SSD 的 ~100× cost. 决定 "cached in memory vs spilled to disk" trade-off。</p>
+<h3 id="通过量数字"><a class="header" href="#通过量数字">通过量数字</a></h3>
+<ul>
+<li>单 Redis 实例: 100K QPS get/set 100B value。</li>
+<li>单 Postgres 16 CPU: 30K 写 TPS (取决于 fsync)+ 100K 主键读 (cache hit)。</li>
+<li>Kafka 单 broker: 200MB/s (1MB batch), 50k msg/s。</li>
+<li>单 nginx worker: 100K req/s 静态资源。</li>
+<li>RDMA/DPDK NIC: 100Gbps 充分能用 ~50Gbps user。</li>
+</ul>
+<h3 id="人的智力评估-不写-1b-qps"><a class="header" href="#人的智力评估-不写-1b-qps">人的智力评估: 不写 1B QPS</a></h3>
+<p>当有人在白板上说"业务量 100B QPS", 立刻判断不可能: 全球互联网骨干带宽 ~100 Tbps, 平均 request 1KB → 12.5 GB/s = 100 billion bytes/s = 100GB/s, 但中 国 全国骨干 1 PBps ≈ 1 思-构成 . <strong>总量级快速否决掉无意义需求</strong>。</p>
+<hr />
+<h2 id="二8-个工业例题"><a class="header" href="#二8-个工业例题">二、8 个工业例题</a></h2>
+<h3 id="例1-1-million-dau-social-media-platform"><a class="header" href="#例1-1-million-dau-social-media-platform">例1: 1 million DAU social media platform</a></h3>
+<p>输入: 1M DAU, 每用户 30 分钟浏览 feed, 每分钟 scroll 5 屏, 每屏 10 posts, 每 post 30 chars + 1 image 100KB.</p>
+<p>Throughput estimate:</p>
+<ul>
+<li>daily scroll time = 1M × 30 = 30M minutes × 5 × 10 = 1,500M post views / day.</li>
+<li>365 = 547.5B post-views/year (~17 reports/秒 average).</li>
+<li>Peak hour rate: 30× avg → ~17×30 ≈ 510 RPS peak.</li>
+</ul>
+<p>Storage:</p>
+<ul>
+<li>1K posts/day/user × 1M × 30KB = 30GB/day, 11TB/year.</li>
+</ul>
+<p>Cache strategy:</p>
+<ul>
+<li>Hot 7-day data cache hot feed = 7 × 30 = 210GB in Redis; ≤1GB cache per dedicated Redis instance = 210 instances = 不实际.</li>
+<li>Post content to S3 11TB/year × $0.023 = $5.7/month incremental.</li>
+</ul>
+<p>瓶颈 is not posts but feed images. CDN + thumbnail = cache hit 90%.</p>
+<h3 id="例2-500k-active-concurrent-voip-buddy-pre-built"><a class="header" href="#例2-500k-active-concurrent-voip-buddy-pre-built">例2: 500K active concurrent VoIP-buddy pre-built</a></h3>
+<p>输入: 一个 5 人 call, 每人 2MBps 1080p video (1-way), mesh top.</p>
+<ul>
+<li>Total uplink = 5 users × 2 MBps = 10 MBps, full mesh 4 downlink / user (4 MBps total transmit per user) → 5 × 4 = 20 MBps total → 160 Mbps per call.</li>
+<li>100K concurrent calls = 16 Tbps server relay media (SFU model) - 需要 ~160 个 server 100Gbps NICs.</li>
+</ul>
+<p>Mesh won't work at 5 users总带宽太重 → SFU (selective forwarding unit) routing. LiveKit/Jitsi 都这样.</p>
+<h3 id="例3-银行账户-100k-tps"><a class="header" href="#例3-银行账户-100k-tps">例3: 银行账户 100K TPS</a></h3>
+<ul>
+<li>100K TXN/s insert/update to ACID database with fsync NVMe:</li>
+<li>100K / 30K = 3.33x oversubscribed single Postgres → sharding by acctId 必需.</li>
+<li>4 shards × 1 primary + 2 replicas each = 12 instances 16-core.</li>
+<li>~$3K × 12 = $36K/month instance; storage capex 1TB × $0.10 / GB / month × 4 = $400/month.</li>
+</ul>
+<h3 id="例4-1b-iot-遥测-ingest"><a class="header" href="#例4-1b-iot-遥测-ingest">例4: 1B IoT 遥测 ingest</a></h3>
+<ul>
+<li>1B devices × 100KB/day = 100TB/day ingest.</li>
+<li>Kafka at 200MB/s/broker × 1 day = 17TB/broker/day → 100/17 = 6 brokers (we need ~ 7-8 brokers with replication).</li>
+<li>Storage hot-30day: 3PB cold storage → S3 Glacier $0.00099/GB × 3M GB = $3K/month.</li>
+</ul>
+<h3 id="例5-1m-qps-product-detail-page"><a class="header" href="#例5-1m-qps-product-detail-page">例5: 1M QPS product detail page</a></h3>
+<ul>
+<li>1M QPS, response ~5KB.</li>
+<li>Egress = 5 GB/s = 40Gbps — 需要 ~40-50 × CDN edge nodes at 1 Gbps each.</li>
+<li>Most cached 90% = 900K QPS from CDN; 100K back to origin = 5 GB/s divide microservices.</li>
+<li>DB read 100K/s = 16-core Postgres ×4 with read replicas + cache layer.</li>
+</ul>
+<h3 id="例6-email-系统-1b-users"><a class="header" href="#例6-email-系统-1b-users">例6: Email 系统 1B users</a></h3>
+<p>NOT feasible: world internet users ~5B. So 1B users plausible.</p>
+<ul>
+<li>1B users × 500 emails/month = 500B email/month = 16.6B emails/day = 200K emails/sec.</li>
+<li>单 SMTP server ~500 emails/sec → 400 servers just for SMTP receiving. Storage 50GB/user × 1B = 50EB storage - S3 Glacier maybe $50M/month. Not practical.</li>
+</ul>
+<p>实际 webmail 1B users selectively delete + hot tier compressed only 1GB/user.</p>
+<h3 id="例7-mapreduce--spark-1pb-数据-day"><a class="header" href="#例7-mapreduce--spark-1pb-数据-day">例7: MapReduce / Spark 1PB 数据 day</a></h3>
+<ul>
+<li>100 nodes × 1Gbps = 100TB/day linear scalability.</li>
+<li>For 1PB/day → need 10× = 1000 nodes minimum. Cost per node $3/h × 24h × 1000 × 30 days = $2.16M/month.</li>
+</ul>
+<p>实际 Spark/Databricks 提供自动 spot pricing 折扣.</p>
+<h3 id="例8-1m-qps-social-network-timeline-排序-频-率熵的"><a class="header" href="#例8-1m-qps-social-network-timeline-排序-频-率熵的">例8: 1M QPS social-network Timeline 排序 频 率熵的</a></h3>
+<ul>
+<li>1M QPS × 100ms rank (cached 99% because social media hot user fanout architecture).</li>
+<li>1% cache miss = 10K actual ranking hits DB / backend ranking service.</li>
+<li>Dragon-style score ranking service at 10K/s with model inference (8-core GPU) → 10 × 8-GPU = 80 GPUs.</li>
+</ul>
+<hr />
+<h2 id="三易错点"><a class="header" href="#三易错点">三、易错点</a></h2>
+<h3 id="1-缓存层是-memory-1000-cost-of-ssd"><a class="header" href="#1-缓存层是-memory-1000-cost-of-ssd">1: 缓存层是 memory @1000× cost of SSD</a></h3>
+<p>不是想"add Redis 减压 DB", 而要先算 cache 命中率与 capex.</p>
+<h3 id="2-数据库的-fsync-是-sequential-几乎-wall-clock-bound"><a class="header" href="#2-数据库的-fsync-是-sequential-几乎-wall-clock-bound">2: 数据库的 fsync 是 sequential 几乎 wall-clock bound</a></h3>
+<p>PostgreSQL 在 NVMe 上 30K 写 TPS (1ms fsync time serial) regardless of cores. 不能 "加几个 core" 翻倍. 必分片。</p>
+<h3 id="3-带宽与突发"><a class="header" href="#3-带宽与突发">3: 带宽与突发</a></h3>
+<p>1Gbps WAN port 是满 100MB/s, 但 BDP (bandwidth-delay product) for 70ms transcontinental link = 100MB × 70ms / 8 (1Gb / 8MB) ≈ 8.75MB "in flight buffer"; saturate 必须 windowing.</p>
+<h3 id="4-gw-跨区--rtt-不在你控制"><a class="header" href="#4-gw-跨区--rtt-不在你控制">4: GW 跨区 ⇒ RTT 不在你控制</a></h3>
+<p>跨美 RTT 即 80ms. 想在 followup 内完成就是 fail-over 才行. 进入 multi-region 必须 数据异步复制.</p>
+<h3 id="5-number-skew-在极端-cluster-不-linear"><a class="header" href="#5-number-skew-在极端-cluster-不-linear">5: Number skew 在极端 cluster 不 linear</a></h3>
+<p>要么 Amdahl 负载分布限制 50% scale ceiling, 要么 long tail latency tail P99 远超-datadog / 不平 arrierianment.</p>
+<h3 估算="">6: 内存使用 vs cache</h3>
+<p>OSS 用 Redis cache, 不等于 1TB memory = 1TB cache for free. 突发 cache write 涨 OSS heap 80% induced eviction not subsample.</p>
+<hr />
+<h2 id="四典型事故"><a class="header" href="#四典型事故">四、典型事故</a></h2>
+<h3 id="twitter-2010-fail-whale"><a class="header" href="#twitter-2010-fail-whale">Twitter 2010 Fail Whale</a></h3>
+<ul>
+<li>Kestrel queue 笑 HA videos match pip estimation scalability missing hit data put processing singleton 2 000 错 看 ha 实际 use 额.</li>
+<li>Fix: Redis hot use BOE real sharded partition cap (Migration to Manhattan + Redis + memcached.).</li>
+</ul>
+<h3 id="apple-card-launch-2019-拇-指-较-少"><a class="header" href="#apple-card-launch-2019-拇-指-较-少">Apple Card launch 2019 拇 指 较 少</a></h3>
+<p>queue delay pre-launch BOE wrong pin jump 10× load peppercorns vs predicted瞬 financepe GDP 实Be 一 verification DB connection pool 实 explained.</p>
+<ul>
+<li>Fix: 立即 add 10× read replicas + Golding HBase circumvent relational Connection tests.</li>
+</ul>
+<h3 id="uicolored-with-compute-resources-500-users-best-case-10k-worst-case"><a class="header" href="#uicolored-with-compute-resources-500-users-best-case-10k-worst-case">UIColored with compute resources: 500 users best case, 10K worst case</a></h3>
+<p>SaaS startup 测试 100 users staging → production scaling 50 → 1 万 worst case 5× 胜 ince burn rate.</p>
+<hr />
+<h2 id="五练习题"><a class="header" href="#五练习题">五、练习题</a></h2>
+<ol>
+<li><strong>1 million DAU chat system</strong>, 平均每 user 100 messages / day, 每天 active 6 hours, peak factor 5×. 网络 QPS / DB 写 QPS / 持久化 storage / day.</li>
+<li><strong>10 million DAU 电商</strong>, 平均每 user浏览 50 pages/day, 每页 20 product thumbnails cached 95%. 回源 QPS, 带 宽产.</li>
+<li><strong>Slack 10K concurrent active users</strong> in 1 workspace, 平均 message 1KB 单条 4 messages/min/person. 网络与 WS-side throughput.</li>
+<li><strong>720p live video Streaming platform 1M co-current watchers</strong>, 单 streamer. 出口带宽 &amp; server count for SFU routing.</li>
+<li><strong>Walk: Estimate iPhone storage</strong>: user avg 20 apps × 100MB + 500 camera photos × 5MB + 200 videos × 50MB = 13GB+:</li>
+</ol>
+<hr />
+<h2 id="六易错清单"><a class="header" href="#六易错清单">六、易错清单</a></h2>
+<ol>
+<li><strong>fsync 是 sequential, 不是 parallel</strong>: 一个 disk fsync bulk 1ms. 不要 nest 同 sequential ramp.</li>
+<li><strong>NIC bandwidth is symmetric</strong> but cloud 公網 提供 burst 但不 sustained: 100Gbps 利 fillshop Almost不合ed-配mir 频.</li>
+<li><strong>Cloud pricing reads vs writes</strong> can be 10× different: S3 PUT vs GET count 异 步 price diff. 月 1B PUTs = $5K.</li>
+<li><strong>CDN cost is per GB egress 不是 QPS</strong>: Hot CDN 50TB/month = $0.05/GB × 50T = $2.5K (CloudFront).</li>
+<li><strong>Latency budget by user &lt; 100ms 限所有 hops</strong>: CDN edge 5ms + API 50ms + DB 查询 20ms 总 budget 不能超过 100ms real user P95.</li>
+<li><strong>Cache hit ratio optimization is exponential rewards</strong>:
+<ul>
+<li>50% cache hit → origin load 50%.</li>
+<li>90% cache hit → origin load 10%.</li>
+<li>99% cache hit → origin load 1%.
+add 9% hit ratio cuts origin load 10×; Jacobian divergence.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="七这一章带走的东西"><a class="header" href="#七这一章带走的东西">七、这一章带走的东西</a></h2>
+<ol>
+<li>Back-of-Envelope 让您在 5 分钟内拉白板 +钢结构 cap 业务量.</li>
+<li>Latency numbers 提供首要 reference (L1 ns / L2 3-4 ns / DRAM 100 ns / NVMe 4KB 100µs / 同城 RTT 1-2ms / transcontinental 60ms) 让您 tragen 时快 比 唇某 brute tested wonder.</li>
+<li>fsync 是 sequential ~1ms: 不能伸缩 by cores. must shard.</li>
+<li>Spark/Kafka 1PB/day ~= 1000 nodes + $2M/month. Not trivial. 看 boss.</li>
+<li>Cache hit ratio small gains scale exponentially → "add cache then optimize hit ratio before backend scale".</li>
+<li>CDN egress + GitHub Action dependencies 多 storage v 陨 cost infra cross razor always sebastopol consider Latencygenerator 整 布局.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="littles-law.html">Little's Law</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../system-design/estimation/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../system-design/estimation/littles-law.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../system-design/estimation/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../system-design/estimation/littles-law.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

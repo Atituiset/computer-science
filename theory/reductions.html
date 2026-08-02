@@ -1,0 +1,430 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>7. Polynomial-time reduction：3-SAT → Clique → Vertex Cover - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="7-polynomial-time-reductions-3-sat--clique--vertex-cover--hamiltonian--tsp"><a class="header" href="#7-polynomial-time-reductions-3-sat--clique--vertex-cover--hamiltonian--tsp">7. Polynomial-time Reductions: 3-SAT → Clique → Vertex Cover → Hamiltonian → TSP</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>归约链是 NPC 理论的"瑞士军刀". 学会一条归约, 你把"我新问题 A 是否 NPC" 化为"能否找到已知 NPC 的 $B$ 并多项式把 $B$ 实例编码成 $A$ 实例". 1972 年 Karp 给出 21 个经典 NPC 问题的归约网; 1978 Garey-Johnson 红宝书系统化. 本章给你 5 条最实用归约, 让你看新问题立刻判断难度.</p>
+<hr />
+<h2 id="一归约的形式化"><a class="header" href="#一归约的形式化">一、归约的形式化</a></h2>
+<p>$A \leq_p B$ iff 存在多项式可计算 $f$ 使 $x \in A \Leftrightarrow f(x) \in B$. 性质:</p>
+<ul>
+<li>传递: $A \leq_p B &amp; B \leq_p C \Rightarrow A \leq_p C$.</li>
+<li>反: 若 $B \in P$, $A \in P$.</li>
+<li>用法识别 "A 是否 NPC": 已知 NPC $C \leq_p A \Rightarrow A$ NP-hard.</li>
+</ul>
+<p>Bridge with <code>complexity.md</code>: 经典 NP-complete 证明骨架, 可以把 Cook-Levin SAT — 找出一条 poly reduction chain.</p>
+<hr />
+<h2 id="二3-sat-to-clique"><a class="header" href="#二3-sat-to-clique">二、3-SAT $\to$ Clique</a></h2>
+<h3 id="21-双方定义"><a class="header" href="#21-双方定义">2.1 双方定义</a></h3>
+<ul>
+<li><strong>3-SAT</strong>: 给 CNF 公式 $\phi = \bigwedge_{i=1}^m C_i$, 每 $C_i$ 是 $\geq 3$ literals OR; 问是否有指派使 $\phi$ true.</li>
+<li><strong>Clique</strong>: 给图 $G, k$; 问 $G$ 是否含 size $\geq k$ 的全连子图.</li>
+</ul>
+<h3 id="22-归约"><a class="header" href="#22-归约">2.2 归约</a></h3>
+<p>把 3-SAT 公式转 graph:</p>
+<ul>
+<li>每个 clause $C_i$ 引入 3 vertex, 一一对应一个 literal.</li>
+<li>加入边 $(u, v)$ for all $u, v$ 不同 clause 且 $u, v$ <strong>不矛盾</strong> (不是 $x, \neg x$ 命 Semantic 同).</li>
+</ul>
+<p>问: G 有 $k=m$ 的 clique?</p>
+<p><strong>正确性</strong>:</p>
+<ul>
+<li>若 $\phi$ 满足: 每 clause 至少一 true literal; 每 clause 取一选满足 vertex 入 clique; 因选入两两不矛盾 (因 $\neg x$ 与 $x$ 不能同时 true), 两两都连边.</li>
+<li>反, 若 $G$ 含 size $m$ clique: 因每 clause 内部顶点全不连 (clauses 内不连 any 边), 必每 clause 出一个 vertex 入 clique; 该 vertex 对应 true literal ⇒ 指派; 故 $\phi$ 满足.</li>
+</ul>
+<p>多项式构造, size $O(m \cdot 3) = O(m)$ vertex, $O(m^2)$ edge ⇒ poly.</p>
+<hr />
+<h2 id="三clique-to-vertex-cover"><a class="header" href="#三clique-to-vertex-cover">三、Clique $\to$ Vertex Cover</a></h2>
+<p>设 $G, k$ 实例为 clique. 取补图 $\bar G = (V, \bar E)$, 即所有在 $G$ 中没有的边都在 $\bar G$ 中.</p>
+<ul>
+<li>$G$ 有 $k$-clique $\Leftrightarrow$ $\bar G$ 在 $\bar E$ 上"对所有边两两不相邻 $→$ 选 $n - k$ 顶点 cover"</li>
+</ul>
+<p>更准确, 用<strong>独立集 (Independent Set)</strong> 中间桥. IS 不相邻顶点集. IS(G, k) ⇔ Clique(补图 G, k). 又 IS $\Leftrightarrow$ VC: $G$ 有 $k$-IS ⇔ $G$ 有 $n-k$-VC (顶点 cover; 任非 VC → 其经的边没 cover → 是边就 toggle off vc 端 = independent).</p>
+<p>工程 shorthand: <strong>clique / IS / VC</strong> 三连环, 构造相同.</p>
+<hr />
+<h2 id="四3-sat-to-hamiltonian-cycle-direct"><a class="header" href="#四3-sat-to-hamiltonian-cycle-direct">四、3-SAT $\to$ Hamiltonian Cycle (direct)</a></h2>
+<p>构造 graph $G$ 含"variable gadgets" $+$ "clause gadgets". 每个 variable 产生图链"取 true 路径 vs 取 false 路径"; 每个 clause "给 jam ride-through 顶点" 必须有某 variable 选自洽所反. classic Garey-Johnson §3.1.3, 实现复杂. (size O(mn) 量级)</p>
+<p>工程经验: Hamiltonian Cycle NPC 证明 → 顺推 TSP NPC.</p>
+<hr />
+<h2 id="五hamiltonian-cycle-to-tsp-decision"><a class="header" href="#五hamiltonian-cycle-to-tsp-decision">五、Hamiltonian Cycle $\to$ TSP (decision)</a></h2>
+<p>给图 $G$, 是 hamiltonian? 构造完全图 $K_n$, 给 weight 1 if $(u,v) \in E$, else 2. 设 upper bound $k = n$. 有 hamiltonian $\Leftrightarrow$ 有 cost $n$ 的 TSP tour.</p>
+<p>这个<strong>简单到 bake</strong> 但清楚 TSP 也 lock-into NPC.</p>
+<hr />
+<h2 id="六hamiltonian-to-subset-sum-to-01-knapsack"><a class="header" href="#六hamiltonian-to-subset-sum-to-01-knapsack">六、Hamiltonian $\to$ Subset Sum $\to$ 0/1 Knapsack</a></h2>
+<p>复杂归约链, 子和集 - 用"数字 carry" 把 vertex 看成"数字位重量" T-spaces 中合并 - 把"顺序走 vertex" 变"指数集" encoding. 详细见 CLRS 第 34 章.</p>
+<p>弱 vs 强: 0/1 Knapsack 是 <strong>weak NPC</strong>: 由于数值在 unary input 下 $O(nW)$ FPTAS, 在 binary input 下 NPC.</p>
+<hr />
+<h2 id="七subset-sum-to-integer-programming"><a class="header" href="#七subset-sum-to-integer-programming">七、Subset Sum $\to$ INTEGER PROGRAMMING</a></h2>
+<p>整数规划: ${x \in \mathbb{Z}^n \mid Ax = b, x \geq 0}$ 存在? 数字 a_i 行直接变 A 行 identity; $b$ = target. 代码:</p>
+<pre><code class="language-python">def subset_sum_to_IP(nums: list[int], target: int):
+    n = len(nums)
+    A = [[0]*n for _ in range(1+n)]   # one row per num-bound, one = sum-target row
+    
+    # constraint: 0 ≤ x_i ≤ 1  AND  sum(nums[i] * x_i) = target
+    A = [[0]*n for _ in range(n)]   # binary constraint row each
+    for i in range(n):
+        A[i][i] = 1
+    b = [1]*n  # 0 ≤ x_i ≤ 1; x_i is bounded + non—neg
+    
+    # plus target equation
+    A.append(list(nums))
+    b.append(target)
+    
+    return A, b
+</code></pre>
+<p>→ 0/1 IP NPC. linear relaxation (allow real) ∈ P. 靠 LP 侧面 tactic — 紧致 / 分支定界 / cutting plane / IP solver (Gurobi) 在工程上有时秒杀百万维.</p>
+<hr />
+<h2 id="八3-sat-to-coloring-to-timetable"><a class="header" href="#八3-sat-to-coloring-to-timetable">八、3-SAT $\to$ Coloring $\to$ Timetable</a></h2>
+<p>3-coloring: 给 graph G 找 3 着色使每邻边异色? NPC. 4-coloring planar graph 但有 Avis-Hujter-Müller 解决; 实际地图 4 色定理, planar 4-col polynomial (any planar graph ≤ 4 colourable, polynomial).</p>
+<p>→ timetabling/scheduling 经常化成 coloring 变种 (cheduling) 直接 NPC, 大型院校长期用启发式.</p>
+<hr />
+<h2 id="九归约链总结表"><a class="header" href="#九归约链总结表">九、归约链总结表</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>起点</th><th>终点</th><th>用途</th></tr></thead><tbody>
+<tr><td>3-SAT</td><td>Clique</td><td>NP 最 primitive</td></tr>
+<tr><td>Clique</td><td>IS</td><td>trivial (补图)</td></tr>
+<tr><td>IS</td><td>VC</td><td>trivial (size 翻)</td></tr>
+<tr><td>3-SAT</td><td>Hamiltonian Chain</td><td>gadget 设计</td></tr>
+<tr><td>Hamiltonian Chain</td><td>TSP</td><td>完全图 weight trick</td></tr>
+<tr><td>3-SAT</td><td>Coloring</td><td>gadget 设计</td></tr>
+<tr><td>Coloring</td><td>Timetabling</td><td>label 设算法下界</td></tr>
+<tr><td>3-SAT</td><td>Subset Sum</td><td>编码 to 整数</td></tr>
+<tr><td>Subset Sum</td><td>Knapsack</td><td>二进制整数 programming</td></tr>
+<tr><td>Subset Sum</td><td>Integer Programming</td><td>矩阵 encoding</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="十实战-第一次见新问题"><a class="header" href="#十实战-第一次见新问题">十、实战: 第一次见新问题</a></h2>
+<p>第三步检查 (Karp's methodology, classic checklist):</p>
+<ol>
+<li><strong>是 P?</strong> 先想多项式算法.</li>
+<li><strong>是 NPC?</strong> 找 NPC $B$ 归约到 $A$; 给 certificate 和 verify (证明 A ∈ NP).</li>
+<li><strong>是真 P 的子?</strong> 弱 NPC (Knapsack with FP), 才考虑 pseudo-poly.</li>
+</ol>
+<pre><code class="language-python">def verify_certificate_format(prob: str, answer, inst):
+    if prob == 'clique':
+        return len(answer) == inst.k or all(
+            (a, b) in inst.G.edges or (b, a) in inst.G.edges
+            for a in answer for b in answer if a != b
+        )
+</code></pre>
+<p>工程脑 showsomer. 没有时间愁 L. Just pad 验证一下, 上 IPC prefers direct; 用 tactic.</p>
+<hr />
+<h2 id="十一问题流速图"><a class="header" href="#十一问题流速图">十一、问题流速图</a></h2>
+<pre class="mermaid">flowchart LR
+    SAT --&gt; 3SAT
+    3SAT --&gt; Clique
+    3SAT --&gt; Coloring
+    3SAT --&gt; Hamiltonian
+    3SAT --&gt; SubsetSum
+    3SAT --&gt; BinPacking
+    Clique --&gt; IS
+    IS --&gt; VC
+    Hamiltonian --&gt; TSP
+    SubsetSum --&gt; Knapsack
+    SubsetSum --&gt; IP
+    Hamiltonian --&gt; LONGESTPATH
+</pre>
+<p>— 即使是新问题, 一个编码$\langle M, w \rangle$ 之直接 fit to (e.g.) SAT, 仔细  evidence.</p>
+<hr />
+<p>下一节 → <a href="approximation.html">Approximation Algorithms</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../theory/complexity.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../theory/approximation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../theory/complexity.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../theory/approximation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,495 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Join 顺序、hash join vs nested loop - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="join-顺序hash-join-vs-nested-loop"><a class="header" href="#join-顺序hash-join-vs-nested-loop">Join 顺序、hash join vs nested loop</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>Join 是多表查询核心。三种基本算法：Nested Loop（小表 + 索引）、Hash Join（大表等值连接 + 在内存 fit）、Merge Join（已排序）。本节走完三种 join 的 inner structure、planner 选择的 cost 估算、work_mem 与 hash join 落盘、Semi / Anti / Cross join 的语义、PostgreSQL 与 MySQL 的不同 join 实现（PG 9 加 hash join 后 8 没有原生直到 8.0.18）。</p>
+<hr />
+<h2 id="一nested-loop-join"><a class="header" href="#一nested-loop-join">一、Nested Loop Join</a></h2>
+<pre><code class="language-python">def nested_loop(outer, inner):
+    for r1 in outer:
+        for r2 in inner:
+            if r1.joinkey == r2.joinkey:
+                emit(r1, r2)
+</code></pre>
+<p>O(N_outer × N_inner_per_outer)；不含 IO，包含 IO 时 inner 通常 index lookup：</p>
+<pre><code>cost = N_outer × cost_of_lookup_for_one_outer
+cost_of_lookup = random_page_cost × depth(index) + cpu_tuple_cost
+</code></pre>
+<p>适合：</p>
+<ul>
+<li>outer 小（≤ 1000 行，量级）</li>
+<li>inner 有 index 可以 joinkey 快速 lookup</li>
+<li>没 index 且 inner 小 → bnl (block nested loop) 块 buffer</li>
+</ul>
+<p>PG 默认走参数化 index scan：每 outer 行传 joinkey 给 inner index scan：</p>
+<pre><code>Nested Loop
+  -&gt; Seq Scan on outer        (loops=1, rows=N)
+  -&gt; Index Scan on inner      (loops=N, rows=inner_avg_per_key)
+       Index Cond: (inner.fk = outer.id)
+</code></pre>
+<p>inner 的 <code>loops = N_outer</code>，每 loop 是一次 index lookup。</p>
+<hr />
+<h2 id="二hash-join"><a class="header" href="#二hash-join">二、Hash Join</a></h2>
+<h3 id="21-算法"><a class="header" href="#21-算法">2.1 算法</a></h3>
+<pre><code class="language-python">def hash_join(outer, inner):
+    # build phase: 把 inner (smaller) 塞 hash table
+    htable = {}
+    for r2 in inner:
+        htable[hash(r2.joinkey)].append(r2)
+    
+    # probe phase: 走 outer，每行查 hash table
+    for r1 in outer:
+        for r2 in htable.get(hash(r1.joinkey), []):
+            if r1.joinkey == r2.joinkey:
+                emit(r1, r2)
+</code></pre>
+<p>cost = N_inner × (cpu_tuple + hash_op) + N_outer × (cpu_tuple + hash_op + avg_bucket_scan)</p>
+<p>适合：</p>
+<ul>
+<li>双表都大 (1k+)</li>
+<li>joinkey 等值 (<code>=</code>)</li>
+<li>work_mem ≥ N_inner_hash_size</li>
+</ul>
+<h3 id="22-grace-hash-join落盘"><a class="header" href="#22-grace-hash-join落盘">2.2 Grace Hash Join（落盘）</a></h3>
+<p>work_mem 不够时：</p>
+<ol>
+<li>把 inner 与 outer 都 hash 分 N bucket (e.g. 8)</li>
+<li>把 bucket 都 flush 到 disk</li>
+<li>逐 pair bucket (inner_i, outer_i) 进内存跑 hash join → spilled buckets 取一对一对处理</li>
+</ol>
+<p>PG 用 "hybrid hash join"（保留 <code>Hybrid</code> memory，但 spill 部分），实践中 bucket 数适 N。调 <code>work_mem</code>：</p>
+<pre><code class="language-sql">SET work_mem = '64MB';
+SET maintenance_work_mem = '512MB';
+</code></pre>
+<p><code>work_mem</code> 越大 hash join 越可能 1 batch 完成 → 避免 disk batch → query 快 10×。</p>
+<h3 id="23-skew"><a class="header" href="#23-skew">2.3 Skew</a></h3>
+<p>inner 表 joinkey 分布 skew：</p>
+<ul>
+<li>99% row 都 joinkey=NULL → 全入 NULL bucket → huge bucket 落盘</li>
+<li>hash table 中某 bucket 万元素，probe 时 O(N) → 退化为 nested loop</li>
+</ul>
+<p>PG 13+ hash join 加 skew bucket 识别 + 单独处理。Oracle 也类似 "skew-aware hash"。</p>
+<h3 id="24-bloom-filter-加速"><a class="header" href="#24-bloom-filter-加速">2.4 bloom filter 加速</a></h3>
+<p>CockroachDB / Spark：probe 前用 bloom filter 看 outer row 的 joinkey 是否在 inner——免 hash lookup 80% 不命中的 row 立即丢。</p>
+<hr />
+<h2 id="三merge-join"><a class="header" href="#三merge-join">三、Merge Join</a></h2>
+<pre><code class="language-python">def merge_join(outer, inner):
+    outer_iter = sorted_iter(outer)
+    inner_iter = sorted_iter(inner)
+    while outer_iter.has() and inner_iter.has():
+        r1 = outer_iter.peek()
+        r2 = inner_iter.peek()
+        if r1.key &lt; r2.key:
+            outer_iter.next()
+        elif r1.key &gt; r2.key:
+            inner_iter.next()
+        else:
+            emit(r1, r2)
+            # 多个 key 等输出
+            advance_both_with_group()
+</code></pre>
+<p>cost = sort_cost(outer) + sort_cost(inner) + N_outer × cpu_tuple + N_inner × cpu_tuple</p>
+<p>适合：</p>
+<ul>
+<li>双表已按 joinkey 排序（有索引或自然 sorted）—— 避免 sort cost</li>
+<li>大表 + ORDER BY 同时需要的查询</li>
+<li>LONG range join 比较省 mem</li>
+</ul>
+<p>PG 内部 sort work_mem 不够 → 临时 file sort merge。</p>
+<hr />
+<h2 id="四semi-join--anti-join"><a class="header" href="#四semi-join--anti-join">四、Semi Join / Anti Join</a></h2>
+<pre><code class="language-sql">-- Semi Join: outer 行在 inner 出现就 emit 一次 outer
+SELECT u.* FROM users u WHERE u.id IN (SELECT user_id FROM orders);
+
+-- Anti Join: outer 行没在 inner 出现就 emit
+SELECT u.* FROM users u WHERE NOT EXISTS (SELECT 1 FROM orders WHERE user_id = u.id);
+
+-- Cross Join (Cartesian product)
+SELECT u.*, o.* FROM users u, orders o;
+</code></pre>
+<p>PG 实现：</p>
+<ul>
+<li>Semi Hash：build hash on inner subquery 唯一 keys，probe outer</li>
+<li>Anti Hash：同但 emit outer when no match</li>
+<li>Anti Nested Loop：每 outer 行 tech 内 index lookup，没命中则 emit</li>
+<li>Anti Merge：sorted merge，没匹配则 emit</li>
+</ul>
+<hr />
+<h2 id="五joer-加速-tips"><a class="header" href="#五joer-加速-tips">五、Joer 加速 tips</a></h2>
+<h3 id="51-joinkey-索引化"><a class="header" href="#51-joinkey-索引化">5.1 joinkey 索引化</a></h3>
+<pre><code class="language-sql">-- A JOIN B ON A.user_id = B.user_id; 外 B.user_id 上 index
+CREATE INDEX idx_b_uid ON B(user_id);
+</code></pre>
+<p>→ nested loop 适用、cost = N_A × log N_B 但实际 1 index lookup。</p>
+<h3 id="52-减少回表-projection-pushdown"><a class="header" href="#52-减少回表-projection-pushdown">5.2 减少回表 (projection pushdown)</a></h3>
+<pre><code class="language-sql">SELECT u.name, COALESCE(o.amount, 0)
+FROM users u LEFT JOIN orders o ON u.id = o.user_id;
+</code></pre>
+<p>只取 USER_ID + NAME 给 join，再加 amount 从另一索引 plus — 取 B tree index on (user_id, amount) 让 read 不回表。</p>
+<h3 id="53-转换为-pre-aggregated-表"><a class="header" href="#53-转换为-pre-aggregated-表">5.3 转换为 pre-aggregated 表</a></h3>
+<p>星型 schema：fact table (10^9 row) + dim table (10^3 row)，常常 group join → pre-aggregated table 跑 OLAP 查询快。</p>
+<h3 id="54-partition-wise-join"><a class="header" href="#54-partition-wise-join">5.4 Partition-wise join</a></h3>
+<p>PG 13+：把 tables partition 重排，每 partition join（避免 shuffle all）。</p>
+<pre><code class="language-sql">SET enable_partitionwise_join = on;
+SELECT * FROM orders_p1 JOIN users_p1 ON ...
+UNION ALL
+SELECT * FROM orders_p2 JOIN users_p2 ON ...;
+</code></pre>
+<p>MPP databases (Snowflake / Greenplum) 内置支持 distributed join。</p>
+<hr />
+<h2 id="六pg-vs-mysql-vs-memsqlspark-对比"><a class="header" href="#六pg-vs-mysql-vs-memsqlspark-对比">六、PG vs MySQL vs MemSQL/Spark 对比</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>引擎</th><th>Hash Join</th><th>Merge Join</th><th>Nested Loop</th></tr></thead><tbody>
+<tr><td>PostgreSQL</td><td>9+ 主流</td><td>主流</td><td>主流</td></tr>
+<tr><td>MySQL InnoDB</td><td>8.0.18+ 默认</td><td>主流</td><td>主流（5.7 唯一算法）</td></tr>
+<tr><td>Oracle</td><td>Hybrid hash</td><td>Adaptive</td><td>Adaptive</td></tr>
+<tr><td>SQL Server</td><td>In mem/spilled</td><td>默认</td><td>默认</td></tr>
+<tr><td>ClickHouse</td><td>Direct join algorithm</td><td>Direct</td><td>Skip</td></tr>
+<tr><td>Snowflake</td><td>Hash + Bloom</td><td>Sort + Merge</td><td>rare</td></tr>
+</tbody></table>
+</div>
+<p>MySQL 5.7 没 hash join，大表等值 join 跑 8 小时；MySQL 8 hash join 默认后才赶上。</p>
+<hr />
+<h2 id="七产线事故"><a class="header" href="#七产线事故">七、产线事故</a></h2>
+<h3 id="71-mysql-57-没-hash-join-大表-join-灾难得"><a class="header" href="#71-mysql-57-没-hash-join-大表-join-灾难得">7.1 MySQL 5.7 没 hash join 大表 join 灾难得</a></h3>
+<p><code>orders</code> 1 亿 + <code>users</code> 1 千万 JOIN 时间 6 小时（nested loop + index 走深）</p>
+<p><strong>修复</strong>：升 MySQL 8 + 临时把 <code>JOIN</code> 子表 over-tion → hash join 推 plan。</p>
+<h3 id="72-pg-hash-join-work_mem-64mb-不够-spill-8-batches-慢-50"><a class="header" href="#72-pg-hash-join-work_mem-64mb-不够-spill-8-batches-慢-50">7.2 PG hash join work_mem 64MB 不够 spill 8 batches 慢 50×</a></h3>
+<p>work_mem 默认 4MB → 大表 hash join multi-batch → 50 秒 query。</p>
+<p><strong>修复</strong>：业务 session-level <code>SET LOCAL work_mem = '256MB'</code>，让 hash join 1 batch → 5 秒。</p>
+<h3 id="73-oracle-skew-hash-bucket-行-hang"><a class="header" href="#73-oracle-skew-hash-bucket-行-hang">7.3 Oracle skew hash bucket 行 hang</a></h3>
+<p>业务 list JOIN 用 enum type 极少 high card 时单 bucket 90% row → hash join 卡 hours。</p>
+<p><strong>修复</strong>：显式 Hash Join 启用 skew detection hint <code>/*+ HASH_JOIN(司 SKEW) */</code>。</p>
+<h3 id="74-null-joinkey-失败-join-漏行"><a class="header" href="#74-null-joinkey-失败-join-漏行">7.4 NULL joinkey 失败 join 漏行</a></h3>
+<pre><code class="language-sql">SELECT * FROM a JOIN b ON a.x = b.x;   -- x=NULL 的 row 不 emit
+SELECT * FROM a LEFT JOIN b ON a.x = b.x;  -- a.x=NULL 仍 emit (NULL_after_jokk 失配)
+</code></pre>
+<p>修复：业务若需 NULL = NULL considerate，用 <code>a.x IS NOT DISTINCT FROM b.x</code>。</p>
+<h3 id="75-partition-wise-join-调优没生效"><a class="header" href="#75-partition-wise-join-调优没生效">7.5 Partition-wise join 调优没生效</a></h3>
+<p>PG <code>enable_partitionwise_join=on</code> 但 planner 没选 → 因 joinkey 数据类型与分区 key 不匹配。</p>
+<p><strong>修复</strong>：让 partition expr 与 joinkey 类型一致；或子查询 cast hint。</p>
+<hr />
+<h2 id="八易错清单"><a class="header" href="#八易错清单">八、易错清单</a></h2>
+<ol>
+<li><strong>Nested Loop cost</strong> 是 outer × inner_index_lookup_cost；inner 没 index → 灾难</li>
+<li><strong>Hash Join</strong> 需要 work_mem ≥ inner_total_size；不够 spill → 100ms 跌 session</li>
+<li><strong>Merge Join</strong> 必排序；已 sort(从 index 直接) 可省 sort phase</li>
+<li><strong>Semi/Anti</strong> 不会重复 outer 行（emit 一次）</li>
+<li><strong>NULL = NULL</strong> 在 SQL 中是 UNKNOWN，不 join → <code>IS NOT DISTINCT FROM</code> 解决</li>
+<li><strong>MySQL hash join</strong> 8.0.18+ 才默认；老业务上不能 assume</li>
+<li><strong>Partition-wise join</strong> PG 13+ 但要 <code>enable_partitionwise_join=on</code> + 类型对齐</li>
+</ol>
+<hr />
+<h2 id="九这一章带走的东西"><a class="header" href="#九这一章带走的东西">九、这一章带走的东西</a></h2>
+<ol>
+<li>Nested Loop 适合 small outer + inner index；双大 + no index 灾难</li>
+<li>Hash Join 适合双大 + 等值 + work_mem fit；不够 spill 走 hybrid hash</li>
+<li>Merge Join 适合已 sort + ORDER BY 同时</li>
+<li>Semi/Anti join 用 EXISTS/NOT EXISTS 一次 emit；不要重复 LEFT JOIN row</li>
+<li>NULL row 被 <code>=</code> join 排除；用 <code>IS NOT DISTINCT FROM</code></li>
+<li>MySQL 8.0.18+ 才有 hash join；Oracle/PG 默认都有；ClickHouse 极简直接 merge</li>
+<li>PG <code>work_mem = 64MB+</code> + partition-wise join 调参 + 已 sort 表走 merge join = 大表 OLAP 大杀器</li>
+</ol>
+<h2 id="下一节-"><a class="header" href="#下一节-">下一节 →</a></h2>
+<p><a href="vectorized.html">向量化执行、列存</a> — 列存 vs 行存、SIMD + 超标量、Volcano vs vectorized executor</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../databases/optimization/rbo-cbo.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../databases/optimization/vectorized.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../databases/optimization/rbo-cbo.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../databases/optimization/vectorized.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

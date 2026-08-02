@@ -1,0 +1,551 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>物理层 / 数据链路层 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="物理层--数据链路层"><a class="header" href="#物理层--数据链路层">物理层 / 数据链路层</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>物理层（PHY）负责把比特变成可在线缆/光纤/空气中传输的物理信号（电压、光强、电磁波相位），数据链路层（MAC）负责把比特组帧、加校验、处理共享介质的接入冲突。这两层决定了网络的"天花板"：带宽、延迟、丢包率、MTU、抖动。</p>
+<h2 id="思维链"><a class="header" href="#思维链">思维链</a></h2>
+<p>考虑一行 <code>curl https://example.com</code>，从网卡 PHY 出发的完整链路：</p>
+<pre><code>应用层 HTTP -&gt; TLS -&gt; TCP -&gt; IP -&gt; Ethernet MAC/PHY
+                  -&gt; 交换机 (L2 转发, 查 MAC 表)
+                  -&gt; 路由器 (L3 转发, 查路由表)
+                  -&gt; 光纤骨干 (DWDM)
+                  -&gt; 对端路由器 / 交换机
+                  -&gt; 服务器网卡
+</code></pre>
+<p>每一跳都有 PHY → MAC → IP 的拆层 / 装层。这一节要回答：</p>
+<ul>
+<li>以太网帧为什么最小 <strong>64 字节</strong>？</li>
+<li>100G/400G 网卡 PHY 是不是直接打铜线？为什么美团字节都在向 25G 接入、100G 互联、400G spine 切换？</li>
+<li>数据中心为什么大量用光纤而不是 Cat6？DAC（直连铜缆）什么时候比光便宜？</li>
+<li>为什么 1500 字节 MTU 一直没动？jumbo frame 9000 在哪些场景赢？</li>
+<li>PFC / ECN / DCBX 怎么在链路层做流控？为什么 RoCE 必须依赖 PFC？</li>
+</ul>
+<hr />
+<h2 id="以太网帧结构"><a class="header" href="#以太网帧结构">以太网帧结构</a></h2>
+<pre><code>+----------+--------+--------+--------+-----------+--------+--------+
+| Preamble | SFD    | DA     | SA     | EtherType | Payload | FCS   |
+| 7B 10101010| 1B 10101011 | 6B | 6B | 2B        | 46-1500 | 4B CRC |
++----------+--------+--------+--------+-----------+--------+--------+
+                                                             +12B IFG (帧间隙)
+</code></pre>
+<p>最小帧长（不含 preamble/SFD/IFG）= 64 字节，最大（含 4 字节 FCS）= 1518 字节。VLAN tag 加 4 字节 → 1522。</p>
+<h3 id="64-字节最小帧的由来"><a class="header" href="#64-字节最小帧的由来">64 字节最小帧的由来</a></h3>
+<p>CSMA/CD 时代（共享总线 / Hub）：冲突检测要求发送方在帧发完之前能收到对端的冲突信号，否则已经把整帧光发出去了，冲突信号回来已经晚了。</p>
+<pre><code>T_frame &gt;= 2 * T_propagation   (round-trip time)
+</code></pre>
+<p>最长 2.5 km 同轴电缆（10BASE5）≈ 25.6 µs RTT（光速 2/3 c 的铜信号）。10 Mbps 下：</p>
+<pre><code>10 Mbps × 25.6 µs × 2 = 512 bit = 64 byte
+</code></pre>
+<p>→ 最小帧 64 字节恰好是 10 Mbps 下"冲突窗口"的两倍。短数据要 padding 到 64。万兆全双工交换时代 CSMA/CD 已经没用，但 64 字节保留为兼容。</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>高速链路（≥1G）下，"近端冲突信号延迟"在大楼尺度内不足 1µs，远小于 64 字节发送时间。但 64 字节已成为以太网帧法定下限，跨所有速率保留。</p>
+</div>
+<h3 id="1500-字节-mtu-的由来"><a class="header" href="#1500-字节-mtu-的由来">1500 字节 MTU 的由来</a></h3>
+<p>1980 年代以太网用 1500 字节是 <strong>CPU 处理能力和缓冲大小的折中</strong>：</p>
+<ul>
+<li>太大 → 早期网卡没有足够 RAM buffer + CPU 中断处理开销过大</li>
+<li>太小 → 协议头开销比例高（14B header + 4B FCS = 18B 开销）</li>
+</ul>
+<p>1500 在 10 Mbps 下发送 1.2 ms。IEEE 802.3 标准化后锁死，因为 MTU 必须全网一致——改了就跨厂商互不兼容。1998 年 IEEE 802.3ac 引入 jumbo frame 9000 字节为可选，但<strong>互联网路径只能依赖 PMTUD 到 1500</strong>，jumbo 只是在数据中心内部用。</p>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>修改 MTU 时两端必须对称，否则会出现"小包通大包掉"的诡异黑洞。<code>ping -M do -s 1472 target</code> 可以测路径 MTU（1472 = 1500 - 20 IP头 - 8 ICMP头）。</p>
+</div>
+<hr />
+<h2 id="phy--mac-分层"><a class="header" href="#phy--mac-分层">PHY / MAC 分层</a></h2>
+<p>现代网卡（Intel X550 / Mellanox ConnectX-6 / NVIDIA BlueField-3）内部：</p>
+<pre><code>+------+   +--------+   +-----+   +------+   +------+
+| PCIe | &lt;-&gt;| MAC     |&lt;-&gt;| PCS  |&lt;-&gt;| PMA  |&lt;-&gt;| PMD  |&lt;-&gt; 介质
+| (TX/ |    | (RS,    |   | 64b/ |   |serdes|   | optics/
+| RX   |    |  MAC    |   | 66b  |   |      |   | cu   |
+| ring |    |  ctrl)  |   | enc  |   |      |   | laser|
+| ao_) |    +--------+   +-----+   +------+   +------+
++------+
+              ↑                        ↑         ↑
+            MAC 层                   PHY 子层  PHY 子层
+</code></pre>
+<ul>
+<li><strong>MAC</strong>：帧组装、FCS 计算、流量控制、802.1p/q tag、QoS 调度</li>
+<li><strong>RS</strong>（Reconciliation Sublayer）：MAC ↔ PHY 适配</li>
+<li><strong>PCS</strong>：8b/10b、64b/66b、256b/257b 编码 + 对齐</li>
+<li><strong>PMA</strong>：串并转换、CDR（clock data recovery）</li>
+<li><strong>PMD</strong>：物理介质驱动（光 / 铜）</li>
+</ul>
+<h3 id="线路编码为什么不是-8b8b"><a class="header" href="#线路编码为什么不是-8b8b">线路编码：为什么不是 8b/8b</a></h3>
+<p>NRZ 直传时钟会和直流耦合问题撞上：</p>
+<ul>
+<li>长串 0/1 时接收端 CDR 锁不住时钟相位 → bit error rate 上升</li>
+<li>直流分量偏移会破坏隔直电容</li>
+</ul>
+<p>所以需要 <strong>直流平衡 + 跳变密度</strong> 两条件都满足：</p>
+<div class="table-wrapper"><table><thead><tr><th>速率</th><th>编码</th><th>开销</th><th>跳变密度</th></tr></thead><tbody>
+<tr><td>1G Ethernet</td><td>8b/10b</td><td>25%</td><td>至少 3 次/10 bit</td></tr>
+<tr><td>10G Ethernet</td><td>64b/66b</td><td>3.1%</td><td>平均 12 transitions/66 bit</td></tr>
+<tr><td>25G/50G</td><td>64b/66b</td><td>3.1%</td><td>同上</td></tr>
+<tr><td>100G/200G</td><td>64b/66b + RS-FEC (528/514)</td><td>~5% 附加</td><td></td></tr>
+<tr><td>400G/800G</td><td>256b/257b + PCS-FEC</td><td>&lt;1% 编码 + &lt;5% FEC</td><td></td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>8b/10b 用 256 个有效字符 + 12 个控制字符 + 100+ 控制字符的冗余表示，每 8 bit 译码成 10 bit。64b/66b 用 2 bit 同步头提供跳变 + 扰码保证密度，比 8b/10b 节省 22% 带宽。</p>
+</div>
+<hr />
+<h2 id="auto-negotiation-与流控"><a class="header" href="#auto-negotiation-与流控">Auto-Negotiation 与流控</a></h2>
+<h3 id="an-auto-negotiation"><a class="header" href="#an-auto-negotiation">AN (Auto-Negotiation)</a></h3>
+<p>1000BASE-T 通过 FLP（Fast Link Pulse）广播本端能力（速率 / 双工 / 暂停帧支持 / FEC），双方选交集。<strong>强制 Speed/Duplex 是反模式</strong>——一端强制另一端自协商会出现 duplex mismatch（一端 full 一端 half），表现为大量 late collision + 性能崩溃 1/2 倍 + 偶发 timeout。</p>
+<h3 id="ieee-8023x-pause--8021qbb-pfc"><a class="header" href="#ieee-8023x-pause--8021qbb-pfc">IEEE 802.3x Pause + 802.1Qbb PFC</a></h3>
+<p>普通 Pause 帧会把整口堵死。PFC（Priority Flow Control）按 802.1p 优先级 8 个 class 各自独立暂停：</p>
+<pre><code>host A -&gt; switch -&gt; host B
+        switch 出口拥塞 -&gt; 发 PAUSE 帧 (class 3) 给 host A
+        host A 暂停 class 3 发送，其余继续
+</code></pre>
+<p>数据中心 RoCE / RDMA 强依赖 PFC + ECN 实现 <strong>"无损以太网"</strong>（lossless Ethernet）。否则 RoCE 的 credit-based flow control 一旦遇到丢包会重传，PG 暂停秒级。</p>
+<p>实际部署里 PFC 有<strong>死锁 (deadlock)</strong> 风险：A→B、B→C、C→A 互相暂停 → 链路全部冻结。解决：交换机做 deadlock detection + 强制丢弃优先级 head-of-line 帧（vendor-specific；亲测 Arista/Cisco 都要单独配置 <code>pfc watchdog</code>）。</p>
+<hr />
+<h2 id="交换机转发逻辑"><a class="header" href="#交换机转发逻辑">交换机转发逻辑</a></h2>
+<p>L2 交换机核心：</p>
+<pre><code class="language-python">def on_receive(frame):
+    src = frame.src_mac
+    dst = frame.dst_mac
+    mac_table[src] = ingress_port   # 学习
+    if dst in mac_table:
+        forward(mac_table[dst], frame)
+    else:
+        flood(frame, all_ports_except(ingress))  # 未知单播泛洪
+</code></pre>
+<p>CAM 表项老化默认 5 分钟。STP（802.1D）通过 BPDU 计算"根桥 → 端口角色（root/designated/block）"，收敛时间 30-50s；RSTP（802.1w）≤ 1s。</p>
+<p>数据中心用 <strong>SPB</strong> (IEEE 802.1aq) 或 <strong>TRILL</strong> 替代 STP 因为 STP 阻塞端口浪费带宽；现在胖树 spine-leaf + ECMP 已经是事实标准，STP 已经退场。</p>
+<hr />
+<h2 id="数据中心布线铜-vs-光"><a class="header" href="#数据中心布线铜-vs-光">数据中心布线：铜 vs 光</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>Cat6A (10G copper)</th><th>SFP+ DAC</th><th>SFP28 (25G) 光</th><th>QSFP-DD (400G)</th></tr></thead><tbody>
+<tr><td>距离</td><td>100 m</td><td>5 m</td><td>100 m (OM4) / 10 km (SMF)</td><td>100 m - 40 km</td></tr>
+<tr><td>功耗</td><td>0.5 W</td><td>&lt;0.2 W</td><td>1 W</td><td>10 W+</td></tr>
+<tr><td>延迟</td><td>~500 ns/100m</td><td>&lt;10 ns</td><td>~500 ns/100m</td><td>类似</td></tr>
+<tr><td>成本</td><td>低</td><td>最低</td><td>中</td><td>高</td></tr>
+<tr><td>散热难度</td><td>中</td><td>易</td><td>中</td><td>难</td></tr>
+</tbody></table>
+</div>
+<p>机架内 Top-of-Rack 用 DAC（5m 内零功耗）；机架间或跨机房用多模光纤（OM4 100m）；跨 DC 用单模 + DWDM。</p>
+<h3 id="dwdmdense-wavelength-division-multiplexing"><a class="header" href="#dwdmdense-wavelength-division-multiplexing">DWDM（Dense Wavelength Division Multiplexing）</a></h3>
+<p>一根单模光纤可以同时承载 80-160 个波长，每个波长 100G/200G/400G → <strong>单纤 12.8 Tbps+</strong>（中国电信在 2022 年实验室已演示过 104 TBps）。相干光通信（coherent detection）+ DP-QPSK / 16QAM 调制盘活骨干容量。</p>
+<pre><code>C-band 频段 (1530-1565 nm):
+λ_1, λ_2, ..., λ_80  ---  每个间隔 50 GHz ITU grid
+        ↓
+EDFA 光放大器同时放大所有波长 (不需要光-电-光转换)
+        ↓
+经过几千公里到对端，光放大器间距 80-100 km
+        ↓
+要分波时用 OADM (Optical Add-Drop Multiplexer)
+海底光缆常见间距 50-100 km EDFA，每 1000 km 加一个 REGEN（光-电-光再生）
+</code></pre>
+<h3 id="调制效率从-qpsk-到-pm-256qam"><a class="header" href="#调制效率从-qpsk-到-pm-256qam">调制效率：从 QPSK 到 PM-256QAM</a></h3>
+<p>每符号携带的比特数：</p>
+<div class="table-wrapper"><table><thead><tr><th>调制</th><th>bit/sym</th><th>在 50 GHz ITU slot 下速率</th></tr></thead><tbody>
+<tr><td>DP-QPSK</td><td>4</td><td>100G</td></tr>
+<tr><td>DP-16QAM</td><td>8</td><td>200G</td></tr>
+<tr><td>DP-64QAM</td><td>12</td><td>300G</td></tr>
+<tr><td>DP-256QAM</td><td>16</td><td>400G</td></tr>
+</tbody></table>
+</div>
+<p>调制阶数越高 → 每个 symbol 对噪声越敏感 → 容许 OSNR 越高 → 距离越短。所以 DC 内用 PAM4 简单，跨大陆用低阶调制 + 强大 FEC + 相干接收。</p>
+<hr />
+<h2 id="硬件视角mac-到-pcie-dma"><a class="header" href="#硬件视角mac-到-pcie-dma">硬件视角：MAC 到 PCIe DMA</a></h2>
+<h3 id="收包rx路径"><a class="header" href="#收包rx路径">收包（RX）路径</a></h3>
+<pre><code>网线 -&gt; PHY -&gt; MAC RX ring buffer -&gt; DMA 写到 host 内存
+       -&gt; MSI-X 中断 -&gt; NAPI poll -&gt; skb -&gt; netif_receive_skb
+       -&gt; IP/TCP stack -&gt; socket queue -&gt; recvmsg()
+</code></pre>
+<p><code>rx_desc</code> 环（典型 1024-4096 项）由驱动提前把已分配 skb 的物理地址填好。NIC 收到包后 DMA 直接把帧写到 ring 里，<strong>不经过 CPU</strong>。</p>
+<pre><code class="language-bash">ethtool -G eth0 rx 4096 tx 4096      # 调环大小
+ethtool -L eth0 combined 16          # 调 RSS 队列数
+ethtool -N eth0 rx-flow-hash tcp4 sdfn   # 五元组 hash 分队列
+ethtool -S eth0 | grep -E 'rx_missed|rx_no_dma|alloc_rx' # 关键 NIC 计数器
+</code></pre>
+<h3 id="中断与-napi"><a class="header" href="#中断与-napi">中断与 NAPI</a></h3>
+<p>每个 packet 触发一个中断在中带宽下 OK，高 PPS 下 NAPI 切换到轮询：</p>
+<pre><code class="language-c">irq -&gt; napi_schedule() -&gt; softirq NET_RX
+  -&gt; napi_poll() budget=64 一批
+  -&gt; budget 用完或 ring 空 -&gt; 关闭轮询，重新启用 IRQ
+</code></pre>
+<p>高 PPS 下 ring 要大、IRQ affinity 要 pin 到核、与 NUMA 配对、<code>SO_BUSY_POLL</code>、<code>XDP</code> 全部上场。可以打到 10M-50M pps（64B 包）。</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>单线 100Gbps 64B 包 = 148.8 Mpps，超出任何软件路径极限。所以 100G 链路对 64B 小包必须用 XDP + AF_XDP 卸载，或硬件三层路由卸载。线速跑 1500B 包只需 8.3Mpps，仍需 ARR/RSS + busy poll 才能跑满。</p>
+</div>
+<hr />
+<h2 id="多语言示例"><a class="header" href="#多语言示例">多语言示例</a></h2>
+<h3 id="抓包统计python--scapy"><a class="header" href="#抓包统计python--scapy">抓包统计（Python + Scapy）</a></h3>
+<pre><code class="language-python">from scapy.all import sniff, Ether
+from collections import Counter
+counter = Counter()
+def cb(pkt):
+    if Ether in pkt:
+        et = hex(pkt[Ether].type)
+        counter[et] += 1
+sniff(prn=cb, count=100000, store=False)
+print(counter)
+# Counter({'0x800': 95000, '0x86dd': 4000, '0x806': 600})
+</code></pre>
+<h3 id="用-ebpfxdp-在网卡做包过滤c--libbpf"><a class="header" href="#用-ebpfxdp-在网卡做包过滤c--libbpf">用 eBPF/XDP 在网卡做包过滤（C + libbpf）</a></h3>
+<pre><code class="language-c">SEC("xdp")
+int drop_bcast(struct xdp_md *ctx) {
+    void *data = (void *)(long)ctx-&gt;data;
+    void *end  = (void *)(long)ctx-&gt;data_end;
+    struct ethhdr *eth = data;
+    if ((void*)(eth+1) &gt; end) return XDP_DROP;
+    if (eth-&gt;h_dest[0] &amp; 1) return XDP_DROP;   // 广播/组播丢
+    return XDP_PASS;
+}
+</code></pre>
+<p>XDP 程序运行在 driver RX 路径上，还没建 skb 之前，PPS 可达 20M-50M。</p>
+<h3 id="用-go-看内核-nic-计数器gopsutil"><a class="header" href="#用-go-看内核-nic-计数器gopsutil">用 Go 看内核 NIC 计数器（gopsutil）</a></h3>
+<pre><code class="language-go">import "github.com/shirou/gopsutil/v3/net"
+stats, _ := net.IOCounters(true)
+for _, s := range stats {
+    if s.Name == "eth0" {
+        fmt.Printf("rx: %d bytes, %d packets; tx: %d, %d\n",
+            s.BytesRecv, s.PacketsRecv, s.BytesSent, s.PacketsSent)
+    }
+}
+</code></pre>
+<hr />
+<h2 id="易错清单"><a class="header" href="#易错清单">易错清单</a></h2>
+<ul>
+<li>❌ 强制 speed/duplex 又对端 auto → duplex mismatch → 性能腰斩</li>
+<li>❌ 改 MTU 两端不一致 → 黑洞丢包（小包通过，大包掉）</li>
+<li>❌ PFC 配错优先级 → 上行/下行死锁，需要 deadlock detection 兜底</li>
+<li>❌ RJ45 跨 100m 走 Cat5e → 高速误码率上升（10G 必须 Cat6A）</li>
+<li>❌ LACP 两端 hash 算法不一致 → 单流只走一条线（带宽不滚动）</li>
+<li>❌ SFP 模块未在 HCL 列表 → 高温掉线 / CRC 异常上升</li>
+<li>❌ 同一根 DAC 走 4Gbps 但插入新交换机后协商成 1G → SFP+ 协议未握手</li>
+</ul>
+<h2 id="真实生产事故参考"><a class="header" href="#真实生产事故参考">真实生产事故参考</a></h2>
+<ol>
+<li><strong>GitHub 2018 10/21</strong>：BGP 跨数据中心 43 秒错误路由 + OSPF 撤回前缀 + TCP RST 重置连接。事后 GitHub 引入 Anycast + 多供应商 BGP + Manycast DNS。</li>
+<li><strong>Cloudflare 2020 7/17</strong>：Router BGP 把 POP 路由通告到错误 AS_PATH，全球部分流量被黑洞 27 分钟。</li>
+<li><strong>Facebook 2021 10/4</strong>：BGP 撤回权威 DNS 路由 → 全球 6 小时不可访问。根因是内部自动化更新 router 配置前未做任何 dry-run 校验。</li>
+</ol>
+<h2 id="这一章带走的东西"><a class="header" href="#这一章带走的东西">这一章带走的东西</a></h2>
+<ol>
+<li>以太网 64 字节最小帧 = 10 Mbps 下冲突窗口的两倍；CSMA/CD 已废弃但帧格式延续</li>
+<li>PHY 内部 RS/PCS/PMA/PMD 子层；编码从 8b/10b 演进到 256b/257b（DC 平衡 + 跳变密度）</li>
+<li>PFC + ECN = 数据中心无损以太网基石，但需 deadlock detection 防 PFC 死锁</li>
+<li>骨干带宽来自 DWDM + 相干光，单纤 12T+；C-band + EDFA 是 80λ 同纤放大的物理基础</li>
+<li>NIC RX 路径：DMA 写 ring -&gt; MSI-X IRQ -&gt; NAPI poll；高 PPS 必须 XDP/NAPI/busy_poll/numa pin 全套上调</li>
+</ol>
+<p>下一节 → <a href="ethernet.html">以太网帧、CSMA/CD、PHY/MAC</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../networking/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../networking/phy/ethernet.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../networking/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../networking/phy/ethernet.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

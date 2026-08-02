@@ -1,0 +1,599 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>12. 多模态: 跨注意力 / Flamingo / LLaVA / BLIP-2 / 扩散多模态 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="12-多模态-跨注意力--flamingo--llava--blip-2--扩散多模态"><a class="header" href="#12-多模态-跨注意力--flamingo--llava--blip-2--扩散多模态">12. 多模态: 跨注意力 / Flamingo / LLaVA / BLIP-2 / 扩散多模态</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>Transformer 让语言有了统一的"token → embedding → attention"骨架，多模态只剩两件事：<strong>把别的模态编码成向量序列</strong>、<strong>想办法把它和语言对齐</strong>。这一章把三大代表路线讲透：(1) ** reservation-based**（ViT 把图像切块当 token 直接进 LLM，LLaVA）；(2) <strong>cross-attention</strong>（在 LLM 中插额外 K/V 接图像特征，Flamingo / BLIP-2）；(3) <strong>diffusion-based</strong>（文本→图像/视频/音频，Stable Diffusion / DiT）。它们是 GPT-4V / Gemini / Claude-V / Claude-3.5-Sonnet / 多模态 RAG / Sora / 语音模型背后的同一组抽象。</p>
+<p>读完应能：</p>
+<ol>
+<li>区分 reservation-based（拼接）vs cross-attention（旁路）两种多模态接入方式，并说出各自取舍。</li>
+<li>讲清 ViT 怎么把图像变成"token 序列"，CLIP 已在 §10 学过，知道它怎么给多模态做对齐。</li>
+<li>说清 LLaVA / BLIP-2 / Flamingo 的训练数据分布（预训练 + 指令微调）和各自的选择。</li>
+<li>看 Stable Diffusion 的 <code>文本 → UNet → 去噪图像</code> 能说清它和纯扩散的差别在哪，DiT 即 diffusion-on-Transformer 是当前主路。</li>
+<li>给一个产品场景（VQA / 多模态 RAG / 视频理解 / TTS+ASR）选合适的架构。</li>
+</ol>
+<hr />
+<h2 id="一为何多模态变成一个问题"><a class="header" href="#一为何多模态变成一个问题">一、为何"多模态"变成一个问题</a></h2>
+<h3 id="11-语言-vs-视觉信号的张力"><a class="header" href="#11-语言-vs-视觉信号的张力">1.1 语言 vs 视觉信号的张力</a></h3>
+<ul>
+<li>语言：高度离散 + 强语义 + 序列天然。一个 token ≈ 一个语义单元。</li>
+<li>视觉：连续 + 弱语义 + 二维空间关系强。一个像素 ≈ 几乎没语义。</li>
+<li>音频：一维时间序列 + 频域分析友好，每 10-20 ms 一个 frame。</li>
+</ul>
+<p>把视觉塞进 LLM 的本质问题：<strong>用什么粒度切？怎么映射到 embedding？怎么让 LLM 愿意去"读"它？</strong></p>
+<h3 id="12-三条主路"><a class="header" href="#12-三条主路">1.2 三条主路</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>路线</th><th>代表</th><th>怎么接</th></tr></thead><tbody>
+<tr><td><strong>Reservation-based / 早期融合</strong></td><td>LLaVA, Qwen-VL, Intern-VL</td><td>图像切成 patch → 编码 → 当作额外 token <strong>拼在文本 prompt 前面</strong></td></tr>
+<tr><td><strong>Cross-attention / 旁路</strong></td><td>Flamingo, BLIP-2</td><td>LLM 不动，<strong>在 Transformer block 之间插一层 cross-attn</strong> 接图像特征</td></tr>
+<tr><td><strong>Diffusion-based</strong></td><td>Stable Diffusion, DiT, Sora</td><td>文本做 conditionUNet/DiT 的去噪过程，反向过程生成图像 / 视频 / 音频</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>还存在第四条更激进的「tokenizer 路线」: 用 VQ-VAE 把图像/音频 диск化成一个真正的离散词表（如 VQGAN），直接套 LLM 自回归——ESLM / AudioLM / VQGAN-Transformer / Parti 走这条。它统一但训练数据贵，本章末尾会点一下。</p>
+</div>
+<hr />
+<h2 id="二vit图像--token-序列"><a class="header" href="#二vit图像--token-序列">二、ViT：图像 → token 序列</a></h2>
+<h3 id="21-patchify"><a class="header" href="#21-patchify">2.1 Patchify</a></h3>
+<p>ViT（Dosovitskiy 2020）做了一件极简的事：<strong>像 NLP 切 token 一样切图像块</strong>。</p>
+<pre><code>原图 H × W × C
+   └─ 切 P×P 的 patch
+       → 数量 N = (H/P) × (W/P)
+       → 每个 patch 拉平 (P*P*C) 维向量
+       → 线性映射到 D 维
+       → 加上位置编码 (sin/cos 或 RoPE)
+       → 进 Transformer Encoder (就是 BERT 那一套)
+</code></pre>
+<p>示例：224×224 图，P=16，得到 14×14 = 196 个 patch，每个 768 维 → 一个长度 196 的"图像句子"。</p>
+<h3 id="22-与-310-的接"><a class="header" href="#22-与-310-的接">2.2 与 §3、§10 的接</a></h3>
+<ul>
+<li>ViT 的 self-attention 与 <a href="transformer.html">§3 Transformer</a> 完全同构，只是把"token = word"换成"token = image patch"。</li>
+<li>与 <a href="contrastive-learning.html">§10 CLIP</a> 配合：ViT 是 CLIP 视觉分支，CLIP 训练确保 ViT 输出的 embedding 与文本对齐。</li>
+</ul>
+<h3 id="23-spot-问题分辨率与序列长度"><a class="header" href="#23-spot-问题分辨率与序列长度">2.3 spot 问题：分辨率与序列长度</a></h3>
+<ul>
+<li>图像切完细粒度 patch，token 数随分辨率二次方涨：448×448 → 28×28 = 784 patch；高分辨率图 token 列完后轻易几千。</li>
+<li>高分辨率方案：
+<ul>
+<li><strong>动态切片 / AnyRes</strong>：只在物体所在的格子切 patch，整体 token 数下降。</li>
+<li><strong>token 聚合 / pooling</strong>：把 4 个相邻 patch 合一个。</li>
+<li><strong>读懂的 adapter</strong>：如 Q-Former（BLIP-2）把 256patch 摘要到 32 个 query token。</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="三reservation-based-路线llava"><a class="header" href="#三reservation-based-路线llava">三、reservation-based 路线：LLaVA</a></h2>
+<h3 id="31-最小骨架"><a class="header" href="#31-最小骨架">3.1 最小骨架</a></h3>
+<pre><code>LLM (Vicuna / LLaMA / Qwen) ── 标准 Transformer
+   ▲
+   │ 图像 token 拼在前面
+   │
+ViT (CLIP 视觉分支) → projection MLP → image tokens
+</code></pre>
+<p>伪代码：</p>
+<pre><code class="language-python">def llava_forward(image, text_prompt):
+    img_feat = vit(image)                       # [N_patch, D_v]
+    img_tok  = projector(img_feat)              # [N_patch, D_llm]
+    txt_tok  = tokenizer(text_prompt)           # [T, D_llm]
+    seq      = cat([img_tok, txt_tok, ...], 0)  # 拼成一条
+    return llm(seq)                             # 标准 LLM
+</code></pre>
+<h3 id="32-训练两阶段"><a class="header" href="#32-训练两阶段">3.2 训练两阶段</a></h3>
+<ol>
+<li><strong>预训练对齐</strong>（projection MLP）：用图文对（如 LAION-CCN / CC3M），<strong>冻结 LLM 和 ViT</strong>，只学 projection——目标 next-token CE，让 LLM 学会读 image token。</li>
+<li><strong>指令微调</strong>（LLM + projection）：用 GPT-4 生成的视觉指令数据（LLaVA-Instruct），解冻 LLM，让模型学会"看图答题"。</li>
+</ol>
+<h3 id="33-取舍"><a class="header" href="#33-取舍">3.3 取舍</a></h3>
+<ul>
+<li>✅ 极简、复用已有 LLM（不动 attention 结构）、贡献就是 projection + 数据。</li>
+<li>✅ 指令微调几乎和纯文本 SFT 同构 → 工程上友好。</li>
+<li>❌ 图像 token 占主上下文（高分辨率图成千 token），挤占有效文本长度。</li>
+<li>❌ 对视频、长序列（数千帧）不友好 → 后续 Qwen-VL / Intern-VL 加分辨率自适应 + token 聚合。</li>
+</ul>
+<hr />
+<h2 id="四cross-attention-路线flamingo--blip-2"><a class="header" href="#四cross-attention-路线flamingo--blip-2">四、Cross-attention 路线：Flamingo / BLIP-2</a></h2>
+<h3 id="41-思路llm-不动加旁路"><a class="header" href="#41-思路llm-不动加旁路">4.1 思路：LLM 不动，加旁路</a></h3>
+<pre><code>LLM block (decoder-only)
+   ├─ self-attn (原有)
+   └─ cross-attn (新加一层)
+         K, V ← image features
+         Q    ← self-attn 输出的 hidden
+</code></pre>
+<p>每 N 个 block 插一层 cross-attn，让 LLM "看一眼图像特征"。</p>
+<h3 id="42-flamingo2022"><a class="header" href="#42-flamingo2022">4.2 Flamingo（2022）</a></h3>
+<ul>
+<li>Perceiver Resampler：把任意形状的视觉特征（几千 patch）压成 32 个 latent token——这就是 §5.3 那一类 token 聚合更彻底版本。</li>
+<li>Gated cross-attn：cross-attn 的输出去 zero-init + gated，<strong>训练开始时纯走 LLM 不被噪声拉偏</strong>，再逐渐打开 gate——同一思想也用在 <a href="transformer.html">§3 残差初始化</a>。</li>
+<li>用 Interleaved image-text 数据训练（图文交错，比 paired 多得多）。</li>
+</ul>
+<h3 id="43-blip-22023q-former"><a class="header" href="#43-blip-22023q-former">4.3 BLIP-2（2023）：Q-Former</a></h3>
+<p>BLIP-2 的"Q-Former"是一个小 Transformer，<strong>32 个可学习的 query token 去抽 image feature</strong>——可类比 retrieval 的 query，但是是 token-level。</p>
+<pre><code>Frozen image encoder (ViT-G)
+        │
+        ▼
+Q-Former (32 learnable queries)
+        │
+        ▼
+32 个 image token → projection → 拼到 LLM prompt 前面 OR 喂 cross-attn
+        │
+        ▼
+Frozen LLM (OPT / FlanT5)
+</code></pre>
+<p>Q-Former 两阶段训练：(1) 一阶段 vision-language 对比 + 生成 +图文匹配；(2) 接 LLM 学生成。</p>
+<h3 id="44-cross-attn-vs-reservation-取舍"><a class="header" href="#44-cross-attn-vs-reservation-取舍">4.4 Cross-attn vs Reservation 取舍</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>Reservation (LLaVA)</th><th>Cross-attn (Flamingo / BLIP-2)</th></tr></thead><tbody>
+<tr><td>改 LLM 结构</td><td>不改</td><td>加层</td></tr>
+<tr><td>上下文消耗</td><td>占主窗口（图越多越挤）</td><td>几乎不挤</td></tr>
+<tr><td>训练成本</td><td>高（LLM 要微调）</td><td>可冻 LLM</td></tr>
+<tr><td>灵活性</td><td>全参数微调，迁移性强</td><td>多任务接入要重新设计 gate</td></tr>
+<tr><td>视频/多图</td><td>不友好</td><td>更友好（Perceiver Resampler）</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>选型口诀：<strong>要 zero-shot 多模态、上下文压得紧 → cross-attn 路线；要全力微调下游任务、不在乎 token 数 → reservation 路线。</strong> 实际生产里两者越来越融合，例如 Qwen-VL 在 reservation 基础上加 dynamic patch + 摘要，把 cross-attn 的"省 token"优点偷了过来。</p>
+</div>
+<hr />
+<h2 id="五扩散多模态stable-diffusion--dit--sora"><a class="header" href="#五扩散多模态stable-diffusion--dit--sora">五、扩散多模态：Stable Diffusion / DiT / Sora</a></h2>
+<h3 id="51-复习-5-扩散模型"><a class="header" href="#51-复习-5-扩散模型">5.1 复习 §5 扩散模型</a></h3>
+<p>回顾 <a href="generative.html">§5 generative</a>：扩散模型 = <strong>加噪 → 学反向去噪</strong>。生成时从纯噪声开始，一步步去回原图。</p>
+<h3 id="52-文本条件怎么进"><a class="header" href="#52-文本条件怎么进">5.2 文本条件怎么进</a></h3>
+<p><strong>Conditioning</strong>：把文本编码后注入 UNet 的去噪过程。三个层次：</p>
+<div class="table-wrapper"><table><thead><tr><th>层次</th><th>做法</th></tr></thead><tbody>
+<tr><td>全局 cond 向量</td><td>把 CLIP 文本 embedding <code>c</code> 加到 UNet 的中间层（class-conditional 那套）</td></tr>
+<tr><td>Cross-attention</td><td>文本 token 作为 K/V，图像 feature 作为 Q——和 §4 Flamingo 一模一样</td></tr>
+<tr><td>T5 / CLIP 双 stack</td><td>SDXL / SD3 用两个文本 encoder 拼出更丰富的 condition</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>多模态扩散里文本不是模型"输入"，而是<strong>去噪过程的 condition</strong>——文本和图像通过 cross-attn 在每一步去噪时交互。这和 LLaVA 的"拼在前面"是不同的耦合方式。</p>
+</div>
+<h3 id="53-dit用-transformer-替代-unet"><a class="header" href="#53-dit用-transformer-替代-unet">5.3 DiT：用 Transformer 替代 UNet</a></h3>
+<p>DiT（Diffusion Transformer, Peebles &amp; Xie 2023）的核心改动：<strong>把 UNet 的卷积块换成 Transformer block</strong>——self-attn 处理 latent patch + cross-attn 接文本。</p>
+<ul>
+<li>训练好的 scaling：DiT-XL/2 在 ImageNet 给出比 UNet 更好的 FID/CLIP。</li>
+<li>是 <strong>Sora</strong> 的底座：视频被编码成 latent 的 时空 patch 序列，DiT 一次性生成。</li>
+</ul>
+<h3 id="54-latent-diffusionstable-diffusion-的latent含义"><a class="header" href="#54-latent-diffusionstable-diffusion-的latent含义">5.4 Latent Diffusion（Stable Diffusion 的"latent"含义）</a></h3>
+<p>不在像素空间去噪（512×512×3 太大），而是在 <code>VAE encoder</code> 把图像压到 64×64×4 的 latent，去噪过程在 latent 上进行，最后 VAE decoder 还原像素。</p>
+<pre><code>image ──VAE-enc──► latent z (64×64×4)
+                       │
+              diffusion 在 z 上做去噪
+                       │
+                   z_clean
+                       │
+                  VAE-dec
+                       │
+                     image
+文本 condition 通过 cross-attn 注入去噪网络
+</code></pre>
+<h3 id="55-失败模式与对策"><a class="header" href="#55-失败模式与对策">5.5 失败模式与对策</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>现象</th><th>原因</th><th>对策</th></tr></thead><tbody>
+<tr><td>多手多脚</td><td>长文细编码不足 + 采样 step 太少</td><td>增加 text encoder 容量、用 SDXL 的 dual encoder、提高 sampling step</td></tr>
+<tr><td>文本不跟随</td><td>CLIP 文本 embedding 抽象级别太高、condition 强度低</td><td>用 T5 + classifier-free guidance 提高 condition 权重</td></tr>
+<tr><td>构图坏</td><td>无 spatial 约束</td><td>ControlNet / layout-to-image 加空间条件</td></tr>
+<tr><td>视频时间不稳</td><td>各帧独立去噪</td><td>加时间维度的 3D DiT + 视频专用 dataset</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="六视频--音频--跨模态生成"><a class="header" href="#六视频--音频--跨模态生成">六、视频 / 音频 / 跨模态生成</a></h2>
+<h3 id="61-视频"><a class="header" href="#61-视频">6.1 视频</a></h3>
+<ul>
+<li><strong>Sora / Video Diffusion</strong>：DiT 在 时空 latent patch 上做去噪，关键设计：spatial-temporal tokenizer 把视频 cron 化为三维 latent，attention 同时跨空间 + 跨时间。</li>
+<li><strong>长视频一致性</strong>：靠"前 N 帧作为 condition 短去噪出后续几帧"（rollout-conditioned），与 <a href="generative.html">AR 采样</a> 的 cache 一个道理。</li>
+<li><strong>运动 controlled 生成</strong>：Motion Brush / DragNUWA 等用关键点作为额外 condition。</li>
+</ul>
+<h3 id="62-音频tts--asr-互为孪生"><a class="header" href="#62-音频tts--asr-互为孪生">6.2 音频：TTS / ASR 互为孪生</a></h3>
+<ul>
+<li><strong>TTS</strong>（文字 → 音频）：现代系统用 <code>audio codec</code>（EnCodec / SoundStream）把音频变成离散 token，然后<strong>用 LLM 自回归地预测下一 audio token</strong>——VALL-E / SpearTTS / Voicebox。</li>
+<li><strong>ASR</strong>（音频 → 文字）：whisper 用 encoder-decoder Transformer，encoder 处理音频的 mel-spectrogram，decoder 出 token；它就是 §3 的 Encoder-Decoder 派。</li>
+<li><strong>统一语音对话</strong>：GPT-4o / Gemini Live 把 TTS + LLM + ASR 联合训，让端到端语音对话不像"先用 ASR → LLM → TTS 三段管线"那样延迟过大。</li>
+</ul>
+<h3 id="63-跨模态检索clip-已经做了一半"><a class="header" href="#63-跨模态检索clip-已经做了一半">6.3 跨模态检索：CLIP 已经做了一半</a></h3>
+<p>CLIP 把图文塞进同一空间。同理可以做"音频-文本"（CLAP）、"视频-文本"（VideoCLIP）、"code-自然语言"（Byteword embeddings）。核心都是 §10 InfoNCE + 配对数据。</p>
+<hr />
+<h2 id="七多模态训练数据从配对到指令"><a class="header" href="#七多模态训练数据从配对到指令">七、多模态训练数据：从配对到指令</a></h2>
+<h3 id="71-三类数据"><a class="header" href="#71-三类数据">7.1 三类数据</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>类别</th><th>用途</th><th>代表</th></tr></thead><tbody>
+<tr><td><strong>配对</strong>（image-caption）</td><td>对齐预训练</td><td>LAION-5B / CC3M / CC12M</td></tr>
+<tr><td><strong>交错</strong>（interleaved image-text）</td><td>学会"在文本中插图像"的语境</td><td>OBELICS / Multimodal-C4</td></tr>
+<tr><td><strong>指令 / VQA</strong>（problem-solution）</td><td>学任务感</td><td>LLaVA-Instruct / VQAv2 / OK-VQA</td></tr>
+</tbody></table>
+</div>
+<h3 id="72-数据质量决定上限"><a class="header" href="#72-数据质量决定上限">7.2 数据质量决定上限</a></h3>
+<ul>
+<li><strong>caption 噪声大</strong>：网页爬的 alt-text 不一定描述图——多模型自蒸馏（用 LLaVA 生成生成 caption 训新 LLaVA）。</li>
+<li><strong>指令数据少</strong>：人工造贵 → 让 GPT-4 / Claude 看图生问答对。</li>
+<li><strong>极长尾概念</strong>：罕见场景（医学影像、工业缺陷）需要领域微调，不是通用模型能搞定的。</li>
+</ul>
+<h3 id="73-与-8-rlhf-的接"><a class="header" href="#73-与-8-rlhf-的接">7.3 与 §8 RLHF 的接</a></h3>
+<ul>
+<li><strong>多模态 RLHF</strong>：用人类偏好对 (image, prompt, response_chosen / response_rejected) 做 DPO/PPO，和文本 RLHF 完全同构（参考 §8 DPO 公式）。</li>
+<li><strong>RLHF-Curious</strong>：让 VLM 主动选 informative 图像生成，类似 Active Learning。</li>
+</ul>
+<hr />
+<h2 id="八多模态-rag让-vlm-用上图像知识库"><a class="header" href="#八多模态-rag让-vlm-用上图像知识库">八、多模态 RAG：让 VLM 用上"图像知识库"</a></h2>
+<pre><code>query (text)
+   │
+   ▼
+retriever (跨模态 embedding, CLIP-based)
+   │ 从 image+text 库检索 K 个最相关候选
+   ▼
+VLM 读 K 张图 + 原文 → answer
+</code></pre>
+<ul>
+<li>与文本 RAG 唯一的区别：retriever 是 CLIP / BLIP-2 这种跨模态 embedding。</li>
+<li>工程挑战：图像 embedding 大、索引要在 <a href="../databases/optimization/vectorized.html">pgvector</a> / Milvus / Qdrant 这种高维索引上做。</li>
+<li>适用：医学问答、技术文档检索（带图表）、法务合同扫描件检索。</li>
+</ul>
+<hr />
+<h2 id="九benchmark-与评估"><a class="header" href="#九benchmark-与评估">九、Benchmark 与评估</a></h2>
+<h3 id="91-视觉理解-benchmark"><a class="header" href="#91-视觉理解-benchmark">9.1 视觉理解 benchmark</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>名字</th><th>测什么</th></tr></thead><tbody>
+<tr><td>VQAv2</td><td>通用视觉问答</td></tr>
+<tr><td>GQA</td><td>推理 + 关系</td></tr>
+<tr><td>OK-VQA</td><td>需要外部知识的 VQA</td></tr>
+<tr><td>MMMU</td><td>多学科、本科难度的多模态</td></tr>
+<tr><td>MathVista</td><td>数学题带图表</td></tr>
+<tr><td>MMBench / MME</td><td>多维度 VQA 综合</td></tr>
+<tr><td>DocVQA</td><td>文档 OCR + 推理</td></tr>
+</tbody></table>
+</div>
+<h3 id="92-生成评测"><a class="header" href="#92-生成评测">9.2 生成评测</a></h3>
+<ul>
+<li><strong>FID</strong>（Fréchet Inception Distance）：生成图像分布 vs 真实图像分布的距离（用 Inception-V3 抽 feature）。</li>
+<li><strong>CLIP Score</strong>：生成图 + 提示文本的 CLIP 相似度。</li>
+<li><strong>人类评测</strong>：DALL-E / Midjourney 论文标配的人类 preference 比较。</li>
+<li><strong>Video metric</strong>：FVD（Fréchet Video Distance），跟 FID 同思路但捕捉时序。</li>
+</ul>
+<h3 id="93-陷阱vlm-的-hallucination"><a class="header" href="#93-陷阱vlm-的-hallucination">9.3 陷阱：VLM 的 hallucination</a></h3>
+<ul>
+<li><strong>虚假对象</strong>：VLM"看到"图里没有的物体（POPE benchmark 专测这个）。</li>
+<li><strong>固执偏置</strong>：图里只有一只猫，VLM 说"两只猫在玩"——LM 强先验压过视觉。</li>
+<li><strong>位置推理差</strong>：左右、上下、前后极易错，研究者故意造 hard benchmark（GQA spatial）。</li>
+</ul>
+<hr />
+<h2 id="十与前面章节的接口表"><a class="header" href="#十与前面章节的接口表">十、与前面章节的接口表</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>接口</th><th>提供什么</th><th>本部分怎么用</th></tr></thead><tbody>
+<tr><td><a href="transformer.html">§3 Transformer</a></td><td>self-attn / cross-attn / MHA / encoder-decoder</td><td>ViT、cross-attn 路线、ASR/TTS 端到端</td></tr>
+<tr><td><a href="generative.html">§5 generative</a></td><td>扩散 / ELBO / AR</td><td>多模态扩散、视频生成</td></tr>
+<tr><td><a href="contrastive-learning.html">§10 contrastive</a></td><td>InfoNCE / CLIP zero-shot</td><td>多模态对齐预训练、跨模态 retrieval</td></tr>
+<tr><td><a href="tokenizer.html">§7 tokenizer</a></td><td>BPE / VQ 离散化</td><td>audio codec / VQ-VAE 把图像/音频 token 化</td></tr>
+<tr><td><a href="training-at-scale.html">§9 training-at-scale</a></td><td>长 context / 大 batch</td><td>ViT 大分辨率训练、视频 diffusion 训练显存</td></tr>
+<tr><td><a href="agents.html">§11 agents</a></td><td>tool use / code interpreter</td><td>多模态 agent（看网页图、生成图、读图表）</td></tr>
+<tr><td><a href="../info-theory/entropy.html">info-theory</a></td><td>互信息 / 率失真</td><td>latent diffusion 的 VAE 率失真 + 多模态对齐的互信息下界</td></tr>
+<tr><td><a href="../databases/optimization/vectorized.html">DB vector</a></td><td>pgvector / vector 索引</td><td>multimodal RAG 的 retrieval</td></tr>
+<tr><td><a href="../crypto/zkp.html">crypto/zkp</a></td><td>隐私计算</td><td>medical multimodal RAG 隐私 + 隐私审计</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="十一速查表--结束"><a class="header" href="#十一速查表--结束">十一、速查表 / 结束</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回：</p>
+<ul>
+<li><strong>ViT</strong>：图像切成 N 个 patch → 768 维 embedding → 进 Transformer（和 NLP 同构）。</li>
+<li><strong>reservation based (LLaVA)</strong>：image token 拼在 prompt 前 → 改动少 + 训练简单。</li>
+<li><strong>cross-attn (Flamingo / BLIP-2)</strong>：LLM 不动 + 旁路 cross-attn → 省上下文 + 可冻 LLM。</li>
+<li><strong>Q-Former / Perceiver Resampler</strong>：把上千 image feature 摘要成 32 个 token。</li>
+<li><strong>Stable Diffusion</strong>：latent diffusion + 文本做 condition（cross-attn）在 UNet/DiT 去噪。</li>
+<li><strong>DiT</strong>：把 UNet 换 Transformer block，scaling 友好，Sora 的底座。</li>
+<li><strong>TTS/ASR</strong>：audio codec 把音频 token 化 → LLM 自回归；whisper 是 encoder-decoder。</li>
+<li><strong>多模态 RAG</strong>：CLIP 系 retriever + VLM reader；和文本 RAG 只差 retriever。</li>
+<li><strong>数据三件套</strong>：配对 caption → 对齐；交错 image-text → 语境；VQA 指令 → 任务。</li>
+<li><strong>评估</strong>：FID/CLIP-Score（生成），VQA/MMMU/MathVista（理解），POPE（防幻觉）。</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="../_meta/index.html">元抽象卷 · 跨章节大主题</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../ai-ml/agents.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../ai-ml/llm-inference.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../ai-ml/agents.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../ai-ml/llm-inference.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

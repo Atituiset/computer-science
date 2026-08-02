@@ -1,0 +1,447 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>8. Approximation algorithms、hardness of approximation - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="8-approximation-algorithmshardness-of-approximation"><a class="header" href="#8-approximation-algorithmshardness-of-approximation">8. Approximation Algorithms、Hardness of Approximation</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>承认 NPC, 不代表放弃工程实现. <strong>近似算法 (approximation algorithm)</strong> 在多项式时间给出可证近似比 (approximation ratio) 的解. PTAS / FPTAS / APX-hard / PCP theorem 把"是否可近似"也分级——例如 set cover 不可能近似比 $\ln n$ 内, 这条下界由 PCP 定理 (Feige 1998) 给. 本章给你 4 个经典近似例 + 近似下界工具包.</p>
+<hr />
+<h2 id="一定义与记号"><a class="header" href="#一定义与记号">一、定义与记号</a></h2>
+<h3 id="11-approximation-ratio-minmax"><a class="header" href="#11-approximation-ratio-minmax">1.1 Approximation Ratio (min/max)</a></h3>
+<p>对最优问题 (minimization):</p>
+<ul>
+<li>算法 $A$ 的近似比 $\rho_A(n) = \max_{|I| = n} \frac{A(I)}{\text{OPT}(I)}$.</li>
+</ul>
+<p>对 max:</p>
+<ul>
+<li>$\rho_A(n) = \max \frac{\text{OPT}(I)}{A(I)}$ (亦即最小 $r$ 使 $A \geq \text{OPT}/r$).</li>
+</ul>
+<p>$\rho = 1$ 即精确 (VPN optimum); $\rho = 2$ 即 "至少一半好".</p>
+<h3 id="12-ptas--fptas"><a class="header" href="#12-ptas--fptas">1.2 PTAS / FPTAS</a></h3>
+<ul>
+<li><strong>PTAS</strong> (Polynomial Time Approximation Scheme): 对任意 $\epsilon &gt; 0$, 算法 $A_\epsilon$ 给 $\leq (1+\epsilon)\text{OPT}$, 时间多项式 $n^{O(1)}$ 但可指数于 $1/\epsilon$.</li>
+<li><strong>FPTAS</strong>: time poly in $n, 1/\epsilon$. 强, 罕见.</li>
+<li><strong>EPTAS</strong>: poly $n$, exp $1/\epsilon$ but constant (semi-strong).</li>
+</ul>
+<hr />
+<h2 id="二经典近似算法"><a class="header" href="#二经典近似算法">二、经典近似算法</a></h2>
+<h3 id="21-vertex-cover-2-approximation"><a class="header" href="#21-vertex-cover-2-approximation">2.1 Vertex Cover: 2-approximation</a></h3>
+<p>贪心匹配: 任取未匹配边 $(u, v)$, 加入 $u, v$到 cover, 删 $u, v$ 关联边. 重复.</p>
+<pre><code class="language-python">def vertex_cover_2approx(edges: list[tuple[int, int]]):
+    cover, used = set(), set()
+    for u, v in edges:
+        if u in used or v in used:
+            continue
+        cover.update([u, v])
+        used.add(u); used.add(v)
+    return cover
+</code></pre>
+<p><strong>正确性</strong>: 每取一条边 ⇒ 加入 2 个顶点 → cover 终 ≥ 实最优取至少其中一 (因最 OPT 必含 $u$ or $v$, else 边未 cover); matched edges 全 disjoint ⇒ OPT ≥ matched count.
+$\rho \leq 2$.</p>
+<p>注: 设 20+ 年界 1.3606 下界非常 necked; Håstad 2001 证**: 不可能 (在 P≠NP) ratio &lt; 2-o(1). Dinur-Safra 2002 把下界推到 1.36. 二者间 1.36–2 间开放. <strong>2-approximation 20 年无人飞跃</strong>——这就是 NP approximation 困难的实证.</p>
+<h3 id="22-set-cover-ln-approximation"><a class="header" href="#22-set-cover-ln-approximation">2.2 Set Cover: ln-approximation</a></h3>
+<pre><code class="language-python">import math
+
+def set_cover_ln(universe, sets):
+    cover = []
+    U = set(universe)
+    while U:
+        s = max(sets, key=lambda s: len(s &amp; U))
+        cover.append(s)
+        U -= set(s)
+    return cover
+</code></pre>
+<p><strong>贪心比</strong>: 每个 step 添 ≥ $1/k$ of remaining optimum-cover. 总步骤 ≤ $H_n \cdot \text{OPT}$ ($H_n$ 为调和数 ≈ $\ln n$). 故 ratio $\leq \ln n$.</p>
+<p><strong>Hardness</strong>: PCP theorem 后 Feige 1998 证 $\rho &gt; (1-o(1))\ln n$ ⇒ NP $\not\subseteq$ DTIME($n^{O(\lg\lg n)}$).</p>
+<p>→ 当前理论与实际上下界几乎重合, ln-set cover 是"不可超越"的算法.</p>
+<h3 id="23-tsp--metric-2-approximation-and-15-christofides"><a class="header" href="#23-tsp--metric-2-approximation-and-15-christofides">2.3 TSP- Metric: 2-approximation and 1.5 Christofides</a></h3>
+<p><strong>2-approx</strong>: 求最小生成树 (MST), DFS 一遍复制为 tour; 因 MST ≤ OPT, DFS 两次 MST ≤ 2 OPT.</p>
+<p><strong>Christofides (1.5)</strong>: 求奇度 vertex 集 (MST 内偶数 vertex 节点, 数 = even), 用 perfect matching 给奇度配对, 加这些边到 MST → Eulerian 图; 经 Euler tour → shortcut 经三角不等式 → $\leq 1.5\text{OPT}$.</p>
+<p>工程值得: TSP (metric) 用作实际物流工具 H 后 lecele; dynamic programming $O(n^2 2^n)$ 给精确 OPT 还能跑 $n \leq 20$ instances.</p>
+<h3 id="24-knapsack-fptas"><a class="header" href="#24-knapsack-fptas">2.4 Knapsack: FPTAS</a></h3>
+<pre><code class="language-python">def knapsack_fptas(weights, values, W, eps):
+    n = len(weights)
+    Vmax = max(values)
+    scale = max(1, int(eps * Vmax / n))
+    sv = [v // scale for v in values]
+    
+    # DP on reduced value
+    dp = {0: 0}     # reduced_value → min total weight
+    for i in range(n):
+        ndp = dict(dp)
+        for rv, tw in dp.items():
+            nr = rv + sv[i]
+            nw = tw + weights[i]
+            if nw &gt; W:
+                continue
+            if nr not in ndp or ndp[nr] &gt; nw:
+                ndp[nr] = nw
+        dp = ndp
+    
+    best_rv = max(dp)
+    return best_rv * scale
+</code></pre>
+<p>舍入 $\epsilon V_{\max}/n$ ⇒ values range $\leq n \cdot \frac{V_{\max}}{\text{scale}}$, DP table O(n²V_max/scale), 误差 $\leq n \cdot \text{scale} \leq \epsilon V_{\max}$. FPTAS.</p>
+<p><strong>性质</strong>: 0/1 Knapsack 在 input binary 编码下是 weak-NP-hard, partition variant 是 strong-NP (即使数值 unary 仍 NPC). 0/1 非强 NPC → FPTAS.</p>
+<h3 id="25-max-sat-78-approximation"><a class="header" href="#25-max-sat-78-approximation">2.5 MAX-SAT: 7/8-approximation</a></h3>
+<p>随机指派: 每文字 1/2 chance. 期望 satisfied clause 数 ≥ 7m/8.</p>
+<p><strong>Karlin-Williams 7/8 lower bound (1997)</strong>: 任何 $\epsilon$ better → P=NP. <strong>Random rounding ratio 上界与此 close</strong>.</p>
+<p>→ Randomized algorithms 不只好看, 还是 MAX-SAT 实践上最佳.</p>
+<hr />
+<h2 id="三approximation-hardness"><a class="header" href="#三approximation-hardness">三、Approximation Hardness</a></h2>
+<h3 id="31-pcp-theorem-arora-lund-motwani-sudan-szegedy-1992"><a class="header" href="#31-pcp-theorem-arora-lund-motwani-sudan-szegedy-1992">3.1 PCP Theorem (Arora-Lund-Motwani-Sudan-Szegedy 1992)</a></h3>
+<p>PCP (Probabilistically Checkable Proofs) 的语言形式: NP = PCP($O(\log n), O(1)$).</p>
+<p>工程化叙述: NP 任何证明都可被改成一种协议, verifier 仅读 3 个 random bit (consistency 局部) 即可知 $\geq 1-\epsilon$ 确信. 这条定理也是 ∈ IP=PSPACE breakthrough 后果.</p>
+<h3 id="32-gap-amplification"><a class="header" href="#32-gap-amplification">3.2 Gap Amplification</a></h3>
+<p>PCP 把 "证明错误 1 位" 放大到 "\epsilon 错误位 使验证 reject" ⇒ 把 exact problem 转 gap problem "$\text{OPT} \geq c$ vs $\text{OPT} \leq s$".</p>
+<p>例 (MAX-3SAT): GAP versions:</p>
+<ul>
+<li>YES: 可满足全 clause.</li>
+<li>NO: 满 ≤ 7/8 clause.</li>
+</ul>
+<p>若 poly algorithm distinguishes ⇒ P=NP. 故 MAX-3SAT 7/8-approximation <strong>tight</strong>.</p>
+<h3 id="33-inapproximability-results"><a class="header" href="#33-inapproximability-results">3.3 Inapproximability Results</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>问题</th><th>Inapproximability</th><th>Bound</th></tr></thead><tbody>
+<tr><td>MAX-3SAT</td><td>≥ 7/8 ≤ 1 (Håstad 2001)</td><td>tight</td></tr>
+<tr><td>Set Cover</td><td>$\geq (1-o(1))\ln n$</td><td>tight to ln-greedy</td></tr>
+<tr><td>Vertex Cover</td><td>$\geq 1.3606$</td><td>gap vs 2-approx</td></tr>
+<tr><td>TSP-metric</td><td>$\geq$ 123/122 (Karpinski-Lampis-Schmied 2015)</td><td>⇒ 1.5 appears close 但 gap 仍</td></tr>
+<tr><td>Independent Set</td><td>$\geq n^{1-\epsilon}$ for any $\epsilon$, assuming NP $\neq$ ZPP</td><td>huge; = NP-hard to $O(2^{\log^{1-\epsilon} n})$-approx.</td></tr>
+<tr><td>Coloring</td><td>NP-hard to color n²^ε 但 actually coloring-3 always NP-hard</td><td>matches algor if</td></tr>
+<tr><td>Metric Min Multi-Cut-Clique</td><td>logarithmic hard.</td><td></td></tr>
+</tbody></table>
+</div>
+<p><strong>Unique Games Conjecture (UGC, Khot 2002)</strong>: 假设更强约束使某些 hardness 更紧. 现 Vertex Cover 2-approx 等价 UGC. 成熟立但 unverified.</p>
+<hr />
+<h2 id="四practice-接口"><a class="header" href="#四practice-接口">四、Practice 接口</a></h2>
+<p>近似算法的"实现 - 经验" 关键标准:</p>
+<div class="table-wrapper"><table><thead><tr><th>工具</th><th>目标问题</th><th>接口</th></tr></thead><tbody>
+<tr><td>Gurobi / CPLEX</td><td>ILP (incl. TSP, scheduling, bin packing)</td><td>LP-relaxation + cut branch</td></tr>
+<tr><td>OR-Tools / SCP parsers</td><td>Vehicle Routing</td><td>调 2-OPT, 3-OPT, savings</td></tr>
+<tr><td>LocalSolver</td><td>高维 mixed</td><td>simulated annealing + tabu</td></tr>
+<tr><td>Concorde</td><td>TSP 精确</td><td>cut ILP</td></tr>
+</tbody></table>
+</div>
+<p>工程心法: 先写伪多项式 fallback, 再写 approximation lie+ 输出 ratio; 再 fallback heuristic, 比较实践. 给极少数 instances exact DP 实际秒杀 (n ≤ 20), register数万行 ins 何必实际 listen to theory.</p>
+<hr />
+<h2 id="五parameterized-complexity-旁支"><a class="header" href="#五parameterized-complexity-旁支">五、Parameterized Complexity (旁支)</a></h2>
+<p>适合"难度取决于结构参数"问题. FPT (fixed-parameter tractable) for parameter $k$ ⇒ $O(f(k) \cdot \text{poly}(n))$ 算法.</p>
+<p>经典例子:</p>
+<ul>
+<li>Vertex Cover $k$: $O(1.2738^k + k n)$ (Chen-Kanj-Xia 2010).</li>
+<li>Feedback Vertex Set $k$: $O(3^k \cdot k n^2)$.</li>
+<li>Planarity: $O(2^{O(k)} n)$ on planar graphs.</li>
+</ul>
+<p>W-hierarchy 把 hard-beyond likely FPT (W[1], W[2], ...). Hilbert–Laut issue of clique unlikely FPT under ETH.</p>
+<p><strong>ETH (Exponential-Time Hypothesis)</strong>: 3-SAT 不在 SUBEXP. ⇒ $n$-variable 3-SAT requires $2^{\Omega(n)}$ time ⇒ clique ≥ $n^{O(k)}$ 等约束. ETH 已成 21st 世纪 P≠NP 替代.</p>
+<hr />
+<h2 id="六与前面章节的桥"><a class="header" href="#六与前面章节的桥">六、与前面章节的桥</a></h2>
+<ul>
+<li><strong>DSA / dp</strong>: 0/1 Knapsack DP O(nW) vs NP-hard. 这是为什么 DSA terms 算法 often 直接 pseudo-poly, populated by big-W 输入可能爆.</li>
+<li><strong>DSA / greedy</strong>: MST prime-Kruskal 用 subset perspective 看最优子集下 ZIP; approximating 用 MST = TSP 案例.</li>
+<li><strong>第七部分 system-design / estimation</strong>: 当客户问"再便宜的 routing path", 你回"硬 NPC, 但 Christofides 1.5×"; 看下面 capacities good estimate is right-algorithm but not only.</li>
+<li><strong>DB查询优化器</strong>: join order selection is QCQ NPC; commercial systems approximate via DP on left-deep trees, polynomial then exact.</li>
+<li><strong>compiler 内联 inline</strong>: optimal inline planning; heuristics (call frequency profiling) 多冲突. (DSA graph scheduling complexity ref.)</li>
+</ul>
+<hr />
+<p>下一节 → <a href="appendix.html">附录</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../theory/reductions.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../theory/appendix.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../theory/reductions.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../theory/appendix.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

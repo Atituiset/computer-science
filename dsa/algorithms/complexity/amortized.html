@@ -1,0 +1,424 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>摊还分析入门 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../../favicon.svg">
+        <link rel="shortcut icon" href="../../../favicon.png">
+        <link rel="stylesheet" href="../../../css/variables.css">
+        <link rel="stylesheet" href="../../../css/general.css">
+        <link rel="stylesheet" href="../../../css/chrome.css">
+        <link rel="stylesheet" href="../../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="摊还分析入门"><a class="header" href="#摊还分析入门">摊还分析入门</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>单次操作代价巨大不代表整体慢——只要"贵"的次数被"便宜"的次数均摊过来，平均仍可控。摊还分析就是把这种"凭直觉"的统计变成<strong>形式证明</strong>。它是后面所有动态数组、并查集、Splay 树、Bloom 滤波等结构的工程性能证明语言。</p>
+<h2 id="为什么不能用纯最坏复杂度"><a class="header" href="#为什么不能用纯最坏复杂度">为什么不能用纯最坏复杂度</a></h2>
+<p>考虑动态数组的 <code>push_back</code>：</p>
+<ul>
+<li>大部分时间是 O(1)（写入下一空槽）；</li>
+<li>满了就要扩容 O(n)：申请新数组、拷贝 n 个元素、释放旧数组。</li>
+</ul>
+<p>如果你只看"最坏"，会得到 <strong>push 是 O(n)</strong>。代入 N 次 push 的和：<code>O(N · n) = O(N²)</code>。
+但<strong>直觉</strong>告诉我们 N 次 push 在 Θ(N) 量级。证明需要等会一种"统计序列"的工具——摊还分析。</p>
+<p>之所以这件事重要，是因为工程上你<strong>几乎从不</strong>在 N 次 push 都打到 O(n) 最坏。但你要证明这一点，需要把"实际代价序列求和除以操作数"写成一个数学上可证的程序。</p>
+<h2 id="三种方法"><a class="header" href="#三种方法">三种方法</a></h2>
+<h3 id="1-聚集法aggregate先求全部再除以次数"><a class="header" href="#1-聚集法aggregate先求全部再除以次数">1. 聚集法（Aggregate）：先求全部，再除以次数</a></h3>
+<p>最朴素做法：把所有 n 次操作的总代价求和，再除以 n。</p>
+<p><strong>动态数组倍增</strong>继续上节的节奏：</p>
+<pre><code>扩容发生在 size=1, 2, 4, 8, …
+每次扩容的开销 = 旧 size（拷贝）+ 1（写新元素）
+总开销 = 1 + (1+2) + (1+4) + (1+8) + … + (1+n/2)
+       ≈ n + n/2 + n/4 + … 
+       = 2n ≈ 2n
+加上每次 push 本身的 1 次 write：+ n
+总和 ≈ 3n。
+摊还到每次：Θ(1)。
+</code></pre>
+<p>简单，但<strong>不能精细区分每个操作的代价</strong>。</p>
+<h3 id="2-会计法banker给便宜操作预存贵的时候花"><a class="header" href="#2-会计法banker给便宜操作预存贵的时候花">2. 会计法（Banker）：给便宜操作"预存"，贵的时候花</a></h3>
+<p>给每次便宜操作<strong>多记一点</strong>当信用：</p>
+<ul>
+<li><code>push</code> 实际花 1，记账 3；</li>
+<li>多余 2 进账户；</li>
+<li>当扩容发生，n 个元素搬迁要花 n，正好从账户里掏（账户此时余额 ≥ 2·(n/2) = n）。</li>
+</ul>
+<p>账户永不为负 ⇒ 每次操作<strong>实际累计 ≤ 记账累计 = 3n</strong> ⇒ 摊还 O(1)。</p>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>会计法的好处：能给不同操作<strong>不同代价预算</strong>。后面的并查集、链表反转都能用，而且比聚集法精细。</p>
+</div>
+<h3 id="3-势能法potential物理直觉的可迁移方法"><a class="header" href="#3-势能法potential物理直觉的可迁移方法">3. 势能法（Potential）：物理直觉的可迁移方法</a></h3>
+<p>定义势能函数 <code>Φ(i) = Φ(D_i)</code>，描述第 i 次操作后的"数据结构能量". 要求：</p>
+<ul>
+<li><code>Φ(0) = 0</code>；</li>
+<li>对所有 <code>i ≥ 0</code>，<code>Φ(i) ≥ 0</code>.</li>
+</ul>
+<p>定义第 i 次操作的<strong>摊还代价</strong>：</p>
+<pre><code>a_i = c_i + Φ(D_i) − Φ(D_{i-1})
+</code></pre>
+<p>求和：</p>
+<pre><code>Σ a_i = Σ c_i + Φ(D_n) − Φ(0)
+       ≥ Σ c_i        （因为 Φ(D_n) ≥ 0 = Φ(0)）
+</code></pre>
+<p>也就是说<strong>如果你能给所有 a_i 一个上界 k，那 Σc_i ≤ k·n</strong>.
+这是最有工程性、最可移植的方法。<strong>记住势能法，所有结构摊还证明你都能用</strong>.</p>
+<h2 id="用势能法重证动态数组-o1-摊还"><a class="header" href="#用势能法重证动态数组-o1-摊还">用势能法重证动态数组 O(1) 摊还</a></h2>
+<p>先试一个朴素势能：<code>Φ(i) = 2·i − cap_i</code>，其中 <code>i</code> 是当前元素数、<code>cap_i</code> 是容量。</p>
+<ul>
+<li><strong>普通 push 不触发扩容</strong>：实际 1，<code>ΔΦ = 2</code>，摊还 <code>3</code>. OK.</li>
+<li><strong>触发扩容 push</strong>：扩容前 cap = i-1，即"之前刚好满 i-1 个的位置再加一个". 实际开销 <code>= i</code> (拷贝旧 i-1 个 + 写新元素).</li>
+</ul>
+<p>按上面 <code>Φ(i-1) = 2(i-1) − cap_{i-1}</code>，cap_{i-1} 在扩容前 = i-1 ⇒ <code>Φ(i-1) = i-2</code>.
+扩容后 cap = 2·cap_old = 2(i-1)，新 i 个元素 ⇒ <code>Φ(i) = 2i − 2(i-1) = 2</code>.
+ΔΦ = <code>2 − (i-2) = 4 − i</code>.</p>
+<p>摊还 = <code>i + (4 − i) = 4</code>. 这跟上面普通情形的 3 不匹配，但仍为常数。所以<strong>两种情形都是常数</strong> ⇒ 每次插入摊还 O(1)，比例常数 4.</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>在势能法里，定义一个新势能函数的"调参"环节通常要试 2-3 次。一旦找到合适的势能函数，结果立刻便宜十倍。这是数学工程的味道。</p>
+</div>
+<h2 id="经典案例速查--直觉"><a class="header" href="#经典案例速查--直觉">经典案例速查 + 直觉</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>结构</th><th>实际最坏</th><th>摊还</th><th>势能常见定义</th></tr></thead><tbody>
+<tr><td>动态数组 push</td><td>Θ(n)</td><td>Θ(1)</td><td><code>2i − cap</code></td></tr>
+<tr><td>二进制计数器 +1</td><td>Θ(k) bit 翻</td><td>Θ(1)</td><td><code>#1-bits</code></td></tr>
+<tr><td>Splay 树操作</td><td>Θ(n)</td><td>Θ(log n)</td><td><code>Σ log(size(v))</code></td></tr>
+<tr><td>并查集 find（路径压缩 + 按秩）</td><td>Θ(α(n)) 极慢反例</td><td>实际 ~4 ops</td><td>联集势能（计分函数）</td></tr>
+<tr><td>哈希表 rehash</td><td>Θ(n)</td><td>Θ(1)</td><td>装填因子的惩罚</td></tr>
+</tbody></table>
+</div>
+<p><strong>二进制计数器</strong>是一个非常直观的势能法例子：n 次 +1 中，最低位每两次翻一次（n/2 次），第二位每四次（n/4 次）……总位数翻转 = <code>n/2 + n/4 + … = O(n)</code> ⇒ 每次摊还 O(1). 你甚至能看到"低位翻得多、高位翻得少"的频次，这就是势能法的心脏直觉。</p>
+<h2 id="splay-树势能法处理的关键案例"><a class="header" href="#splay-树势能法处理的关键案例">Splay 树：势能法处理的关键案例</a></h2>
+<p>Splay 树没有显式平衡。当访问一个节点 x 时，会通过 zig/zig-zig/zig-zag 把它旋转到根。单次最坏 O(n)。但势能法证明：</p>
+<p>定义 <code>Φ(D) = Σ_v log(size(v))</code>，并证明<strong>任何操作摊还 O(log n)</strong>. 核心是 zig/zig-zig 的几何效应：每次 splay 操作都会把访问路径上"重子树 → 轻子树"翻转一次，这种翻转产生<strong>势能释放</strong>直接抵掉操作的代价。</p>
+<p>工程含义：访问过的 key 会被旋转到根，<strong>采样命中率高时变成"自适应 cache"</strong> —— 这就是 Splay 在 Windows 内核里被 Linux CFS 替代前用过一阵的原因。</p>
+<h2 id="并查集摊还--反阿克曼"><a class="header" href="#并查集摊还--反阿克曼">并查集摊还 = 反阿克曼</a></h2>
+<p>只要按秩合并（rank merge）+ 路径压缩，第 n 次 find 的摊还 = <code>O(α(n))</code>，其中 α 是 <strong>逆 Ackermann 函数</strong>——n ≤ 10⁸⁰ 时 α(n) ≤ 4。实际操作几乎常数。</p>
+<p>证明思路非常深（Tarjan 1975），需要：</p>
+<ul>
+<li>把每个节点按 rank 分块；</li>
+<li>在每块内分析 find "跨块"的次数；</li>
+<li>推跨块的多项式级数。</li>
+</ul>
+<p>要在工程里读这个证明很累，但结论一句话：<strong>并查集的每次操作 ≈ 4 条指令的真实代价</strong>——比平衡树 find 小得多。</p>
+<h2 id="工程视角摊还分析的两个不适用区"><a class="header" href="#工程视角摊还分析的两个不适用区">工程视角：摊还分析的两个不适用区</a></h2>
+<ol>
+<li>
+<p><strong>硬实时系统</strong>。摊还 O(1) 的意思是"长序列平均 O(1)"，并不保证每次都 O(1). 反例：动态数组在第 2^23 个 push 触发扩容，最坏延迟可能数 ms（如果页耗尽需要 syscall 触发 mmap/munmap —— 让 hypervisor 介入甚至给物理页做 numa 分配），HFT/游戏 tick 容不下这种尖刺。</p>
+<p>解法：</p>
+<ul>
+<li>启动时 <code>reserve(max)</code>；</li>
+<li>或换固定容量的 ring buffer；</li>
+<li>或换 incremental rehash（dictugador 风格，把扩容代价分摊到多次 op）。</li>
+</ul>
+</li>
+<li>
+<p><strong>失败重试场景</strong>。如果 N 次 push 里中间某次扩容由于 OOM 而失败，整个数据结构状态可能不一致了。这是 C++ <code>std::vector::push_back</code> 强 EH 保证要求的根源：扩容用临时节点 + commit，不破坏原数据。</p>
+</li>
+</ol>
+<h2 id="这一章带走的东西"><a class="header" href="#这一章带走的东西">这一章带走的东西</a></h2>
+<ul>
+<li>平均 vs 摊还 vs 最坏三个量级，<strong>和实际系统行为不能直接对调</strong>；</li>
+<li>势能法是"工程化"的摊还分析，<strong>学会就解锁了一切摊还结构</strong>；</li>
+<li>动态数组的常数是 3，不是抽象的 1；</li>
+<li>Splay 树、并查集、rehash、二进制计数器都靠"势能爆发"在 O(1) 里隐藏 O(n) 的烧火；</li>
+<li>当心两种工程坑：硬实时系统的尖刺、失败回滚下的结构一致性。</li>
+</ul>
+<p>下一节 → <a href="practice.html">实战：复杂度反推设计</a>：把 O(·) 从理论用到工程约束反推。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../../dsa/algorithms/complexity/notation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../../dsa/algorithms/complexity/practice.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../../dsa/algorithms/complexity/notation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../../dsa/algorithms/complexity/practice.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../../elasticlunr.min.js"></script>
+        <script src="../../../mark.min.js"></script>
+        <script src="../../../searcher.js"></script>
+
+        <script src="../../../clipboard.min.js"></script>
+        <script src="../../../highlight.js"></script>
+        <script src="../../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../../katex/katex.min.js"></script>
+        <script src="../../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../../katex-init.js"></script>
+        <script src="../../../mermaid.min.js"></script>
+        <script src="../../../mermaid-init.js"></script>
+        <script src="../../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

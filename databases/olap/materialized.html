@@ -1,0 +1,480 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>预聚合、物化视图、Cubes - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="预聚合物化视图cubes"><a class="header" href="#预聚合物化视图cubes">预聚合、物化视图、Cubes</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>聚合查询全量 scan 太贵 → 用预聚合 + 物化视图 + 数据 cube 提前算好 → 查询时查小表。代价：构建 + 维护 + 一致性。本节覆盖 ROLLUP / CUBE / GROUPING SETS、PostgreSQL / Materialize 物化视图、Apache Druid auto-rollup、Cube.js semantic layer、ClickHouse AggregateFunction、Star Schema vs Snowflake Schema。</p>
+<hr />
+<h2 id="一star-schema-vs-snowflake-schema"><a class="header" href="#一star-schema-vs-snowflake-schema">一、Star Schema vs Snowflake Schema</a></h2>
+<h3 id="11-star-schema"><a class="header" href="#11-star-schema">1.1 Star Schema</a></h3>
+<ul>
+<li>中心是 fact 表（事件）</li>
+<li>周围是 dim 表（用户、商品、时间）</li>
+<li>fact 表大（亿+ row），dim 表小（k-row）</li>
+<li>fact 表外键链接 dim</li>
+<li>物理上 星状 → 简单 join 顺序 planner 容易优化</li>
+</ul>
+<pre><code>       dim_user    dim_product    dim_time
+            |          |             |
+            +----------+-------------+
+                       |
+                  fact_sales
+                 (10^9 rows)
+</code></pre>
+<p>适合：BI、报表、阳 reporting。</p>
+<h3 id="12-snowflake-schema"><a class="header" href="#12-snowflake-schema">1.2 Snowflake Schema</a></h3>
+<ul>
+<li>dim 表进一步 normalized → 多层 dim 表</li>
+<li>节省存储，但 join 复杂</li>
+<li>现代 OLAP 罕用（存储已不贵）</li>
+</ul>
+<hr />
+<h2 id="二预聚合模型"><a class="header" href="#二预聚合模型">二、预聚合模型</a></h2>
+<h3 id="21-rollup-table"><a class="header" href="#21-rollup-table">2.1 Rollup Table</a></h3>
+<p>每次 INSERT fact + 1 row 写汇总表：</p>
+<pre><code class="language-sql">CREATE TABLE sales_by_day (
+    dt DATE,
+    product_id BIGINT,
+    total_amount DECIMAL, n_sales INT);
+
+INSERT INTO sales_by_day
+SELECT created_at::DATE, product_id, SUM(amount), COUNT(*) 
+FROM sales_raw 
+WHERE created_at::DATE = '2024-10-22'
+GROUP BY created_at::DATE, product_id;
+</code></pre>
+<p>查询变小：</p>
+<pre><code class="language-sql">SELECT dt, SUM(total_amount)
+FROM sales_by_day
+WHERE dt BETWEEN '2024-10-01' AND '2024-10-31'
+GROUP BY dt;
+</code></pre>
+<p>100x 加速（30 days × 1000 products = 30k row → 替代 1亿 raw row）。</p>
+<h3 id="22-materialized-view-postgresql"><a class="header" href="#22-materialized-view-postgresql">2.2 Materialized View (PostgreSQL)</a></h3>
+<pre><code class="language-sql">CREATE MATERIALIZED VIEW sales_daily AS
+    SELECT 
+        date_trunc('day', created_at) AS dt, 
+        product_id,
+        SUM(amount) AS total, 
+        COUNT(*) AS n
+    FROM sales
+    GROUP BY dt, product_id
+    WITH DATA;
+
+REFRESH MATERIALIZED VIEW sales_daily;
+-- PG 9.4+ 支持 REFRESH CONCURRENTLY 不阻塞 SELECT
+</code></pre>
+<p>PG 14+ <code>WITH NO DATA</code> + lazy refresh；9.3+ 已有 incremental refresh on <code>CONCURRENTLY</code>。</p>
+<h3 id="23-clickhouse-aggregatefunction-state"><a class="header" href="#23-clickhouse-aggregatefunction-state">2.3 ClickHouse AggregateFunction State</a></h3>
+<pre><code class="language-sql">CREATE TABLE sales (
+    dt Date,
+    product_id UInt32,
+    amount AggregateFunction(sum, Decimal)
+) ENGINE = AggregatingMergeTree PARTITION BY toYYYYMM(dt) ORDER BY (dt, product_id);
+
+INSERT INTO sales SELECT dt, product_id, sumState(amount) FROM sales_log GROUP BY dt, product_id;
+SELECT dt, sumMerge(total) FROM sales GROUP BY dt;
+</code></pre>
+<p>AggregateFunction state：聚合为 part merge 时（不重 row，是 state 合并）→ 单 INSERT 1 row/组。</p>
+<hr />
+<h2 id="三cubejs-semantic-layer"><a class="header" href="#三cubejs-semantic-layer">三、Cube.js Semantic Layer</a></h2>
+<pre><code>cube Sales {
+  measures: [totalAmount, count]
+  dimensions: [createdAt, product, user]
+  joins: Products ON id = product_id
+  
+  preAggregations: {
+      salesByDay: {
+          type: rollup
+          measures: [totalAmount]
+          timeDimension: createdAt
+          granularity: day
+      }
+  }
+}
+</code></pre>
+<p>Cube.js 在 query time 选 pre-aggregation rollup → 流 SQL 改写 → 后台刷新 + cache。</p>
+<p>Cube.js 部署：</p>
+<ul>
+<li>Cube.js server (Node.js)</li>
+<li>Backend 查 PG / Snowflake / BigQuery</li>
+<li>Frontend RESTful API</li>
+<li>pre-aggregations 可存自己 store (e.g. PG 表 + cube refresh worker)</li>
+</ul>
+<hr />
+<h2 id="四apache-druid-rollup"><a class="header" href="#四apache-druid-rollup">四、Apache Druid Rollup</a></h2>
+<p>Druid ingest 阶段做聚合：</p>
+<ul>
+<li>ingestion spec 中 metrics 计 <code>aggregators</code> (sum, count, hyperUnique etc.)</li>
+<li>同 timestamp bucket + dimensions group 一组 → 1 row</li>
+<li>用户既不查 raw 只查 rollup</li>
+</ul>
+<p>随机 ingest 1 PB raw → 1 TB rollup → 1000× storage 节省。</p>
+<p>最终 consistency：Druid 数据源有 granularity (minute/hour/day)； query 时合并 rollup grain。</p>
+<hr />
+<h2 id="五apache-pinot-的-real-time--hybrid-tables"><a class="header" href="#五apache-pinot-的-real-time--hybrid-tables">五、Apache Pinot 的 Real-time / Hybrid Tables</a></h2>
+<ul>
+<li>offline segment: 历史 batch push</li>
+<li>realtime segment: Kafka stream 持续 ingest → realtime 0-day data</li>
+<li>Hybrid: 同 table 合一来自 realtime + offline</li>
+</ul>
+<p>聚合：Star-Tree Index (Pinot 1.0+) → 子集维度 + sub-set 聚合 → skip 数据，比 Druid rollup 更显增量。</p>
+<hr />
+<h2 id="六snowflake-search-optimization--materialized-view"><a class="header" href="#六snowflake-search-optimization--materialized-view">六、Snowflake search optimization + materialized view</a></h2>
+<pre><code class="language-sql">CREATE MATERIALIZED VIEW sales_daily_mv AS
+SELECT date_trunc('day', created_at) AS dt, product_id,
+        SUM(amount) AS total, COUNT(*) AS n
+FROM sales
+GROUP BY dt, product_id;
+
+SELECT * FROM sales_daily_mv WHERE dt = '2024-10-01';
+</code></pre>
+<p>Snowflake 自动改写 query 命中可视物化视图 (用 metadata 找 cover)；后台 asynchronous refresh。但 $/byte 计算 → cost 主要 storage。</p>
+<hr />
+<h2 id="七hyperloglog--approximation"><a class="header" href="#七hyperloglog--approximation">七、Hyperloglog / approximation</a></h2>
+<pre><code class="language-sql">-- PG 默认 count 是 O(N), 大 OLAP 用 approximate HLL
+CREATE EXTENSION hll;
+SELECT hll_cardinality(hll_agg(user_id)) FROM logs;
+
+-- ClickHouse uniq / uniqExact / uniqCombined
+SELECT uniq(user_id), uniqExact(user_id) FROM logs;
+</code></pre>
+<p>HLL ~3% error，1KB filter ~10^9 distinct items → saves memory + 时间。</p>
+<hr />
+<h2 id="八产线案例"><a class="header" href="#八产线案例">八、产线案例</a></h2>
+<h3 id="81-大表-group-by-几小时--加-rollup-后-几秒"><a class="header" href="#81-大表-group-by-几小时--加-rollup-后-几秒">8.1 大表 group-by 几小时 → 加 rollup 后 几秒</a></h3>
+<p>100亿 sales group by (day, product) → 30 分钟 → rollup 30k row → 3 sec 查询。</p>
+<h3 id="82-druid-rollup-不频繁导致-query-加爆"><a class="header" href="#82-druid-rollup-不频繁导致-query-加爆">8.2 Druid rollup 不频繁导致 query 加爆</a></h3>
+<p>旧数据 1 day rollup 100% raw 仍 → ETL job 频率没达到 30 min 一夜 → query 引擎 scan 6× 数据 reduced 到自然 limit</p>
+<p><strong>修复</strong>：Druid <code>indexRealtime</code> 提高聚合 ingest 次数 + bend at hour rollup ingest 1 min batch.</p>
+<h3 id="83-物化视图未刷新误以为-query-旧"><a class="header" href="#83-物化视图未刷新误以为-query-旧">8.3 物化视图未刷新误以为 query 旧</a></h3>
+<p>PG 9.3 没 <code>REFRESH CONCURRENTLY</code>，刷新锁表 → 业务误以为慢，业务 skip → 数据漂移。</p>
+<p><strong>修复</strong>：升 PG 9.4+ + <code>REFRESH CONCURRENTLY</code> + cron 30min 刷新。</p>
+<h3 id="84-cubejs-pre-aggregation-大规模膨胀"><a class="header" href="#84-cubejs-pre-aggregation-大规模膨胀">8.4 Cube.js pre-aggregation 大规模膨胀</a></h3>
+<p>某 dashboard pre-agg 30k row × dims 5 但 D <strong>= 100 × 7 × 1000 = 700k 组</strong> → quota 大。</p>
+<p><strong>修复</strong>：pre-agg dims 减 3 + 引 high cardinality 单独 cube (用户 specific 减 K use approximate)</p>
+<h3 id="85-snowflake-materialized-view-全-table-1-tb-加倍钱"><a class="header" href="#85-snowflake-materialized-view-全-table-1-tb-加倍钱">8.5 Snowflake materialized view 全 table 1 TB 加倍钱</a></h3>
+<p>MV storage 双副本 fact + MV → 业务调 15+ MV → 总 cost storage 30 TB 给 10 TB raw</p>
+<p><strong>修复</strong>：MV 5 同时舍弃 + HLL 不是 raw count。</p>
+<hr />
+<h2 id="九易错清单"><a class="header" href="#九易错清单">九、易错清单</a></h2>
+<ol>
+<li><strong>Rollup 后 history retention</strong>：rollup 不消耗 raw → 仅到 30 days；rollup 长期保留</li>
+<li><strong>MV refresh 后 query 实时一致</strong>：MV 是 snapshot + 故业务报表万物万 now feature</li>
+<li><strong>HLL approximation</strong>：3% 误差是多少 → 直播 report 通常接受；财务一定需 native</li>
+<li><strong>Insert on rollup table 业务必向</strong>：业务 INSERT batch 慢慢 with raw row 一古</li>
+<li><strong>Star schema joins 一定简化</strong>：均匀 planner join，uniform 接口 select 横向 输料</li>
+</ol>
+<hr />
+<h2 id="十这一章带走的东西"><a class="header" href="#十这一章带走的东西">十、这一章带走的东西</a></h2>
+<ol>
+<li>Star Schema + rollup + MV 让聚合查询 O(N) 变 O(N/group)</li>
+<li>PG 9.4+ REFRESH CONCURRENTLY，老 PG 难升</li>
+<li>Druid / Pinot ingestion 时聚合 → 体积 1000× 缩</li>
+<li>ClickHouse AggregateFunction state + AggregatingMergeTree 是 OLAP 黑 magic</li>
+<li>Cube.js semantic layer 让前端不害怕 rollup 设计</li>
+<li>HLL / T-digest 让 distinct count 内存搏 5KB → billions items</li>
+</ol>
+<h2 id="下一节-"><a class="header" href="#下一节-">下一节 →</a></h2>
+<p><a href="lakehouse.html">Lakehouse：Iceberg / Delta / Hudi</a> — metadata server 中关键 cap, potential 优化 storage</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../databases/olap/columnar.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../databases/olap/lakehouse.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../databases/olap/columnar.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../databases/olap/lakehouse.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

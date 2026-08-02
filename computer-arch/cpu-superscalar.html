@@ -1,0 +1,617 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>超标量 / OoO / Tomasulo - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="超标量--乱序执行--tomasulo-算法"><a class="header" href="#超标量--乱序执行--tomasulo-算法">超标量 / 乱序执行 / Tomasulo 算法</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>上一章的 5-stage pipeline 是 <strong>IPC ≤ 1</strong> 的标量在序（in-order）处理——一条指令等 cache miss，后面几百条全排队干等。超标量（superscalar）+ 乱序执行（Out-of-Order, OoO）的核心思想是：<strong>同时发射多条指令到多条流水线，哪条操作数齐了就先执行哪条，跟程序顺序无关</strong>。</p>
+<pre class="mermaid">flowchart LR
+    subgraph 程序顺序
+        A[&quot;ld x1, [ptr_a]&quot;] --&gt; B[&quot;add x2, x1, 1&quot;]
+        B --&gt; C[&quot;sub x3, x4, x5&quot;]
+        C --&gt; D[&quot;mul x6, x2, x3&quot;]
+        A --&gt; F[&quot;← Cache Miss 等 300 cycle&quot;]
+    end
+    subgraph OoO执行
+        C2[&quot;sub x3, x4, x5 ✅ 不依赖 x1/x2, 直接执行&quot;]
+        F2[&quot;等 x1 回来 → add → mul&quot;]
+    end
+</pre>
+<p>关键数字：in-order IPC ≈ 0.3–0.8（大部分 stall 等内存），OoO IPC ≈ 0.5–2.5（现代 6-wide 核心常见每周期完成 1.2–1.8 条指令，密集计算可冲 3–4+）。</p>
+<p>本章从 1966 年 Tomasulo 算法讲起，逐步推到当代 Golden Cove / Zen 5 / M3 的完整 OoO 管线：寄存器重命名、ROB、保留站、LSQ、投机执行、内存消歧。</p>
+<hr />
+<h2 id="一为什么需要-ooo"><a class="header" href="#一为什么需要-ooo">一、为什么需要 OoO？</a></h2>
+<h3 id="在序in-order的-ipc-天花板"><a class="header" href="#在序in-order的-ipc-天花板">在序（in-order）的 IPC 天花板</a></h3>
+<pre><code>[指令流]
+  ld x1, [a]       ← L1 miss，等 4 cycle
+  add x2, x1, 1    ← RAW 依赖 x1，stall 等 4 cycle
+  sub x3, x4, x5   ← 跟上面两条无关，却在流水线里被挡住
+  mul x6, x7, x8   ← 同上，被挡
+</code></pre>
+<p>在序处理器的<strong>发射阶段</strong>严格按程序顺序检查操作数：即使 <code>sub</code> 的两个源寄存器 <code>x4, x5</code> 都已就绪，也必须等前面的 <code>add</code> 先发射——这叫做"in-order issue"。IPC 被三种闲置打下来：</p>
+<div class="table-wrapper"><table><thead><tr><th>因素</th><th>影响</th></tr></thead><tbody>
+<tr><td>数据依赖（RAW）</td><td>每周期可执行 N 条，但真正独立的没几条</td></tr>
+<tr><td>Cache miss</td><td>即使 99% L1 命中，剩下 1% 平均 miss penalty ~12 cycle (L2) → ~50 cycle (L3) → ~300 cycle (DRAM) — 单条堵塞全部</td></tr>
+<tr><td>分支误预测</td><td>mispredict 时 flushing 全流水线重来 — 深流水线 19+ cycle 白费</td></tr>
+</tbody></table>
+</div>
+<p>OoO 的解法：<strong>解耦发射和执行</strong>——指令在前端按程序顺序取入，进入"指令窗口"（instruction window）后，哪个操作数到了就执行哪个。遇到 cache miss 的 <code>ld</code>，它后面的独立指令照样发射执行。未就绪的操作数通过物理寄存器标签（tag）等待，而不是阻塞整条流水线。</p>
+<p>典型对比：</p>
+<pre><code>in-order:   IPC ≈ 0.3–0.8    (ARM Cortex-A53, original Pentium)
+OoO:        IPC ≈ 0.5–2.5    (Golden Cove, Zen 5, M3 — 真实负载)
+理想 ILP:    IPC ≈ 3–4+      (specint 密集基本块, 无 miss)
+</code></pre>
+<hr />
+<h2 id="二scoreboard记分板-cdc-6600-1964"><a class="header" href="#二scoreboard记分板-cdc-6600-1964">二、Scoreboard（记分板）—— CDC 6600 (1964)</a></h2>
+<p>Tomasulo 的前身。记分板是一个<strong>集中化的硬件表</strong>，跟踪每条指令的目标寄存器、源寄存器状态：</p>
+<pre class="mermaid">flowchart TB
+    IF[取指] --&gt; Issue[发射: 检查记分板&lt;br/&gt;目标寄存器是否正被占用?]
+    Issue --&gt;|无冲突| RO[&quot;读操作数&lt;br/&gt;Read Operands&quot;]
+    RO --&gt; EX[&quot;执行&lt;br/&gt;Execute&quot;]
+    EX --&gt; WB[&quot;写回&lt;br/&gt;Write Back&quot;]
+    Issue --&gt;|WAR/WAW 冲突| STALL[Stall]
+    WB --&gt;|通知记分板释放目标寄存器| FREE[&quot;释放&quot;]
+</pre>
+<p>记分板的三条检查：</p>
+<ol>
+<li><strong>WAW</strong>：目标寄存器是否有未完成的写？有 → stall。</li>
+<li><strong>WAR</strong>：源寄存器是否被其他指令作为目标寄存器（正在写）？是 → stall。</li>
+<li><strong>RAW</strong>：源寄存器在记分板中标记为"未就绪"？是 → stall。</li>
+</ol>
+<p>记分板的致命缺陷：<strong>WAR/WAW 靠 stall 解决，不靠重命名</strong>。意味着只要有寄存器名字冲突就得等前一条写完——即使两条指令毫无数据关系。这严重限制了 ILP。</p>
+<pre><code># 记分板下白白 stall 的例子
+fdiv f0, f2, f4    # 浮点除法：20 cycle
+fadd f0, f6, f8    # 也写 f0 → WAW，必须等 fdiv 写完，即使 fadd 1 cycle 就能做完
+</code></pre>
+<hr />
+<h2 id="三tomasulo-算法-1966-ibm-36091"><a class="header" href="#三tomasulo-算法-1966-ibm-36091">三、Tomasulo 算法 (1966, IBM 360/91)</a></h2>
+<h3 id="核心洞见寄存器重命名-via-保留站"><a class="header" href="#核心洞见寄存器重命名-via-保留站">核心洞见：寄存器重命名 via 保留站</a></h3>
+<p>Tomasulo 不再用寄存器名字来跟踪依赖关系，而是用<strong>保留站（Reservation Station）标签</strong>来流通数据。每条指令被发射时分配到某个保留站；保留站的编号/标签（tag）临时取代寄存器名。</p>
+<pre class="mermaid">flowchart TB
+    subgraph Issue[&quot;① 发射 (Issue)&quot;]
+        I1[&quot;从指令队列取指令&lt;br/&gt;分配保留站 entry&quot;]
+        I2[&quot;源寄存器已就绪?&quot;]
+        I2 --&gt;|是| I3[&quot;读取寄存器值 → 保留站&quot;]
+        I2 --&gt;|否| I4[&quot;在保留站中记下&lt;br/&gt;'等待某个 tag'&quot;]
+    end
+    subgraph Exec[&quot;② 执行 (Execute)&quot;]
+        E1[&quot;保留站等待&lt;br/&gt;直到所有操作数就绪&quot;]
+        E2[&quot;操作数到齐 → 送入功能单元&quot;]
+    end
+    subgraph WB[&quot;③ 写结果 (Write Result)&quot;]
+        W1[&quot;功能单元输出 → CDB&lt;br/&gt;（Common Data Bus）&quot;]
+        W2[&quot;所有保留站 + 寄存器堆&lt;br/&gt;监听 CDB tag 匹配&quot;]
+        W3[&quot;匹配 → 捕获结果&lt;br/&gt;释放保留站 entry&quot;]
+    end
+    I4 --&gt; E1
+    E2 --&gt; W1
+    W1 --&gt; W2 --&gt; W3
+</pre>
+<p><strong>公共数据总线（CDB, Common Data Bus）</strong> 是 Tomasulo 的核心：它不是写回寄存器后就完事了，而是<strong>广播</strong>到所有等待这个结果的保留站。等于在硬件层面实现了"发布-订阅"——谁要这个值、谁拿，不用经过寄存器文件。</p>
+<h3 id="算法步进浮点执行为例"><a class="header" href="#算法步进浮点执行为例">算法步进（浮点执行为例）</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>步</th><th>动作</th><th>保留站</th><th>寄存器状态表</th></tr></thead><tbody>
+<tr><td>0</td><td><code>fld f0, data1</code></td><td>RS0 {op: load, tag: T0}</td><td>f0 → T0</td></tr>
+<tr><td>1</td><td><code>fld f2, data2</code></td><td>RS1 {op: load, tag: T1}</td><td>f2 → T1</td></tr>
+<tr><td>2</td><td><code>fmul f4, f0, f2</code></td><td>RS2 {op: mul, src1: wait T0, src2: wait T1, tag: T2}</td><td>f4 → T2</td></tr>
+<tr><td>3</td><td><code>fadd f0, f6, f8</code></td><td>RS3 {op: add, src1: f6 ready, src2: f8 ready, tag: T3}</td><td>f0 → T3</td></tr>
+<tr><td>4</td><td>T0 返回 (ld f0 done) → CDB 广播</td><td>RS2 捕获 src1, 仍等 src2</td><td></td></tr>
+<tr><td>5</td><td>T3 返回 (fadd f0 done) → CDB 广播</td><td>寄存器和等待 f0 者更新</td><td>f0 → T3</td></tr>
+<tr><td>6</td><td>T1 返回 (ld f2 done) → CDB 广播</td><td>RS2 全部就绪 → 发射乘法</td><td></td></tr>
+</tbody></table>
+</div>
+<p><strong>关键观察</strong>：</p>
+<ul>
+<li>第 3 步 <code>fadd f0, f6, f8</code> 也写 <code>f0</code>——这在记分板中会 stall（WAW），但在 Tomasulo 中，<code>f0</code> 被重命名为 T3，与之前的 T0 完全独立。这是<strong>硬件寄存器重命名</strong>的创始实现。</li>
+<li>第 5 步中的 <code>fadd f0</code> 用 1 cycle 就算完了——但记分板中，这个操作得等所有写 <code>f0</code> 的前序指令全结束，20+ cycle。</li>
+</ul>
+<h3 id="scoreboard-vs-tomasulo-比较"><a class="header" href="#scoreboard-vs-tomasulo-比较">Scoreboard vs Tomasulo 比较</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>Scoreboard</th><th>Tomasulo</th></tr></thead><tbody>
+<tr><td>WAR / WAW 处理</td><td>stall（阻止发射）</td><td>寄存器重命名（不 stall）</td></tr>
+<tr><td>RAW 处理</td><td>stall 等操作数就绪</td><td>tag 匹配：操作数就绪自动唤醒</td></tr>
+<tr><td>依赖追踪</td><td>集中化记分板查表</td><td>分布式保留站 + CDB tag 广播</td></tr>
+<tr><td>结果传播</td><td>写寄存器 → 源指令再读寄存器</td><td>CDB 广播 on-the-fly forwarding</td></tr>
+<tr><td>复杂度</td><td>较简单</td><td>较高——需要 tag 匹配和 CDB 仲裁</td></tr>
+<tr><td>并行度上限</td><td>WAR/WAW 限制了 ILP</td><td>仅受 RAW（真依赖）限制</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="四现代-ooo-管线"><a class="header" href="#四现代-ooo-管线">四、现代 OoO 管线</a></h2>
+<p>Tomasulo 算法在当代 CPU 中的形态已经大幅演化。现代超标量 OoO 管线的完整流程：</p>
+<pre class="mermaid">flowchart LR
+    Fetch[&quot;① Fetch&lt;br/&gt;取指&quot;] --&gt; Decode[&quot;② Decode&lt;br/&gt;译码(x86→μop)&quot;]
+    Decode --&gt; Rename[&quot;③ Rename&lt;br/&gt;寄存器重命名&quot;]
+    Rename --&gt; Dispatch[&quot;④ Dispatch&lt;br/&gt;分派→保留站/ROB&quot;]
+    Dispatch --&gt; Issue[&quot;⑤ Issue&lt;br/&gt;保留站→功能单元&quot;]
+    Issue --&gt; Execute[&quot;⑥ Execute&lt;br/&gt;执行&quot;]
+    Execute --&gt; Writeback[&quot;⑦ Writeback&lt;br/&gt;结果→ROB&quot;]
+    Writeback --&gt; Commit[&quot;⑧ Commit&lt;br/&gt;按程序顺序退役&quot;]
+</pre>
+<h3 id="41-寄存器重命名register-renaming"><a class="header" href="#41-寄存器重命名register-renaming">4.1 寄存器重命名（Register Renaming）</a></h3>
+<p>x86-64 只有 16 个 GPR（加上 16 个向量寄存器），但程序中大量的 <code>mov</code> 和中间变量会产生大量虚假 WAR/WAW 依赖。硬件维护一个庞大的<strong>物理寄存器文件（Physical Register File, PRF）</strong>，每条写入目标寄存器的指令被分配一个空闲物理寄存器。</p>
+<pre><code>架构寄存器 → 重命名表 (RAT, Register Alias Table) → 物理寄存器
+</code></pre>
+<pre><code class="language-c">// 源代码
+int a = b + c;     // r0 = r1 + r2
+int d = e + f;     // r3 = r4 + r5
+int g = a + d;     // r6 = r0 + r3  (RAW on r0, r3)
+int a = h + i;     // r0 = r7 + r8  (WAW on r0 — 重命名化解)
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>指令</th><th>架构目标寄存器</th><th>分配的物理寄存器</th><th>RAT[r0]</th></tr></thead><tbody>
+<tr><td><code>add r0, r1, r2</code> (a = b+c)</td><td>r0</td><td>p17</td><td>p17</td></tr>
+<tr><td><code>add r3, r4, r5</code> (d = e+f)</td><td>r3</td><td>p28</td><td>r3→p28</td></tr>
+<tr><td><code>add r6, r0, r3</code> (g = a+d)</td><td>r6</td><td>p42</td><td>—</td></tr>
+<tr><td><code>add r0, r7, r8</code> (a = h+i)</td><td>r0</td><td>p55</td><td>p55</td></tr>
+</tbody></table>
+</div>
+<p>第四条 <code>r0 = p55</code> 不依赖第一条 <code>r0 = p17</code>——两者用不同物理寄存器，WAW 虚假依赖完全消失。物理寄存器数量决定了 OoO 窗口的上限：<strong>Golden Cove 物理寄存器 ~280 个</strong>。</p>
+<h3 id="42-rob重排序缓冲区reorder-buffer"><a class="header" href="#42-rob重排序缓冲区reorder-buffer">4.2 ROB（重排序缓冲区，Reorder Buffer）</a></h3>
+<p>ROB 是一个环形缓冲区，按<strong>程序顺序</strong>记录每条发射的 μop。它的三个核心功能：</p>
+<ol>
+<li><strong>按序提交（in-order commit）</strong>：μop 执行完可以把结果放到 ROB entry，但只有该 entry 到达 ROB 头部且不异常时才对架构状态可见。</li>
+<li><strong>精确异常（precise exception）</strong>：当前面某条指令产生异常时，ROB 按序提交隐式保证了异常点之前的所有指令已完成、之后所有指令无副作用——直接 flush 异常指令后的所有 ROB entry。</li>
+<li><strong>投机状态缓冲</strong>：分支预测后的所有 μop 结果暂存 ROB；分支被误预测时 flush ROB 后段。</li>
+</ol>
+<pre class="mermaid">flowchart TB
+    subgraph ROB[&quot;ROB 环形缓冲&quot;]
+        H[&quot;Head ← 下一条待提交&quot;] --&gt; E1[&quot;entry: add r0,p17,p55 (done ✓)&quot;]
+        E1 --&gt; E2[&quot;entry: ld r1,[r2] (waiting...)&quot;]
+        E2 --&gt; E3[&quot;entry: mul r3,r0,r1 (blocked: 等上图 ld)&quot;]
+        E3 --&gt; T[&quot;Tail ← 下一条待插入&quot;]
+    end
+</pre>
+<p>每 cycle 提交 N 条（N = 提交宽度，通常 = 发射宽度，6–8 条/cycle）。</p>
+<h3 id="43-保留站scheduler--reservation-station"><a class="header" href="#43-保留站scheduler--reservation-station">4.3 保留站（Scheduler / Reservation Station）</a></h3>
+<p>保留站是<strong>乱序发射的核心</strong>——每个执行端口有若干 entry。μop 在 dispatch 阶段被分配到某个保留站，携带：</p>
+<ul>
+<li>操作码（opcode）</li>
+<li>物理源寄存器 A：值已就绪 → 直接存值；否则 → 存 tag（产生该值的物理寄存器 / ROB id）</li>
+<li>物理源寄存器 B：同上</li>
+<li>ROB entry id（用于提交时定位）</li>
+</ul>
+<p>当且仅当所有源操作数就绪（即 tag 为空，值已捕获），条目被"唤醒"，竞争功能单元。各端口独立仲裁（通常是最老的就绪条目优先），每 cycle 可发射 N 条。</p>
+<h3 id="44-lsqload-store-queue加载-存储队列"><a class="header" href="#44-lsqload-store-queue加载-存储队列">4.4 LSQ（Load-Store Queue，加载-存储队列）</a></h3>
+<p>Load/Store 指令不光有寄存器依赖，还有<strong>内存依赖</strong>：</p>
+<ul>
+<li><strong>写后读（RAW via memory）</strong>：<code>str [addr], r1</code> → <code>ldr r2, [addr]</code>（store-to-load forwarding）</li>
+<li><strong>读后写（WAR via memory）</strong>：<code>ldr r1, [addr]</code> → <code>str [addr], r2</code>（load 必须先完成读，不能被后面的 store 覆盖实际内存顺序）</li>
+<li><strong>写后写（WAW via memory）</strong>：<code>str [addr], r1</code> → <code>str [addr], r2</code>（需按序写）</li>
+</ul>
+<p>LSQ 按程序顺序保存所有未提交的 load/store。当 load 发射时，它搜索 LSQ 中所有未完成且地址较早的 store——若地址匹配则直接从 store_data 转发。</p>
+<hr />
+<h2 id="五投机执行越过分支"><a class="header" href="#五投机执行越过分支">五、投机执行：越过分支</a></h2>
+<p>分支预测器猜了方向，但"猜"不等于"对"。误预测的代价是：管道中所有依赖于分支后指令的状态必须清空。ROB 机制处理这一件事：</p>
+<pre><code>[正确预测]
+Fetch → ... → Commit (branch resolved, taken ✓) → 继续执行
+
+[误预测]
+Fetch → ... → branch resolved (actually NOT TAKEN ✗)
+  → 找到 branch uop 的 ROB entry
+  → flush 所有 ROB entry 编号 &gt; branch
+  → 重置 RAT（寄存器重命名表）为分支前的快照
+  → 重定 PC 为正确路径，重新取指
+</code></pre>
+<p><strong>恢复快照</strong>：每次分支指令在 rename 阶段时，硬件会对 RAT 做一次 checkpoint（保存当前映射表副本）。误预测发生时从最近的 checkpoint 恢复。Zen 5 / Golden Cove 一般支持 16–32 个 RAT checkpoint。</p>
+<p><strong>资源代价</strong>：误预测率 1% 听起来低，但 5GHz × 1% = 每 ns 0.05 次 mispredict。每次 mispredict 浪费 ~19 cycle（Golden Cove 深度）→ 约 4ns 无效工作 → 相当于 ~2% 的无用功。但这远好于 rest 100 cycles 不做任何指令——<strong>投机执行将分支代价从 "必等" 变成了 "小概率等"</strong>。</p>
+<hr />
+<h2 id="六真实-cpu-微架构对比"><a class="header" href="#六真实-cpu-微架构对比">六、真实 CPU 微架构对比</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>参数</th><th>Intel Golden Cove</th><th>AMD Zen 5</th><th>Apple M3 P-core</th><th>ARM Cortex-X4</th></tr></thead><tbody>
+<tr><td>解码宽度</td><td>6-wide (x86→μop)</td><td>dual 4-wide</td><td>9-wide</td><td>8-wide</td></tr>
+<tr><td>μop Cache</td><td>4K entries (DSB)</td><td>6.75K (Op Cache)</td><td>超大 μop cache</td><td>4K entries</td></tr>
+<tr><td>ROB 大小</td><td>512 entries</td><td>384 entries (est.)</td><td>~630 entries</td><td>~400 entries</td></tr>
+<tr><td>物理寄存器</td><td>~280 (int) + ~224 (vec)</td><td>~224 (int) + ~192 (vec)</td><td>~400+ (int)</td><td>~300 (int)</td></tr>
+<tr><td>执行端口</td><td>12 (5 int + 5 fp/vec + 2 store)</td><td>~16 int+fp 共享</td><td>高度专用化多端口</td><td>~12</td></tr>
+<tr><td>保留站/Scheduler entries</td><td>97 (unified)</td><td>96 (int) + 64 (fp)</td><td>~160</td><td>~80 (int)</td></tr>
+<tr><td>提交宽度</td><td>8 μop/cycle</td><td>8 μop/cycle</td><td>~10 μop/cycle</td><td>8 μop/cycle</td></tr>
+<tr><td>分支预测</td><td>TAGE + Neural</td><td>Perceptron-based</td><td>大规模感知器</td><td>TAGE-like</td></tr>
+<tr><td>分支误预测惩罚</td><td>19–20 cycles</td><td>~19 cycles</td><td>~12–14 cycles</td><td>~13–15 cycles</td></tr>
+<tr><td>时钟频率</td><td>4.5–5.7 GHz</td><td>5.0–5.7 GHz</td><td>~4.05 GHz</td><td>~3.4 GHz</td></tr>
+</tbody></table>
+</div>
+<p><strong>核心洞察</strong>：</p>
+<ul>
+<li>Apple M3 更宽（9-wide decode）、更深（~630 ROB）但更低主频，靠 ILP 取胜 → 每 clock 做更多工作。</li>
+<li>Intel/AMD 走高主频路线（5.7GHz+），深流水线代价是 mispredict 惩罚重（19 cycles）。</li>
+<li>ROB 大小直接决定 OoO <strong>时间窗口</strong>：512 entries / 8 commit width ≈ 64 cycles 的指令窗口 = ~120 条 x86 指令的范围找 ILP。</li>
+<li>ARM 苹果核心放弃 SMT（超线程），每条线程独占全部 OoO 资源 —— 单线程峰值 IPC 更高。</li>
+</ul>
+<hr />
+<h2 id="七执行端口与功能单元"><a class="header" href="#七执行端口与功能单元">七、执行端口与功能单元</a></h2>
+<p>每个执行端口绑定若干功能单元。一条 μop 被 issue 到对应端口，不同指令有不同的延迟和吞吐：</p>
+<div class="table-wrapper"><table><thead><tr><th>指令类型</th><th>延迟 (cycle)</th><th>吞吐 (每 cycle)</th><th>示例</th></tr></thead><tbody>
+<tr><td>整数 ALU (add/sub/and/or/xor/移位)</td><td>1</td><td>4–6</td><td><code>add rax, rbx</code></td></tr>
+<tr><td>整数乘法</td><td>3–5</td><td>1</td><td><code>imul rax, rbx</code></td></tr>
+<tr><td>整数除法</td><td>10–20+</td><td>1/10–20</td><td><code>idiv rax, rbx</code></td></tr>
+<tr><td>浮点加法 (FP ADD)</td><td>3–4</td><td>1–2</td><td><code>addss xmm0, xmm1</code></td></tr>
+<tr><td>浮点乘法 (FP MUL)</td><td>4–5</td><td>1–2</td><td><code>mulss xmm0, xmm1</code></td></tr>
+<tr><td>浮点乘加 (FMA)</td><td>4–5</td><td>2</td><td><code>vfmadd132pd zmm0, zmm1, zmm2</code></td></tr>
+<tr><td>Load (L1 hit)</td><td>4–5</td><td>2–3</td><td><code>mov rax, [rbx]</code></td></tr>
+<tr><td>Store (L1 hit)</td><td>1 (AGU) + 1 (store-data)</td><td>1–2</td><td><code>mov [rbx], rax</code></td></tr>
+<tr><td>分支</td><td>1 (执行端口)</td><td>1–2</td><td><code>je target</code></td></tr>
+</tbody></table>
+</div>
+<p><strong>FMA 关键</strong>：<code>a = b × c + d</code> 在支持 FMA 的 CPU 上用一条指令完成——比先乘再加省一个 round-off 误差和 1–2 cycle 延迟。Tensor Core / SME 的算力全是基于 FMA。</p>
+<p>AGU（Address Generation Unit）是 Load/Store 专用的加法器，计算 <code>base + index×scale + offset</code> 用于内存地址生成，不占用 ALU。</p>
+<hr />
+<h2 id="八内存消歧memory-disambiguation"><a class="header" href="#八内存消歧memory-disambiguation">八、内存消歧（Memory Disambiguation）</a></h2>
+<p>当一条 load 之前有未完成的 store 且 store 地址未计算出时，load 无法确定是否依赖该 store：</p>
+<pre><code class="language-asm">str  r1, [r2]       # store to [r2]  → r2 未算出
+ldr  r3, [r4]       # load from [r4] → 与 [r2] 冲突？未知
+</code></pre>
+<p>此时 load 有两个选择：</p>
+<ol>
+<li><strong>保守等待</strong>：等所有前面的 store 地址都出来 → 安全但丢性能（每 cycle 几十条指令被堵住）。</li>
+<li><strong>投机执行</strong>：假设 load 与 store 不冲突，先发射 load；当 store 地址后算出时验证——若发现地址相同，flush load 和所有依赖它的指令，重执行 load。</li>
+</ol>
+<p>现代 CPU 用**存储-加载转发预测器（Store-to-Load Forwarding Predictor, SLFP）**来控制这个决策——跟分支预测器类似，记录历史 mode：哪些 load-store pair 频繁冲突，直接用预测结果指导调度。</p>
+<pre><code>冲突率: 通常 ~1-3%，但对于指针密集代码（链表遍历、树遍历）可到 10%+
+错误重发代价: flush + 重新执行 ~10-15 cycle
+</code></pre>
+<hr />
+<h2 id="九工程事故pentium-4-prescott-的-replay-机制"><a class="header" href="#九工程事故pentium-4-prescott-的-replay-机制">九、工程事故：Pentium 4 Prescott 的 Replay 机制</a></h2>
+<p><strong>时间</strong>：2004 年 Intel 发布 Pentium 4 Prescott，基于 NetBurst 微架构的进化。</p>
+<p><strong>问题</strong>：Prescott 的流水线深度达到了恐怖的 <strong>31 级</strong>（Northwood 是 20 级）。L1 D-cache miss 时，不是像传统做法那样 stall 管线，而是搞了一个**"回放回路（Replay Loop）"**——把依赖 L1 cache miss 结果的 μop 重新循环回到调度器里不断重新执行，直到 cache miss 被服务完毕。</p>
+<pre><code>[正常做法]
+μop 等 L1 → stall reservation station → cache miss 解决后 release
+
+[Prescott 的 Replay]
+μop 等 L1 → 发射执行 → 发现数据未到 → 不挡管线 → 
+  重新插入保留站 → 再次发射 → 再次 miss → ... → 直到数据返回
+</code></pre>
+<p><strong>结果</strong>：CPU 在等待 cache miss 期间不断消耗电力执行无用 μop（每次 replay 都在功能单元上跑一次），发热量爆炸但真实 IPC 不升反降。这是 NetBurst "高频低效" 策略的典型体现。</p>
+<p><strong>历史收敛</strong>：2006 年 Intel 放弃 NetBurst，以 Pentium M (Banias) 的团队开发的 <strong>Core 2 Duo (Conroe)</strong> 取代——后者采用短流水线（14 级）+ 宽发射（4-wide）+ 大 OoO 窗口，IPC 提升 ~80%，功耗下降 ~50%。这条设计哲学一直沿用到今天的 Golden Cove。</p>
+<p><strong>教训</strong>：深流水线 ≠ 高性能。窗口大小（ROB + 物理寄存器 + 保留站）是 OoO 的硬通货——Prescott 的 31 级流水线虽然有名义上的深度，但 replay 机制让有效的 OoO 窗口大打折扣。</p>
+<hr />
+<h2 id="十易错清单"><a class="header" href="#十易错清单">十、易错清单</a></h2>
+<ol>
+<li>
+<p><strong>"OoO 执行"≠"OoO 提交"</strong>：指令乱序执行但必须<strong>按程序顺序提交</strong>（ROB 保证）。写回架构状态（寄存器文件、内存）的顺序必须与程序顺序一致——否则无法实现精确异常。</p>
+</li>
+<li>
+<p><strong>WAR/WAW 不是数据依赖</strong>：<code>mov r0, r1; mov r0, r2</code> 这两条没有 RAW 依赖，WAW 可以通过重命名完全消除。混淆 WAR/WAW 与 RAW 会导致误判程序 ILP 上限。</p>
+</li>
+<li>
+<p><strong>架构寄存器 ≠ 物理寄存器</strong>：x86-64 代码可见 16 GPR，但物理寄存器池 ~200–400 个。流水线图中画"寄存器"时必须区分 RAT 查表后的物理寄存器与代码中的架构寄存器。忘记重命名这层，整个 OoO 图全错。</p>
+</li>
+<li>
+<p><strong>ROB 大小 ≠ 指令条数</strong>：512-entry ROB 大约容纳 ~120–200 条 x86 指令 (大量 μop 是 1:1，但 CISC load-op 指令可能 1:2–4 μop)。估算 OoO 窗口时按 μop 算。</p>
+</li>
+<li>
+<p><strong>提交速度瓶颈</strong>：即使前端 fetch 6 条/cycle、issue 8 条/cycle，commit 速度只有 8 μop/cycle。高频 CPU 的长串依赖链（如链表遍历的 ld→cmp→ld→cmp）会被 commit 宽度挡死。OoO 不能解决 <strong>真依赖链</strong> 的延迟。</p>
+</li>
+<li>
+<p><strong>负载/储存转发不是免费的</strong>：Store-to-load forwarding 只需要 store 在执行时就绪（same-cycle），但如果 store 的 AGU 延迟（base 未算出）会导致 LSQ forwarding 失效，load 必须等 store 地址 + 数据都到 LSQ。这会产生 ~10 cycle 的额外延迟。</p>
+</li>
+<li>
+<p><strong>分支预测 99% = 仍有 1% flush</strong>：Flush 不只是 PC 的丢失——被 flush 的 μop 占用了 ROB 空间和保留站资源，等于浪费了 OoO 窗口。在 mispredict 密集的代码（parser、正则引擎、JIT 编译）中，有效 ROB 利用可能萎缩 30–50%。</p>
+</li>
+</ol>
+<hr />
+<h2 id="十一这一章带走的东西"><a class="header" href="#十一这一章带走的东西">十一、这一章带走的东西</a></h2>
+<ol>
+<li>
+<p><strong>OoO 的本质</strong>：发射前检查"操作数是否就绪"代替"前面指令是否发完" → 用可执行指令填充空流水线。Cache miss、长延迟浮点除法的等待被后面独立计算填充。</p>
+</li>
+<li>
+<p><strong>Tomasulo 的核心贡献</strong>：保留站 + CDB 实现了<strong>分布式依赖追踪</strong>，WAR/WAW 从 stall 变成改名（用 tag 取代寄存器名）。这是往后 60 年所有高性能 CPU 微架构的基石。</p>
+</li>
+<li>
+<p><strong>寄存器重命名</strong>：架构寄存器的虚假 WAR/WAW 依赖被物理寄存器池吸收。物理寄存器数 + ROB 大小 = OoO 的硬窗口。</p>
+</li>
+<li>
+<p><strong>ROB</strong> 保证按序提交和精确异常——不管里面多乱，外面看到的一定是顺序状态。</p>
+</li>
+<li>
+<p><strong>投机执行不仅仅是分支预测</strong>：分支预测 + ROB 快照让 CPU 在不确定方向的情况下全速前进；一旦误预测就恢复 checkpoint，代价只有若干 cycle 的 flush。</p>
+</li>
+<li>
+<p><strong>超标量各代对比</strong>：M3 走宽窗口低主频（630 ROB / 4 GHz），Zen 5 / Golden Cove 走深流水线高主频（384-512 ROB / 5.7 GHz）——OoO 的设计在窗口大小与 clock frequency 间做 trade-off。</p>
+</li>
+<li>
+<p><strong>OoO 不能解决真依赖</strong>：一段全是 <code>a = a + b[n]; n = next[n]</code> 的代码，本质是单链依赖——再大的 ROB、再多的保留站也只蹲一条链路。ILP 的真实上限是<strong>程序中的独立并行度</strong>，不是硬件能"挖掘"多少。</p>
+</li>
+<li>
+<p><strong>LSQ</strong> 解决内存依赖消歧：地址未知时的 load-store 冲突通过预测器处理；预测错 flush 重执行。</p>
+</li>
+</ol>
+<hr />
+<p>下一节 → <a href="memory-hierarchy.html">存储层次：Cache / DRAM / HBM</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../computer-arch/cpu-pipeline.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../computer-arch/memory-hierarchy.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../computer-arch/cpu-pipeline.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../computer-arch/memory-hierarchy.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

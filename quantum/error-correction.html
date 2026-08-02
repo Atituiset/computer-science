@@ -1,0 +1,490 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>3. 量子纠错: 逻辑 qubit / surface code / 现实挑战 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="3-量子纠错-逻辑-qubit--surface-code--现实挑战"><a class="header" href="#3-量子纠错-逻辑-qubit--surface-code--现实挑战">3. 量子纠错: 逻辑 qubit / surface code / 现实挑战</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>量子比特极其脆弱：环境噪声、测量错误、门错误都会让计算失效。量子计算要规模化，<strong>必须纠错</strong>。但量子纠错和经典纠错（信息论 §汉明码/RS）根本不同——因为<strong>量子态不能复制（no-cloning）</strong>，只能<strong>把 1 个逻辑 qubit 编码到多个物理 qubit + 周期性测量纠错</strong>。当前主流是 <strong>surface code</strong>。这一章讲清"为什么纠错这么难、逻辑 qubit 怎么造、现在到哪一步了"。</p>
+<p>读完应能：</p>
+<ol>
+<li>说出经典纠错 vs 量子纠错的根本差异（no-cloning / 测量坍缩）。</li>
+<li>理解逻辑 qubit 概念：多个物理 qubit 编码 1 个逻辑 qubit。</li>
+<li>理解 surface code 的核心思想（网格 + stabilizer + 测量纠错）。</li>
+<li>理解"逻辑错误率 &lt; 物理错误率"的阈值定理意义。</li>
+<li>知道当前现实（logical qubit 时代、Y2Q 估计），不迷信炒作。</li>
+</ol>
+<hr />
+<h2 id="一为什么量子纠错和经典纠错完全不同"><a class="header" href="#一为什么量子纠错和经典纠错完全不同">一、为什么量子纠错和经典纠错完全不同</a></h2>
+<h3 id="11-经典纠错复习信息论-4"><a class="header" href="#11-经典纠错复习信息论-4">1.1 经典纠错复习（信息论 §4）</a></h3>
+<p>汉明码：用冗余 bit（7 个物理 bit 编 4 个数据 bit），出错时多数投票纠正。</p>
+<pre><code>经典: bit 可以复制 → 存多份 → 多数投票
+       1011 → 1011 1011 1011 → 有一位翻 → 多数修回
+</code></pre>
+<h3 id="12-量子纠错的三个障碍"><a class="header" href="#12-量子纠错的三个障碍">1.2 量子纠错的三个障碍</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>障碍</th><th>说明</th></tr></thead><tbody>
+<tr><td><strong>No-cloning 定理</strong></td><td>量子态<strong>不能被复制</strong>（不可克隆），所以不能"存多份投票"</td></tr>
+<tr><td><strong>测量坍缩</strong></td><td>直接测量会破坏叠加态（一测就坍缩成经典结果）</td></tr>
+<tr><td><strong>错误连续</strong></td><td>错误不是"0→1"离散翻，而是连续的相位/振幅漂移</td></tr>
+</tbody></table>
+</div>
+<h3 id="13-量子纠错的突破思路"><a class="header" href="#13-量子纠错的突破思路">1.3 量子纠错的突破思路</a></h3>
+<pre><code>不复制态, 而是把"逻辑态"分布到多个物理 qubit 的纠缠态里
+用"稳定子测量"(stabilizer measurement) 检测错误, 不破坏数据
+错误是离散的(X/Z 两类) → 类比经典奇偶校验
+</code></pre>
+<p>关键：<strong>纠错靠冗余编码 + 关联测量，不是复制</strong>。经典纠错可复制、量子靠纠缠。</p>
+<hr />
+<h2 id="二逻辑-qubit基础概念"><a class="header" href="#二逻辑-qubit基础概念">二、逻辑 qubit：基础概念</a></h2>
+<h3 id="21-定义"><a class="header" href="#21-定义">2.1 定义</a></h3>
+<blockquote>
+<p><strong>逻辑 qubit</strong> = 由多个物理 qubit 通过纠错码编码出的"可靠"量子比特。</p>
+</blockquote>
+<pre><code>1 个逻辑 qubit (可靠)
+  ↕ 编码
+N 个物理 qubit (脆弱) + 周期性纠错
+</code></pre>
+<ul>
+<li>物理 qubit 是硬件里的真实比特（超导/离子阱/光子...）。</li>
+<li>逻辑 qubit 是"抽象出来的可靠计算单位"——算法跑在逻辑 qubit 上。</li>
+</ul>
+<h3 id="22-冗余比例"><a class="header" href="#22-冗余比例">2.2 冗余比例</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>编码</th><th>物理:逻辑</th><th>说明</th></tr></thead><tbody>
+<tr><td>小演示码（Steane/Shor）</td><td>7:1</td><td>教学/小规模</td></tr>
+<tr><td><strong>Surface code</strong></td><td>~100-1000:1</td><td>当前主流、容错阈值好</td></tr>
+<tr><td>更高级</td><td>更多</td><td>追求更低开销</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>这就是为什么"Shor 要百万物理 qubit"：分解 RSA-2048 需要 ~2-3k 个<strong>逻辑</strong> qubit，每个逻辑 qubit 又要 ~几百-上千个物理 qubit → 总物理 qubit 达百万级。</p>
+</div>
+<hr />
+<h2 id="三surface-code当前主流"><a class="header" href="#三surface-code当前主流">三、Surface code：当前主流</a></h2>
+<h3 id="31-网格布局"><a class="header" href="#31-网格布局">3.1 网格布局</a></h3>
+<p>Surface code 把物理 qubit 排成 2D 网格：</p>
+<pre><code>  数据 qubit (d): 存逻辑信息 (交叉点)
+  测量 qubit (m): 检测错误 (稳定子测量)
+  
+  d ─ m ─ d ─ m ─ d
+  │   │   │   │   │
+  m ─ d ─ m ─ d ─ m
+  │   │   │   │   │
+  d ─ m ─ d ─ m ─ d
+</code></pre>
+<ul>
+<li><strong>数据 qubit</strong> 承载逻辑信息（X 和 Z 两类错误）。</li>
+<li><strong>测量 qubit</strong> 周期性地做 stabilizer 测量（探测相邻数据位是否出错），<strong>不破坏数据</strong>。</li>
+</ul>
+<h3 id="32-stabilizer-测量关键机制"><a class="header" href="#32-stabilizer-测量关键机制">3.2 Stabilizer 测量（关键机制）</a></h3>
+<pre><code>测量 qubit 与相邻数据 qubit 纠缠 → 测出"奇偶性" (stabilizer 本征值)
+错误发生时 → 奇偶性翻转 → 检测到
+→ 用"错误综合征"(syndrome) 定位错误位置 → 纠正
+</code></pre>
+<ul>
+<li>类比：像奇偶校验位，但<strong>测量不坍缩数据</strong>（因为测的是关联，不是数据本身）。</li>
+<li>错误综合征 → 解算错误位置（经典解码，如 matching 算法）→ 施加纠正门。</li>
+</ul>
+<h3 id="33-距离distanced"><a class="header" href="#33-距离distanced">3.3 距离（distance）d</a></h3>
+<ul>
+<li>Surface code 的<strong>距离 d</strong> = 网格边长（数据 qubit 每边数量）。</li>
+<li>更大的 d → 能纠正更多错误 → 逻辑错误率指数下降（如果物理错误率低于阈值）。</li>
+<li>纠错能力：能纠正 $\lfloor (d-1)/2 \rfloor$ 个错误链。</li>
+</ul>
+<h3 id="34-阈值定理threshold-theorem"><a class="header" href="#34-阈值定理threshold-theorem">3.4 阈值定理（Threshold Theorem）</a></h3>
+<blockquote>
+<p>如果<strong>物理错误率低于某阈值</strong>（surface code 约 1%），那么增大码距离 d 就能<strong>指数级降低逻辑错误率</strong>——理论上可以无限制地可靠计算。</p>
+</blockquote>
+<pre><code>物理错误率 &lt; 阈值 (≈1%)  → 逻辑错误率指数降
+物理错误率 &gt; 阈值        → 越纠越错 (扩码无用)
+</code></pre>
+<p>这就是"<strong>容错量子计算是可能的</strong>"的理论保证——前提是硬件好过阈值。</p>
+<hr />
+<h2 id="四稳定子与纠错过程更具体"><a class="header" href="#四稳定子与纠错过程更具体">四、稳定子与纠错过程（更具体）</a></h2>
+<h3 id="41-两个-stabilizer-类型"><a class="header" href="#41-两个-stabilizer-类型">4.1 两个 stabilizer 类型</a></h3>
+<ul>
+<li><strong>X-type stabilizer</strong>：检测 Z 错误（相位翻转）。</li>
+<li><strong>Z-type stabilizer</strong>：检测 X 错误（比特翻转）。</li>
+</ul>
+<h3 id="42-纠错循环"><a class="header" href="#42-纠错循环">4.2 纠错循环</a></h3>
+<pre><code>1. 周期性测量 stabilizer (每个测量 qubit)
+2. 对比测量结果 (寻找"错误综合征"变化)
+3. 解码: 用综合征图定位错误链 (经典算法, 如 Union-Find / MWPM)
+4. 应用纠正门 (X 或 Z, 看错误类型)
+5. 返回步骤 1 (持续, 因为错误连续发生)
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>纠错是<strong>持续在线</strong>的——不像经典存储"纠一次"，量子计算中错误不断产生，所以纠错要周期性进行，且纠错本身要快过错误累积。</p>
+</div>
+<h3 id="43-容错门fault-tolerant-gates"><a class="header" href="#43-容错门fault-tolerant-gates">4.3 容错门（Fault-tolerant gates）</a></h3>
+<ul>
+<li>纠错码允许的"逻辑门"要满足<strong>容错性</strong>：门操作不把错误放大到不可控。</li>
+<li>这极其复杂——<strong>Clifford 门容易，非 Clifford 门（T 门）难</strong>（需要 magic state distillation）。</li>
+<li>实现逻辑门 + 纠错 = 整个"容错量子计算"的最大工程难题。</li>
+</ul>
+<hr />
+<h2 id="五当前现实2026-视角"><a class="header" href="#五当前现实2026-视角">五、当前现实（2026 视角）</a></h2>
+<h3 id="51-里程碑"><a class="header" href="#51-里程碑">5.1 里程碑</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>年份</th><th>进展</th></tr></thead><tbody>
+<tr><td>2021-2023</td><td>多个团队演示<strong>逻辑 qubit 错误率 &lt; 物理 qubit</strong>（small distance）</td></tr>
+<tr><td>2024-2025</td><td>Google (Willow) 等演示 surface code 增大 distance 后逻辑错误率下降（关键验证）</td></tr>
+<tr><td>2026+</td><td>冲击 ~100 逻辑 qubit；<strong>错误率仍未低到跑 Shor</strong></td></tr>
+<tr><td>远期</td><td>百万物理 qubit 才能威胁 RSA-2048</td></tr>
+</tbody></table>
+</div>
+<h3 id="52-挑战清单"><a class="header" href="#52-挑战清单">5.2 挑战清单</a></h3>
+<pre><code>1. 物理错误率要 &lt; 阈值 (≈1%)   — 硬件质量
+2. 大规模 2D 网格 + 快速经典解码  — 工程
+3. 容错逻辑门 (T 门 / magic state)  — 理论+工程
+4. 冷却/稳定 (超导需 mK 温度)     — 物理
+5. 与经典 CPU 协同 (混合计算)      — 系统
+</code></pre>
+<h3 id="53-y2qyears-to-quantum"><a class="header" href="#53-y2qyears-to-quantum">5.3 Y2Q（Years to Quantum）</a></h3>
+<ul>
+<li>估算：<strong>10-30 年</strong>才可能有实用规模量子计算机。</li>
+<li><strong>现在就该做</strong>的：<strong>后量子密码迁移</strong>（公钥换成 PQC），因为"今天截获、明天解密"（harvest-now-decrypt-later）是现实威胁。</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>别听"明年破解"的炒作，也别无视风险。<strong>现在值得做的</strong>：把 RSA/ECC 迁移到 PQC（NIST 已标准化 Kyber/Dilithium），尤其是长期保密数据。这是"确定性需求 + 不确定时间表"的经典风险管理。</p>
+</div>
+<hr />
+<h2 id="六与信息论密码学的接口"><a class="header" href="#六与信息论密码学的接口">六、与信息论/密码学的接口</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>概念</th><th>经典对应</th><th>量子</th></tr></thead><tbody>
+<tr><td>冗余编码</td><td>汉明/RS（§info-theory）</td><td>surface code / stabilizer</td></tr>
+<tr><td>奇偶校验</td><td>parity check</td><td>stabilizer 测量</td></tr>
+<tr><td>纠错能力</td><td>最小距离 → 纠 t 错</td><td>码距离 d → 纠 (d-1)/2 错</td></tr>
+<tr><td>阈值</td><td>香农容量</td><td>阈值定理（1%）</td></tr>
+<tr><td>安全威胁</td><td>RSA/ECC</td><td>Shor / Grover（§algorithms）</td></tr>
+<tr><td>防御</td><td>换长密钥</td><td>PQC（Kyber/Dilithium）</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="七结束--速查表"><a class="header" href="#七结束--速查表">七、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回：</p>
+<ul>
+<li><strong>量子纠错 ≠ 经典纠错</strong>：no-cloning（不能复制）、测量坍缩、错误连续 → 靠纠缠编码 + stabilizer 测量。</li>
+<li><strong>逻辑 qubit</strong> = 多个物理 qubit 编码的可靠比特；算法跑在逻辑 qubit 上。</li>
+<li><strong>Surface code</strong>：2D 网格 + 数据/测量 qubit + stabilizer 周期测量 + 经典解码。</li>
+<li><strong>距离 d</strong>：越大能纠越多错；逻辑错误率指数降（低于阈值时）。</li>
+<li><strong>阈值定理</strong>：物理错误率 &lt; ~1% → 容错可行。</li>
+<li><strong>容错门</strong>：Clifford 易、T 门难（magic state）。</li>
+<li><strong>现状</strong>（2026）：~100 逻辑 qubit 时代；Shor 要百万物理 qubit → Y2Q 10-30 年。</li>
+<li><strong>现在该做</strong>：PQC 迁移（Kyber/Dilithium）——harvest-now-decrypt-later 是现实威胁。</li>
+</ul>
+</div>
+<hr />
+<p>回主目录: <a href="index.html">量子计算卷 README</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../quantum/algorithms.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../TODO.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../quantum/algorithms.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../TODO.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

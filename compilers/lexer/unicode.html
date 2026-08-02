@@ -1,0 +1,439 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Unicode、字符集、错误恢复 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="unicode字符集错误恢复"><a class="header" href="#unicode字符集错误恢复">Unicode、字符集、错误恢复</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>现代语言源码允许直接使用 Unicode：<code>λ x → x</code> (Agda)、<code>let Σ = 1</code>、JS emoji identifiers。lexer 必支持 Unicode Normalization Form、UTF-8 编码、代码点分类 (letter/digit/punctuation)、以及解析时的 fallback error recovery。本节走完 UTF-8/16 编码、Unicode 表 / <code>\p{L}</code>、字符集规范化 NFC/NFD/NFKC/NFKD、跨平台换行 (LF/CRLF/CR)、识别非法 byte 时 lexer 行为。</p>
+<hr />
+<h2 id="一utf-8-编码"><a class="header" href="#一utf-8-编码">一、UTF-8 编码</a></h2>
+<p>UTF-8 是变长 1-4 字节：</p>
+<pre><code>0xxxxxxx                 1 byte  (U+0000 - U+007F)
+110xxxxx 10xxxxxx        2 bytes (U+0080 - U+07FF)
+1110xxxx 10xxxxxx 10xxxxxx  3 bytes (U+0800 - U+FFFF)
+11110xxx 10xxxxxx 10xxxxxx 10xxxxxx  4 bytes (U+10000 - U+10FFFF)
+</code></pre>
+<p>UTF-8 优势：</p>
+<ul>
+<li>ASCII 兼容</li>
+<li>单元自同步（任意 byte 可定位 stream 起点）</li>
+<li>字节序无关（不需要 BOM）</li>
+</ul>
+<p>lexer 要识别"lead byte"决定后续长度 + 验证 4 byte UTF-8 必 ≤ 0x10FFFF + 不入 surrogate 区（D800-DFFF）。</p>
+<h2 id="二utf-16-与代理对"><a class="header" href="#二utf-16-与代理对">二、UTF-16 与代理对</a></h2>
+<p>UTF-16 对 BMP (U+0000 - U+FFFF) 用 2 byte，对 supplementary 平面用 surrogate pair (高 D800-DBFF + 低 DC00-DFFF)。</p>
+<p>JS string 是 UTF-16，所以 <code>'a'.length === 1</code> 但 <code>'😀'.length === 2</code>。</p>
+<p>lexer 解 UTF-16 source code 必处理 surrogate pair，否则 identifier 报错一半。</p>
+<h2 id="三字符分类"><a class="header" href="#三字符分类">三、字符分类</a></h2>
+<p>lexer 用 Unicode 类别（<code>\p{L}</code> letter，<code>\p{N}</code> number）：</p>
+<div class="table-wrapper"><table><thead><tr><th>简写</th><th>含义</th></tr></thead><tbody>
+<tr><td><code>\p{L}</code></td><td>letter (含 Ll/lower Lu/upper Lt/title Lm/modifier Lo/other)</td></tr>
+<tr><td><code>\p{N}</code></td><td>number (Nd/Nl/No)</td></tr>
+<tr><td><code>\p{P}</code></td><td>punctuation</td></tr>
+<tr><td><code>\p{S}</code></td><td>symbol</td></tr>
+<tr><td><code>\p{M}</code></td><td>mark (Mn combining)</td></tr>
+<tr><td><code>\p{Z}</code></td><td>separator (space)</td></tr>
+<tr><td><code>\p{C}</code></td><td>other (control, surrogate)</td></tr>
+</tbody></table>
+</div>
+<p><code>XID_Start</code> / <code>XID_Continue</code> 是 Unicode 标准 identifier 规则。</p>
+<p>lex 执行：</p>
+<pre><code>ident_start = XID_Start | '_'
+ident_continue = XID_Continue
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn is_ident_start(c: char) -&gt; bool {
+    c == '_' || unicode_xid::UnicodeXID::is_xid_start(c)
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="四normalization-forms"><a class="header" href="#四normalization-forms">四、Normalization Forms</a></h2>
+<p>Unicode encoded 字符有等价 (e.g. <code>ó</code> 可 1 码点 U+00F3 或 2 码点 U+006F + U+0301 combining acute)。</p>
+<ul>
+<li>NFC (Normalization Form Composed)：组合 → 单码点</li>
+<li>NFD (Decomposed)：组合拆分</li>
+<li>NFKC / NFKD：兼容性分解（含样式等价）</li>
+</ul>
+<p>源文件 lexer 通常用 NFC，让 equivalent code points → same token。Python 3 PEP 263 要求 source code 是 UTF-8 UTF-16。</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// unicode-normalization crate
+let nfd: String = s.nfd().collect();
+let nfc: String = s.nfc().collect();
+<span class="boring">}</span></code></pre></pre>
+<h2 id="五跨平台换行"><a class="header" href="#五跨平台换行">五、跨平台换行</a></h2>
+<pre><code>\n    LF    Unix
+\r\n  CRLF  Windows
+\r    CR    Classic Mac OS
+</code></pre>
+<p>lexer 公约：</p>
+<ol>
+<li>把所有换行 normalize 成 LF</li>
+<li>column counter 维护基于 normalized column</li>
+<li>byte offset 仍按原始字节 (error report byte position)</li>
+</ol>
+<p>Python <code>compile()</code> 把换行 normalize 成 LF：源 + identifier 一 致。</p>
+<h2 id="六错误恢复"><a class="header" href="#六错误恢复">六、错误恢复</a></h2>
+<p>错误发生时 lexer 应仍可继续：</p>
+<ol>
+<li>跳 1 byte 继续</li>
+<li>报 <code>invalid UTF-8 byte 0xFF at line N col M</code></li>
+<li>配合 IDE 行 / col 信息</li>
+</ol>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn lex(s: &amp;str) -&gt; Vec&lt;Token&gt; {
+    let mut chars = s.chars().peekable();   // chars() 自检 UTF-8
+    let mut tokens = Vec::new();
+    while let Some(c) = chars.next() {
+        match c {
+            ' ' | '\t' | '\n' =&gt; continue,
+            '0'..='9' =&gt; /* number */,
+            _ if is_ident_start(c) =&gt; /* ident */,
+            _ =&gt; {
+                error(c);
+                continue;
+            }
+        }
+    }
+    tokens
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Rust <code>str::chars()</code> 把无效 UTF-8 替换 U+FFFD；lexer 仍继续。</p>
+<h2 id="七产线实战"><a class="header" href="#七产线实战">七、产线实战</a></h2>
+<h3 id="71-rust-identifier"><a class="header" href="#71-rust-identifier">7.1 Rust identifier</a></h3>
+<p>Rust 支持 non-ASCII identifier：</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let 用户 = "user";
+<span class="boring">}</span></code></pre></pre>
+<p><code>unicode-xid</code> crate 实现 XID_Start/XID_Continue literal check。<code>unicode_xid::is_xid_start('用')</code> true。</p>
+<h3 id="72-hack-customization"><a class="header" href="#72-hack-customization">7.2 Hack customization</a></h3>
+<p>HHVM/Hack 允许 unicode id 但 report style: 与 lazy normalize，警告 non-ASCII identifier 出现在做 方_TAG_CAMÉL CASE。</p>
+<h3 id="73-python-codingcoding-declaration"><a class="header" href="#73-python-codingcoding-declaration">7.3 Python <code>coding:coding</code> declaration</a></h3>
+<p>Python support <code># -*- coding: latin-1 -*-</code> PEP 263 source code encoding declaration。Lex 文件字节、decode、tokenize 三道。</p>
+<h3 id="74-字符串字面量-buffered-decode"><a class="header" href="#74-字符串字面量-buffered-decode">7.4 字符串字面量 buffered decode</a></h3>
+<p>某些 lexer 解 字符串字面量时应跳过 unicode decode 错误（保持 raw bytes）。e.g.：</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let s = b"\xFF";   // raw byte, not UTF-8 string
+<span class="boring">}</span></code></pre></pre>
+<h2 id="八易错清单"><a class="header" href="#八易错清单">八、易错清单</a></h2>
+<ol>
+<li><strong>UTF-8 byte length</strong> variable: 1-4 字节一个 codepont</li>
+<li><strong>Surrogate pair</strong> D800-DFFF 必 reject 在 UTF-8 表达</li>
+<li><strong>identifier</strong>: XID_Start not 仅 ASCII letters</li>
+<li><strong><code>Σ</code></strong> 字符小写化 → NFC 等价 <code>Σ</code> 与 σ； 直等所有 known NFC text</li>
+<li><strong>NFC 默认</strong>: source 通常 NFC normalized 提前 preprocess</li>
+<li><strong>CRLF</strong> normalization 必留 byte offset 不变 / col 计数错位</li>
+<li><strong>U+00A0 NBSP</strong> 不算 whitespace: lexer 若不理是 bug</li>
+</ol>
+<h2 id="九这一章带走的东西"><a class="header" href="#九这一章带走的东西">九、这一章带走的东西</a></h2>
+<ol>
+<li>UTF-8 1-4 byte variable, 自同步; UTF-16 with surrogate pair</li>
+<li>Unicode XID_Start/XID_Continue 是 lexer identifier 标准分类</li>
+<li>NFC normalize source 等价 Unicode normalization</li>
+<li>跨平台换行 normalize LF 但保留 byte offset for error report</li>
+<li>Lexer UTF-8 invalid byte 必 报 + 跳 1 char 持续 继续</li>
+<li>Rust <code>str</code> valid UTF-8 invariant, lexer 允 <code>[u8]</code> 处理 raw  bytes (代 char iteration)</li>
+</ol>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../compilers/lexer/dfa.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../compilers/parser/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../compilers/lexer/dfa.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../compilers/parser/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

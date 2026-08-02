@@ -1,0 +1,495 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>内存分配器：ptmalloc/jemalloc/tcmalloc/mimalloc - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="内存分配器ptmalloc--jemalloc--tcmalloc--mimalloc"><a class="header" href="#内存分配器ptmalloc--jemalloc--tcmalloc--mimalloc">内存分配器：ptmalloc / jemalloc / tcmalloc / mimalloc</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p><code>malloc(64)</code> 这行代码，你以为是 OS 给你 64 字节。<strong>不是。</strong> 它实际是从用户态一段叫做 arena 的虚拟地址块里切下一个 64 字节的"运行时管理单元"，OS 在 99% 的情况下根本没被惊动。这一章把四个主流分配器拆到底层，让你看清 <code>malloc</code> 背后的 fast path / slow path / size class / slab / 线程 cache / 大页对齐，最后你会发现：<strong>分配器是 OS 在你程序里偷偷延伸的二级 cache</strong>。</p>
+<h2 id="1-为什么必须有用户态分配器"><a class="header" href="#1-为什么必须有用户态分配器">1. 为什么必须有用户态分配器</a></h2>
+<p>OS 给你分配内存的两个 syscall 是 <code>brk</code> 和 <code>mmap</code>，最小粒度都是页 (4 KB)。如果你每次 malloc 64B 都向 OS 要一页：</p>
+<ul>
+<li>1 GB 申请要 262144 次 syscall = ~26M cycle；</li>
+<li>地址空间被切成 524288 个 4 KB 不可回收碎片；</li>
+<li>page fault 触发再 + 再 1 倍延迟。</li>
+</ul>
+<p><strong>这根本不工程可行</strong>。所以每个语言运行时都有自己的"用户态分配器"，在已映射的页上自己切片，OS 只看"页的进出"，看不到字节进出。</p>
+<p>这就引出一个分层抽象：</p>
+<pre><code>用户代码:   malloc(64)
+   ↓
+语言运行时 (ptmalloc / jemalloc / glibc): 在 arena 内切 64B
+   ↓
+OS syscalls (brk/mmap/munmap): 按页申请 / 释放
+   ↓
+memory controller 按页映射到 DRAM row/col
+</code></pre>
+<p>每跨层都付出一次"页" 大小的代价. 所以 <strong>分配器的核心职责是减少 syscall 次数 + 减少 cache miss + 减少碎片</strong>——这就是为什么它是 OS 在用户态的二级 cache。</p>
+<h2 id="2-分配器要解决的三件事"><a class="header" href="#2-分配器要解决的三件事">2. 分配器要解决的三件事</a></h2>
+<p>不管哪个分配器，都要同时回答这三个问题：</p>
+<ol>
+<li><strong>快路径</strong>：常态 <code>malloc(n)</code> 必须几 ns 内返回——基本是 thread local cache 命中;</li>
+<li><strong>碎片控制</strong>：长期跑不能把堆越分越碎，让 2 GB 进程吃成 4 GB 虚拟;</li>
+<li><strong>多核伸缩</strong>：多线程竞争不能让吞吐降级——必须 thread-local 优先，central path 兜底.</li>
+</ol>
+<p>整本书里反复出现的"摊还 vs 最坏"和"thread-local vs 共享"在分配器里<strong>完美同构</strong>。</p>
+<h2 id="3-size-class分配器的核心数据结构"><a class="header" href="#3-size-class分配器的核心数据结构">3. size class：分配器的核心数据结构</a></h2>
+<p><code>malloc(n)</code> 总要选一种合理大小返回。但你不能为每个 n 维护一个独立的"空闲链"——会爆炸。所以主流分配器都先做 <strong>size class</strong> 分桶：</p>
+<pre><code>size class:    8, 16, 32, 48, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384, 448, 512, 640, 768, 896, 1024, ... 
+直到 page run 上限 (~32 KB)
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>size class 不是完全等比增长的，是经过实测后调出来的工程最佳值——确保每种 class 的对齐 / 滑动损耗 &lt; 12.5%。tcmalloc 用了 80 多个 class，jemalloc 的 psizes[][] 表是编译期常量数。</p>
+</div>
+<p>举几个例子：</p>
+<ul>
+<li><code>malloc(7)</code> → 8 字节 class</li>
+<li><code>malloc(13)</code> → 16 字节 class</li>
+<li><code>malloc(48)</code> → 48 字节 class</li>
+<li><code>malloc(50)</code> → 64 字节 class</li>
+</ul>
+<p>所有权 class 决定你实际花掉 8/16/64 字节之一——这就是"分配内的内碎片"——internal fragmentation。<strong>好的 size class 表让平均浪费 &lt; 12%</strong>.</p>
+<h2 id="4-slab--page--run--heap四层结构"><a class="header" href="#4-slab--page--run--heap四层结构">4. Slab / page / run / heap：四层结构</a></h2>
+<p>主流分配器结构都长这样：</p>
+<pre><code>heap        ─── 给某个线程 / CPU
+ ↓
+arena       ─── 一个 slab 群组, 共享给多个 threads
+ ↓
+page run    ─── 一组连续 page, 整体属于某一个 size class
+ ↓
+slot        ─── 一次 TLB 友好切出的实际用 chunk
+</code></pre>
+<p>每个分配器的命名略不同 (thread cache 是 tc / slab 是 run / span 是 page run)，但抽象同源。</p>
+<h2 id="5-ptmalloc-glibc"><a class="header" href="#5-ptmalloc-glibc">5. ptmalloc (glibc)</a></h2>
+<p>业内最广用、也是最被诟病的分配器。原理是 Doug Lea 的 dlmalloc 加 Intel 维护的多线程 arena 扩展。</p>
+<h3 id="结构"><a class="header" href="#结构">结构</a></h3>
+<ul>
+<li>arena: 一个全局 + 多线程用 thread arena;</li>
+<li>chunk 头部 16/32 字节 (size + flags + prev size);</li>
+<li>主交付 path: bins——按 size 组织的链表 / tree。</li>
+<li>thread cache (tcache) 自 2.26 加入，单线程情况极大改善。</li>
+</ul>
+<h3 id="实测痛点"><a class="header" href="#实测痛点">实测痛点</a></h3>
+<ul>
+<li>chunk header 8 B / 16 B, 小对象的 overhead 25%~50%;</li>
+<li>arena 间锁争激烈，多核 32-core 机器上 malloc contention 常被 flamegraph 看到;</li>
+<li>mmap 上界 128 KB，超过则直接走 mmap;</li>
+<li>free 后做 merge 是"立即合并"，与传统 TCMalloc 倾向"central cache returned" 不同。</li>
+</ul>
+<p>实际项目中 Go runtime / Java / Rust 不用 ptmalloc 是这个原因。C++ 写后端如果用 libstdc++ + ptmalloc 默认栈，高 QPS 服务 P99 经常掉。直接换 jemalloc 或 mimalloc 是工程"一行 LD_PRELOAD"。</p>
+<h2 id="6-tcmalloc-google"><a class="header" href="#6-tcmalloc-google">6. tcmalloc (Google)</a></h2>
+<p>Google 内部写来变的分配器，给所有第一方 Google 服务用。核心两点：</p>
+<h3 id="thread-cache-tc"><a class="header" href="#thread-cache-tc">thread cache (TC)</a></h3>
+<ul>
+<li>每 CPU (实际上是每线程) 持有独立 cache，命中走 O(1) 无锁;</li>
+<li>多线程 malloc 之间几乎零竞争。</li>
+</ul>
+<h3 id="central-free-list--span"><a class="header" href="#central-free-list--span">central free list + span</a></h3>
+<ul>
+<li>thread cache 上限到了就 batch 归还;</li>
+<li>central 维护 page heap + 由 spans (一个 page run) 组成;</li>
+<li>大对象直接 mmap + 一次 size-to-heap lookup.</li>
+</ul>
+<p><strong>整体结构是 per-thread TC + 中央 page heap</strong>：现在也是 prometheus / envoy 等基础设施默认走的 (链接 tcmalloc_minimal).</p>
+<h2 id="7-jemalloc-facebook-freebsd"><a class="header" href="#7-jemalloc-facebook-freebsd">7. jemalloc (Facebook, FreeBSD)</a></h2>
+<p>Facebook 给 Redis / jemalloc 默认, 如果 Linux 用户 apt 装 redis-server 默认就用 jemalloc. 整体建模差异：</p>
+<h3 id="三级-cache-tc--cache--arena"><a class="header" href="#三级-cache-tc--cache--arena">三级 cache: TC → cache → arena</a></h3>
+<pre><code>线程本地 tcache: 8B-32KB 的小对象，存现成的 slab 槽位;
+tcache 满则归还到 arena-level cache;
+arena 持有 extents (page runs) 集群;
+atop: huge page / mmap/purge madvise.
+</code></pre>
+<h3 id="extent--run--arena"><a class="header" href="#extent--run--arena">extent / run / arena</a></h3>
+<ul>
+<li><strong>arena 数</strong>默认 = 4 × ncpu，希望线程通过 thread hash 接到不同 arena，避免同一 arena 锁链路;</li>
+<li><strong>extent</strong> 是逻辑 page run, 在活跃与空闲之间转移;</li>
+<li><strong>purge</strong> 通过 <code>MADV_DONTNEED</code> 主动归还 OS, 减少内存长尾增长.</li>
+</ul>
+<h3 id="实测优势"><a class="header" href="#实测优势">实测优势</a></h3>
+<ul>
+<li>小对象分配高峰极快（TC ~ 10 ns）;</li>
+<li>arena 数大，多线程 contention 远低于 ptmalloc;</li>
+<li>短期 / 长期均衡, 碎片率 &lt; 5%.</li>
+</ul>
+<p>这就是为什么 Redis、Rust std 编译默认 jemalloc / mimalloc 二选一，业务上 high QPS 服务<strong>默认建议替换 glibc 的 ptmalloc</strong>.</p>
+<h2 id="8-mimalloc-microsoft"><a class="header" href="#8-mimalloc-microsoft">8. mimalloc (Microsoft)</a></h2>
+<p>更现代的版本。和 tcmalloc 类似但减少一些 tradeoff：</p>
+<ul>
+<li>每 CPU 而不是每线程 cache (减少 GC pause + 减少 reset thread state);</li>
+<li>segmented heaps (便于 massively parallel GC);</li>
+<li>low-fragmentation 算法基于"延迟合并 free"——deferred merging is similar to LFU local 防抖.</li>
+</ul>
+<p>mimalloc 在 C / C++ 大量 short-lived allocation 上实测比 ptmalloc 快 7×, 比 jemalloc 快 1.5×. Rust 1.7+ 把 jemalloc 改成 mimalloc 模型 (具体视平台).</p>
+<h2 id="9-rust-与-go-的运行时自实现"><a class="header" href="#9-rust-与-go-的运行时自实现">9. Rust 与 Go 的运行时自实现</a></h2>
+<p>Rust / Go 不用 glibc 的 malloc. 它们自己写了分配器.</p>
+<h3 id="rust"><a class="header" href="#rust">Rust</a></h3>
+<ul>
+<li>把分配器作为 trait <code>Alloc</code>，全局 <code>#[global_allocator]</code> 可替换;</li>
+<li>标准的 <code>System allocator</code> 是 malloc (e.g., libc 还是 ptmalloc;</li>
+<li>实战推荐链接 <code>jemalloc-sys</code> 或 <code>mimalloc</code> 作为 global allocator;</li>
+<li>这是 rust-lang / Firefox / Linux 性能改造的第一步.</li>
+</ul>
+<h3 id="go-runtime"><a class="header" href="#go-runtime">Go runtime</a></h3>
+<ul>
+<li>runtime 自己写 allocator, mlockless + tcmalloc 风格 TC + central;</li>
+<li>每 P 都有一个 mcache, 每 P 加一个 mcentral;</li>
+<li>大对象 (large &gt; 32KB) 直接 mmap + central heap;</li>
+<li>GC 后 mark phase + sweep phase，sweep 时实际 free;</li>
+<li>在 stop-the-world (STW) 边界看像 read-only scan.</li>
+</ul>
+<p>Go 实际上把自己和别人都搞到自己 runtime 里 —— allocator + GC + 协程栈一起做调度. 简化程序员心智的同时, GC pause 上的工程一长尾常见痛点.</p>
+<h2 id="10-fragmentation内部--外部"><a class="header" href="#10-fragmentation内部--外部">10. fragmentation：内部 / 外部</a></h2>
+<p>碎片是 allocator 失败的本质结果. 两种:</p>
+<ul>
+<li><strong>Internal frag</strong>: size class 把 n 字节进给 16 字节一边际, 浪费的几 B;</li>
+<li><strong>External frag</strong>: 已 free 的 chunk 不连续, 64 MB 总 free 但 1 MB 连续段切不出来.</li>
+</ul>
+<p>外部碎片是<strong>长期内存增长的主因</strong>. 举例: 业务不停申请不同大小 16/24/40/8 malloc 后, 大 free 后处理时合并 algorithm <strong>but</strong> 周围仍然在使用, 导致一个 internal 大块没法回收. 主流缓解:</p>
+<ul>
+<li>arena 分 bin sized, 同 size 集中同一 bin 形成线性可回收 (tcmalloc 思路);</li>
+<li>用 page split / coalesce by size class (jemalloc, mimalloc);</li>
+<li>indirect_addr 让 free immediately defered 到 GC metaphore (Rust 的 mimalloc).</li>
+</ul>
+<h2 id="11-大页与分配器协同"><a class="header" href="#11-大页与分配器协同">11. 大页与分配器协同</a></h2>
+<p>在 huge page 开了后, 分配器都应该 page-aligned 2 MB malloc 给 huge page friend. 没做就导致 huge page fragmentation:</p>
+<ul>
+<li>4 KB 的 page 在 1 GB 级别 alloc, 中间被 OS swap-out 一些 → 启 1 GB huge page segment across mess.</li>
+<li></li>
+</ul>
+<p>jemalloc 启用 <code>--with-lg-page=21</code> 编译, 1 GB huge page (<code>MADV_HUGEPAGE</code>) 是工程最佳实践.</p>
+<h2 id="12-调优现场"><a class="header" href="#12-调优现场">12. 调优现场</a></h2>
+<pre><code class="language-bash"># perf record arena contention
+perf record -e cache-misses,context-switches ./程序
+
+# 分配器行为 trace
+export MALLOC_CONF="stats_print:true,lg_sample:19"
+./程序 1&gt;/dev/null  # 程序退出时 jemalloc 输出 layout 报告
+
+# C 临时替换:
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so ./your_app
+</code></pre>
+<h2 id="13-多语言同一抽象"><a class="header" href="#13-多语言同一抽象">13. 多语言同一抽象</a></h2>
+<p>把 OS allocator 与语言 runtime GC 抽象同源:</p>
+<div class="table-wrapper"><table><thead><tr><th>语言</th><th>用户态分配器</th><th>默认 / 推荐</th></tr></thead><tbody>
+<tr><td>C</td><td>ptmalloc (glibc)</td><td>LD_PRELOAD jemalloc/mimalloc</td></tr>
+<tr><td>C++</td><td>同上</td><td>同上</td></tr>
+<tr><td>Rust</td><td>std::alloc::System (默认 malloc)</td><td>web 通常替换为 mimalloc/jemalloc</td></tr>
+<tr><td>Go</td><td>runtime 全自实现 GC 整合</td><td>不能换</td></tr>
+<tr><td>Java</td><td>JVM 内嵌 allocator, TLAB per-thread</td><td>G1/ZGC/Shenandoah</td></tr>
+<tr><td>Python</td><td>pymalloc + PyObject arena</td><td>不能换</td></tr>
+<tr><td>V8 (JS)</td><td>V8 Heap 持有 = 分代 GC</td><td></td></tr>
+</tbody></table>
+</div>
+<p>所有现代语言的分配器都用 thread-local cache / size class / 中央 page heap 这同构骨架. 区别只是"是否带 GC + GC pause". 这就是 DSA 的"摊还 vs 最坏" 在工程层<strong>又一次同构</strong>.</p>
+<h2 id="14-这章带走的东西"><a class="header" href="#14-这章带走的东西">14. 这章带走的东西</a></h2>
+<ul>
+<li><code>malloc</code> 是由用户态分配器决定的, 不是 sys 调用;</li>
+<li>size class 是分配器"短小 + 内碎片可控" 的核心数据结构;</li>
+<li>tcmalloc / jemalloc / mimalloc 共通形态: TC → central → page heap;</li>
+<li>arena 数多 + thread cache 是平s-sp-2 thrashing anti-contention 的关键;</li>
+<li>业务 high QPS 服务<strong>第一线优化</strong>就是替换 ptmalloc → jemalloc/mimalloc;</li>
+<li>与运行时 GC 配合看到是同构, "摊还 + thread-local" 是同一抽象在分配器 / GC 中的不同物化.</li>
+</ul>
+<p>下一节 → <a href="numa.html">NUMA 与 CXL 内存池</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../os/memory/replacement.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../os/memory/numa.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../os/memory/replacement.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../os/memory/numa.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

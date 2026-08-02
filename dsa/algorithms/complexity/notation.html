@@ -1,0 +1,476 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>渐进记号的真实含义 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../../favicon.svg">
+        <link rel="shortcut icon" href="../../../favicon.png">
+        <link rel="stylesheet" href="../../../css/variables.css">
+        <link rel="stylesheet" href="../../../css/general.css">
+        <link rel="stylesheet" href="../../../css/chrome.css">
+        <link rel="stylesheet" href="../../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="渐进记号的真实含义"><a class="header" href="#渐进记号的真实含义">渐进记号的真实含义</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p><code>O(f(n))</code> 不是"快慢"，是"函数被夹在哪个量级里";它只告诉我们<strong>当 n 趋于无穷时增长的形状</strong>，不告诉我们任何常数、任何 cache 行为、任何 CPU 流水线效应。所以<strong>只看 O 是工程师的天真阶段</strong>——但同时记住：完全没有 O 的工程化分析也是不可能的。这一章的任务是把这两层同时立起来。</p>
+<h2 id="形式定义"><a class="header" href="#形式定义">形式定义</a></h2>
+<p>把 <code>f</code> 和 <code>g</code> 都看作 <code>ℕ → ℝ⁺</code>。捕获三种"夹逼"方向：</p>
+<ul>
+<li><code>f = O(g)</code>：存在 <code>c &gt; 0</code> 和 <code>n₀</code> 使得 <code>∀n ≥ n₀</code> 有 <code>f(n) ≤ c · g(n)</code>.  即"<strong>f 的增长不会跑过 g 的某个常数倍</strong>".</li>
+<li><code>f = Ω(g)</code>：存在 <code>c &gt; 0</code> 和 <code>n₀</code> 使得 <code>∀n ≥ n₀</code> 有 <code>f(n) ≥ c · g(n)</code>.  即"<strong>f 的增长不会慢于 g 的某个常数倍</strong>".</li>
+<li><code>f = Θ(g)</code>：刚好同时是 O 和 Ω。"两边都被常数夹死".</li>
+<li><code>f = o(g)</code> / <code>f = ω(g)</code>：严格小、严格大（取极限之比分别为 0 与 ∞）.</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>习惯写法 <code>f = O(g)</code> 里的 <code>=</code> 不对称。<code>O(g)</code> 是一个<strong>函数集合</strong>，严格写法是 <code>f ∈ O(g)</code>. 但业界已经把 <code>{f | f = O(g)}</code> 当成口语化的某个等价集，所以约定俗成就这样了。你读 <code>"T(n) = O(n log n)"</code> 时脑子里要翻译成"T(n) 落在 Θ(n log n) 差不多的量级上"。</p>
+</div>
+<h2 id="工程师对渐进的五层误读"><a class="header" href="#工程师对渐进的五层误读">工程师对渐进的五层误读</a></h2>
+<h3 id="误读-1o1-一定比-olog-n-快"><a class="header" href="#误读-1o1-一定比-olog-n-快">误读 1：O(1) 一定比 O(log n) 快</a></h3>
+<p>错。<code>O(1)</code> 里的常数项决定小规模胜负。例子：哈希单次操作 ≈ 几十到几百条指令（hash、mod、可能的 cache miss、可能的 tombstone 探测）；二分单次 ≈ 10 条指令（一次比较 + 一次地址加法 + 一次 cache hopeful 读）。n &lt; 100 时二分一般是赢的。</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>benchmark 上一个常见的反例：Go map 在 100 个键时比 <code>sort.Search</code> 慢。这就是"O(1)"输给"O(log n)"在工程现场的实证。说明渐进常数大于 10。</p>
+</div>
+<h3 id="误读-2olog-n-都是一个量级"><a class="header" href="#误读-2olog-n-都是一个量级">误读 2：O(log n) 都是一个量级</a></h3>
+<p><code>log</code> 的底是常数差异。<code>log₂ n</code> 与 <code>ln n</code> 差一个 ln 2 ≈ 0.69 的乘性系数。看起来微不足道，但在<strong>每次比较代价高</strong>时：</p>
+<ul>
+<li>二叉树每次比较 1 cycle；</li>
+<li>红黑树 + string key 时每次比较可能上百 cycle（strcmp 遍历整个 key，常常命中 cache 也不好）;</li>
+<li>B+ 树页内比较一次后用 SIMD 8-wide 一次比 8 个 key —— 常数缩小 8 倍.</li>
+</ul>
+<p>到这里你就理解了：<strong>大 O 不区分 log 的底，但工程常数能差 10 倍</strong>.</p>
+<h3 id="误读-3平均复杂度--期望复杂度"><a class="header" href="#误读-3平均复杂度--期望复杂度">误读 3：平均复杂度 = 期望复杂度</a></h3>
+<p>"平均"必须指明分布。CLRS 上写"平均"默认均匀分布；而<strong>工程平均</strong>常常是"产品实际输入分布下的期望".</p>
+<ul>
+<li>排序算法的"平均 O(n log n)"指所有排列等可能；</li>
+<li>同样的快排在"已序数据"上能退化到 O(n²)。</li>
+</ul>
+<p>这就是为什么 std::sort 用 introsort（递归深度超过 2 log n 时切到 heap sort），是给"平均分析失效"打的补丁。</p>
+<h3 id="误读-4on-里只有一个常数"><a class="header" href="#误读-4on-里只有一个常数">误读 4：O(n) 里只有一个常数</a></h3>
+<p>数字电路视角告诉我们：<code>O(n)</code> 里其实有两次 трагедия：</p>
+<ol>
+<li><strong>每条指令的 throughput 是 1 ns 级别</strong>（约 3 GHz / cycle）。</li>
+<li><strong>每次内存访问的 latency 从 1 ns (L1) 到 80 ns (DRAM)</strong>.</li>
+</ol>
+<p>所以同样 O(n)，cache-friendly 版本能跑出 100 GB/s 的内存带宽；cache-hostile 版本只能跑出 5 GB/s。<strong>差 20 倍</strong>。这就是为什么工程里"常数因子"实际上跨两个数量级是常态。</p>
+<h3 id="误读-5复杂度能直接指导性能"><a class="header" href="#误读-5复杂度能直接指导性能">误读 5：复杂度能直接指导性能</a></h3>
+<p>不能。O 给的是形状，性能还要看：</p>
+<ul>
+<li>常数；</li>
+<li>cache-locality；</li>
+<li>分支预测准确率（分支错误一次流水线 flush 浪费 ~15 cycle）；</li>
+<li>SIMD vectorization（紧邻操作可向量化时跑 4-wide/8-wide）；</li>
+<li>TLB 命中（4K page 对 1 GB 数据需要 256K TLB 项，远超 TLB 大小）；</li>
+<li>NUMA（跨 socket 访问再加 100+ ns）。</li>
+</ul>
+<p>下面我们把这些点逐层揭示——它们各自都是计算机科学的"硬"层级，<strong>复杂度只是这一切的抽象外壳</strong>.</p>
+<h2 id="主定理分治复杂度从哪儿来"><a class="header" href="#主定理分治复杂度从哪儿来">主定理：分治复杂度从哪儿来</a></h2>
+<p><code>T(n) = a · T(n/b) + f(n)</code> 的三条规则，背后是<strong>比较 f 与 <code>n^(log_b a)</code> 哪个主导</strong>：</p>
+<div class="table-wrapper"><table><thead><tr><th>情形</th><th>条件</th><th>结论</th></tr></thead><tbody>
+<tr><td>1</td><td><code>f = O(n^(log_b a − ε))</code></td><td><code>T = Θ(n^(log_b a))</code></td></tr>
+<tr><td>2</td><td><code>f = Θ(n^(log_b a · log^k n))</code></td><td><code>T = Θ(n^(log_b a · log^(k+1) n))</code></td></tr>
+<tr><td>3</td><td><code>f = Ω(n^(log_b a + ε))</code> 且 regular</td><td><code>T = Θ(f(n))</code></td></tr>
+</tbody></table>
+</div>
+<p>直觉：<strong>两个 "工程贡献"——递归子树数量 a 与每个分裂的合并工作 f——哪个增长更快，就是 T 的主导</strong>.</p>
+<div class="table-wrapper"><table><thead><tr><th>场景</th><th>a</th><th>b</th><th>f(n)</th><th>T(n)</th></tr></thead><tbody>
+<tr><td>二分查找</td><td>1</td><td>2</td><td>O(1)</td><td>Θ(log n)</td></tr>
+<tr><td>归并排序</td><td>2</td><td>2</td><td>O(n)</td><td>Θ(n log n)</td></tr>
+<tr><td>Strassen 矩阵乘法</td><td>7</td><td>2</td><td>O(n²)</td><td>Θ(n^log₂7) ≈ Θ(n^2.807)</td></tr>
+<tr><td>Karatsuba 大整数乘</td><td>3</td><td>2</td><td>O(n)</td><td>Θ(n^log₂3) ≈ Θ(n^1.585)</td></tr>
+<tr><td>普通斐波那契递归</td><td>2</td><td>1</td><td>O(1)</td><td>Θ(2^n)（不在主定理范围，但用同一思路）</td></tr>
+</tbody></table>
+</div>
+<p>主定理的工程隐藏点：<strong>它忽略常数</strong>。Strassen 在 n &lt; 100 常输给朴素乘法，原因就是常数 7 比 8 大，但每层多做很多加法和地址跳。</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>这就是为什么平均 O(n^2.807) 的 Strassen 直到 n ≈ 1000 才稳定赢过 O(n^3) 朴素。<strong>当 n 还在 cache 里时，cache-friendly 的朴素矩阵乘能跑到 30+ GFLOPS</strong>，而 Strassen 的间接内存 pattern 跑不到 10 GFLOPS。CPU 通用核心的算力差距被掩盖在大 O 里。</p>
+</div>
+<h2 id="从-o-到运行时间的链路"><a class="header" href="#从-o-到运行时间的链路">从 O 到运行时间的链路</a></h2>
+<p>让我们把"复杂度"和"真实运行时间"的链路逐层补完。以一次 <code>for (i=0; i&lt;n; i++) sum += a[i];</code> 为例。</p>
+<h3 id="1-复杂度层on"><a class="header" href="#1-复杂度层on">1. 复杂度层：O(n)</a></h3>
+<p>这是抽象最高层。我们只说访问模式线性增长。</p>
+<h3 id="2-指令数层约-4n-条指令"><a class="header" href="#2-指令数层约-4n-条指令">2. 指令数层：约 4n 条指令</a></h3>
+<p>x86 汇编大致：</p>
+<pre><code>mov  rax, [a]             ; 取数组基地址
+xor  ecx, ecx             ; sum = 0
+loop:
+    mov  edx, [rax + 4*i] ; 一次 load
+    add  ecx, edx         ; 加到 sum
+    inc  i                ; i++
+    cmp  i, n
+    jb   loop
+</code></pre>
+<p>四条指令，每轮迭代都要跑一次。所以总开销约 <code>4n</code> 条指令。</p>
+<h3 id="3-指令-throughput-层约-1-ns--iter"><a class="header" href="#3-指令-throughput-层约-1-ns--iter">3. 指令 throughput 层：约 1 ns / iter</a></h3>
+<p>现代 CPU 每条简单整数 ALU 指令 throughput ≈ 0.25～0.5 cycle。但内存 load 在 cache hit 时 latency 仍 ~4 cycle (L1)，hit rate 100% 时通过流水线可以"叠"到每 cycle 一条 load。所以每个循环迭代大约 1 cycle = 0.33 ns（按 3 GHz）.</p>
+<p>总时间：~ n ns. 一个 10^8 个 int 的求和：~ 100 ms.</p>
+<h3 id="4-cache--tlb-层内存层级拉宽到-80-ns"><a class="header" href="#4-cache--tlb-层内存层级拉宽到-80-ns">4. cache / TLB 层：内存层级拉宽到 80 ns</a></h3>
+<p>CPU cache 是金字塔：</p>
+<pre><code>register   ≈ 0 cycle       (1-2 ns as architecture)
+L1 (32KB)  ≈ 4 cycle       (~1 ns)
+L2 (256KB) ≈ 12 cycle      (~4 ns)
+L3 (8MB)   ≈ 40 cycle      (~12 ns)
+DRAM       ≈ 200 cycle      (~80 ns)
+</code></pre>
+<p>如果数组远超 L3 —— 10^8 int = 400 MB —— 那么 load 几乎都命中 DRAM，每次 wait 80 ns 即 200 cycle。CPU 的 prefetcher 会主动找出连续模式提前加载到 cache line 64 字节，<strong>让一次 80 ns 的 DRAM access 满载 16 个 int 加法</strong>. 加上 SIMD 一次加 4-8 个 int：</p>
+<pre><code class="language-c">// AVX2 一次加 8 个 int32
+__m256i vsum = _mm256_setzero_si256();
+for (int i = 0; i + 8 &lt;= n; i += 8) {
+    __m256i v = _mm256_loadu_si256((__m256i*)&amp;a[i]);
+    vsum = _mm256_add_epi32(vsum, v);
+}
+</code></pre>
+<p>效果：~3 cycle per 8 个 int，折合每元素 1 ns 的 <strong>1/15</strong>：8 GB/s 顺序流可到 100+ GB/s。</p>
+<p>到这里你应该看见：<strong>O(n) 在不同层之下能差 100 倍，但它们都叫 O(n)</strong>.</p>
+<h3 id="5-数字电路层cache-line-为什么是-64-字节"><a class="header" href="#5-数字电路层cache-line-为什么是-64-字节">5. 数字电路层：cache line 为什么是 64 字节</a></h3>
+<p>为什么是 64 字节而不是 32 或 128？</p>
+<ul>
+<li>一行读出要并行传输给 L1：64 字节正好是 DDR 一条 burst length (8 × 8 字节 = 64)；</li>
+<li>L1 的 ECC、tag 位、一致性管理都按行做，64 字节让 L1 + L2 + L3 行号对齐，<strong>简化了一致协议 (MESI/MOESI)</strong>；</li>
+<li>主板上 64 字节也对应 PCIe 一次 TLP payload 上限（Completer 上限典型 128B/256B，但 cache line 仍是 64B）。</li>
+</ul>
+<p>所以"64"不是任意数字，是<strong>DRAM burst 与 cache 一致协议共同压制的结果</strong>。这就是"知其所以然"的底层：连 64 这个常数都是数字电路决定的。</p>
+<h3 id="6-fpga-视角bramsrl分布式-ram-是另一套"><a class="header" href="#6-fpga-视角bramsrl分布式-ram-是另一套">6. FPGA 视角：BRAM/SRL/分布式 RAM 是另一套</a></h3>
+<p>FPGA 不是 CPU 上的 cache 模型。Altra/Xilinx FPGA 里有：</p>
+<ul>
+<li><strong>Distributed RAM</strong>（每个 LUT 都能当 64 bit RAM）—— 极快，几十 ps；</li>
+<li><strong>URAM / BRAM</strong>：块 RAM，&gt;1 Mbit，~1-2 cycle；</li>
+<li><strong>HBM</strong>：3D 堆叠 DRAM，<del>30-100 GB/s/channel，</del> 80 ns latency。</li>
+</ul>
+<p>FPGA 上的算法设计常常把一个图处理算法<strong>展开成 pipeline</strong>：每个 cycle 进一个 vertex、出一个 vertex，让所有计算在几百 MHz 频率下展开运行，而不是"O(n) 循环". 这就是把 O(n) 工程化到硬件层。</p>
+<p>你看，<strong>同一个 O(n) 的求和，从软件常数 3 到数字电路常数 1/15 再到 FPGA 的 "1 cycle/element"</strong>——每一层都有它自己的常数。</p>
+<h2 id="主导项之外的相加规则"><a class="header" href="#主导项之外的相加规则">主导项之外的相加规则</a></h2>
+<p>一句话：<strong>相加取最坏，相乘入相邻</strong>.</p>
+<pre><code>O(f) + O(g) = O(max(f, g))     # 比如 O(n log n) + O(n) = O(n log n)
+O(f) × O(g) = O(f × g)         # 嵌套循环 O(n × m)
+O(f) + o(f) = O(f)             # 低阶项被吞噬
+</code></pre>
+<p>但有边界陷阱：</p>
+<ul>
+<li><code>T(n) = T(n-1) + n</code> 不是 <code>O(n)</code> 而是 <code>O(n²)</code> —— 是等差级数累计的闭式，<strong>不是简单相加</strong>.</li>
+<li><code>T(n) = T(n-1) + 2T(n/2) + n</code> —— 退化递归；先画递归树数工作总量，不要直接进主定理。</li>
+<li><code>T(n) = 2T(n/2) + n/log n</code> —— 主定理 case 2 的"烦人角落"（Akra-Bazzi 才稳）；结论是 <code>Θ(n log log n)</code>。</li>
+</ul>
+<p>工程里写递归/分治之前，<strong>至少画一次递归树画三行</strong>，避免被主定理的形式骗到。</p>
+<h2 id="速查表含工程常数注释"><a class="header" href="#速查表含工程常数注释">速查表（含工程常数注释）</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>渐进</th><th>实际 ops @ n=10⁶</th><th>工程注释</th></tr></thead><tbody>
+<tr><td>O(1)</td><td>几 ns</td><td>哈希、寻址、SIMD 单向</td></tr>
+<tr><td>O(log n)</td><td>~20 次比较</td><td>树、堆、二分；热区一般 ~10 ns</td></tr>
+<tr><td>O(n)</td><td>~10⁶ ops</td><td>cache 友好 ~3 ms；cache hostile ~50 ms</td></tr>
+<tr><td>O(n log n)</td><td>~2×10⁷ ops</td><td>排序门限；32 MB 数据 ~100 ms</td></tr>
+<tr><td>O(n²)</td><td>10¹² ops</td><td>n=10⁶ 必死；n=10⁴ 约 100 ms</td></tr>
+<tr><td>O(2ⁿ)</td><td>不可行</td><td>n≤30 才能跑</td></tr>
+</tbody></table>
+</div>
+<h2 id="这一章带走的东西"><a class="header" href="#这一章带走的东西">这一章带走的东西</a></h2>
+<ul>
+<li>O / Ω / Θ 是夹逼式的，<code>=</code> 是个误用符号；</li>
+<li>O 的工程常数能跨两个数量级，因为 cache + 流水线 + SIMD 三者各贡献一个"乘性加速"；</li>
+<li>O(log n) 在工程里和底不同（B+ 树页内 SIMD 比一次对 8 个 key —— "log 底 8"）；</li>
+<li>主定理忽略常数，Strassen 在 cache 内打不过朴素乘法是"O 不够看"的最典型案例；</li>
+<li>一行 <code>O(n)</code> 求和从顶层 software 常数 3 一路到 FPGA 1 cycle/element，每一层都是一层硬件知识.</li>
+</ul>
+<p>下一节 → <a href="amortized.html">摊还分析入门</a>：把"序列总和"的渐进分析框入工程可证的形式。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../../dsa/algorithms/complexity.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../../dsa/algorithms/complexity/amortized.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../../dsa/algorithms/complexity.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../../dsa/algorithms/complexity/amortized.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../../elasticlunr.min.js"></script>
+        <script src="../../../mark.min.js"></script>
+        <script src="../../../searcher.js"></script>
+
+        <script src="../../../clipboard.min.js"></script>
+        <script src="../../../highlight.js"></script>
+        <script src="../../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../../katex/katex.min.js"></script>
+        <script src="../../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../../katex-init.js"></script>
+        <script src="../../../mermaid.min.js"></script>
+        <script src="../../../mermaid-init.js"></script>
+        <script src="../../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

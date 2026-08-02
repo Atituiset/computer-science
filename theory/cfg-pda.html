@@ -1,0 +1,532 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>3. 下推自动机（PDA）与上下文无关文法（CFG） - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="3-下推自动机-pda-与上下文无关文法-cfg"><a class="header" href="#3-下推自动机-pda-与上下文无关文法-cfg">3. 下推自动机 (PDA) 与上下文无关文法 (CFG)</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>正则语言表达力不够——它记不住"已经看到几个 <code>a</code>"以匹配同等数量的 <code>b</code>。给 DFA 加一个<strong>栈 (stack)</strong> 作为无界工作内存, 得到 <strong>PDA</strong>; 对应的<strong>文法</strong>类比叫 <strong>CFG (Context-Free Grammar)</strong>。两者语言等级完全等价 (Chomsky 层级 Type-2), 这是<strong>编译器 parser 理论</strong>的全部基础——LL/LR/LALR/Earley/CYK 无非是为不同 CFG 子类找高效算法。读完本章, 你能直接读得下第五部分编译原理 parser 一节不再绕。</p>
+<hr />
+<h2 id="一cfg-形式定义"><a class="header" href="#一cfg-形式定义">一、CFG 形式定义</a></h2>
+<p>四元组 $G = (V, \Sigma, R, S)$:</p>
+<ul>
+<li>$V$: 非终结符有限集 (变量).</li>
+<li>$\Sigma$: 终结符有限集 (字母表) —— $V \cap \Sigma = \emptyset$.</li>
+<li>$R$: 产生式集, 每条形如 $A \to \alpha$, $A \in V$, $\alpha \in (V \cup \Sigma)^*$.</li>
+<li>$S \in V$: 起始非终结符.</li>
+</ul>
+<p>派生 (derivation): $\alpha A \beta \Rightarrow \alpha \gamma \beta$ 当 $A \to \gamma \in R$. $\Rightarrow^<em>$ 是其自反传递闭包. <strong>语言</strong> $L(G) = {w \in \Sigma^</em> \mid S \Rightarrow^* w}$.</p>
+<h3 id="11-例子-an-bn"><a class="header" href="#11-例子-an-bn">1.1 例子: $a^n b^n$</a></h3>
+<p>$$G = ({S}, {a, b}, {S \to a S b \mid \epsilon}, S)$$</p>
+<p>派生 $a^2 b^2$: $S \Rightarrow aSb \Rightarrow aaSbb \Rightarrow aabb$. 直观: $S$ 不停在被压在外环的 "a...b" 之中; 最后退化为 $\epsilon$ 收尾. 栈隐式存在: 每派生一条产生式右侧, "中心" S 像 stack 顶, 等右边终结符 <code>b</code> 弹出.</p>
+<h3 id="12-派生树-parse-tree"><a class="header" href="#12-派生树-parse-tree">1.2 派生树 (Parse Tree)</a></h3>
+<p>每条产生式 $A \to \alpha$ 对应一棵子树 $A$ 作为根、$\alpha$ 字符从左到右作为子. 叶节点终结符顺序即派生串. <strong>歧义 (ambiguity)</strong>: 同串两种 parse tree → 不能确定 AST, 语义难定.</p>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>文法的歧义是<strong>文法性质</strong>, 不是语言性质. 一些语言"先天歧义"——任一 CFG 都歧义. 如 $L = {a^i b^j c^k \mid i = j \text{ 或 } j = k}$. 给 L 已知先天歧义, 唯一的办法是过 PDA 之后再加一层语义检查.</p>
+</div>
+<h3 id="13-ll-vs-lr"><a class="header" href="#13-ll-vs-lr">1.3 LL vs LR</a></h3>
+<p>派生顺序影响 parser 实现:</p>
+<ul>
+<li><strong>最左派生</strong> (leftmost): 每步替换最左非终结符 → 对应 LL parser (自顶向下).</li>
+<li><strong>最右派生</strong> (rightmost): 每步替换最右非终结符 → 对应 LR parser (自底向上, reduce).</li>
+</ul>
+<p>LL(1) = 用 1 个 lookahead 选产生式; LR(1) = 用 1 个 lookahead 选 reduce; LR ⊋ LL (LR 表达力大得多), 但 LR(1) 状态表大; LALR(1) 合并状态、状态数小, yacc/bison 走 LALR.</p>
+<hr />
+<h2 id="二pda-形式定义"><a class="header" href="#二pda-形式定义">二、PDA 形式定义</a></h2>
+<p>七元组 $M = (Q, \Sigma, \Gamma, \delta, q_0, Z_0, F)$:</p>
+<ul>
+<li>$Q$: 有限状态集.</li>
+<li>$\Sigma$: 输入字母表.</li>
+<li>$\Gamma$: 栈字母表 (含初始栈底符号 $Z_0$).</li>
+<li>$\delta: Q \times (\Sigma \cup {\epsilon}) \times \Gamma \to 2^{Q \times \Gamma^*}$: 转移函数. 当前状态, 当前输入(或 ε), 栈顶 —— 推出新状态 + 要 push 入的串 (pop 栈顶再 push).</li>
+<li>$q_0$: 初始状态. $Z_0$: 初始栈符号. $F$: 接受状态集.</li>
+</ul>
+<h3 id="21-两种接受方式"><a class="header" href="#21-两种接受方式">2.1 两种接受方式</a></h3>
+<ol>
+<li><strong>Final state</strong>: 输入读完 + 当前状态 ∈ F.</li>
+<li><strong>Empty stack</strong>: 输入读完 + 栈空.</li>
+</ol>
+<p>二者表达力等价 (可互转). 工程多走 final-state 形式 因为 检查容易, dump 时栈可保留以 debug.</p>
+<h3 id="22-例子-接受-an-bn"><a class="header" href="#22-例子-接受-an-bn">2.2 例子: 接受 $a^n b^n$</a></h3>
+<pre><code>Q = {q0, q1, q2}, Σ = {a,b}, Γ = {Z0, A}, q0 = q0, Z0 = Z0, F = {q2}
+
+δ:
+    (q0, a, Z0) → (q0, A Z0)        # 第一个 a, push A 不变状态
+    (q0, a, A)  → (q0, A A)         # 后续 a, push A
+    (q0, b, A)  → (q1, ε)           # 看到 b, pop A, 进 q1
+    (q1, b, A)  → (q1, ε)           # 继续配 b, pop A
+    (q1, ε, Z0) → (q2, ε)           # 输入完, 栈回 Z0, 进 q2 接受
+</code></pre>
+<p>栈在这里就是把"还没配对的 a 数"记下来.</p>
+<h3 id="23-pda-模拟器-python"><a class="header" href="#23-pda-模拟器-python">2.3 PDA 模拟器 (Python)</a></h3>
+<pre><code class="language-python">from typing import Set, Dict, Tuple, List, Optional
+
+class PDA:
+    def __init__(self, Q, Sigma, Gamma, delta, q0, Z0, F):
+        self.delta = delta   # dict[(state, input or '', stack_top)] -&gt; set of (state, push_str)
+        self.q0, self.Z0, self.F = q0, Z0, F
+        self.Sigma, self.Gamma, self.Q = Sigma, Gamma, Q
+
+    def accepts(self, w: str) -&gt; bool:
+        # 当前 config 集合: (state, input_pos, stack as tuple bottom→top)
+        start = (self.q0, 0, (self.Z0,))
+        frontier = {start}
+        # 限制总步数防爆 (PDA 半可解)
+        for step in range(10000):
+            nxt = set()
+            for (q, i, stack) in frontier:
+                if i == len(w):
+                    # ε 转移
+                    if stack:
+                        top = stack[-1]
+                        for (r, push) in self.delta.get((q, '', top), set()):
+                            nxt.add((r, i, stack[:-1] + tuple(push)))
+                    if q in self.F:
+                        return True
+                else:
+                    ch = w[i]
+                    if stack:
+                        top = stack[-1]
+                        for (r, push) in self.delta.get((q, ch, top), set()):
+                            nxt.add((r, i + 1, stack[:-1] + tuple(push)))
+                        for (r, push) in self.delta.get((q, '', top), set()):
+                            nxt.add((r, i, stack[:-1] + tuple(push)))
+            if not nxt or nxt &lt;= frontier:
+                break
+            frontier = nxt
+        return any((q in self.F and i == len(w)) for (q, i, s) in frontier)
+</code></pre>
+<p>PDA 模拟比 DFA 复杂——状态集理论上无限 (栈内容是无限信息), 所以更优雅的做法是直接转 CFG.</p>
+<hr />
+<h2 id="三cfg--pda-等价证明"><a class="header" href="#三cfg--pda-等价证明">三、CFG ⇔ PDA 等价证明</a></h2>
+<h3 id="31-cfg--pda-顶部展开"><a class="header" href="#31-cfg--pda-顶部展开">3.1 CFG → PDA (顶部展开)</a></h3>
+<p>构造一个 PDA 用栈装载"待派生串"; 栈顶若是非终结符就展开某个产生式, 若是终结符就匹配输入消费.</p>
+<p>具体:</p>
+<ul>
+<li>状态只一两个 (q_loop), 实质在栈上工作.</li>
+<li>转移: 读 ε 时若栈顶 = $A$, 任选 $A \to \alpha$ 替换栈顶为 $\alpha$ 反序 (使栈顶出 $\alpha$ 首字符).</li>
+<li>读字符 c 时, 若栈顶 = c, 匹配退栈.</li>
+</ul>
+<p>接受: 输入读完 + 栈空. 这个构造用 ε-NFA 风格极简, 但 NFA 系列 size 巨大.</p>
+<h3 id="32-pda--cfg-config-转非终结符"><a class="header" href="#32-pda--cfg-config-转非终结符">3.2 PDA → CFG (config 转非终结符)</a></h3>
+<p>技巧: 引入集合 $A_{pq}$ 表示 "从状态 p 空栈到状态 q 空栈的串集". 递归方程:</p>
+<ul>
+<li>$A_{pq} \supseteq A_{pr} A_{rq}$  (走两段)</li>
+<li>$A_{pq} \supseteq a A_{rs} b$  (一步 push a + 内部一段 + pop b)</li>
+<li>$A_{pp} \supseteq \epsilon$</li>
+</ul>
+<p>把这些方程变 productions, $S \to A_{q_0, f}$ for $f \in F$, 完成 CFG 构造. 证明细节见 Sipser 引理 2.20.</p>
+<hr />
+<h2 id="四cfg-pumping-lemma"><a class="header" href="#四cfg-pumping-lemma">四、CFG Pumping Lemma</a></h2>
+<p>类似正则, CFL 也有 pumping lemma, 但<strong>两段</strong>而非一段:</p>
+<p><strong>定理</strong>: CFL $L$ 存在 $p$ 使任意 $w \in L, |w| \geq p$ 可拆 $w = uvxyz$ 满足:</p>
+<ol>
+<li>$|vxy| \leq p$</li>
+<li>$|vy| \geq 1$</li>
+<li>∀ $i \geq 0$: $uv^i x y^i z \in L$.</li>
+</ol>
+<p>直觉: 派生树的深层节点 (高度 &gt; $h$ 的高度) 必复读同一非终结符; 找出对应两段可 pump.</p>
+<h3 id="41-经典用法-l--an-bn-cn-非-cfl"><a class="header" href="#41-经典用法-l--an-bn-cn-非-cfl">4.1 经典用法: $L = {a^n b^n c^n}$ 非 CFL</a></h3>
+<p>设 pump length $p$. 取 $w = a^p b^p c^p$. $|vxy| \leq p$, 故 $vxy$ 只能覆盖两类字符 (要么 ab 段, 要么 bc 段). 设 $vy$ 不含 c, 则 pump $i = 2$ 多 a/b 不多 c → 数失去平衡. 类似若 $vy$ 只含 b 段也会失衡 a-c. 任何 split 都矛盾.</p>
+<p>→ $L$ 非 CFL, 必须 TM.</p>
+<h3 id="42-反例-pump-lemma-不充分"><a class="header" href="#42-反例-pump-lemma-不充分">4.2 反例: pump lemma 不充分</a></h3>
+<p>存在非 CFL 也满足 pump lemma (例如 Sipser 练习给的 $L = {a^i b^j c^k \mid i = j \text{ 或 } j = k}$ 满足 Lemma 但<strong>实际是 CFL</strong>——经典反白).</p>
+<p>工程实践: 用 Ogden's lemma 给更强条件——指定"区分位"而非全覆盖.</p>
+<hr />
+<h2 id="五cfl-闭包性质"><a class="header" href="#五cfl-闭包性质">五、CFL 闭包性质</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>运算</th><th>CFL 闭合?</th></tr></thead><tbody>
+<tr><td>并</td><td>✓ (新初始 $S \to S_1 \mid S_2$)</td></tr>
+<tr><td>连接</td><td>✓</td></tr>
+<tr><td>Kleene 闭包</td><td>✓</td></tr>
+<tr><td>同态像</td><td>✓</td></tr>
+<tr><td>逆同态</td><td>✓</td></tr>
+<tr><td>与正则交</td><td>✓ (跑 PDA + DFA 同步)</td></tr>
+<tr><td><strong>交</strong></td><td>✗ ($a^n b^n c^n$ = $a^n b^n$ ∩ $b^n c^n$ 都是 CFL, 交不是)</td></tr>
+<tr><td><strong>补</strong></td><td>✗ (补非闭合 ⇒ 交非闭合同结果)</td></tr>
+</tbody></table>
+</div>
+<p><strong>关键反差</strong>: 与正则语言交仍 CFL——parser 把 token-level DFA (lexer) 跟 CFG 协同 (parser 只接受 lexer 输出, 这正是 lexer+parser 的分层组合, 第五部分 compilers 已讲).</p>
+<hr />
+<h2 id="六dcfl-deterministic-cfl-子类"><a class="header" href="#六dcfl-deterministic-cfl-子类">六、DCFL (Deterministic CFL) 子类</a></h2>
+<p>NPDA vs DPDA: NPDA 比 DPDA 表达力强; DPDA 接受的 CFL 子类叫 <strong>DCFL</strong>.</p>
+<p>性质: DCFL <strong>闭合于补</strong>, NPDA 不是. 这个看似理论细节, 工程极重要——</p>
+<p>定理: LR(k) 文法 ⇔ DCFL 的子类; LL(k) ⊊ LR(k) ⊊ DCFL.</p>
+<p>→ 编译器能做的语法分析子能力排序:</p>
+<ul>
+<li><strong>LL(1)</strong>: 适合手写 parser, 速度快, 但表达力最弱 (无左递归, 1 token lookahead).</li>
+<li><strong>LR(1)</strong>: 表达力=DCFL, 表状态巨大, 工程少用.</li>
+<li><strong>LALR(1)</strong>: 合并 LR(1) 状态, 表小, bison/yacc 走它.</li>
+<li><strong>SLR(1)</strong>: 简化版 LR(0) + follow 集, 较弱.</li>
+<li><strong>PEG (Parsing Expression Grammar)</strong>: 引入有序选择 + lookahead + 痕迹 predicate, 表达力 ⊋ 任意 CFG (与超 CFL 重叠), 但定义即算法 (parser-combinator).</li>
+<li><strong>Earley</strong>: 任意 CFG, O(n³) worst-case, O(n²) for 任意歧义 CFG, O(n) for 几乎所有 LR(k). 适合需要随时改文法的 IDE 场景.</li>
+</ul>
+<hr />
+<h2 id="七cyk-算法-任意-cfg-的-on³-解析"><a class="header" href="#七cyk-算法-任意-cfg-的-on³-解析">七、CYK 算法: 任意 CFG 的 O(n³) 解析</a></h2>
+<p>把 CFG 转 Chomsky Normal Form (CNF): 每条 production 形如 $A \to BC$ 或 $A \to a$ (二分). 然后 DP:</p>
+<p><code>dp[i][j] = A</code>: 子串 $w[i..j]$ 可由 A 派生.</p>
+<pre><code class="language-python">def cyk_parse(G, w):
+    # G: dict rules: {'S': [['A', 'B'], ['a']], ...}, w: string
+    n = len(w)
+    # T[i][j] = set of nonterminals that derive w[i:j+1]
+    T = [[set() for _ in range(n)] for _ in range(n)]
+    for i in range(n):
+        for A, prods in G.items():
+            for p in prods:
+                if len(p) == 1 and p[0] == w[i]:
+                    T[i][i].add(A)
+    for length in range(2, n + 1):           # 子串长度
+        for i in range(0, n - length + 1):   # 起点
+            j = i + length - 1
+            for k in range(i, j):
+                for A, prods in G.items():
+                    for p in prods:
+                        if len(p) == 2 and p[0] in T[i][k] and p[1] in T[k+1][j]:
+                            T[i][j].add(A)
+    return 'S' in T[0][n-1]
+</code></pre>
+<p>复杂度 O(|G| · n³). 实践中字法 N 较小 (代码长度 &lt; 10000 行) 仍能跑, 但编译主流走 LALR(1) 把 O(n) 拿到手——CYK 留给 IDE 增量编辑与自然语言 parsing.</p>
+<h3 id="71-typescript-实现"><a class="header" href="#71-typescript-实现">7.1 TypeScript 实现</a></h3>
+<pre><code class="language-ts">type Rules = Record&lt;string, string[][]&gt;;
+
+export function cyk(G: Rules, w: string): boolean {
+  const n = w.length;
+  const T: Set&lt;string&gt;[][] = Array.from({ length: n }, () =&gt;
+    Array.from({ length: n }, () =&gt; new Set())
+  );
+  for (let i = 0; i &lt; n; i++) {
+    for (const [A, prods] of Object.entries(G)) {
+      for (const p of prods) {
+        if (p.length === 1 &amp;&amp; p[0] === w[i]) T[i][i].add(A);
+      }
+    }
+  }
+  for (let len = 2; len &lt;= n; len++) {
+    for (let i = 0; i + len - 1 &lt; n; i++) {
+      const j = i + len - 1;
+      for (let k = i; k &lt; j; k++) {
+        for (const [A, prods] of Object.entries(G)) {
+          for (const p of prods) {
+            if (p.length === 2 &amp;&amp; T[i][k].has(p[0]) &amp;&amp; T[k + 1][j].has(p[1])) T[i][j].add(A);
+          }
+        }
+      }
+    }
+  }
+  return n === 0 ? T[0]?.[0]?.has('S') ?? false : T[0][n - 1].has('S');
+}
+</code></pre>
+<hr />
+<h2 id="八桥梁-解析器就是受限-pda"><a class="header" href="#八桥梁-解析器就是受限-pda">八、桥梁: 解析器就是受限 PDA</a></h2>
+<p>第五部分 compilers/parser 用 LL/LR 的本质, 是<strong>对 CFG 加 lookahead 约束让其可被确定性 PDA 处理</strong>. 一旦 CFG 不是 LR(k), 编译器就要么改写文法, 要么走 GLR/Earley 退回 NPDA + 全分支.</p>
+<p>实战经验:</p>
+<ul>
+<li>JSON 是 LL(2)-able, 主流手写 parser.</li>
+<li>Java/TypeScript 是 LALR(1)-able 但有 reserved word 处理高复杂度, 倾向手写 Pratt + 化 recursive descent (Babel parser).</li>
+<li>C++ 文法先天歧义, 工业必走 GLR 或打 multi-pass.</li>
+<li>Python 缩进敏感, lexer 把 INDENT/DEDENT 当 token, 总体 LL(1) OK.</li>
+</ul>
+<hr />
+<p>下一节 → <a href="turing-machine.html">图灵机</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../theory/regular.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../theory/turing-machine.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../theory/regular.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../theory/turing-machine.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

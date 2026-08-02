@@ -1,0 +1,696 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>KV / 文档 / 关系 / 时序 / 向量 库选择树 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="选什么存储"><a class="header" href="#选什么存储">选什么存储</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>"选什么数据库" 是系统设计的最频繁问题。答案不简单是 "MySQL", "MongoDB", "Redis"——而是当下业务特性 (latency / throughput / consistency / query pattern / budget) 决定数据存储最佳默认。本章梳理 7 类<strong>典型</strong>存储类型 + 各自适用场景与坑:</p>
+<ol>
+<li><strong>Key-Value store (Redis, Memcached)</strong>: 快 cache, sub-millisecond get/set, 不持久化默认, 不支持查询。</li>
+<li><strong>Wide-column store (Cassandra, HBase, DynamoDB)</strong>: 极高写入, multi-row wide data, eventual consistency, 跨 DC 复制。</li>
+<li><strong>Document store (MongoDB, Couchbase)</strong>: JSON/BSON nested structure, 多索引, 中等 scale。</li>
+<li><strong>Relational (PostgreSQL, MySQL, Oracle)</strong>: ACID, SQL, rich 索引 + 复杂 join. fast小 writes, slow 大 join。</li>
+<li><strong>列存 (ClickHouse, Druid, BigQuery)</strong>: OLAP, group 聚合快 (压缩 + vectorized), 不擅长点查。</li>
+<li><strong>时序 (InfluxDB, TimescaleDB, VictoriaMetrics)</strong>: 高写入数量 order of magnitude 高 throughput, 历史 retention rollup。</li>
+<li><strong>图 (Neo4j, Dgraph, TigerGraph, JanusGraph)</strong>: 深度关系查询, social network graph, fraud detection.</li>
+<li><strong>对象存储 (S3, GCS, OSS)</strong>: 大 file 不变量, blob unlimited.</li>
+<li><strong>搜索 (Elasticsearch, Solr, Meilisearch, Typesense)</strong>: full-text search + relevance scoring.</li>
+</ol>
+<hr />
+<h2 id="一key-value-store-redis--memcached"><a class="header" href="#一key-value-store-redis--memcached">一、Key-Value Store: Redis / Memcached</a></h2>
+<h3 id="使用场景"><a class="header" href="#使用场景">使用场景</a></h3>
+<ul>
+<li>Session store (低延迟, TTL)</li>
+<li>Hot path cache (DB query cache, function cache)</li>
+<li>Distributed lock (Redlock, etcd, ZK)</li>
+<li>Rate limiter (单进程 / distributed counter)</li>
+<li>Real-time排行榜 (Sorted Set)</li>
+</ul>
+<h3 id="性能"><a class="header" href="#性能">性能</a></h3>
+<ul>
+<li><strong>Redis: 单实例 100K QPS</strong>, sub-ms P50, ~1-2ms P99</li>
+<li>持久化: RDB snapshot (fork) + AOF (full log) 可选 + Master-slave async replication</li>
+<li>HA: Redis Sentinel (Raft-like failover), Redis Cluster (auto-sharded)</li>
+</ul>
+<h3 id="redis-数据结构"><a class="header" href="#redis-数据结构">Redis 数据结构</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>类型</th><th>用途</th></tr></thead><tbody>
+<tr><td>String</td><td>cache (k→v), counter</td></tr>
+<tr><td>Hash</td><td>object field cache</td></tr>
+<tr><td>List</td><td>queue, recent activity</td></tr>
+<tr><td>Set</td><td>去重, 标签</td></tr>
+<tr><td>Sorted Set</td><td>排行榜, leader board, rate limiter</td></tr>
+<tr><td>HyperLogLog</td><td>基数估计 (unique visitors)</td></tr>
+<tr><td>Bitmap</td><td>user state (active days)</td></tr>
+<tr><td>Stream</td><td>log append-only Kafka compete</td></tr>
+<tr><td>GeoHash</td><td>location index</td></tr>
+</tbody></table>
+</div>
+<h3 id="memcached-vs-redis"><a class="header" href="#memcached-vs-redis">Memcached vs Redis</a></h3>
+<ul>
+<li><strong>Memcached</strong>: 多线程, 内存 Make, 仅 KV, 无持久化, fail-over restart 失 全部数据. 优点 throughput 高于单 Redis。</li>
+<li><strong>Redis</strong>: 单线程 (6.0 前单, 6.0 后 IO threads) 主 process, 丰富 data structure, AOF persistence, redis cluster。</li>
+</ul>
+<h3 id="弱点"><a class="header" href="#弱点">弱点</a></h3>
+<ul>
+<li>不适合 OLTP transactional consistency。</li>
+<li>单实例 string max 512MB, list 单元最多 4B 元素,  不适合严重持久化 critical data。</li>
+<li>缓存击穿/雪崩风险 (<a href="../cache/failure-modes.html">cache/failure-modes.md</a>)。</li>
+</ul>
+<hr />
+<h2 id="二wide-column-store-cassandra--hbase--dynamodb"><a class="header" href="#二wide-column-store-cassandra--hbase--dynamodb">二、Wide-column Store: Cassandra / HBase / DynamoDB</a></h2>
+<h3 id="适用场景"><a class="header" href="#适用场景">适用场景</a></h3>
+<ul>
+<li>超高写入 throughput (Cassandra 100K+ writes/s per node)</li>
+<li>Cross-region replication + eventual consistency</li>
+<li>写多读少, 多地域高可用</li>
+<li>通过 partition key 高效 row range 查询</li>
+</ul>
+<h3 id="数据模型"><a class="header" href="#数据模型">数据模型</a></h3>
+<pre><code>PRIMARY KEY (partition_key, clustering_key)
+</code></pre>
+<p>Wide-column store 把 keys 划分到 partition, partition 内多 row + column 大:</p>
+<ul>
+<li>Cassandra row = (partition_key, clustering_key) + columns set</li>
+<li>DynamoDB row = (hash_key, range_key) + attributes</li>
+<li>HBase row = (row key) + (column family : column qualifier) + cells timestamps</li>
+</ul>
+<h3 id="为什么写入快"><a class="header" href="#为什么写入快">为什么写入快</a></h3>
+<p>LSM-tree backend (LevelDB, RocksDB base), 顺序写 + 后台 compaction。 (<a href="wal-lsm-btree.html">storage/wal-lsm-btree.md</a>)</p>
+<h3 id="弱点-1"><a class="header" href="#弱点-1">弱点</a></h3>
+<ul>
+<li>Cross-partition JOIN 慢 / 不推荐。</li>
+<li>Eventual consistency; 要 linearizable must increase write latency。</li>
+<li>Schema 灵活性差 (Cassandra 强 schema, DynamoDB 无 schema)。</li>
+<li>没有 transactional multi-row ACID (Cassandra LWT low throughput)。</li>
+</ul>
+<hr />
+<h2 id="三document-store-mongodb--couchbase"><a class="header" href="#三document-store-mongodb--couchbase">三、Document Store: MongoDB / Couchbase</a></h2>
+<h3 id="适用场景-1"><a class="header" href="#适用场景-1">适用场景</a></h3>
+<ul>
+<li>JSON nested data, nested indexing</li>
+<li>中等 scale (1K 写/秒 up to 50K+ with sharding)</li>
+<li>Aggregation framework (类似 SQL GROUP BY)</li>
+<li>Replica Set 高可用 (Raft-like election)</li>
+</ul>
+<h3 id="弱点-2"><a class="header" href="#弱点-2">弱点</a></h3>
+<ul>
+<li>Atomic transaction 单 document only (4.0+ multi-doc transactions 慢 + 受 cluster内 quorum 限制)</li>
+<li>JOIN 不如 SQL strong</li>
+<li>默认 read 是 stale; 用户必须 w=majority + R=majority 拿强一致</li>
+</ul>
+<h3 id="mongodb-sharding"><a class="header" href="#mongodb-sharding">MongoDB Sharding</a></h3>
+<ul>
+<li>默认 sharding key 决定 data 存 range</li>
+<li>hot shard 险 — hashed sharding 分配均匀但没 range 查询效率</li>
+<li>4.4 给 "refinable sharding" 让 sharding key 动态改</li>
+</ul>
+<hr />
+<h2 id="四relational-postgresql--mysql"><a class="header" href="#四relational-postgresql--mysql">四、Relational: PostgreSQL / MySQL</a></h2>
+<h3 id="适用场景-2"><a class="header" href="#适用场景-2">适用场景</a></h3>
+<ul>
+<li>ACID transactions, complex joins, multi-row updates</li>
+<li>严格 schema</li>
+<li>SQL rich query language (CTE, window functions, JSONB)</li>
+<li>Report ad-hoc queries</li>
+<li>中等写 throughput (~30K TPS 16-core)</li>
+</ul>
+<h3 id="性能-1"><a class="header" href="#性能-1">性能</a></h3>
+<ul>
+<li>B-tree index on key, random access O(log N + limit)</li>
+<li>16-core instance 写 ~30K TPS (主 key update + index update + fsync)</li>
+<li>Read scale via streaming replica</li>
+<li>Sharding 由 Citus / pg_shard / Vitess (MySQL) /vem (Manage大树)</li>
+</ul>
+<h3 id="postgresql-vs-mysql"><a class="header" href="#postgresql-vs-mysql">PostgreSQL vs MySQL</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>PostgreSQL</th><th>MySQL</th></tr></thead><tbody>
+<tr><td>默认 storage</td><td>heap + B-tree</td><td>InnoDB clustered B-tree</td></tr>
+<tr><td>JSON</td><td>JSONB (binary, indexed)</td><td>JSON (text)</td></tr>
+<tr><td>物化视图</td><td>- (用 manual refresh or pg_kvext)</td><td>-</td></tr>
+<tr><td>Window functions</td><td>full support</td><td>8.0+</td></tr>
+<tr><td>Logical replication</td><td>10+ native</td><td>bin log + GT-M</td></tr>
+<tr><td>Geographic indexing</td><td>PostGIS first -class</td><td>spatial but limited</td></tr>
+<tr><td>Group replication</td><td>logical replication + extensions + Patroni</td><td>Group Replication (8.0+), PostgreSQL 同 Circa</td></tr>
+</tbody></table>
+</div>
+<h3 id="shared-nothing-extension"><a class="header" href="#shared-nothing-extension">Shared-nothing extension</a></h3>
+<p>PostgreSQL + Citus → columnar + sharded OLTP/OLAP hybrid。
+MySQL + Vitess → YouTube scale-out MySQL。
+Aurora PostgreSQL / MySQL → cloud storage-tier replication (Paxos-style multiple AZ).</p>
+<h3 id="弱点-3"><a class="header" href="#弱点-3">弱点</a></h3>
+<ul>
+<li>单机 VM 上线程多事务 scheduling 难; large cluster 需 sharding。</li>
+<li>Cross-shard join 难优化; usually pre-shard数据 hot cache。</li>
+<li>Schema migration 重, 业务平时变更 schema failure costs (e.g., alter table 加 index locks).</li>
+</ul>
+<h3 id="typical-物化视图-materialized-views"><a class="header" href="#typical-物化视图-materialized-views">Typical 物化视图 (Materialized views)</a></h3>
+<pre><code class="language-sql">CREATE MATERIALIZED VIEW daily_summary AS
+  SELECT date_trunc('day', ts) AS day, user_id, COUNT(*)
+  FROM events
+  GROUP BY day, user_id;
+-- refresh cotrigger:
+REFRESH MATERIALIZED VIEW daily_summary;
+</code></pre>
+<p>PostgreSQL MV 不 auto refresh, 应用触发 cron。其他引擎 (Oracle, Snowflake, ClickHouse) 有 native auto-refresh.</p>
+<hr />
+<h2 id="五columnar-olap-clickhouse--bigquery--snowflake"><a class="header" href="#五columnar-olap-clickhouse--bigquery--snowflake">五、Columnar OLAP: ClickHouse / BigQuery / Snowflake</a></h2>
+<h3 id="适用场景-3"><a class="header" href="#适用场景-3">适用场景</a></h3>
+<ul>
+<li>聚合查询 SUM/COUNT/AVG over millions of rows → MUST use columnar</li>
+<li>大规模包括 batched ETL 装载 → 100M+ rows/sec insert</li>
+<li>复杂 OLAP SQL 包括 window function, drill-down</li>
+<li>BI dashboard on top</li>
+</ul>
+<h3 id="为什么列存快"><a class="header" href="#为什么列存快">为什么列存快</a></h3>
+<ol>
+<li><strong>压缩高</strong>: 每 column 类型一致, run-length encoding + delta encoding for symbol/numeric columns → 10-50x compression 平均。</li>
+<li><strong>Cache 利用率 高</strong>: 同 column 数据连续存储; 同一 column 多 row 在同 cache line 上。</li>
+<li><strong>Vectorized execution</strong>: 现代 OLAP engine (ClickHouse vectorized) 处理 8192 行 in 一 batch SIMD 指令。</li>
+<li><strong>Skip 不需要 column</strong>: SELECT 只读 SELECT 中 column 文件, 其他列不碰。</li>
+</ol>
+<h3 id="clickhouse-引擎"><a class="header" href="#clickhouse-引擎">ClickHouse 引擎</a></h3>
+<pre><code class="language-sql">CREATE TABLE events (
+    timestamp DateTime,
+    user_id   UInt64,
+    event     LowCardinality(String),
+    ...
+) ENGINE = MergeTree()
+PARTITION BY toYYYYMMDD(timestamp)
+ORDER BY (user_id, timestamp);
+</code></pre>
+<ul>
+<li><strong>MergeTree</strong>: 主引擎, 数据 partition 顺序写, 后台 compaction。</li>
+<li><strong>ReplacingMergeTree</strong>: 后台 collapse 重复 PK (eventual dedup).</li>
+<li><strong>SummingMergeTree</strong>: 同 PK sum 累积, 用于 pre-aggregate.</li>
+<li><strong>AggregatingMergeTree</strong>: 跨 merge 累 AggregateFunction state.</li>
+</ul>
+<h3 id="bigquery--snowflake"><a class="header" href="#bigquery--snowflake">BigQuery / Snowflake</a></h3>
+<ul>
+<li>Cloud-native, 跨 storage + compute 解耦</li>
+<li>高吞吐 BI workload, 按 query 数据量付费</li>
+<li>SQL 标准 + JSON 半结构 SQL 支持</li>
+<li>物化视图自动维护, 自适应</li>
+</ul>
+<h3 id="弱点-4"><a class="header" href="#弱点-4">弱点</a></h3>
+<ul>
+<li>点查询慢 (单 row get by PK): 大量 row 必须扫满足 predicates. ClickHouse 用户 PK lookup 不友好。</li>
+<li>实时 ingest 在 100K+ 行/sec 需 batched insert; 单 row 高 QPS insert 慢。</li>
+<li>UPDATE/DELETE 慢 (重写整个 part). 强烈 不建议. re-INSERT pattern.</li>
+</ul>
+<h3 id="common-使用-postgresql-oltp--clickhouse-olap"><a class="header" href="#common-使用-postgresql-oltp--clickhouse-olap">Common 使用: PostgreSQL OLTP + ClickHouse OLAP</a></h3>
+<pre class="mermaid">flowchart LR
+    APP[App] --&gt; PG[PostgreSQL: OLTP real-time write]
+    PG --&gt;|binlog sync| CDC[Debezium CDC]
+    CDC --&gt; Kafka --&gt; CH[ClickHouse: OLAP]
+    BI[BI tool] --&gt; CH
+</pre>
+<p>OLTP 持续 real-time, binlog 截 CDC 同步到 ClickHouse 做 OLAP report。</p>
+<hr />
+<h2 id="六时序存储-influxdb--timescaledb--victoriametrics"><a class="header" href="#六时序存储-influxdb--timescaledb--victoriametrics">六、时序存储: InfluxDB / TimescaleDB / VictoriaMetrics</a></h2>
+<h3 id="适用场景-4"><a class="header" href="#适用场景-4">适用场景</a></h3>
+<ul>
+<li>IoT telemetry: 1B+ streams ingest</li>
+<li>Monitoring system metrics (Prometheus / Thanos / VictoriaMetrics stack)</li>
+<li>Server performance metrics</li>
+<li>Stock tick data</li>
+<li>Application log with structured metrics</li>
+</ul>
+<h3 id="数据模型-1"><a class="header" href="#数据模型-1">数据模型</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>说明</th></tr></thead><tbody>
+<tr><td>timestamp</td><td>implicit primary sort key (here 加微秒 together)</td></tr>
+<tr><td>tags (labels)</td><td>string key/value, indexed, low cardinality</td></tr>
+<tr><td>fields (metrics)</td><td>numeric readings, may be (e.g., cpu.usage = 0.7)</td></tr>
+<tr><td><strong>high compression</strong></td><td>delta-of-delta timestamp encoding + Gorilla float compression</td></tr>
+</tbody></table>
+</div>
+<h3 id="timescaledb"><a class="header" href="#timescaledb">TimescaleDB</a></h3>
+<p>PostgreSQL extension, PostgreSQL native SQL + replication + ACID 保留, hypertable 自动 partition by 时间.</p>
+<ul>
+<li>适合 PG 用户 + 时间序列 query</li>
+<li>索引 / JOIN 用 PG</li>
+</ul>
+<h3 id="influxdb-v2"><a class="header" href="#influxdb-v2">InfluxDB v2</a></h3>
+<p>InfluxQL Flux language, 不 SQL standard, 但 ingestion throughput 高, 建 retention policy 灵活。</p>
+<h3 id="victoriametrics"><a class="header" href="#victoriametrics">VictoriaMetrics</a></h3>
+<p>写性能 ~10x Prometheus, 索引高压缩; cluster mode rows mucho limit support. good for long retention.</p>
+<h3 id="弱点-5"><a class="header" href="#弱点-5">弱点</a></h3>
+<ul>
+<li>High-cardinality tag 像 user_id 会 摧毁 (索引膨胀) — must aggregate + tag low cardinality.</li>
+<li>Tags cardinality 上百万 实际 kill index; 必须预聚合 或 改用 columnar OLAP。</li>
+</ul>
+<hr />
+<h2 id="七graph-db-neo4j--dgraph--janusgraph"><a class="header" href="#七graph-db-neo4j--dgraph--janusgraph">七、Graph DB: Neo4j / Dgraph / JanusGraph</a></h2>
+<h3 id="适用场景-5"><a class="header" href="#适用场景-5">适用场景</a></h3>
+<ul>
+<li>深度关系 (社交好友 / 欺诈检测 / 推荐系统)</li>
+<li>3+ 层级关系 traversal</li>
+<li>Routing / map data (有交通 graph)</li>
+<li>风险组件  in finance</li>
+</ul>
+<h3 id="数据模型-property-graph"><a class="header" href="#数据模型-property-graph">数据模型 (property graph)</a></h3>
+<pre><code>Node(labels) -[edge(type)]-&gt; Node(labels)
+</code></pre>
+<ul>
+<li>Node labels: Person, Account, Transaction</li>
+<li>Edge types: FRIEND_OF, OWNS, TRANSFERRED_TO</li>
+</ul>
+<h3 id="cypher-neo4j"><a class="header" href="#cypher-neo4j">Cypher (Neo4j)</a></h3>
+<pre><code class="language-cypher">MATCH (alice:Person {name:"Alice"})-[:FRIEND_OF*1..3]-(mutual)
+WHERE mutual.age &gt; 21
+RETURN mutual.name
+</code></pre>
+<h3 id="弱点-6"><a class="header" href="#弱点-6">弱点</a></h3>
+<ul>
+<li>跨 cluster scaling 难, 多数 graph DB 提供 single-tenant + sharding 是 challenge.</li>
+<li>Connected query 可以 O(N!) 时间复杂度</li>
+</ul>
+<h3 id="主要范例"><a class="header" href="#主要范例">主要范例</a></h3>
+<ul>
+<li>Neo4j: 大型开源 graph DB</li>
+<li>Dgraph: GraphQL + 更 cloud-native</li>
+<li>JanusGraph: 在 Cassandra + HBase 上构建 graph indexing</li>
+<li>Microsoft CosmosDB: GraphQL-like with Gremlin API。</li>
+<li>AWS Neptune: managed graph service。</li>
+</ul>
+<hr />
+<h2 id="八对象存储-s3--gcs--azure-blob"><a class="header" href="#八对象存储-s3--gcs--azure-blob">八、对象存储: S3 / GCS / Azure Blob</a></h2>
+<h3 id="适用场景-6"><a class="header" href="#适用场景-6">适用场景</a></h3>
+<ul>
+<li>User file upload (images, videos, pdf)</li>
+<li>备份归档</li>
+<li>ML model snapshots</li>
+<li>CDN static (web fonts, large static data)</li>
+</ul>
+<h3 id="性能--用法"><a class="header" href="#性能--用法">性能 / 用法</a></h3>
+<ul>
+<li>不限容量 (theoretically infinite)</li>
+<li>Put/Get 按 object 名 (key); throughput 高 ~10MB/s/part but support multipart upload 并行</li>
+<li>Latency P50 30-50ms; 大 file get throughput saturate 25Gbps link</li>
+<li>Storage $0.023/GB/month standard tier</li>
+<li>Lifecycle policy: 30d → S3-IA, 90d → Glacier, 1y → Glacier Deep Archive</li>
+</ul>
+<h3 id="弱点-7"><a class="header" href="#弱点-7">弱点</a></h3>
+<ul>
+<li>非 transactional</li>
+<li>eventual consistency for overwrite (虽然 S3 standard now strong read-after-write since 2020-12)</li>
+<li>DELETE 不是 immediately visible (强 一致的 list since 2020)</li>
+<li>5GB max single PUT (multipart upload 支持达 5TB)</li>
+<li>不适合 random access; ideal for streaming whole large file</li>
+</ul>
+<h3 id="用法-patterns"><a class="header" href="#用法-patterns">用法 Patterns</a></h3>
+<ul>
+<li>CDN origin (CloudFront / Fastly)</li>
+<li>Static site hosting</li>
+<li>Archival storage</li>
+<li>Data lake foundation (S3 + Athena / EMR)</li>
+<li>S3 + DynamoDB "manifesto style" pattern (key map + file metadata)</li>
+</ul>
+<hr />
+<h2 id="九搜索-elasticsearch--solr--typesense"><a class="header" href="#九搜索-elasticsearch--solr--typesense">九、搜索: Elasticsearch / Solr / Typesense</a></h2>
+<h3 id="适用场景-7"><a class="header" href="#适用场景-7">适用场景</a></h3>
+<ul>
+<li>Full-text search on user content</li>
+<li>Log aggregation (Elastic + Logstash + Kibana)</li>
+<li>Recommendation system backends (BM25 scorer)</li>
+<li>Geospatial search</li>
+</ul>
+<h3 id="elasticsearch-data-model"><a class="header" href="#elasticsearch-data-model">Elasticsearch Data Model</a></h3>
+<p>Index = 表; 文档 = 行; mapping = schema. Lucene-based inverted index.</p>
+<ul>
+<li>Lucene = full-text-inverted index with analyzers</li>
+<li>Shard = Lucene index. Replica shard = 1+ copies for HA</li>
+<li>Cluster: e.g., 30 data nodes × 3 shards each (~10GB per shard)</li>
+<li>Cross-shard query fans out scatter/gather</li>
+</ul>
+<h3 id="性能-2"><a class="header" href="#性能-2">性能</a></h3>
+<ul>
+<li>索引延迟 100ms (refresh interval 1s default)</li>
+<li>查询 throughput 与 index size, shard count 有关</li>
+<li>规模 bump shard 数, 单 shard &lt; 50GB</li>
+</ul>
+<h3 id="弱点-8"><a class="header" href="#弱点-8">弱点</a></h3>
+<ul>
+<li>不适合 OLTP transactional, no ACID guarantee outside doc</li>
+<li>Heap 内存大 with many shards (~30GB+ heap 推荐)</li>
+<li>Index rebuilding is expensive; mapping 变化 reindex 需 full reindex</li>
+</ul>
+<h3 id="alternative"><a class="header" href="#alternative">Alternative</a></h3>
+<ul>
+<li>Meilisearch / Typesense: 小型 + fast search</li>
+<li>OpenSearch: Amazon AWS fork of ES (2021)</li>
+<li>Vespa (Yahoo): 推荐 + search + ad platform heavy</li>
+</ul>
+<hr />
+<h2 id="十混合策略实际系统"><a class="header" href="#十混合策略实际系统">十、混合策略实际系统</a></h2>
+<p>多数生产真实系统 mix 多 store:</p>
+<pre><code>- 主 OLTP: PostgreSQL / MySQL
+- Cache: Redis
+- Queue: Kafka / Pulsar
+- OLAP: ClickHouse / BigQuery / Snowflake / Redshift
+- Search: Elasticsearch
+- File: S3 / GCS
+- Graph (if social/route): Neo4j / Dgraph
+- Time-series: Prometheus / VictoriaMetrics
+</code></pre>
+<h3 id="选-store-flowchart"><a class="header" href="#选-store-flowchart">选 store flowchart</a></h3>
+<pre><code>需求: cache? → Redis
+需求: 高写入与 AP? → Cassandra / DynamoDB
+需求: 严格事务一致性? → PostgreSQL / MySQL / Spanner
+需求: OLAP 多聚合? → ClickHouse / BigQuery
+需求: JSON nested? → Mongo / Couchbase / PostgreSQL JSONB
+需求: 时序监测? → InfluxDB / TimescaleDB / VictoriaMetrics
+需求: 搜索? → Elasticsearch / Meilisearch
+需求: 文件? → S3 / GCS
+需求: 图关系? → Neo4j / Dgraph
+</code></pre>
+<hr />
+<h2 id="十一典型事故"><a class="header" href="#十一典型事故">十一、典型事故</a></h2>
+<h3 id="mongodb-事务误解-2017一堆"><a class="header" href="#mongodb-事务误解-2017一堆">MongoDB "事务"误解 (2017一堆)</a></h3>
+<p>某公司用 MongoDB replica set 高 throughput + 默认 w=1 + R=1, 在 failover 时丢失已 ACK 的写。 Fix: <code>w=majority, j=true, R=majority</code>. Trade-off 写 throughput 下降 50%.</p>
+<h3 id="cassandra-lww-写丢失-2018"><a class="header" href="#cassandra-lww-写丢失-2018">Cassandra LWW 写丢失 (2018)</a></h3>
+<p>某 IoT 平台 Cassandra 默认 LWW driver client.clock.now() as timestamp, 各地 IoT 设备 NTP skew 5-10s。 后写  user 发 compaction time skew  data  loss potential. Fix: client_supplied monotonic timestamp.</p>
+<h3 id="redis-oom-绕过-maxmemory-policy"><a class="header" href="#redis-oom-绕过-maxmemory-policy">Redis OOM 绕过 maxmemory-policy</a></h3>
+<p>某用户 Redis 设置了 maxmemory=4GB + LRU 淘汰, 但配置了 <code>maxmemory-policy=allkeys-lru</code> 与 <code>appendonly=yes</code> 同时启用, AOF 文件已写 8GB disk, RAM 已超 maxmemory + 风险 OOM. Fix: AOF 关闭 + RAM dedicated.</p>
+<hr />
+<h2 id="十二易错清单"><a class="header" href="#十二易错清单">十二、易错清单</a></h2>
+<ol>
+<li><strong>Cache 与持久化混用</strong>: Redis 不应作 primary store, destroy 不能 recoverable。</li>
+<li><strong>MongoDB transaction 4.0+ 必须选 REPEATABLE_READ on driver</strong>: 否则 cross-shard transaction broken.</li>
+<li><strong>Cassandra 限制 counter + 普通 write 在 batch 写</strong>, any cross-table batch with counter 拒绝。</li>
+<li><strong>PostgreSQL max_connections &gt; 100 → performance cost high</strong>, 推荐 pool 大小 ~10-50, 绝不是 1000。</li>
+<li><strong>ClickHouse ALTER TABLE UPDATE 是 full part rewrite, 慢</strong>, 不应常态更新。 Re-INSERT 后 drop old.</li>
+<li><strong>Elasticsearch refresh_interval=1s</strong>: search latency 1s delay。 用 refresh_interval=-1 + 手动 controlled refresh for bulk indexing.</li>
+<li><strong>S3 lifecycle policy必设</strong>: 不设 storage tier 切换, archive files 堆集 monthly cap.</li>
+<li><strong>InfluxDB high-cardinality tag 太重</strong>: user_id 不要直接做 tag, aggregate at 5min rollup.</li>
+</ol>
+<hr />
+<h2 id="十三这一章带走的东西"><a class="header" href="#十三这一章带走的东西">十三、这一章带走的东西</a></h2>
+<ol>
+<li>不同存储引擎有<strong>明确擅长的领域</strong>, 没有 "one-size-fits-all" 数据库。</li>
+<li>Cache → Redis; OLTP → PostgreSQL / MySQL; OLAP → ClickHouse / BigQuery; AP → Cassandra / DynamoDB; 时序 → TimescaleDB / VictoriaMetrics。</li>
+<li>Postgres ≥ MySQL 一并行场景: 选择主因是 PG ecosystem / MySQL ecosystem.</li>
+<li>多数生产系统 mix 7 stores, 任何 monolithic "选择 个就够" 都过时。</li>
+<li>性能黑话你必须知道: LSM 写快 + 读需 compaction + B-tree 读快 + 写 amplification. OLTP ACID + OLAP vectorized scan。</li>
+<li>S3 是 "infinite" object store + Cache + recent "strong read-after-write" 让"as filesystem"模式可行, 但 仍不 transactional。</li>
+</ol>
+<hr />
+<p>下一节 → <a href="wal-lsm-btree.html">WAL / LSM / B-tree 内部</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../system-design/storage/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../system-design/storage/sharding.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../system-design/storage/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../system-design/storage/sharding.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

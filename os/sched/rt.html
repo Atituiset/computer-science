@@ -1,0 +1,389 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>实时调度：SCHED_FIFO / RR / EDF - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="实时调度sched_fifo--rr--edf"><a class="header" href="#实时调度sched_fifo--rr--edf">实时调度：SCHED_FIFO / RR / EDF</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>CFS / EEVDF 是 <strong>尽力而为</strong> 调度，没硬延迟保证. 工业 / 安全 / 媒体 / 控制系统有更严的要求:<strong>必须 K 个可调度任务每 100 μs 内 ack 完成一次</strong>, 必须把抖动盯死在硬指标上. 这就是 real-time scheduling 存在的意义. 这一章把 Linux 的 SCHED_FIFO / SCHED_RR / SCHED_DEADLINE 三个实时类拆开看，再讲业界控制领域使用的 EDF (Earliest Deadline First) — 实时抽象把它带回到硬件层 (看 ARM Cortex-R / 安全岛 automotive).</p>
+<h2 id="1-sched_fifo--sched_rrposix-实时类"><a class="header" href="#1-sched_fifo--sched_rrposix-实时类">1. SCHED_FIFO / SCHED_RR：POSIX 实时类</a></h2>
+<p>Linux 把调度类按 priority 排叠:</p>
+<pre><code>[实时类 0-99] → 优先于 [CFS / EEVDF]
+</code></pre>
+<p>两个 rt 类:</p>
+<ul>
+<li>SCHED_FIFO: FIFO 顺序, 跑到自愿让出;</li>
+<li>SCHED_RR: 同 FIFO 但时间片 = 100 ms 后抢;</li>
+</ul>
+<p>进入配 rt priority 也能跨核 migration, 但 FIFO 是 panic-level "不再被迫让位": 1 个 SCHED_FIFO 99 thread 跑 while(1) infinite ⇒ 其他线程全饿死. <strong>Linux 没默认 watchdog over FIFO thread</strong>.</p>
+<h2 id="2-sched_deadlinelinux-edf-policy-引入"><a class="header" href="#2-sched_deadlinelinux-edf-policy-引入">2. SCHED_DEADLINE：Linux EDF policy 引入</a></h2>
+<p>Linux 3.14+ 引入 SCHED_DEADLINE（基于 EDF 算法）. <strong>EDF</strong> (Earliest Deadline First):</p>
+<pre><code>每任务的三元组 (runtime, period, deadline):
+  每周期 period 内, 须够 runtime μs CPU, 期限 deadline μs.
+</code></pre>
+<p>Example: 任务 A (10 ms runtime, 100 ms period, 50 ms deadline):</p>
+<pre><code>每 100 ms 开始: 任务 A 必须在 deadline 50 ms 内跑完 10 ms CPU.
+EDF: 每次调度只要流内 runtime &lt; deadline 的 task (内 runnable 中最早 dl 优先)
+</code></pre>
+<p>调度器在 admit 时用 utilization check:</p>
+<pre><code>Σ (runtime_i / period_i) ≤ min(1, total_cores)
+</code></pre>
+<p>单调 EDF 是最低可行算法 CPU utilization 上界 (Liu &amp; Layland 1973). SCHED_DEADLINE 是 Linux 给硬实时打 的 framework.</p>
+<h2 id="3-preempt_rt-kernel-自己-rt-化"><a class="header" href="#3-preempt_rt-kernel-自己-rt-化">3. PREEMPT_RT: kernel 自己 rt 化</a></h2>
+<p>Linux 默认不少 critical section (e.g. spinlock) 还不可抢占. PREEMPT_RT 是主支工程, kernel spinlock 换 raw_spinlock + rt_mutex + rcu_rrn 等让" kernel 自己 rt friendly". PREEMPT_RT 已经渐进 mainline 多年并在 Linux 6.12 后全部 upstream.</p>
+<p>打开 PREEMPT_RT 后:</p>
+<ul>
+<li>spinlock 改 rt mutex, 不能 thread 抢死;
+-IRQSOFT聋DDevice handler 变成 kernel thread (ksoftirqd);</li>
+<li>大多数关键 path preempt-safe ⇒ max latency ~ 100 μs (默认 10 ms+).</li>
+</ul>
+<p>PREMPT_RT 用例: automotive (electric vehicle 中 BlueZ, ROS), industrial control, audio lowest latency.</p>
+<h2 id="4-real-time-延迟常数"><a class="header" href="#4-real-time-延迟常数">4. Real-time 延迟常数</a></h2>
+<pre><code>CFS (stock kernel): 50 μs -&gt; SECENDUST script best-but-p99 ~ 10 ms;
+PREEMPT_RT kernel: ~ 100 μs p99 ~ 200 μs 配 CPU isolation;
+PREMPT_RT + CPU isolation (isolcpus + nohz_full): ~ 20 μs p99;
+Xenomai / RTAI co-kernel: &lt; 5 μs;
+ARM Cortex-R / FPGA 双核 RT: &lt; 1 μs.
+</code></pre>
+<p>工业 automotive sensor fusion / motor control 设置一般要 &lt; 100 μs. Linux PREEMPT_RT 可达成. 1 μs 级要 FPGA co-processor / Cortex-R.</p>
+<h2 id="5-时延抖动来源"><a class="header" href="#5-时延抖动来源">5. 时延抖动来源</a></h2>
+<p>1.irq 创建 periodic timer tick;
+2. tabnentiated m -burst time latch (CPU isolation).
+3. spinlock hold time;
+4.smp guest VM hypervisor exit cost;
+5.内存管理 hot path cache miss / swap-in;
+6.GPUAdditionally resource scheduler.</p>
+<p>工程通过将实时任务<strong>完全无中断跑</strong></p>
+<pre><code>isolcpus=2-3      # 在 boot 让 CPU 2-3 不接 irq, 永不会被 scan balance
+nohz_full=2-3     # 不定时 tick
+rcu_nocbs=2-3     # RCU callback 不在这 CPU
+tuned-adm profile realtime
+preempt=full
+</code></pre>
+<p>process 上:</p>
+<pre><code class="language-bash">chrt -f 99 ./my_realtime_task
+chrt -d -t 10000 -p 100000 ./sdl_task   # SCHED_DEADLINE 10 ms / 100 ms
+</code></pre>
+<p>CPU affinity:</p>
+<pre><code class="language-c">cpu_set_t set;
+CPU_ZERO(&amp;set); CPU_SET(2, &amp;set);
+pthread_setaffinity_np(pthread_self(), sizeof(set), &amp;set);
+</code></pre>
+<h2 id="6-arm-cortex-r--调度器硬件最后形态"><a class="header" href="#6-arm-cortex-r--调度器硬件最后形态">6. ARM Cortex-R / 调度器硬件最后形态</a></h2>
+<p>车规 / electrical 调速控电磁机 &lt; 1 μs 延迟不能轮. ARM Cortex-R / RISC-V 上的 MT (motor timer) ISR Direct interrupt classification &lt; 100 ns open + deliver to register to rt5 chip actuator. 这是 Linux PREEMPT_RT 击退卸交硬件 RT core.</p>
+<p>代码模式:</p>
+<pre><code class="language-c">// 裸金属 Cortex-R 上
+__attribute__((interrupt("IRQ"))) void timer_handler() {
+  // bare-metal handler
+  ...
+}
+</code></pre>
+<p>eBPF + 嵌入式 Linux 用 BLabs + 专用 RT core. Sisoft follow 上 hardware RT 类同构 = 抽象在硬件层就是"timer ISR 直接跑 with 跟 lane bandwidth".</p>
+<h2 id="7-这章带走的东西"><a class="header" href="#7-这章带走的东西">7. 这章带走的东西</a></h2>
+<ul>
+<li>SCHED_FIFO/RR 是有危险可饿死, 须小心;</li>
+<li>SCHED_DEADLINE 基于 EDF + utilization 健康 check;</li>
+<li>PREEMPT_RT 让 Linux kernel RT, 自 Linux 6.12+ mainline;</li>
+<li>配 CPU isolation + nohz_full 时 接 &lt; 100 μs;</li>
+<li>真硬 &lt; 1 μs RT 只能 Cortex-R / FPGA co-processor / Xenomai.</li>
+</ul>
+<p>下一节 → <a href="gmp.html">GMP 模型</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../os/sched/cfs.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../os/sched/gmp.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../os/sched/cfs.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../os/sched/gmp.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

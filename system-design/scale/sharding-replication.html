@@ -1,0 +1,430 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>分片 / 复制 / partition tolerance - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="sharding--replication-实践"><a class="header" href="#sharding--replication-实践">Sharding + Replication 实践</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>Scale 的 two axes: <strong>write scalability (sharding)</strong> + <strong>read scalability (replication)</strong>. 本章以 concrete 案例讲解 怎么拆一个单机 Postgres 到 100 节点 cluster:</p>
+<ul>
+<li><strong>Sharding</strong>: 按 hash / range 切 data, 跨多 instances, 让写 throughput 线性增长.</li>
+<li><strong>Replication</strong>: 每个 shard 多副本 (leader + followers) 承载 read traffic, 热备 failover.</li>
+<li><strong>Combined</strong>: CockroachDB / Spanner / Yugabyte / TiDB 是 sharding + replication natively.</li>
+<li><strong>Caching + CDN</strong>: 加 读 cache (Redis + CDN) further 降 read load.</li>
+</ul>
+<p>本章以 Twitter / Instagram 为实例, 讲 shard key 为何是 user_id, 不 <code>hash(ad_id)</code>. 与 pitfalls: reshard migration, 跨 shard transaction, hot shard。</p>
+<hr />
+<h2 id="一单机到-sharded-集群"><a class="header" href="#一单机到-sharded-集群">一、单机到 Sharded 集群</a></h2>
+<h3 id="路径"><a class="header" href="#路径">路径</a></h3>
+<pre><code>Phase 1: 单机 Postgres (16 core, 256GB RAM) 
+  → 5000 write TPS, 50K read QPS OK
+
+Phase 2: + read replicas (1 primary + 2 replicas)
+  → reads go to replicas, write still bottleneck at primary
+
+Phase 3: + Redis cache layer
+  → cache hit 95%, write 仍是瓶颈
+
+Phase 4: Sharding by user_id (12 shards)
+  → 写 60K TPS, 读 600K QPS shared across scaling
+</code></pre>
+<p>Instagram 走完 12 shard, 为什么 user_id 是 shard key:</p>
+<ul>
+<li>Most queries = per-user feed / profile / timeline</li>
+<li>user_id  sharding → single-user data co-located on same shard</li>
+<li>Cross-user join (rare) → cross-shard read async 后合并</li>
+</ul>
+<hr />
+<h2 id="二shard-key-选型-checklist"><a class="header" href="#二shard-key-选型-checklist">二、Shard Key 选型 checklist</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>考虑</th><th>Hash 随机分布</th><th>Range 按序分</th><th>Directory 自由映射</th></tr></thead><tbody>
+<tr><td>均匀分布</td><td>✅</td><td>❌ hot range at 最新</td><td>✅ manual rebalance</td></tr>
+<tr><td>范围查询高效</td><td>❌ cross shard</td><td>✅ 同 shard</td><td>✅ depends on mapping</td></tr>
+<tr><td>Hot key</td><td>⚠ single hot key hits one shard</td><td>❌ latest time hits same shard</td><td>✅ manual split hot key</td></tr>
+<tr><td>Add node</td><td>❌ rehash all data (no consistent hash)</td><td>✅ split range 迁移少</td><td>✅ directory 重 map 轻</td></tr>
+<tr><td>Consistent hashing</td><td>✅ 仅 迁移1/N data</td><td>❌ 必须 有 cohesive mechanism</td><td>✅</td></tr>
+</tbody></table>
+</div>
+<h3 id="实际选型"><a class="header" href="#实际选型">实际选型:</a></h3>
+<ul>
+<li><strong>Twitter timeline</strong>: <code>user_id % 4096</code> — hash shard, scale via 4K shards.</li>
+<li><strong>HBase region</strong>: range by row key — 时限扫 批量 efficient.</li>
+<li><strong>Vitess</strong>:  auto-shard, directory-based (vtgate lookup route).</li>
+</ul>
+<hr />
+<h2 id="三replication--topology"><a class="header" href="#三replication--topology">三、Replication / Topology</a></h2>
+<h3 id="单主模式-leader-follower"><a class="header" href="#单主模式-leader-follower">单主模式 (leader-follower)</a></h3>
+<p>单 shard 内 leader + 2+ followers。 leader 承载 write, followers 承载 reads.</p>
+<ul>
+<li>若 leader down → Raft/Paxos elect new leader (5-10s).</li>
+<li>RPO = ack to client after fsync+半数. replication lag reads maybe stale.</li>
+</ul>
+<h3 id="多主多-region"><a class="header" href="#多主多-region">多主多 region</a></h3>
+<p>CockroachDB <strong>multi-region 表</strong>:</p>
+<ul>
+<li><code>PRIMARY REGION "us-east"</code>  all table 在 该区域</li>
+<li><code>REGIONAL BY ROW</code>: each row across regions based region key</li>
+<li><code>GLOBAL</code> 表: table 跨 all regions 一致 replicas</li>
+</ul>
+<h3 id="链式复制-chain-replication"><a class="header" href="#链式复制-chain-replication">链式复制 Chain Replication</a></h3>
+<p>Head → middle → tail (写入顺序, 仅 tail 可读). 低 latency reads, 单 tail throughput bottleneck. 用于 strong consistency read 线.</p>
+<hr />
+<h2 id="四跨-shard-transaction"><a class="header" href="#四跨-shard-transaction">四、跨 shard transaction</a></h2>
+<h3 id="2pc-via-xa-2-phase-commit"><a class="header" href="#2pc-via-xa-2-phase-commit">2PC via XA (2 Phase Commit)</a></h3>
+<pre><code class="language-sql">XA START 'tx1';
+UPDATE accounts_1 SET balance = balance - 100 WHERE user_id = 42;
+UPDATE accounts_2 SET balance = balance + 100 WHERE user_id = 99;
+XA END 'tx1';
+XA PREPARE 'tx1';
+XA COMMIT 'tx1';
+</code></pre>
+<p>Pros: Strict ACID; Cons: latency ~10-50ms, 2PC 阻塞 coordinator 崩 死锁。</p>
+<h3 id="saga-pattern"><a class="header" href="#saga-pattern">Saga Pattern</a></h3>
+<p>每个 shard update is local transaction + 补偿 undo event.</p>
+<pre><code>Service A deduct (shard 1). commit event.
+Service B add (shard 2). commit event ∈ kafka.
+if B fails, emit compensation event to A.
+</code></pre>
+<h3 id="cockroachdb-cross-shard-serializability"><a class="header" href="#cockroachdb-cross-shard-serializability">CockroachDB cross-shard serializability</a></h3>
+<p>HLC + Paxos replication + 2PC (internally impl), 应用不用手写 2PC; ~80ms serially.</p>
+<hr />
+<h2 id="五reshard--rebalance"><a class="header" href="#五reshard--rebalance">五、Reshard / Rebalance</a></h2>
+<h3 id="hash-based-with-consistent-hashing"><a class="header" href="#hash-based-with-consistent-hashing">Hash-Based With Consistent Hashing</a></h3>
+<pre><code>consistent hashing ring + virtual nodes (150 vnodes per node per Riak).
+add node → move ~1/N data.
+</code></pre>
+<h3 id="range-split"><a class="header" href="#range-split">Range Split</a></h3>
+<pre><code>Shard starts [0, MAX]; 当 shard 负载 &gt; threshold → split.
+new shard hot until cache prewarm.
+</code></pre>
+<h3 id="vitess-vreplication"><a class="header" href="#vitess-vreplication">Vitess VReplication</a></h3>
+<ol>
+<li>vreplicate双写 + binlog capture.</li>
+<li>等到 slave caught up → 切新 shard 全读.</li>
+<li>remove old shard.</li>
+</ol>
+<hr />
+<h2 id="六典型事故"><a class="header" href="#六典型事故">六、典型事故</a></h2>
+<h3 id="instagram-2014-reshard"><a class="header" href="#instagram-2014-reshard">Instagram 2014 reshard</a></h3>
+<p>Originally 12-postgres shard by user_id % 4096. 随着 user 增长, 单 shard 接近 max capacity. Upgrade 12→24 requires a massive data migration; Instagram did it via logical replication + 临时读写两 方案。  migration took 6 months planning.</p>
+<h3 id="uber-schemaless--holodeck-sharding"><a class="header" href="#uber-schemaless--holodeck-sharding">Uber Schemaless / Holodeck Sharding</a></h3>
+<p>Uber 的 early 阶段 used hash sharding 后 由于 shard 数少 hot shard 叠加 让 drivers available 数写 慢。 created custom shard: partitioned by <code>city_id + user_id</code> 双 层 shard.</p>
+<h3 id="figma-no-sharding-at-all"><a class="header" href="#figma-no-sharding-at-all">Figma: no sharding at all</a></h3>
+<p>Figma uses single PostgreSQL instance (2021 blog) for up to 1B+ objects, relying heavily on Nginx + Redis cache + heavy horizontal read replicas. Write stayed moderate because most user actions generate <strong>local state</strong> that 未 persist each micro gesture.</p>
+<hr />
+<h2 id="七易错清单"><a class="header" href="#七易错清单">七、易错清单</a></h2>
+<ol>
+<li><strong>Shard key 选择 必 基于 query pattern</strong>: 不能随便 <code>hash(random)</code> — 以后 查 单 user 跨 shard 太贵.</li>
+<li><strong>Reshard 的 migrate cost 巨大</strong>: plan for "scale 2-4× what you need now" to avoid immediate migration.</li>
+<li><strong>Cross-shard transaction is hard: 2PC 才 linearizable, Saga eventual, eventual 是 path correct 但 业务 onus 大</strong>.</li>
+<li><strong>Read replica can become stale and cause user to see old data</strong>: 控制 replication lag; read-after-write consistency 必须.</li>
+</ol>
+<hr />
+<h2 id="八这一章带走的东西"><a class="header" href="#八这一章带走的东西">八、这一章带走的东西</a></h2>
+<ol>
+<li>Sharding = hash / range / directory; 选 key 基于 query pattern.</li>
+<li>Replication = leader-follower (单主) / 链 / 多主多 region.</li>
+<li>Cross-shard tx = 2PC (ACID) vs Saga (eventual), trade latency and consistency.</li>
+<li>Reshard with consistent hashing (move 1/N data) or range split (less data move).</li>
+<li>Instagram / Uber / Figma patterns confirm shard design dictated by product use-cases.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="multi-region.html">Multi-region</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../system-design/scale/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../system-design/scale/resilience.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../system-design/scale/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../system-design/scale/resilience.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

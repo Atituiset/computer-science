@@ -1,0 +1,458 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Dynamo / Cassandra / Redis Cluster - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="dynamo-family-cassandra--riak--dynamodb"><a class="header" href="#dynamo-family-cassandra--riak--dynamodb">Dynamo Family: Cassandra / Riak / DynamoDB</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>Amazon Dynamo (2007 SOSP) 论文是 AP 键值系统的 圣经——<strong>永远可写, 最终一致, 让服务 (shopping cart) 总可用</strong>。 Cassandra / Riak / Voldemort / DynamoDB 是 Dynamo 概念的 工业 实现。Cassandra 成为 Facebook → Apache 的 分布式 wide-column store; Riak 由 Basho 设计为 eventually-consistent Dynamo-style with CRDT; DynamoDB 是 AWS managed 版本, 带 optional strong consistency。本章分析 Dynamo paper 核心: consistent hashing + virtual nodes + hinted handoff + anti-entropy + sloppy quorum + vector clock — 以及它们如何演化到 Cassandra 与其他派生。</p>
+<hr />
+<h2 id="一dynamo-纸核心架构-2007"><a class="header" href="#一dynamo-纸核心架构-2007">一、Dynamo 纸核心架构 (2007)</a></h2>
+<h3 id="前提-总是可写-ap"><a class="header" href="#前提-总是可写-ap">前提: "总是可写" (AP)</a></h3>
+<p>一个 Amazon shopping cart 必须<strong>always add item</strong> 即便部分节点 down。 不能 block write =&gt; availability pick over consistency。 网络分区 持续 仍写 =&gt; AP system。</p>
+<h3 id="consistent-hashing"><a class="header" href="#consistent-hashing">Consistent Hashing</a></h3>
+<pre><code>key hash(key) → position in ring [0, 2^160-1]
+每个 node 分配 N 个 virtual positions (vnodes)
+写入 N 个 replicas walking clockwise.
+</code></pre>
+<p>每个 key 的 replication set = 首 node + next (N-1) clockwise nodes。</p>
+<h3 id="sloppy-quorum"><a class="header" href="#sloppy-quorum">Sloppy Quorum</a></h3>
+<p>若 preferred N 节点部分 down, Dynamo 选次邻 node (no strict ring)。 保证 write 完成;  use hinted handoff 暂存本地, 转给 real owner after recovery。</p>
+<h3 id="w-r-n-consistency-levels"><a class="header" href="#w-r-n-consistency-levels">W, R, N Consistency Levels</a></h3>
+<ul>
+<li>N=3 (replication factor)</li>
+<li>client configurable W (write quorum), R (read quorum)</li>
+<li>W+R &gt; N for quorum overlap =&gt; stale-proof</li>
+</ul>
+<p>案例: Amazon's shopping cart: N=3, R=1, W=1 (快速, 但可能 stale)</p>
+<h3 id="vector-clock--sibling"><a class="header" href="#vector-clock--sibling">Vector Clock + Sibling</a></h3>
+<p>Each version of data has vector clock [[node:counter]] from last update. Coordinator  see sibling when vector clock incomparable → return all client for resolution (e.g., shopping cart merge by application)</p>
+<h3 id="hinted-handoff"><a class="header" href="#hinted-handoff">Hinted Handoff</a></h3>
+<p>当 write target replica unavailable, coordinator store hint (包括 key+value) locally。 节点回来后 push hint =&gt; data.</p>
+<h3 id="anti-entropy-with-merkle-tree"><a class="header" href="#anti-entropy-with-merkle-tree">Anti-Entropy with Merkle Tree</a></h3>
+<p>Background 比较 副本 differ range 推 specific missing keys。 Merkle Tree lazy periodic sync, ensure cold keys  converge。</p>
+<h3 id="gossip-protocol"><a class="header" href="#gossip-protocol">Gossip Protocol</a></h3>
+<p>Cluster membership via random peer gossip (no 集中 config server). 每个节点 每 1s 跟 random peer exchange membership info。</p>
+<hr />
+<h2 id="二cassandra-facebook-2008--apache"><a class="header" href="#二cassandra-facebook-2008--apache">二、Cassandra (Facebook 2008 → Apache)</a></h2>
+<h3 id="混合-dynamo--bigtable"><a class="header" href="#混合-dynamo--bigtable">混合 Dynamo + BigTable</a></h3>
+<p>Cassandra 在 Dynamo's partition + replication model 上 加 BigTable 列模型。</p>
+<p>每 table = partition key + clustering columns:</p>
+<pre><code class="language-sql">CREATE TABLE user_activity (
+    user_id UUID,
+    timestamp TIMESTAMP,
+    event TEXT,
+    PRIMARY KEY (user_id, timestamp)
+);
+</code></pre>
+<p>每 partition 内 (secondary key) 多个 row, 语义类似 sparse wide-row.</p>
+<h3 id="gossip-hinted-handoff-read-repair-anti-entropy--all-inherited-from-dynamo"><a class="header" href="#gossip-hinted-handoff-read-repair-anti-entropy--all-inherited-from-dynamo">Gossip, hinted handoff, read repair, anti-entropy — all inherited from Dynamo</a></h3>
+<p>Cassandra adds:</p>
+<ul>
+<li><strong>Thrift/Native CQL protocol</strong> (not Dynamo simple interface)</li>
+<li><strong>Tunable consistency (LOCAL_ONE / LOCAL_QUORUM / EACH_QUOURM)</strong></li>
+<li><strong>SSTable + compaction (stcs / lcs / twcs)</strong></li>
+<li><strong>Lightweight transactions (LWT via Paxos)</strong></li>
+</ul>
+<h3 id="implementation-differences"><a class="header" href="#implementation-differences">Implementation differences</a></h3>
+<ul>
+<li>Virtual nodes (vnodes) default 256 per node, ring mapping load balance auto.</li>
+<li>LSM-tree: memtable + commitlog flush to SSTable → compaction merge.</li>
+<li>Token-aware driver: clients aware of partition mapping reduce extra hop to coordinator.</li>
+</ul>
+<h3 id="scaling"><a class="header" href="#scaling">Scaling</a></h3>
+<ul>
+<li>Linearly scalable writes by adding nodes; data re-distribute via vnodes migration (move half token ranges).</li>
+</ul>
+<hr />
+<h2 id="三riak-basho-2009"><a class="header" href="#三riak-basho-2009">三、Riak (Basho 2009)</a></h2>
+<h3 id="pure-dynamo"><a class="header" href="#pure-dynamo">Pure Dynamo</a></h3>
+<p>Riak close follow Dynamo paper:</p>
+<ul>
+<li><code>consistent hashing (ring)</code> 配 vnodes (default 64);</li>
+<li><strong>Sloppy quorum + hinted handoff</strong></li>
+<li>vector clock sibling return <code>allow_mult=true</code></li>
+<li>anti-entropy (active AAE background Merkle Tree sync)</li>
+<li>gossip membership</li>
+</ul>
+<h3 id="data-types-crdt-since-riak-20"><a class="header" href="#data-types-crdt-since-riak-20">Data Types (CRDT since Riak 2.0)</a></h3>
+<p>Riak DT: counters, sets, maps, flags (Conflict-free). 免 application merge by making data type converge according to CRDT.</p>
+<h3 id="trade-offs"><a class="header" href="#trade-offs">Trade-offs</a></h3>
+<ul>
+<li>No SQL query model; KV with bucket type CRDT;  rich map/reduce-based query (JSON)</li>
+<li>Eventual consistency / strong via <code>R=quorum</code></li>
+</ul>
+<h3 id="现状态"><a class="header" href="#现状态">现状态</a></h3>
+<p>Basho shut down 2017 (company gone), Riak open source 停 更新 但 派生 项目 继续: Riak KV (Bet365 financial use).</p>
+<hr />
+<h2 id="四dynamodb-aws-2012"><a class="header" href="#四dynamodb-aws-2012">四、DynamoDB (AWS, 2012)</a></h2>
+<h3 id="managed-dynamo"><a class="header" href="#managed-dynamo">Managed Dynamo</a></h3>
+<ul>
+<li>Full managed (no operations like Cassandra)</li>
+<li>API: <code>GetItem, PutItem, DeleteItem, Query, Scan</code></li>
+<li>tables: partition key + optional sort key; 无 列模型; each item max 400KB</li>
+<li>capacity mode: on-demand or provisioned (RCU/WCU)</li>
+</ul>
+<h3 id="read-consistency"><a class="header" href="#read-consistency">Read consistency</a></h3>
+<ul>
+<li>Eventually Consistent Read (default): 可能 stale; P99 &lt; 10ms</li>
+<li>Strongly Consistent Read: R=⌈N/2⌉+1 读 quorum; P99 &lt; 20ms; return most recent commit</li>
+</ul>
+<h3 id="global-table"><a class="header" href="#global-table">Global Table</a></h3>
+<p>Multi-region active-active; write any region, async 复制  → eventual convergence + regional durable</p>
+<h3 id="dynamodb-streams--dax-cache"><a class="header" href="#dynamodb-streams--dax-cache">DynamoDB Streams / DAX cache</a></h3>
+<ul>
+<li>DynamoDB Streams: CDC for change events (KCL lambda trigger)</li>
+<li>DAX: in-memory accelerator cluster 缓 读</li>
+</ul>
+<h3 id="comparison-with-cassandra"><a class="header" href="#comparison-with-cassandra">Comparison with Cassandra</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>Cassandra</th><th>DynamoDB</th></tr></thead><tbody>
+<tr><td>Hosting</td><td>self-managed / DataStax</td><td>AWS managed</td></tr>
+<tr><td>Data model</td><td>rich wide-column + CQL</td><td>简单 PK+SK</td></tr>
+<tr><td>Write throughput</td><td>lin scalable nodes, more hardware</td><td>auto scale RW capacity w/ 升</td></tr>
+<tr><td>Data size limit</td><td>100TB+ per node possible</td><td>400KB per item max</td></tr>
+<tr><td>Transactions</td><td>LWT (Paxos)</td><td>DynamoDB Transactions (serializable with 2PC)</td></tr>
+<tr><td>Global Table</td><td>multi-DC replicas</td><td>global table replicas automatic</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="五dynamo-家族对比总结"><a class="header" href="#五dynamo-家族对比总结">五、Dynamo 家族对比总结</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>系统</th><th>年份</th><th>语言</th><th>数据模型</th><th>特色</th></tr></thead><tbody>
+<tr><td>Amazon Dynamo (Paper)</td><td>2007</td><td>Java (internal)</td><td>simple KV</td><td>origin, trade-off AP focused</td></tr>
+<tr><td>Cassandra</td><td>2008</td><td>Java</td><td>wide-column + CQL</td><td>BigTable model + Dynamo replication</td></tr>
+<tr><td>Riak</td><td>2009</td><td>Erlang</td><td>KV + CRDT</td><td>CRDT native,  ring成员 gossip</td></tr>
+<tr><td>Voldemort</td><td>2009</td><td>Java</td><td>simple KV</td><td>LinkedIn rethought Dynamo + simple API</td></tr>
+<tr><td>DynamoDB</td><td>2012</td><td>managed</td><td>简单 (PK/SK)</td><td>managed, strongly consistent read + DAX</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="六典型事故与教训"><a class="header" href="#六典型事故与教训">六、典型事故与教训</a></h2>
+<h3 id="cassandra--ttl--tombstone-explosion"><a class="header" href="#cassandra--ttl--tombstone-explosion">Cassandra  TTL + tombstone explosion</a></h3>
+<p>Cassandra 2.x 默认 TTL 了 <strong>大量</strong> 过期数据 + tombstones 保留 <code>gc_grace_seconds</code> 默认 10 days, create read 需要 scan tombstones 让查询 慢 10x。 Solution: 修 compaction strategy TWCS + 缩短 gc_grace</p>
+<h3 id="riak-node-flapping"><a class="header" href="#riak-node-flapping">Riak node flapping</a></h3>
+<p>Riak's gossip 处理 降 重 多 次 rejoin ring 当 node flapping, 导致 多 次 handoff storm. 修: Riak <code>ring_creation_size</code> 调 small + pre-join delay.</p>
+<h3 id="dynamodb-rcuwcu-burst-mode-exploiting"><a class="header" href="#dynamodb-rcuwcu-burst-mode-exploiting">DynamoDB RCU/WCU burst mode exploiting</a></h3>
+<p>User 持续 writing H/RW mode 大量 short-burst capacity &gt; provisioned. 短暂 burst 允许, 但 sustained → throttling (ProvisionedThroughputExceededException). Solution: on-demand mode 或 autoscaling to absorb spikes.</p>
+<h3 id="cassandra-lwt-overwhelm"><a class="header" href="#cassandra-lwt-overwhelm">Cassandra LWT overwhelm</a></h3>
+<p>某 Cassandra cluster 过度使 LWT (Paxos based Conditional Updates), LWT 4 RTT latency 占 80% 的 QPS cause P99 高度 slow. Solution: redesign use conflict-free CRDT or Redis lock instead.</p>
+<h3 id="dynamodb-global-table-conflict"><a class="header" href="#dynamodb-global-table-conflict">DynamoDB Global Table conflict</a></h3>
+<p>Multi-region write 同时 same key, 后到达 version 用 LWW timestamp overwrite earlier. 某 系统 在 高 并发 下 丢 更新。 Solution: vector clock or merge function on application end.</p>
+<hr />
+<h2 id="七易错清单"><a class="header" href="#七易错清单">七、易错清单</a></h2>
+<ol>
+<li><strong>Dynamo-style: never guarantee strong consistency without <code>W+R&gt;N</code> + read repair 反复 staleness</strong>.</li>
+<li><strong>Cassandra LWT != scalable</strong>: Paxos 最高 throughput  ~1K/s, not for hot path.</li>
+<li><strong>GC_grace_seconds must set &lt; TTL expire</strong>: 否则 tombstone 聚;  must 缩短 window.</li>
+<li><strong>Sloppy quorum can violate W+R&gt;N shortcut</strong>: 当 consistent 需要, must enforce strict quorum (non-sloppy).</li>
+<li><strong>DynamoDB transactions cost 2x more latency</strong>:  simple reads  prefer eventually.</li>
+</ol>
+<hr />
+<h2 id="八这一章带走的东西"><a class="header" href="#八这一章带走的东西">八、这一章带走的东西</a></h2>
+<ol>
+<li>Dynamo (2007) = AP leaderless ring + consistent hashing + vnodes + vector clock + hinted handoff.</li>
+<li>Cassandra = BigTable wide-column + Dynamo replication + CQL + tunable consistency.</li>
+<li>Riak = pure Dynamo + CRDT types.</li>
+<li>DynamoDB = managed AP KV + optional strong consistency + transactions.</li>
+<li>核心 trade-off: AP = always available writes, eventual consistency, 可 需要 client-side merge和read repair。 opposite of Spanner's CP+EC model。</li>
+</ol>
+<hr />
+<p>下一节 → <a href="snowflake.html">Snowflake</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../system-design/case/google-trio.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../system-design/case/k8s-control-plane.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../system-design/case/google-trio.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../system-design/case/k8s-control-plane.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

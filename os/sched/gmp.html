@@ -1,0 +1,391 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>goroutine GMP 模型 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="goroutine-gmp-模型"><a class="header" href="#goroutine-gmp-模型">goroutine GMP 模型</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>Go runtime 的核心创新不是语法 / 多线程抽象 / GC 而是它的调度器 <code>GMP</code> (Goroutine / Machine / Processor). 它把用户态 goroutine + OS thread + 逻辑 P 三层抽象叠在一起, 让用户写 10 万个 goroutine 仍能在 64 核机器上 O(N_top) 不退化协力. 内核不感知有 goroutine, 它只看到一个进程跑很少几条 OS 线程. 而这层抽象实现背后是同一个抽象一直在反复出现: thread local + work stealing + central 稀释 — DSA "lock-free work queue + ring buffer" 的工程化.</p>
+<h2 id="1-g--m--p-各自什么"><a class="header" href="#1-g--m--p-各自什么">1. G / M / P 各自什么</a></h2>
+<ul>
+<li><strong>G</strong> (Goroutine): 一个用户态 task. 大小仅 8 KB 栈可起步, 不绑死固定 OS thread.</li>
+<li><strong>P</strong> (Processor): 一个逻辑 "执行权". 全局 <code>GOMAXPROCS</code> 个 (默认 = ncpu). 每个 P 有自己的本地 runqueue 装 G. 实际上 P 是一个虚拟资源"票据".</li>
+<li><strong>M</strong> (Machine): 一个真 OS 线程. M 必须 attach 到某个 P 才能跑对应的 G.</li>
+</ul>
+<pre><code>                  ┌─ P0 local runq: [G1, G2, G3]\
+                  ├─ P1 local runq: [G4, G5]     |  ┐
+GOMAXPROCS=4  →   ├─ P2 local runq: [G6]         |  ├ M0..M_k = OS threads attached
+                  └─ P3 local runq: [G7, G8, G9] ┘   
+                  
+                  global runq: (overflowed goroutines)
+                  netpoller: (waiting-on-IO goroutines)
+</code></pre>
+<p>任何时刻, 多个 M 上各自的核上跑 G. 不需要 G 在核心之间迁移, 也少 lock 争.</p>
+<h2 id="2-work-stealing-关键性能技巧"><a class="header" href="#2-work-stealing-关键性能技巧">2. work stealing: 关键性能技巧</a></h2>
+<p>P 的 local queue 空了想拿新 G ⇒ 它会:</p>
+<ol>
+<li>尝试自己 P 的 local queue;</li>
+<li>work steal — 从别的 P 的 queue 里 steali 一半;</li>
+<li>拿 global runqueue;</li>
+<li>拿 netpoller ready 任务.</li>
+</ol>
+<p>work stealing 的算法详 + Go runtime 自内调度器 = 论文 Anderson et al. 2010 之类的 <em>work-stealing deques</em>. 高级实现加 chase / pop / steal 各有 lock-free 实现 (e.g. treiber stack with bounded queue 加 bins).</p>
+<p><strong>实测 work stealing 关键收益</strong>: 在 GOMAXPROCS=Ncpu 下, G uniform 分配到 P 上, cross-P queue 大致 O(no lock) ⇒ N 个 P 一齐 100 个并发任务.</p>
+<h2 id="3-g-的状态机-接管-syscall"><a class="header" href="#3-g-的状态机-接管-syscall">3. G 的状态机: 接管 syscall</a></h2>
+<p>一般 user code 在 goroutine 上跑:</p>
+<pre><code>G: runnable → running → syscall → blocked
+   ↑                       ↓
+   └───── 调度重新分配 ──────┘
+</code></pre>
+<p>"M1 正在跑 G1, G1 syscall 阻塞", runtime 会:</p>
+<ol>
+<li>把 M1 我想 briefly detach (在 lock, FS syscall, ...)</li>
+<li>当 P0 引 syscall block too long: 想办法抢 P0 给另一个 M</li>
+<li>新 M2 接管 P0, 继续从 local runq 拿新 G 跑</li>
+</ol>
+<p><strong>实际效果</strong>: 你的 Go 服务在 Lua-like IO syscall 时 ( 1 ms, 10 ms ) 都不会因 syscall 阻塞丢 CPU 调度. 这是 KB 模式 (大约 = nginx work 共享 NGINX/GPU 由于 共享阻塞).</p>
+<pre><code>M0 + P0 + G1 — syscall 阻塞 → 此 M0 与 P0 的解绑
+                                   ↓
+P0 配新 M1 继续跑 G_x (本地 queue 中下个工)
+M0 等 syscall 完成 ⇒ G1 重新 runnable 进 global runq or P0 local
+</code></pre>
+<h2 id="4-network-poller-epoll-直接接管"><a class="header" href="#4-network-poller-epoll-直接接管">4. network poller: epoll 直接接管</a></h2>
+<p>Go 5.x+ runtime 在 Linux socket IO 用 epoll + nonblock fd. 一个后台线程 (netpoller M) 长期 epoll_wait. 当 fd 可读就解析 fd-event 反查 G, 把它标 runnable.</p>
+<pre><code>G1 想 socket.Read(fd)
+   ↓
+syscall nonblock + epoll_ctl(ADD fd)
+   ↓
+runtime park G1 with 当G1变 runnable callback
+   ↓
+Go runtime netpoller M定期 epoll_wait → 当 fdk可读就叫 G1 校 runnable
+</code></pre>
+<p><em>epoll</em> in <code>_thread_run*</code> is device same shape Ever 用 epoll + java 或 nginx: 的 same. Go runtime 只是把是用户 user reverse-detect G <strong>multiple G + open-ended M</strong> 配上 independent 其实是<strong>脱 roll abstraction</strong>.</p>
+<h2 id="5-抛弃-blocked-m-和-g-的-soft-timer"><a class="header" href="#5-抛弃-blocked-m-和-g-的-soft-timer">5. 抛弃 blocked M 和 G 的 soft timer</a></h2>
+<p>一个 M 阻塞 syscall 太久 (e.g. &gt; 10-20 ms) ⇒ retassined P 给别的 M. 这个 handoff 的特殊性是 <strong>handoff 不再杀 M</strong> — 让 M 继续 run syscall完成  G1 ⇒ 在 syscall tail G 想重attach 到任何 P.</p>
+<p>但 What if Go runtime 完全用 OS sysc copy 或 block too long (比如 &gt; 10 ms syscall)? <strong>SYS 要求 ca (sysmon) 起出现 ⇒ P handoff</strong>.</p>
+<p>这个 abstraction 与 Linux smpaffinity 跨 node migration 同构: <strong>apps (及)kernel times prefer core local handoff 在考虑 cache locality</strong>.</p>
+<h2 id="6-实测-cfs--调度延迟--output"><a class="header" href="#6-实测-cfs--调度延迟--output">6. 实测: CFS / 调度延迟 / output</a></h2>
+<p>在 default GOMAXPROCS=Ncpu:</p>
+<ul>
+<li>黄报 goroutine create 1 个 ~ 1 μs / 8 KB stack;</li>
+<li>thread create 1 个 ~ 30 μs / 1-2 MB stack;</li>
+<li>sysmon monitor syscall block + steal 抢 ~ 10-20 μs.</li>
+</ul>
+<p>goroutine 比 thread 更轻 → 高并发场景可 trivial 高 günstig manager concurrency size.</p>
+<h2 id="7-多语言对照"><a class="header" href="#7-多语言对照">7. 多语言对照</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>语言 runtime</th><th>协程调度器</th><th>配置</th></tr></thead><tbody>
+<tr><td>Rust tokio</td><td>multi-thread runtime + work steal</td><td><code>#tokio::main(worker_threads=N)</code> 默认 CPU 数</td></tr>
+<tr><td>Java Project Loom</td><td>virtual thread + FFI scheduler</td><td><code>Executors.newVirtualThreadPerTaskExecutor()</code></td></tr>
+<tr><td>Erlang BEAM</td><td>preempt scheduler, priorities</td><td>也可以多个 per CPU</td></tr>
+<tr><td>Python asyncio</td><td>单线程 cooperative scheduler</td><td><code>asyncio.run_until_complete()</code></td></tr>
+<tr><td>Kotlin coroutines</td><td>更 dispatcher 由 runtimes</td><td><code>Dispatchers.IO/Default</code></td></tr>
+</tbody></table>
+</div>
+<p>抽象叠出: <strong>goroutine scheduler is actually a user-level thread scheduler</strong>. 它 work stealing + per-P local queue + syscall 抢救 + epoll netpoller 是工程核心 learning.</p>
+<h2 id="8-这一章带走的东西"><a class="header" href="#8-这一章带走的东西">8. 这一章带走的东西</a></h2>
+<ul>
+<li>G: 用户态 task; P: 执行票据; M: OS thread; 三层分离配上 caching/调度;</li>
+<li>work stealing 拿到线性扩展 (DSA lock-free deque 实例);</li>
+<li>syscall haoffee 阻塞 P 抢等 handoff 不仅 mask 与 opt code, 避 full 愚服务;</li>
+<li>netpoller = epoll 实际 scheduling= async IO 用于附 internal;</li>
+<li>抽象同构造 (tokio, java virtual threads 也有同 abstract):</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../os/sched/rt.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../os/sched/cgroup.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../os/sched/rt.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../os/sched/cgroup.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

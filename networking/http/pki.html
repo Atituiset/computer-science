@@ -1,0 +1,641 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>证书链 / PKI / OCSP stapling - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="证书链--pki--ocsp-stapling"><a class="header" href="#证书链--pki--ocsp-stapling">证书链 / PKI / OCSP stapling</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>TLS 给 client 验证 server 身份的两个核心问题：(1) 证书是谁签的，怎么验？(2) 证书撤回了吗？前者是 X.509 + CA 信任链；后者是 OCSP、CRL、Must-Staple、CRLite。本节讲 ASN.1 证书的实际字段，为什么 CA 不能 root 全签叶证书，OCSP 实时性的代价，Let's Encrypt 用 ACME 流水化的新时代签发，以及 HPKP 锁死 CTO 自杀事故。</p>
+<hr />
+<h2 id="一x509-v3-证书真实结构"><a class="header" href="#一x509-v3-证书真实结构">一、X.509 v3 证书真实结构</a></h2>
+<p>X.509 证书是 ASN.1 DER 编码，RFC 5280 定义结构：</p>
+<pre><code>Certificate ::= SEQUENCE {
+    tbsCertificate      TBSCertificate,    ← 真正证书主体
+    signatureAlgorithm  AlgorithmIdentifier,
+    signatureValue      BIT STRING          ← CA 对 tbsCertificate 的签 hash
+}
+
+TBSCertificate ::= SEQUENCE {
+    version         [0] EXPLICIT Version DEFAULT v1,
+    serialNumber    CertificateSerialNumber,
+    signature       AlgorithmIdentifier,
+    issuer          Name,                   ← 签发机构名
+    validity        Validity,               ← notBefore / notAfter
+    subject         Name,                   ← 主体名 (CN, O, OU, C...)
+    subjectPKI      SubjectPublicKeyInfo,
+    issuerUID      [1] IMPLICIT BIT STRING OPTIONAL,
+    subjectUID     [2] IMPLICIT BIT STRING OPTIONAL,
+    extensions     [3] EXPLICIT Extensions OPTIONAL  ← v3 only
+}
+</code></pre>
+<h3 id="11-关键扩展"><a class="header" href="#11-关键扩展">1.1 关键扩展</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Extension</th><th>OID</th><th>用途</th></tr></thead><tbody>
+<tr><td><code>subjectAltName</code></td><td>2.5.29.17</td><td>多域名 + wildcard (e.g. <code>DNS:*.example.com, IP:10.0.0.1</code>)</td></tr>
+<tr><td><code>basicConstraints</code></td><td>2.5.29.19</td><td><code>CA:TRUE/FALSE</code> + <code>pathLenConstraint</code></td></tr>
+<tr><td><code>keyUsage</code></td><td>2.5.29.15</td><td><code>digitalSignature, keyEncipherment, ...</code></td></tr>
+<tr><td><code>extKeyUsage</code></td><td>2.5.29.37</td><td><code>serverAuth, clientAuth, codeSigning</code></td></tr>
+<tr><td><code>authorityKeyIdentifier</code></td><td>2.5.29.35</td><td>找签发者 cert</td></tr>
+<tr><td><code>subjectKeyIdentifier</code></td><td>2.5.29.14</td><td>当前证书指纹</td></tr>
+<tr><td><code>certificatePolicies</code></td><td>2.5.29.32</td><td>OV/EV 策略</td></tr>
+<tr><td><code>authorityInfoAccess</code></td><td>1.3.6.1.5.5.7.1.1</td><td>包含 <code>ocsp</code> URL + <code>caIssuers</code> URL</td></tr>
+<tr><td><code>crlDistributionPoints</code></td><td>2.5.29.31</td><td>旧式 CRL URL</td></tr>
+<tr><td><code>sCTList</code></td><td>1.3.6.1.4.1.11129.6.2</td><td>透明度日志 SignedCertificateTimestamp</td></tr>
+</tbody></table>
+</div>
+<h3 id="12-实际样例"><a class="header" href="#12-实际样例">1.2 实际样例</a></h3>
+<pre><code class="language-bash">$ openssl x509 -in example.com.crt -text -noout
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            04:8b:d9:3a:dc:3d:71:78:e1:98:7a:14:e7:eb:67:8d
+    Signature Algorithm: ecdsa-with-SHA256
+        Issuer: CN=E5, O=Let's Encrypt, C=US
+        Validity
+            Not Before: Aug 12 04:30:00 2024 GMT
+            Not After : Nov 10 04:30:00 2024 GMT   ← 90 天有效期
+        Subject: CN=example.com
+        Subject Public Key Info:
+            Public Key Algorithm: id-ecPublicKey
+                Public-Key: (256 bit)
+                pub: 04:9d:5b:28:7b:6e:... 38 bytes
+                ASN1 OID: prime256v1
+                NIST CURVE: P-256
+        X509v3 extensions:
+            X509v3 Key Usage: critical
+                Digital Signature
+            X509v3 Extended Key Usage:
+                TLS Web Server Authentication, TLS Web Client Authentication
+            X509v3 Basic Constraints: critical
+                CA:FALSE
+            X509v3 Subject Key Identifier:
+                2A:3B:F0:E1:38:65:21:5F:AC:9F:7E:F0:F0:B3:4E:12:FF:61:75:7B
+            X509v3 Authority Key Identifier:
+                keyid:8D:02:78:81:68:91:80:71:52:8C:A3:48:2B:99:9D:1F:5F:86:E5:6F
+            X509v3 Subject Alternative Name:
+                DNS:example.com, DNS:www.example.com
+            Authority Information Access:
+                OCSP - URI:http://e5.o.lencr.org
+                CA Issuers - URI:http://e5.i.lencr.org/
+            CT Precert SCTs:
+                log_id 1: ... 
+                log_id 2: ...
+    Signature Algorithm: ecdsa-with-SHA256
+         30:45:02:20:54:ac:.....
+</code></pre>
+<h3 id="13-asn1--der-编码"><a class="header" href="#13-asn1--der-编码">1.3 ASN.1 / DER 编码</a></h3>
+<pre><code class="language-python"># = subjectAltName example 简化
+SEQUENCE [
+  OCTET STRING (encapsulates)
+    SEQUENCE [
+      [2] IMPLICIT IA5String "example.com"   # tag=2 is DNS
+    ]
+]
+DER byte layout:
+30 13              # SEQUENCE, len 19
+  82 0b            # context [2] IA5String, len 11
+  "example.com"
+</code></pre>
+<p>DER 是定长编码（不像 BER 可含冗余），保证 "同内容 = 同字节"。证书指纹 (<code>X.509 SHA-256 fingerprint</code>) 因此稳定。</p>
+<hr />
+<h2 id="二信任链与路径构建"><a class="header" href="#二信任链与路径构建">二、信任链与路径构建</a></h2>
+<h3 id="21-三层结构"><a class="header" href="#21-三层结构">2.1 三层结构</a></h3>
+<pre><code>Root CA              (自签名, 内置 OS trust store, 30-year cert)
+   └─ Intermediate CA    (5-10-year cert, 公网可 ==)
+        └─ Leaf           (90-day cert, 业务证书)
+</code></pre>
+<p>为什么不能 root 直接签 leaf？</p>
+<ol>
+<li>root 私钥必须离线安全保管（物理隔离 HSM），频繁操作风险大</li>
+<li>intermediate 关闭 (Compromised intermediate)：吊销其证书不影响 root</li>
+<li>多个 intermediate 用于不同业务（.LE: E1/E2 ECDSA，R3/R10/R11 RSA）</li>
+</ol>
+<h3 id="22-路径构建rfc-5280-6"><a class="header" href="#22-路径构建rfc-5280-6">2.2 路径构建（RFC 5280 §6）</a></h3>
+<p>Client 验证步骤（典型）：</p>
+<pre><code>1. 从 leaf 起向上找 issuer
+   issuer可能在 leaf cert 中附带（handshake send full chain）
+   或 client 预装 intermediate cache
+2. 找到 self-signed root → 终止
+3. 验每对 (parent_signature on child):
+   - 检查有效期 (notBefore &lt; now &lt; notAfter)
+   - 检查 revocation (CRL/OCSP)
+   - 检查 keyUsage (issuing CA 必须有 keyCertSign)
+   - 验签
+4. 检查 name constraints (RFC 5280 §4.2.1.10)
+   CN 主须匹配
+</code></pre>
+<h3 id="23-cross-sign"><a class="header" href="#23-cross-sign">2.3 cross-sign</a></h3>
+<p>新 CA 在 OS 信任普及前可选 cross-sign：同一 leaf cert 被两个不同 root 签 → 客户端任一信任即可用：</p>
+<pre><code>ISRG Root X1 (Let's Encrypt) ─┐
+                              ├─ R3 intermediate ── leaf (example.com)
+DST Root CA X3 (IdenTrust)  ─┘
+       ↑                          ↑
+   新 root (现代 OS trust)    老 root (老 Android trust)
+</code></pre>
+<p>Let's Encrypt 用此方案支持老 Android 上 dual-trust，2021-09 DST Root CA X3 到期后又用特殊"trust extension"续 3 年。</p>
+<hr />
+<h2 id="三ocsp--crl-实现"><a class="header" href="#三ocsp--crl-实现">三、OCSP / CRL 实现</a></h2>
+<h3 id="31-crl-certificate-revocation-list-rfc-5280"><a class="header" href="#31-crl-certificate-revocation-list-rfc-5280">3.1 CRL (Certificate Revocation List, RFC 5280)</a></h3>
+<p>CA 周期发一份"已吊销证书"列表：</p>
+<pre><code>CRL ::= SEQUENCE {
+    tbsCertList   TBSCertList,
+    signatureAlg  AlgorithmIdentifier,
+    signature     BIT STRING
+}
+
+TBSCertList ::= SEQUENCE {
+    version, signature, issuer, thisUpdate, nextUpdate,
+    revokedCertificates SEQUENCE OF SEQUENCE {
+        userCert    CertificateSerialNumber,
+        revocationDate   Time,
+        crlEntryExtensions Extensions OPTIONAL
+    }
+}
+</code></pre>
+<p>缺陷：</p>
+<ul>
+<li><strong>太大</strong>：CA-Browser Forum 限制 &lt;64MB 但仍然每刷新下载大</li>
+<li><strong>延迟</strong>：CA 每几天发一份，吊销后到下份 CRL 间隙 → 攻击者可利用</li>
+<li><strong>缓存差</strong>：浏览器不愿每连接拉 5MB</li>
+</ul>
+<p>Chrome / Firefox 实际<strong>默认不查 CRL</strong> —— 商业 CA 也不强推。</p>
+<h3 id="32-ocsp-rfc-6960"><a class="header" href="#32-ocsp-rfc-6960">3.2 OCSP (RFC 6960)</a></h3>
+<pre><code class="language-http">POST http://ocsp.digicert.com
+Content-Type: application/ocsp-request
+
+asn.1 encoded:
+{ request { tbsRequest { reqList { CertID { hashAlgorithm: SHA1, issuerKeyHash, issuerNameHash, serialNumber } } } } }
+
+Response:
+HTTP 200
+Content-Type: application/ocsp-response
+
+OCSPResponse { responseStatus=successful, responseBytes { ocspBasic { tbsResponseData { responses { CertID, certStatus={ good | revoked | unknown }, thisUpdate, nextUpdate } }, signatureAlgorithm, signature } } }
+</code></pre>
+<p>realtime 查询：CA OCSP responder 几秒内回复。优点：</p>
+<ul>
+<li>微小（&lt;1KB）</li>
+<li>比较实时（24h 内）</li>
+</ul>
+<p>实际部署难点：</p>
+<ol>
+<li><strong>隐私</strong>：CA 知道每个 client 访问过哪些网站（client 主动查 OCSP）</li>
+<li><strong>延迟</strong>：每 TLS handshake +1 RTT 查 OCSP，100ms+ penalty</li>
+<li><strong>可用性</strong>：CA OCSP responder 挂 → 浏览器 fallback soft fail = 接受，安全性 = 0</li>
+</ol>
+<h3 id="33-ocsp-stapling-rfc-7681"><a class="header" href="#33-ocsp-stapling-rfc-7681">3.3 OCSP stapling (RFC 7681)</a></h3>
+<p>server 主动从 CA 取一遍 OCSP response，在 TLS handshake 中跟随 cert 发：</p>
+<pre><code>client → ClientHello + status_request extension
+server → Certificate
+       → CertificateStatus (含 OCSP response)
+client 直接验证OCSP response 签名 → 不需访问 CA
+</code></pre>
+<p>刷新：OCSP response 有效期 ~7 天，server 每 2 天拉取一次。</p>
+<pre><code class="language-nginx">ssl_stapling on;
+ssl_stapling_verify on;
+ssl_trusted_certificate /etc/ssl/ca-chain.crt;
+resolver 8.8.8.8;
+</code></pre>
+<h3 id="34-must-staple-extension"><a class="header" href="#34-must-staple-extension">3.4 Must-Staple extension</a></h3>
+<p>cert 在 <code>TLS Feature extension</code> (OID 1.3.6.1.5.5.7.1.24) 中加 <code>status_request</code> → client <strong>必须看到</strong> 有效 stapled OCSP response 才接受证书。</p>
+<p>效果：防 CA 静默回退（OCSP 私下合格 → 应用以为 cert revok 但 OTP "sta 自 默认")</p>
+<p>风险：server stapling 失效 → 全站 client 拒连。必须配合严格监控 + multi-route fallback。</p>
+<h3 id="35-crlite"><a class="header" href="#35-crlite">3.5 CRLite</a></h3>
+<p>Mozilla Firefox 推出（2018）：</p>
+<ul>
+<li>Bloom filter 把全 web 证书吊销压缩到 ~1MB</li>
+<li>客户端启动时下载 + 周期增量</li>
+<li>三层 Bloom filter 解决 false positive（first / second / third layer）</li>
+</ul>
+<p><strong>缺点</strong>：仅 Firefox 用，Chrome / Safari 没采用，有一定抵制 (Chrome 用 CRLSet 名单方式)。</p>
+<h3 id="36-crlset"><a class="header" href="#36-crlset">3.6 CRLSet</a></h3>
+<p>Chrome / Blink 用自家 CRLSet：CA 主动 push 一组<strong>重大</strong> revoked cert list (subset of all certs) 给 client embed。装在 Chrome 升级包中。</p>
+<p>理论不完整但实战 OK，因为 major CA 公开上次 breaches才被 push 进 CRLSet。</p>
+<hr />
+<h2 id="四acme-rfc-8555"><a class="header" href="#四acme-rfc-8555">四、ACME (RFC 8555)</a></h2>
+<p>Let's Encrypt 协议，自动化证书签发：</p>
+<pre><code>1. Client GET https://acme-v02.api.letsencrypt.org/directory
+   → 拿到所有 endpoint: newAccount, newOrder, ...
+
+2. POST newAccount (JWS-signed)
+   → 创建 account, 拿 URL
+
+3. POST newOrder
+   identifiers: [{type: dns, value: example.com}]
+   → 拿 order URL
+
+4. server 返回 challenges
+   - HTTP-01:  http://example.com/.well-known/acme-challenge/&lt;token&gt;
+   - DNS-01:   TXT _acme-challenge.example.com → &lt;token&gt;
+   - TLS-ALPN-01: ALPN cert
+
+5. client POST challenge URL 上 prove
+
+6. client POST finalize (CSR)
+   → server 签 cert, status=valid
+
+7. client GET cert URL → download PEM
+</code></pre>
+<p>签名方案 JSON Web Signature (JWS, RFC 7515)。account 用 ECDSA / RSA 私钥签 URL+payload，server 验签。</p>
+<p>Rate-limit：</p>
+<ul>
+<li>50 certs / registered domain / week</li>
+<li>5 failure / hour / account</li>
+<li>10 duplicate cert / week</li>
+</ul>
+<h3 id="41-cert-manager-k8s"><a class="header" href="#41-cert-manager-k8s">4.1 cert-manager (K8s)</a></h3>
+<pre><code class="language-yaml">apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata: { name: letsencrypt-prod }
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: ops@example.com
+    privateKeySecretRef: { name: letsencrypt-prod-key }
+    solvers:
+      - http01: { ingress: { class: nginx } }
+      - dns01: { route53: { region: us-east-1 } }   # wildcard 必须用 DNS-01
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata: { name: example-com }
+spec:
+  secretName: example-com-tls
+  dnsNames: [example.com, '*.example.com']
+  issuerRef: { name: letsencrypt-prod, kind: ClusterIssuer }
+</code></pre>
+<p><code>Secret</code> 60-90 天自动轮替，Ingress 自动拿到新 secrets。</p>
+<h3 id="42-acme-痛点"><a class="header" href="#42-acme-痛点">4.2 ACME 痛点</a></h3>
+<ol>
+<li><strong>DNS-01 DNS 传播延迟</strong>：TTL 60s 有时太短，Let's Encrypt 验正确概率 0.3% → 重试。Cloudflare API 1s 同步稍优。</li>
+<li><strong>HTTP-01 必须公网 80 端口可达</strong>：内网无法签。网络隔离严格时无奈。</li>
+<li><strong>Rate-limit 触发封账号</strong>：测试环境误用 prod endpoint 几次后又用同一 email → 短期被限。</li>
+<li><strong>staging endpoint 必须用</strong>：<code>acme-staging-v02.api.letsencrypt.org</code> 不受限。</li>
+</ol>
+<hr />
+<h2 id="五hpkp-锁死事件档案"><a class="header" href="#五hpkp-锁死事件档案">五、HPKP 锁死事件档案</a></h2>
+<h3 id="51-hpkp-历史设计"><a class="header" href="#51-hpkp-历史设计">5.1 HPKP 历史设计</a></h3>
+<p>HTTP Public Key Pinning: client 第一次访问记录 cert 的 SPKI hash → 后续访问只接受这些 pinned hash。如果新 cert 不符 → 拒绝。</p>
+<p>设计目的：防 CA Misissuance（Symantec 案）乱发 Google cert。</p>
+<h3 id="52-风险"><a class="header" href="#52-风险">5.2 风险</a></h3>
+<p>couple cert 升级方案被锁死：CTO 调错 pin → 自己域没法访问 → 直到 pin 过期 max-age 1 年。<strong>没有 recovery</strong>（除非说每个用户单独清浏览器 cache）。</p>
+<h3 id="53-真实事故"><a class="header" href="#53-真实事故">5.3 真实事故</a></h3>
+<ul>
+<li><strong>2015 Erik Kay</strong> (Rackspace engineer): privacy snipper name pin → 让 7百万 Netflix 用户断</li>
+<li><strong>2017 Comodo 公告</strong>：准备 introduce 但 Google Chrome 提前 announce 废弃 → not push</li>
+<li><strong>2018 Toptal</strong>：CTO 误配，自锁用户全部 logout 1 周</li>
+</ul>
+<h3 id="54-chrome-移除"><a class="header" href="#54-chrome-移除">5.4 Chrome 移除</a></h3>
+<p>2018-05 Chrome 67 移除 HPKP 支持。Firefox 同步。RFC 7469 BC defer。</p>
+<h3 id="55-替代方案"><a class="header" href="#55-替代方案">5.5 替代方案</a></h3>
+<ul>
+<li><strong>CT (Certificate Transparency)</strong>：CA 强制推签入 append-only log → client 可以审计新 cert。Chrome 用 CT 强制一切 public cert 必须有 SCT (Signed Timestamp)。</li>
+<li><strong>CT Log 监控</strong>：org 自查"我域名哪些 cert 在被签发" → 检测异常签发。</li>
+<li><strong>Pinning 仅应用级</strong>：Android Network Security Config + iOS ATS 可在 App 内 hardcode cert，但 PWA/浏览器层不再 hardcode。</li>
+</ul>
+<hr />
+<h2 id="六产线事故"><a class="header" href="#六产线事故">六、产线事故</a></h2>
+<h3 id="事故-1ocsp-responder-间歇挂--客户端体验变差"><a class="header" href="#事故-1ocsp-responder-间歇挂--客户端体验变差">事故 1：OCSP responder 间歇挂 → 客户端体验变差</a></h3>
+<p>某 CA (DigiCert) OCSP responder 在 2023-03 因为流量激增 timeout 频繁。Chrome / Safari soft fail 但启 OCSP must-staple 的客户站点 RST 大量。</p>
+<p><strong>修复</strong>：</p>
+<ul>
+<li>监控 OCSP 响应时间 secondary</li>
+<li>客户端 cache OCSP response 24 小时（减少 resend）</li>
+<li>stalping 必须强制 + 多 responder 路径</li>
+</ul>
+<h3 id="事事故-2证书过期人肉流程失败"><a class="header" href="#事事故-2证书过期人肉流程失败">事事故 2：证书过期（人肉流程失败）</a></h3>
+<p>某 SaaS 因证书只有 90 天有效期，运维忘轮替 → 突发过期 → 全站 customer-facing TLS handshake 通通失败。</p>
+<p><strong>修复</strong>：自动 cert-manager + Prometheus exporter + alert 提前 14 天 warning。</p>
+<h3 id="事故-3ct-监控发现陌生-cert"><a class="header" href="#事故-3ct-监控发现陌生-cert">事故 3：CT 监控发现陌生 cert</a></h3>
+<p>某公司 CT 监控发现外包运维公司签发了该域名 cert 但<strong>不在公司 portfolio 中</strong>。追踪到 outsourcing company verification 不到位。</p>
+<p><strong>修复</strong>：CA account ACME 严管 access 管理 + C AA records (RFC 6844) 限定只允许 Let's Encrypt 签本域。</p>
+<h3 id="事故-4caa-痛点"><a class="header" href="#事故-4caa-痛点">事故 4：CAA 痛点</a></h3>
+<p>CAA record 配错 (<code>0 issue "letsencrypt.org"</code> 但缺 <code>issuewild</code>) → 仍被签 wildcard → CVE-前置。</p>
+<p><strong>修复</strong>：CAA 都配 <code>issuewild</code>，禁止 wildcard 签发。</p>
+<h3 id="事故-5ct-enforcing-段未配"><a class="header" href="#事故-5ct-enforcing-段未配">事故 5：CT enforcing 段未配</a></h3>
+<p>某 cloudflare customer cert 没 SCT，Chrome reject。业务误以为是 cloudflare bug。</p>
+<p><strong>修复</strong>：签 cert 时强制要求 CA 用 CT-friendly issuance, 通过 e5/e6 等 LE endpoint。</p>
+<hr />
+<h2 id="七易错清单"><a class="header" href="#七易错清单">七、易错清单</a></h2>
+<ol>
+<li><strong>证书过期</strong>：业务不会自动 renew，必须 cert-manager 或类似工具自动</li>
+<li><strong>OCSP stapling 失效</strong>：服务端必须监控 <code>sslStaplingStatus</code>，否则 silent fail</li>
+<li><strong>must-staple</strong> 是双刃剑：cert 配上后 server stapling 失效 = 全部客户端拒连</li>
+<li><strong>CRLite 仅 Firefox 支持</strong>，公网监控只能假设所有浏览器都不查 CRL</li>
+<li><strong>HPKP 已废弃</strong>，再做有害无益</li>
+<li><strong>CAA record 是合适防护</strong>但 issuer 名 + issuewild 都要配</li>
+<li><strong>wildcard 必须用 DNS-01 challenge</strong>，HTTP-01 不能签 wildcard</li>
+<li><strong>OCSP 一次拉取仅 4-7 天有效期</strong>：nginx stapling 默认每天 refresh，但 server 重启 cache 清空</li>
+</ol>
+<hr />
+<h2 id="八这一章带走的东西"><a class="header" href="#八这一章带走的东西">八、这一章带走的东西</a></h2>
+<ol>
+<li>X.509 = ASN.1 DER 编码的 TBSCert + 签名，扩展字段用 SAN/keyUsage/EKU 表达 wildcard 与用途</li>
+<li>CA 三层结构 (root → intermediate → leaf) 是机房运维安全 + 商业隔离双重要求</li>
+<li>OCSP/CRL 在产线上普遍失败，stapling + CT + must-staple 给"还能用的"答案</li>
+<li>ACME 流水化：HTTP-01 / DNS-01 / TLS-ALPN-01，cert-manager 给 K8s 自动管理</li>
+<li>HPKP 失败教训：主动 pin 不可逆设计有 lockout 灾难，谁碰谁死</li>
+<li>CAA record + CT log 监控能拦下陌生 cert 的签发探测</li>
+</ol>
+<h2 id="下一节-"><a class="header" href="#下一节-">下一节 →</a></h2>
+<p><a href="./rpc.html">gRPC / Protobuf / Thrift</a> — protobuf varint 编码、wire types、HTTP/2 trailers、4 模式 RPC 完整 spec。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../networking/http/tls.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../networking/http/rpc.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../networking/http/tls.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../networking/http/rpc.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

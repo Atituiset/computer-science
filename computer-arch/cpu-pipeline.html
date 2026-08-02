@@ -1,0 +1,452 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>CPU 流水线与指令级并行 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="cpu-流水线与指令级并行"><a class="header" href="#cpu-流水线与指令级并行">CPU 流水线与指令级并行</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>CPU 执行 <code>add x1, x2, x3</code> 不是原子瞬间完成的——它经过 <strong>取指 → 译码 → 执行 → 访存 → 写回</strong> 五阶段流水线。 理想状态下每 cycle 完成一条指令, 但 <strong>三种冒险 (hazard)</strong> 会打乱节奏:</p>
+<ol>
+<li><strong>结构冒险 (Structural)</strong>: 多指令争同一硬件资源 (如单端口 L1 cache)</li>
+<li><strong>数据冒险 (Data)</strong>: 指令依赖前一条的结果 → forwarding / stalling</li>
+<li><strong>控制冒险 (Control)</strong>: 分支跳转导致流水线等待 → branch prediction / speculative execution</li>
+</ol>
+<p>"IPC = 1" (每 cycle 一条) 在现实中被这三种冒险撞成 IPC ≈ 0.3-0.8 (单发射标量处理器)。 现代 CPU 通过 forwarding、branch predictor、speculation 来逼近 IPC=1。 本章推导 5-stage RISC pipeline 的每个 stage, 分析 hazards 与硬件修复代价, 最后落到真实 x86/ARM 核心 (Golden Cove、Zen 5 Cortex-X4 等等)。</p>
+<hr />
+<h2 id="一5-stage-classic-risc-pipeline"><a class="header" href="#一5-stage-classic-risc-pipeline">一、5-stage Classic RISC Pipeline</a></h2>
+<h3 id="risc-5-阶段"><a class="header" href="#risc-5-阶段">RISC 5 阶段</a></h3>
+<pre class="mermaid">flowchart LR
+    IF[IF: Instruction Fetch&lt;br/&gt;取指] --&gt; ID[ID: Instruction Decode&lt;br/&gt;译码+寄存器 读]
+    ID --&gt; EX[EX: Execute&lt;br/&gt;ALU 计算]
+    EX --&gt; MEM[MEM: Memory Access&lt;br/&gt;访存(load/store)]
+    MEM --&gt; WB[WB: Write Back&lt;br/&gt;写回寄存器]
+</pre>
+<p>每个 stage 1 cycle, 每 cycle 一个组新指令 enters IF 同时前条指令移到下 stage。 所以 5 条指令可同时在流水线 (不同 stage), CPI = 1 (理想)。</p>
+<h3 id="例子-ld-x1-0x2-risc-v-load"><a class="header" href="#例子-ld-x1-0x2-risc-v-load">例子: <code>ld x1, 0(x2)</code> (RISC-V load)</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Cycle</th><th>IF</th><th>ID</th><th>EX</th><th>MEM</th><th>WB</th></tr></thead><tbody>
+<tr><td>1</td><td><code>ld x1,0(x2)</code></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>2</td><td><code>add x3,x4,x5</code></td><td><code>ld x1,0(x2)</code></td><td></td><td></td><td></td></tr>
+<tr><td>3</td><td><code>sub x6,x7,x8</code></td><td><code>add x3,x4,x5</code></td><td><code>ld x1,0(x2)</code></td><td></td><td></td></tr>
+<tr><td>4</td><td>...</td><td><code>sub x6,x7,x8</code></td><td><code>add x3,x4,x5</code></td><td><code>ld x1,0(x2)</code></td><td></td></tr>
+<tr><td>5</td><td>...</td><td>...</td><td><code>sub x6,x7,x8</code></td><td><code>add x3,x4,x5</code></td><td><code>ld x1,0(x2)</code></td></tr>
+</tbody></table>
+</div>
+<p>第 5 cycle 后 <code>x1</code> 数据才写回寄存器, <strong>后读该 x1 的指令必须等</strong>。</p>
+<hr />
+<h2 id="二data-hazard--forwarding"><a class="header" href="#二data-hazard--forwarding">二、Data Hazard &amp; Forwarding</a></h2>
+<h3 id="三种-data-hazard"><a class="header" href="#三种-data-hazard">三种 Data Hazard</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>类型</th><th>例</th><th>说明</th></tr></thead><tbody>
+<tr><td>RAW (Read After Write)</td><td><code>add x1,x2,x3</code> → <code>sub x4,x1,x5</code></td><td>后条需要等前条写完 x1</td></tr>
+<tr><td>WAR (Write After Read)</td><td><code>add x1,x2,x3</code> → <code>sub x2,x4,x5</code></td><td>后条写 x2 不能覆盖前条读 x2</td></tr>
+<tr><td>WAW (Write After Write)</td><td><code>add x1,x2,x3</code> → <code>sub x1,x4,x5</code></td><td>两条都写 x1, 需保序</td></tr>
+</tbody></table>
+</div>
+<p>WAR/WAW 主要用于 OoO 跑 (见下一章超标量); RAW 是 pipeline 最常见 hazard。</p>
+<h3 id="forwarding-bypassing"><a class="header" href="#forwarding-bypassing">Forwarding (Bypassing)</a></h3>
+<p><code>add x1,x2,x3</code> 在 EX 结束已经有了结果 (在第 3 cycle 末尾), 但 WB 才是第 5 cycle。 如果下条指令是 <code>sub x4,x1,x5</code>, 没必要等 WB——直接从 ALU output 绕过寄存器文件 forward 到下条 ALU input:</p>
+<pre><code>Cycle 3: add EX (result in pipeline latch)
+Cycle 4: sub EX — receives forwarded x1 from add latch (instead of WB register)
+</code></pre>
+<p><strong>必须加 forwarding multiplexer</strong> + comparators 检查 dest register 与 src register 匹配。</p>
+<h3 id="load-use-hazard"><a class="header" href="#load-use-hazard">Load-Use Hazard</a></h3>
+<p><code>ld x1,0(x2)</code> →  value 在 MEM 结束后 (第 4 cycle 末) 才能用 而 <code>add x3,x1,x4</code> 在第 3 cycle EX 开始等不到。 一个 bubble (pipeline stall) 插等:</p>
+<div class="table-wrapper"><table><thead><tr><th>Cycle</th><th>IF</th><th>ID</th><th>EX</th><th>MEM</th><th>WB</th></tr></thead><tbody>
+<tr><td>3</td><td><code>add</code></td><td><code>ld</code> bubble</td><td><code>ld</code></td><td></td><td></td></tr>
+<tr><td>4</td><td><code>add</code></td><td><code>ld</code> bubble</td><td>bubble(EX stall)</td><td><code>ld</code></td><td></td></tr>
+<tr><td>5</td><td><code>add</code> 后指令</td><td><code>add</code> (check x1)</td><td>bubble</td><td>bubble</td><td><code>ld</code></td></tr>
+</tbody></table>
+</div>
+<p>只能 stall 1 cycle, 不可能 forwarding 前 收 (MEM 值， EX 太早).</p>
+<p>现代 CPU 编译 器可以重新排序 <code>ld</code> → <code>few independent instructions</code> → <code>use</code> 隐藏潜伏期。</p>
+<hr />
+<h2 id="三control-hazard--branch-prediction"><a class="header" href="#三control-hazard--branch-prediction">三、Control Hazard &amp; Branch Prediction</a></h2>
+<h3 id="分支代价"><a class="header" href="#分支代价">分支代价</a></h3>
+<pre><code>beq x1, x2, target
+</code></pre>
+<p>第 3 cycle EX 结束才知道 taken or not。 但是直到第 3 cycle 结束 流水线 already fetched instruction after branch → 若 taken 则 两条 fetched 指令必须 flush。</p>
+<p>Flush = 第 3-4 cycle 塞 NOP (no-op) = losing 2 cycles。</p>
+<h3 id="branch-prediction-历史"><a class="header" href="#branch-prediction-历史">Branch Prediction 历史</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>预测器</th><th>例</th><th>准确率</th></tr></thead><tbody>
+<tr><td>Static (always not taken)</td><td>early RISC</td><td>~50%</td></tr>
+<tr><td>1-bit BHT (Branch History Table)</td><td>单 bit T/NT selector</td><td>~80%</td></tr>
+<tr><td>2-bit saturating counter</td><td>经典 "双状态" predictor</td><td>~90%</td></tr>
+<tr><td>Gshare / Gselect (global history)</td><td>last N branch outcomes XOR with PC 选择预测</td><td>~95%</td></tr>
+<tr><td>Tournament (hybrid)</td><td>多 predictor competition</td><td>~97%</td></tr>
+<tr><td>TAGE (TAgged GEometric)</td><td>multi-length history, 近代: Haswell 起</td><td>~99%</td></tr>
+<tr><td>Perceptron / Neural branch predictor</td><td>AMD Zen 4/5, Apple M3</td><td>~99.5%</td></tr>
+</tbody></table>
+</div>
+<h3 id="2-bit-saturating-counter"><a class="header" href="#2-bit-saturating-counter">2-bit Saturating Counter</a></h3>
+<p>状态机:</p>
+<pre><code>       taken
+SNT ─→ WT ─→ ST
+  ↑      ↓ taken
+  └── WNT ←─ SNT (reset via not taken)
+</code></pre>
+<p>四状态: Strongly Not Taken (00) → Weakly Not Taken (01) → Weakly Taken (10) → Strongly Taken (11)。 两个 not taken 后 从 WT 退到 WNT, 最后 not-taken 进 SNT。</p>
+<h3 id="gshare--gselect"><a class="header" href="#gshare--gselect">Gshare / Gselect</a></h3>
+<p>Global branch history 寄存器 (GBHR): N 次最近 taken/not taken shift-in。 Gshare = XOR(PC[low bits], GBHR) → index BHT。 Gselect = concatenation。</p>
+<p>Modern tournament: 多 predictor vote + 选择器 choose per branch。</p>
+<h3 id="branch-target-buffer-btb"><a class="header" href="#branch-target-buffer-btb">Branch Target Buffer (BTB)</a></h3>
+<p>BTB 存储了"曾经 taken 的分支地址 → 目标地址"映射: 在 IF 阶段就能读取 target PC, 不经等 EX 阶段算出。 第一道缓存: 命中 → fetch 立即转到 target。</p>
+<h3 id="return-address-stack-ras"><a class="header" href="#return-address-stack-ras">Return Address Stack (RAS)</a></h3>
+<p>函数返回 <code>ret</code> 是一个间接分支——每次 <code>call</code> 把 return_addr 推入 RAS LIFO stack; <code>ret</code> 就 predict top of RAS → 准确率 ~99.99%。</p>
+<hr />
+<h2 id="四structural-hazard"><a class="header" href="#四structural-hazard">四、Structural Hazard</a></h2>
+<h3 id="原因"><a class="header" href="#原因">原因</a></h3>
+<ul>
+<li>单端口 L1 D-cache 不能同时读 (ID stage) 和 写 (MEM store stage)</li>
+<li>寄存器文件单端口读 无法 multi 端口 支持同时向多 stage 读</li>
+</ul>
+<p>RISC 寄存器文件多端口解决。 Cache split I and D (L1 I-cache for IF + L1 D-cache for MEM), 只有在 store 时 单端口 structural hazard。</p>
+<p>x86 寄存器名字少 (8×16+ → 32) — 但有 物理寄存器 大 (192+ 用于 OoO 改名)。</p>
+<hr />
+<h2 id="五真实-cpu-流水线深度"><a class="header" href="#五真实-cpu-流水线深度">五、真实 CPU 流水线深度</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>CPU</th><th>流水线深度</th><th>特点</th></tr></thead><tbody>
+<tr><td>ARM Cortex-A53 (in-order)</td><td>8 stage</td><td>低功耗, IPC≤1</td></tr>
+<tr><td>ARM Cortex-A78 (OoO)</td><td>10-15</td><td>dispatch → 8-wide decode</td></tr>
+<tr><td>Apple M3 P-core (OoO)</td><td>~12-16</td><td>extreme 宽度 decode 9-wide</td></tr>
+<tr><td>Intel Golden Cove (12th gen)</td><td>14-19 stages (complex decoded uops)</td><td>6-wide decode + 12 execution ports</td></tr>
+<tr><td>AMD Zen 5</td><td>~19 stages (decode + uop cache)</td><td>dual 4-issue front-end</td></tr>
+</tbody></table>
+</div>
+<p>深度 大 = 更高 clock rate (5GHz+) 但 mispredict penalty 也大 (19 cycle flush)。</p>
+<hr />
+<h2 id="六micro-op-uop-与-macro-op-fusion"><a class="header" href="#六micro-op-uop-与-macro-op-fusion">六、Micro-op (uop) 与 Macro-op Fusion</a></h2>
+<p>x86 是 CISC 指令集——<code>add [rax], rbx</code> (读 rax 存 memory) 是一个复杂 CISC 指令; decode 阶段 split 成 2-4 RISC-like μops:</p>
+<pre><code>μop1: 计算地址 rax→pAddr
+μop2: load  [pAddr] → tmp
+μop3: add tmp, rbx
+μop4: store result [pAddr]
+</code></pre>
+<h3 id="宏融合-cmpjcc-在-decode-时组合成一单-μop-compare-and-branch-比-两-μop-少-一半-dispatch-intel-skylake-支持"><a class="header" href="#宏融合-cmpjcc-在-decode-时组合成一单-μop-compare-and-branch-比-两-μop-少-一半-dispatch-intel-skylake-支持">宏融合: <code>cmp+jcc</code> 在 decode 时组合成一单 μop <code>compare-and-branch</code>, 比 两 μop 少 一半 dispatch。 Intel Skylake+ 支持。</a></h3>
+<h3 id="uop-cache-dsb"><a class="header" href="#uop-cache-dsb">uop Cache (DSB)</a></h3>
+<p>Decoded Stream Buffer (Intel 内部): decoded μops 缓存; 遇到 1K+ hotspot loop → 从 μop cache 读, 绕过 decode pipeline → 省 2-3 cycle。 AMD Zen 3/4 有 "Op Cache" 类似。</p>
+<hr />
+<h2 id="七典型事故"><a class="header" href="#七典型事故">七、典型事故</a></h2>
+<h3 id="pentium-fdiv-bug-1994"><a class="header" href="#pentium-fdiv-bug-1994">Pentium FDIV Bug (1994)</a></h3>
+<p><code>FDIV</code> 引起 浮点除法 lookup table 部分错位 (4 entries missing 1066) — 1 in billions 错 误 指令。 Intel 召回 $475M。</p>
+<h3 id="spectremeltdown-2018"><a class="header" href="#spectremeltdown-2018">Spectre/Meltdown (2018)</a></h3>
+<p>Branch predictor speculation + "load  secret despite 训 坏 memory access" − 侧信道攻击。 显示 speculative execution 泄露 敏感数据（side-channel）。 软件修补 → store bypass attack、retpolines， 性能损失 5-30%。</p>
+<h3 id="arm-m1-virtualization-trap"><a class="header" href="#arm-m1-virtualization-trap">ARM M1 Virtualization trap</a></h3>
+<p>Apple M1 没有 x86 <code>TOTAL_STORE_ORDER</code> 内存模型, 运行 x86 translation 导致 额外 memory barrier, 性能 缺陷。 Rosetta 2 opt fix.</p>
+<hr />
+<h2 id="八易错清单"><a class="header" href="#八易错清单">八、易错清单</a></h2>
+<ol>
+<li><strong>Load-use stall 无法 被 forwarding 消除</strong> — only next 指令 位置 reorder 可降。</li>
+<li><strong>Branch predictor 99% 等于 still 1% flush</strong>: at GHz 率 1 秒 = 10M flush (每 flush ~19 cycle = 空过 190M missed cycles).</li>
+<li><strong>μop 数量 不一定 省</strong>: <code>add [rax], rbx</code> 在 decode 分解 成 4 uops， 可慢 than 分离 load + reg op on RISC。</li>
+<li><strong>BTB miss cost &gt; 2 cycle</strong>: 需 重算 分支地址， pipeline fill restart = 10-20 cycle.</li>
+<li><strong>Write-after-write (WAW) 虽 pipeline raw 少 见， OoO 在 超标量 时常出现 → reg renaming 解。</strong></li>
+</ol>
+<hr />
+<h2 id="九这一章带走的东西"><a class="header" href="#九这一章带走的东西">九、这一章带走的东西</a></h2>
+<ol>
+<li>五阶段 pipeline: IF/ID/EX/MEM/WB；CPI=1 是 ideal, reals IPC 更有用.</li>
+<li>Data hazards：forwarding 可解决 RAW 但 load-use 必须 stall.</li>
+<li>Control hazards：branch prediction (2-bit / Gshare / TAGE / perceptron) + BTB + RAS.</li>
+<li>流水线越深 → clock 高频, branch mispredict penalty ~19 cycle.</li>
+<li>x86 μop decode: CISC→RISC 转 min 1 op, <code>add [reg], reg</code> 分解成 3-4 uops.</li>
+<li>Spectre / Meltdown:  speculative execution 允许 side-channel attack → OS/hardware fix → performance loss 5-30%.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="cpu-superscalar.html">超标量 / OoO / Tomasulo</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../computer-arch/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../computer-arch/cpu-superscalar.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../computer-arch/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../computer-arch/cpu-superscalar.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

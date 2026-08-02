@@ -1,0 +1,682 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>3. Transformer: self-attention / MHA / FFN / LayerNorm / 残差 / Encoder-Decoder / 训练损失 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="3-transformer-self-attention--mha--ffn--layernorm--残差--encoder-decoder--训练损失"><a class="header" href="#3-transformer-self-attention--mha--ffn--layernorm--残差--encoder-decoder--训练损失">3. Transformer: self-attention / MHA / FFN / LayerNorm / 残差 / Encoder-Decoder / 训练损失</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>Transformer (Vaswani et al. 2017) 把 NLP 主流从 RNN 转向<strong>纯 attention</strong> + <strong>前馈 + 残差 + 层归一化</strong> 的堆叠栈. 这一章把可调组件拆到逐节点, 每个<strong>给出公式 / 形状 / 反向梯度 / 工程坑</strong>:</p>
+<ol>
+<li><strong>Scaled Dot-Product Attention</strong> — softmax + $\sqrt{d_k}$ 缩放的本质.</li>
+<li><strong>Multi-Head Attention (MHA)</strong> — 并行多头 = 多视角线性映射.</li>
+<li><strong>FFN</strong> — 两层 + 激活, 提供"逐 token 的非线性动量".</li>
+<li><strong>LayerNorm + 残差</strong> — 训练稳定的真因.</li>
+<li><strong>Encoder / Decoder 差异</strong> — Cross-attention 与 mask.</li>
+<li><strong>位置编码</strong> — Sinusoidal / ALiBi / RoPE 的差异 (概览, 详见 tokenizer-embedding 章节待补).</li>
+<li><strong>训练损失</strong> — next-token CE + label smoothing; 入门 RLHF 接口.</li>
+</ol>
+<p>读完应能: 读《Attention Is All You Need》原文逐行不卡, 在 NumPy 上写出可前向反向的 attention + softmax + MHA.</p>
+<hr />
+<h2 id="一scaled-dot-product-attention"><a class="header" href="#一scaled-dot-product-attention">一、Scaled Dot-Product Attention</a></h2>
+<h3 id="11-公式"><a class="header" href="#11-公式">1.1 公式</a></h3>
+<p>$$ \mathrm{Attention}(Q, K, V) = \mathrm{softmax}\left(\frac{Q K^\top}{\sqrt{d_k}}\right) V $$</p>
+<p>形状: $Q \in \mathbb{R}^{T_q \times d_k}, K \in \mathbb{R}^{T_k \times d_k}, V \in \mathbb{R}^{T_k \times d_v}$.</p>
+<ul>
+<li>$Q K^\top \in \mathbb{R}^{T_q \times T_k}$: 每对位置的内积 = 相似度.</li>
+<li>softmax 沿 $T_k$ 轴 (键) 归一化 → 每行是 attention 权重.</li>
+<li>乘 $V$: 加权平均 → 输出 $\in \mathbb{R}^{T_q \times d_v}$.</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>这其实是<strong>信息检索</strong>的 soft 版本: $Q$ 是 query (查询), $K$ 是 key (索引), $V$ 是 value (内容). 硬版本是 $\arg\max$ 找最相似 key; 这里改成 softmax 加权, 以致可微 + 可微 + 反向传播.</p>
+</div>
+<h3 id="12-为什么除-sqrtd_k"><a class="header" href="#12-为什么除-sqrtd_k">1.2 为什么除 $\sqrt{d_k}$?</a></h3>
+<p>如果 $q, k \in \mathbb{R}^{d_k}$ 各分量 iid $\sim \mathcal{N}(0, 1)$, 那么点积 $q^\top k \sim \mathcal{N}(0, d_k)$, 方差与 $d_k$ 同阶. 当 $d_k = 64$ 时 dot 可达数十. 与 softmax 远大于 1 的输入 → 梯度极小 (饱和小区域), 训练不动.</p>
+<p>除 $\sqrt{d_k}$ 让 $\mathrm{Var}(q^\top k / \sqrt{d_k}) = 1$, 等价让 softmax 工作在线性变化区间, 训练可启动.</p>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>进一步的解释是: softmax 的雅可比是 $J = \mathrm{diag}(s) - s s^\top$. 当 $s$ 近 one-hot (因为分数差很大) 时 $J \approx 0$ → 反向传不动.</p>
+</div>
+<h3 id="13-反向梯度"><a class="header" href="#13-反向梯度">1.3 反向梯度</a></h3>
+<p>已知 $\partial \mathcal{L}/\partial \mathrm{out} = G \in \mathbb{R}^{T_q \times d_v}$.</p>
+<p>记 $S = QK^\top / \sqrt{d_k}$, $A = \mathrm{softmax}(S)$, $O = A V$.</p>
+<p>公式 (用第零部分 §2.3 softmax 雅可比 + 几何):</p>
+<pre><code>∂L/∂A = G Vᵀ                 (T_q × T_k)
+∂L/∂V = Aᵀ G                 (T_k × d_v)
+
+dsoftmax 反向: ∂L/∂S = A ⊙ (∂L/∂A - (∂L/∂A · A.sum(axis=-1, keepdim=True)))
+
+∂L/∂Q = (1/√d_k) (∂L/∂S) K   (T_q × d_k)
+∂L/∂K = (1/√d_k) (∂L/∂S)ᵀ Q  (T_k × d_k)
+</code></pre>
+<p>NumPy 朴素实现:</p>
+<pre><code class="language-python">import numpy as np
+
+def softmax_lastaxis(x):
+    x = x - x.max(axis=-1, keepdims=True)
+    e = np.exp(x)
+    return e / e.sum(axis=-1, keepdims=True)
+
+def attention(Q, K, V, mask=None):
+    d_k = Q.shape[-1]
+    S = Q @ K.transpose(-2, -1) / np.sqrt(d_k)
+    if mask is not None:
+        S = np.where(mask, S, -1e9)
+    A = softmax_lastaxis(S)
+    O = A @ V
+    return O, (S, A)             # 缓存以供反向
+
+def attention_backward(grad_O, cache, Q, K, V, mask=None):
+    S, A = cache
+    d_k = Q.shape[-1]
+    grad_A = grad_O @ V.transpose(-2, -1)                  # ∂L/∂A
+    grad_V = A.transpose(-2, -1) @ grad_O                   # ∂L/∂V
+
+    # softmax 反向 (沿 last axis)
+    grad_S = A * (grad_A - (grad_A * A).sum(-1, keepdims=True))
+    if mask is not None:
+        grad_S = np.where(mask, grad_S, 0.0)
+
+    grad_Q = grad_S @ K / np.sqrt(d_k)                      # ∂L/∂Q
+    grad_K = grad_S.transpose(-2, -1) @ Q / np.sqrt(d_k)    # ∂L/∂K
+    return grad_Q, grad_K, grad_V
+
+# sanity shape 检查
+T, d = 8, 64
+Q = np.random.randn(T, d); K = np.random.randn(T, d); V = np.random.randn(T, d)
+O, cache = attention(Q, K, V)
+print(O.shape)              # (8, 64)
+grad_Q, grad_K, grad_V = attention_backward(np.ones_like(O), cache, Q, K, V)
+print(grad_Q.shape, grad_K.shape, grad_V.shape)   # (8,64) (8,64) (8,64)
+</code></pre>
+<h3 id="14-causal-mask-与-padding-mask"><a class="header" href="#14-causal-mask-与-padding-mask">1.4 Causal mask 与 padding mask</a></h3>
+<p>两类 mask 同时作用在 Decoder:</p>
+<ul>
+<li><strong>Padding mask</strong>: 处理变长 batch padding, 把 padding 位 score = $-\infty$, 不让 attention 看到.</li>
+<li><strong>Causal mask</strong>: 自回归生成时, 位置 $i$ 只能用到 $\leq i$ 的 key, 防"看未来". 上三角 $-\infty$.</li>
+</ul>
+<p><strong>实现: 0/1 二值 mask, <code>S = S.masked_fill(~mask, float('-inf'))</code></strong>.</p>
+<pre><code class="language-typescript">// 教学版 attention (TypeScript)
+export function softmaxLastAxis(x: number[][], axis = -1): number[][] {
+  return x.map(row =&gt; {
+    const m = Math.max(...row);
+    const e = row.map(v =&gt; Math.exp(v - m));
+    const Z = e.reduce((a, b) =&gt; a + b, 0);
+    return e.map(v =&gt; v / Z);
+  });
+}
+
+export function attention(
+  Q: number[][], K: number[][], V: number[][], mask?: boolean[][]
+): number[][] {
+  const T_q = Q.length, T_k = K.length;
+  const d_k = Q[0].length;
+  const S: number[][] = Array.from({ length: T_q }, () =&gt; Array(T_k).fill(0));
+  for (let i = 0; i &lt; T_q; i++)
+    for (let j = 0; j &lt; T_k; j++) {
+      let s = 0;
+      for (let k = 0; k &lt; d_k; k++) s += Q[i][k] * K[j][k];
+      S[i][j] = mask ? (mask[i][j] ? s / Math.sqrt(d_k) : -Infinity) : s / Math.sqrt(d_k);
+    }
+  const A = softmaxLastAxis(S);
+  const d_v = V[0].length;
+  const O: number[][] = Array.from({ length: T_q }, () =&gt; Array(d_v).fill(0));
+  for (let i = 0; i &lt; T_q; i++)
+    for (let j = 0; j &lt; T_k; j++) {
+      const a = A[i][j];
+      for (let k = 0; k &lt; d_v; k++) O[i][k] += a * V[j][k];
+    }
+  return O;
+}
+</code></pre>
+<hr />
+<h2 id="二multi-head-attention-mha"><a class="header" href="#二multi-head-attention-mha">二、Multi-Head Attention (MHA)</a></h2>
+<h3 id="21-把单头分裂成-h-头"><a class="header" href="#21-把单头分裂成-h-头">2.1 把单头分裂成 H 头</a></h3>
+<p>把 $Q, K, V$ 分别线性投影到 $d_k = d_v = d / H$ 维, 跑 <strong>$H$ 个并行 attention</strong>, 拼回 $d$ 维:</p>
+<p>$$ \mathrm{MHA}(Q, K, V) = \mathrm{Concat}(\mathrm{head}_1, \ldots, \mathrm{head}_H) W^O $$
+$$ \mathrm{head}_h = \mathrm{Attention}(Q W_h^Q, K W_h^K, V W_h^V) $$</p>
+<h3 id="22-工程缩撑"><a class="header" href="#22-工程缩撑">2.2 工程缩撑</a></h3>
+<ul>
+<li>输入 $x \in \mathbb{R}^{T \times d}$.</li>
+<li>$W^Q, W^K, W^V \in \mathbb{R}^{d \times d}$. 一举投影出每头, 形状变换 <code>[B, T, H, d/H]</code> + transpose → <code>[B, H, T, d/H]</code>.</li>
+<li>每头 attention 形状 <code>[B, H, T, T]</code> × <code>[B, H, T, d/H]</code> = <code>[B, H, T, d/H]</code>.</li>
+<li>拼回 <code>[B, T, d]</code>, 再乘 $W^O \in \mathbb{R}^{d \times d}$.</li>
+</ul>
+<h3 id="23-为什么多头"><a class="header" href="#23-为什么多头">2.3 为什么多头?</a></h3>
+<ul>
+<li>每头学不同关联模式: $H = 8$ 意味着并行学 8 路模式 (短距离 / 长距离 / 因果 / 等).</li>
+<li>单头要表达多模式需 $\sqrt{d}$ 倍记忆, 多头等数存参但表达灵活度更高.</li>
+</ul>
+<pre><code class="language-python">import torch
+import torch.nn as nn
+
+class MultiHeadAttention(nn.Module):
+    def __init__(self, d_model, n_heads):
+        super().__init__()
+        assert d_model % n_heads == 0
+        self.h, self.dk = n_heads, d_model // n_heads
+        self.WQ = nn.Linear(d_model, d_model, bias=False)
+        self.WK = nn.Linear(d_model, d_model, bias=False)
+        self.WV = nn.Linear(d_model, d_model, bias=False)
+        self.WO = nn.Linear(d_model, d_model, bias=False)
+
+    def forward(self, x, mask=None):
+        B, T, D = x.shape
+        # 把 D 拆 H × dk, 转为 [B, H, T, dk]
+        Q = self.WQ(x).view(B, T, self.h, self.dk).transpose(1, 2)
+        K = self.WK(x).view(B, T, self.h, self.dk).transpose(1, 2)
+        V = self.WV(x).view(B, T, self.h, self.dk).transpose(1, 2)
+        S = Q @ K.transpose(-2, -1) / (self.dk ** 0.5)    # [B, H, T, T]
+        if mask is not None:
+            S = S.masked_fill(~mask[:, None, None, :], float('-inf'))
+        A = S.softmax(dim=-1)
+        O = A @ V                                          # [B, H, T, dk]
+        O = O.transpose(1, 2).contiguous().view(B, T, D)   # concat
+        return self.WO(O)
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>常见 bug: <strong>忘了把维度 <code>.transpose</code> 把 head 维移到 batch 维</strong>, <code>Q @ K.T</code> 会错认 T 维. PyTorch 用 <code>key_padding_mask</code> / <code>attn_mask</code> 双轴, 工程上要小心区分.</p>
+</div>
+<h3 id="24-mha-变体-前沿-仅概览"><a class="header" href="#24-mha-变体-前沿-仅概览">2.4 MHA 变体 (前沿, 仅概览)</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>名</th><th>出现年 / 出处</th><th>核心</th></tr></thead><tbody>
+<tr><td><strong>MHA</strong> (经典)</td><td>2017</td><td>上面</td></tr>
+<tr><td><strong>MQA</strong> (Multi-Query)</td><td>2019 Shazeer</td><td>K/V 只共享一组, 推理快显存省</td></tr>
+<tr><td><strong>GQA</strong> (Grouped-Query)</td><td>2023 Ainslie</td><td>K/V 多头分组共享, MHA 与 MQA 折中</td></tr>
+<tr><td><strong>MLA</strong> (Multi-head Latent)</td><td>2024 DeepSeek-V2</td><td>KV 压缩到 latent 向量再展开, 进一步省 KV cache</td></tr>
+<tr><td><strong>FlashAttention</strong></td><td>2022 Dao</td><td>块化计算, 中间矩阵不物化在 HBM, 训练显存降一个数量级</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>FlashAttention <strong>不改变数学公式</strong>, 只改变 IO 访问: 把 $S = QK^\top$ 切块, softmax 在共享内存做 row-naive, 中间 intermediate 不写回 HBM. 这是工程上 LLM 训练从忍到可的关键.</p>
+</div>
+<hr />
+<h2 id="三feed-forward-network-ffn"><a class="header" href="#三feed-forward-network-ffn">三、Feed-Forward Network (FFN)</a></h2>
+<h3 id="31-公式"><a class="header" href="#31-公式">3.1 公式</a></h3>
+<p>两层 MLP, 升维再降维:</p>
+<p>$$ \mathrm{FFN}(x) = \mathrm{Dropout}(\sigma(x W_1 + b_1) W_2 + b_2) $$</p>
+<p>$$ W_1 \in \mathbb{R}^{d \times d_{ff}},\quad W_2 \in \mathbb{R}^{d_{ff} \times d},\quad d_{ff} \approx 4 d $$</p>
+<ul>
+<li>$\sigma$ 经典 ReLU, 现代 GELU / SwiGLU.</li>
+<li>对每个位置独立应用 (无 T 维交互); attention 负责跨 token, FFN 负责单 token 加工.</li>
+</ul>
+<h3 id="32-swiglu-变体"><a class="header" href="#32-swiglu-变体">3.2 SwiGLU 变体</a></h3>
+<p>$$ \mathrm{SwiGLU}(x) = \mathrm{Swish}(x W_1) \odot (x W_3) \cdot \mathbb{1}_{W_2} $$</p>
+<p>LLaMA / PaLM 用 SwiGLU 把 FFN 变成 3 个权重矩阵 (而非 2 个), 实验报告 +性能. 实际工程通常 $d_{ff} \approx \frac{2}{3} \cdot 4d$ 以保持总参数相同.</p>
+<h3 id="33-ffn-在反向上的处理"><a class="header" href="#33-ffn-在反向上的处理">3.3 FFN 在反向上的处理</a></h3>
+<p>就是经典 MLP + 矩阵 + 非线性, 反向用第零部分 §6 张量收缩 + §2 链式. 工程核心是 cuBLAS / cuDNN 的 GEMM 调优.</p>
+<hr />
+<h2 id="四layernorm--残差"><a class="header" href="#四layernorm--残差">四、LayerNorm + 残差</a></h2>
+<h3 id="41-layernorm-公式"><a class="header" href="#41-layernorm-公式">4.1 LayerNorm 公式</a></h3>
+<p>$$ \mathrm{LN}(x) = \gamma \odot \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta, \quad \mu = \overline{x}, \sigma^2 = \overline{(x - \mu)^2} $$</p>
+<p>沿<strong>特征维</strong> (而非 batch 维) 归一化. 这就是 LayerNorm vs BatchNorm 的核心差.</p>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>归一化轴</th><th>适合</th></tr></thead><tbody>
+<tr><td>Batch Norm</td><td>(batch, H, W)</td><td>CV, 固定 batch</td></tr>
+<tr><td>Layer Norm</td><td>(hidden)</td><td>NLP, RNN, 变 batch</td></tr>
+<tr><td>Instance Norm</td><td>(H, W) per instance</td><td>style transfer</td></tr>
+<tr><td>Group Norm</td><td>(groups of channel)</td><td>小 batch CV</td></tr>
+</tbody></table>
+</div>
+<h3 id="42-pre-ln-vs-post-ln"><a class="header" href="#42-pre-ln-vs-post-ln">4.2 Pre-LN vs Post-LN</a></h3>
+<p>原版 Transformer 用 <strong>Post-LN</strong>: $y = \mathrm{LN}(x + \mathrm{Sublayer}(x))$.</p>
+<p>现代 LLaMA / GPT-NeoX 用 <strong>Pre-LN</strong>: $y = x + \mathrm{Sublayer}(\mathrm{LN}(x))$.</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>Pre-LN 更易训深层, 因为残差路径上没 LN 减缓梯度. Post-LN 训超深需 warmup 谨慎 (易发散); Pre-LN 不需长 warmup.</p>
+</div>
+<h3 id="43-残差为什么是必需的"><a class="header" href="#43-残差为什么是必需的">4.3 残差为什么是必需的</a></h3>
+<p>第零部分 §7 反向 AD 中讲过: 残差留恒等通路使主梯度能跨多层回传. Transformer 堆叠 24-96 层, 没残差的话深到一定深度 loss 就停降 (类似 ResNet 早期遭遇的 plateau).</p>
+<hr />
+<h2 id="五encoder-vs-decoder"><a class="header" href="#五encoder-vs-decoder">五、Encoder vs Decoder</a></h2>
+<h3 id="51-encoder-bert-派"><a class="header" href="#51-encoder-bert-派">5.1 Encoder (BERT 派)</a></h3>
+<ul>
+<li>双向 attention (没 causal mask).</li>
+<li>模型目标: 上下文理解表示.</li>
+</ul>
+<h3 id="52-decoder-gpt-派"><a class="header" href="#52-decoder-gpt-派">5.2 Decoder (GPT 派)</a></h3>
+<ul>
+<li>单向 causal mask.</li>
+<li>模型目标: 自回归生成 $p(x_t | x_{&lt;t})$.</li>
+</ul>
+<h3 id="53-encoder-decoder-原版-transformer-t5--bart"><a class="header" href="#53-encoder-decoder-原版-transformer-t5--bart">5.3 Encoder-Decoder (原版 Transformer, T5 / BART)</a></h3>
+<p>附加 cross-attention:</p>
+<p>$$ Q_d = W^Q_d \cdot H_d, \quad K_e = W^K_e \cdot H_e, \quad V_e = W^V_e \cdot H_e $$</p>
+<p>decoder 的 query 与 encoder 的 key/value 相互注意力, 让 decoder 在每个生成步参考 encoder 全序列. 多用于机器翻译 / 总结.</p>
+<hr />
+<h2 id="六位置编码"><a class="header" href="#六位置编码">六、位置编码</a></h2>
+<h3 id="61-sinusoidal-原版"><a class="header" href="#61-sinusoidal-原版">6.1 Sinusoidal (原版)</a></h3>
+<p>无位置 → attention 对输入顺序无感 (permutation-equivariant). 加位置:</p>
+<p>$$ \mathrm{PE}<em>{t, 2k} = \sin(t / 10000^{2 k / d}), \quad \mathrm{PE}</em>{t, 2k+1} = \cos(t / 10000^{2 k / d}) $$</p>
+<p>性质: $\mathrm{PE}_{t + \delta}$ 是 $\mathrm{PE}_t$ 的旋转, 可由线性投影组合 (sin $\to$ sin/cos 偏 shift).</p>
+<h3 id="62-learned--alibi--rope-概览"><a class="header" href="#62-learned--alibi--rope-概览">6.2 Learned / ALiBi / RoPE (概览)</a></h3>
+<ul>
+<li><strong>Learned</strong>: 可学参数形状 <code>[T_max, d]</code> —— BERT 经典, 外推差.</li>
+<li><strong>ALiBi</strong> (Press 2021): 没显式位置编码, 而是把"距离感"加在 attention bias 上, 偏置 $-|i - j| / \mathrm{head_freq}$ —— 支持长序列外推.</li>
+<li><strong>RoPE</strong> (Su 2021): 在复数空间旋转, 类 sinusoidal 但作为 query/key 的旋转; LLaMA / GPT-NeoX 默认, 外推好.</li>
+<li><strong>YaRN / LongRoPE</strong>: RoPE 外插改进, 让 model 上 1M 上下文.</li>
+</ul>
+<p>完整推导与实现见 <a href="tokenizer.html">第 7 章 Tokenizer 与位置编码</a> §7.</p>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>把 RoPE 只看作"加了位置的旋转"会错过细节: 它在 $d$ 维空间内 $d/2$ 个 2D 子空间各自不同频率. 反向时, RoPE 的反操作 (rotate by $-\theta_i$) 直接得回原 (无参).</p>
+</div>
+<hr />
+<h2 id="七训练损失与对齐入口"><a class="header" href="#七训练损失与对齐入口">七、训练损失与对齐入口</a></h2>
+<h3 id="71-自回归语言模型损失"><a class="header" href="#71-自回归语言模型损失">7.1 自回归语言模型损失</a></h3>
+<p>给定序列 $x_1, \ldots, x_T$, 对第 $t$ 步用前缀 $x_{&lt;t}$ 预测 $x_t$:</p>
+<p>$$ \mathcal{L}<em>{\text{LM}} = -\sum</em>{t=1}^{T} \log p_\theta(x_t | x_{&lt;t}) $$</p>
+<p>每个 $p_\theta$ 是从 logits 出来的 softmax, 反向梯度 = $s - \mathrm{onehot}(x_t)$ (第零部分 §3 softmax + CE 链式).</p>
+<h3 id="72-label-smoothing"><a class="header" href="#72-label-smoothing">7.2 Label smoothing</a></h3>
+<p>把 one-hot $\to$ $(1 - \epsilon)$ 主类 + $\epsilon / (V-1)$ 其它. 工程意义: 防止 model 在 1.0 概率上撞晚, 改善 calibration. Perplexity 反会高一点点 (因 cross entropy 在非 one-hot 上变大), 但真实输出概率更可信.</p>
+<h3 id="73-masked-lm-bert"><a class="header" href="#73-masked-lm-bert">7.3 Masked LM (BERT)</a></h3>
+<p>随机 mask 15% token, 在 mask 位预测. 让 encoder 单向变部分"完形填空". 训练效率更高 (一次训全部位置), 但不适合生成.</p>
+<h3 id="74-入口-sft--rlhf-后面-rl-章会详谈"><a class="header" href="#74-入口-sft--rlhf-后面-rl-章会详谈">7.4 入口: SFT / RLHF (后面 RL 章会详谈)</a></h3>
+<ul>
+<li>SFT (supervised fine-tune) = 在指令数据上继续 <code>next-token</code> CE 跑.</li>
+<li>RLHF (Reinforcement Learning from Human Feedback): 用 reward model + PPO 在 SFT 后对 generation 做策略优化, 让模型符合人类偏好. 详见第 8 章 RL.</li>
+</ul>
+<hr />
+<h2 id="八整体一张图"><a class="header" href="#八整体一张图">八、整体一张图</a></h2>
+<h3 id="81-标准解码器层-eg-gpt-2"><a class="header" href="#81-标准解码器层-eg-gpt-2">8.1 标准解码器层 (e.g. GPT-2)</a></h3>
+<pre><code>        x (B, T, d)
+        │
+        ┌── Add &amp; LN (Pre-LN)
+        │     │
+        │   [LN]
+        │     │
+        │   MHA (causal mask, RoPE 对应 Q,K)
+        │     │
+        │   Dropout
+        │     │
+        └── +  (residual)
+              │
+              x'
+              │
+        ┌── Add &amp; LN
+        │     │
+        │   [LN]
+        │     │
+        │   FFN (GELU or SwiGLU)
+        │     │
+        │   Dropout
+        │     │
+        └── +  (residual)
+              │
+            输出 (B, T, d)
+</code></pre>
+<h3 id="82-gpt-风格与-bert-风格对比"><a class="header" href="#82-gpt-风格与-bert-风格对比">8.2 GPT 风格与 BERT 风格对比</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>BERT (encoder)</th><th>GPT (decoder)</th></tr></thead><tbody>
+<tr><td>attention</td><td>双向 no mask</td><td>causal mask</td></tr>
+<tr><td>位置</td><td>learned</td><td>learned / RoPE / ALiBi</td></tr>
+<tr><td>损失</td><td>Masked LM + NSP</td><td>自回归 LM</td></tr>
+<tr><td>用途</td><td>表示 / 分类</td><td>生成</td></tr>
+<tr><td>训练</td><td>完形填空</td><td>预测下一 token</td></tr>
+<tr><td>Tokenizer</td><td>WordPiece</td><td>BPE</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="九形状与显存速查"><a class="header" href="#九形状与显存速查">九、形状与显存速查</a></h2>
+<h3 id="91-全-mlp--attention-的算量"><a class="header" href="#91-全-mlp--attention-的算量">9.1 全 MLP + attention 的算量</a></h3>
+<p>GPT-3 规模: $L = 96, d = 12288, n_{heads} = 96, T = 2048$.</p>
+<div class="table-wrapper"><table><thead><tr><th>操作</th><th>计数</th><th>FLOPs / token</th><th>显存</th></tr></thead><tbody>
+<tr><td>Attention $QK^\top$</td><td>$L \cdot T \cdot d$</td><td>$O(T d) = 25M$</td><td>$O(T^2)$ = 4M bf16 = 8 MB</td></tr>
+<tr><td>FFN (3 widen)</td><td>$L \cdot d \cdot d_{ff}$</td><td>$O(d \cdot 4 d) = 600M$</td><td>$O(d \cdot d_{ff})$</td></tr>
+<tr><td>总</td><td>~$10^{11}$ params</td><td>~ $10^{11}$ FLOPs / token</td><td>~350 GB weights (bf16)</td></tr>
+</tbody></table>
+</div>
+<h3 id="92-flash-与-io"><a class="header" href="#92-flash-与-io">9.2 flash 与 IO</a></h3>
+<ul>
+<li>$S = QK^\top$ 物化到 HBM 显存 → $T^2$ 张量直写入 HBM, 大序列爆炸.</li>
+<li>FlashAttention 块化把 $T \times T$ 矩阵分块在 SRAM 计算与做 softmax 累加 (online softmax 从 running max + running sum 实现); 不物化中间 → 大 IO 节约.</li>
+</ul>
+<hr />
+<h2 id="十与第零部分的接口"><a class="header" href="#十与第零部分的接口">十、与第零部分的接口</a></h2>
+<ul>
+<li>§1 scaled dot-product ⇐ 第零部分线代 §7 余弦相似度 + §6 张量收缩.</li>
+<li>§1.2 $\sqrt{d_k}$ ⇐ 第零部分线代 §5 矩阵范数 + 概率 §2 方差.</li>
+<li>§1.3 反向 ⇐ 第零部分微积分 §3 Hessian + §2 雅可比.</li>
+<li>§2 MHA 形状 ⇐ 第零部分线代 §6 张量.</li>
+<li>§4 LayerNorm ⇐ 第零部分概率 §2 期望方差 + 线代 §1 内积.</li>
+<li>§3 / 5 / 6 是新内容, 几乎不依赖第零部分.</li>
+</ul>
+<hr />
+<h2 id="十一结束--速查表"><a class="header" href="#十一结束--速查表">十一、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回:</p>
+<ul>
+<li><strong>核心公式</strong>: $\mathrm{softmax}(QK^\top / \sqrt{d_k}) V$.</li>
+<li>$\sqrt{d_k}$ 防 softmax 饱和, 让训练能启动.</li>
+<li><strong>mask</strong>: causal (下三角) + padding.</li>
+<li><strong>MHA</strong>: $H$ 个并行投影做 attention, concat + $W^O$; 错维度排错位置是常见 bug.</li>
+<li><strong>FFN</strong>: $d \to 4d \to d$, ReLU/GELU/SwiGLU; 对每个位置独立.</li>
+<li><strong>Pre-LN</strong>: $x + \mathrm{Sublayer}(\mathrm{LN}(x))$ (现代默认); Post-LN 需更长 warmup.</li>
+<li><strong>残差</strong>: 恒等通路把深可达梯度推回根.</li>
+<li><strong>位置编码</strong>: sinusoidal (原版) / learned / RoPE (现代 LLaMA, 长外推).</li>
+<li><strong>训练损失</strong>: next-token CE / masked LM; label smoothing 改 calibration.</li>
+<li><strong>SFT/RLHF 入口</strong>: SFT = CE 续训, RLHF = PPO 在 policy LM 上 (后面 RL 章).</li>
+<li><strong>算量</strong>: 注意力 $O(T d + T^2 d_k)$, FFN $O(d^2)$; FlashAttention 不改数学仅改 IO.</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="optimizers.html">4. Optimizers &amp; Training Dynamics: Adam/AdamW/二阶 + 初始化/LayerNorm/warmup/checkpoint</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../ai-ml/backprop.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../ai-ml/optimizers.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../ai-ml/backprop.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../ai-ml/optimizers.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

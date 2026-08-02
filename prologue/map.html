@@ -1,0 +1,645 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>5. 全书地图: 13 部分与导论的交叉索引 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="5-全书地图-14-部分与导论的交叉索引"><a class="header" href="#5-全书地图-14-部分与导论的交叉索引">5. 全书地图: 14 部分与导论的交叉索引</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>导论卷最后一篇, 把书中 <strong>14 个部分</strong> (导论卷 + 第零部分数学 + 13 主题) 全部丢到一套二维矩阵上, 让读者<strong>一眼定位"我读这章它在讲什么 / 在哪一站 / 在历史和抽象层级哪一格"</strong>, 同时给出四类读者画像的纵贯走法、按"查新资料归属"的 SOP、以及每章入口建议.</p>
+<p>读完应能:</p>
+<ol>
+<li>不再在"现在我读哪章"上犹豫 — 用三张矩阵给任意新资料归位.</li>
+<li>凭四个典型读者画像 (后端工程师 / 移动 App 工程师 / ML 工程师 / 硬件 / 嵌入式工程师) 各自挑通缩短到对应章节.</li>
+<li>看到"我现在缺什么"立刻找书必看哪章.</li>
+</ol>
+<hr />
+<h2 id="一合成的四视图"><a class="header" href="#一合成的四视图">一、合成的四视图</a></h2>
+<p>导论把全书骨架按 <strong>4 个相互正交的视图</strong> 抽出, 每视图各答一个问题:</p>
+<div class="table-wrapper"><table><thead><tr><th>视图</th><th>章节</th><th>答的问题</th></tr></thead><tbody>
+<tr><td><strong>时间轴</strong></td><td><a href="history.html">history</a></td><td>这东西什么时候出现? 出现那一年的"硬件 + 软件 + 用户"三联状态是什么?</td></tr>
+<tr><td><strong>抽象层级</strong></td><td><a href="abstraction-layers.html">abstraction-layers</a></td><td>它在哪一层? 给上层什么契约? 依赖下层什么不变式?</td></tr>
+<tr><td><strong>形态演进</strong></td><td><a href="mainframe-xpu.html">mainframe-xpu</a></td><td>它服务于哪类用户群? 用什么芯片 + 什么软件范式?</td></tr>
+<tr><td><strong>承接链</strong></td><td><a href="standing-on-shoulders.html">standing-on-shoulders</a></td><td>它的上一站契约是谁? 它对下一站指挥谁?</td></tr>
+</tbody></table>
+</div>
+<p>本页 (map) 再把上面 4 视图按"14 部分 × 4 视图"<strong>二维矩阵化</strong>, 让你能在矩阵里点一个格, 知道这格的全部上下文.</p>
+<hr />
+<h2 id="二14-部分--抽象层级-矩阵"><a class="header" href="#二14-部分--抽象层级-矩阵">二、14 部分 × 抽象层级 矩阵</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>部分 / 抽象层</th><th>1 物理</th><th>2 模拟</th><th>3 RTL</th><th>4 microarch</th><th>5 ISA</th><th>6 内核</th><th>7 POSIX</th><th>8 运行时</th><th>9 应用</th><th>10 AI</th></tr></thead><tbody>
+<tr><td><strong>导论</strong></td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td></tr>
+<tr><td><strong>0</strong> 数学</td><td>—</td><td>—</td><td>—</td><td>工具</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>工具</td></tr>
+<tr><td><strong>1</strong> DSA</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>●</td><td>○</td><td>—</td></tr>
+<tr><td><strong>2</strong> OS</td><td>—</td><td>—</td><td>○</td><td>●</td><td>●</td><td>◯</td><td>◯</td><td>○</td><td>—</td><td>—</td></tr>
+<tr><td><strong>3</strong> 网络</td><td>—</td><td>—</td><td>—</td><td>○</td><td>—</td><td>●</td><td>●</td><td>○</td><td>◯</td><td>—</td></tr>
+<tr><td><strong>4</strong> DB</td><td>—</td><td>—</td><td>—</td><td>○</td><td>—</td><td>●</td><td>●</td><td>○</td><td>◯</td><td>—</td></tr>
+<tr><td><strong>5</strong> 编译</td><td>—</td><td>—</td><td>—</td><td>○</td><td>◯</td><td>○</td><td>○</td><td>●</td><td>◯</td><td>—</td></tr>
+<tr><td><strong>6</strong> 分布式</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>○</td><td>●</td><td>○</td><td>◯</td><td>○</td></tr>
+<tr><td><strong>7</strong> 系统设计</td><td>—</td><td>—</td><td>—</td><td>○</td><td>—</td><td>○</td><td>●</td><td>○</td><td>◯</td><td>○</td></tr>
+<tr><td><strong>8</strong> 组成原理</td><td>●</td><td>●</td><td>●</td><td>●</td><td>◯</td><td>○</td><td>—</td><td>—</td><td>—</td><td>○</td></tr>
+<tr><td><strong>9</strong> 计算理论</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>●</td><td>○</td></tr>
+<tr><td><strong>10</strong> 密码学</td><td>●</td><td>○</td><td>●</td><td>●</td><td>—</td><td>—</td><td>○</td><td>●</td><td>◯</td><td>○</td></tr>
+<tr><td><strong>11</strong> 信息论</td><td>●</td><td>●</td><td>●</td><td>★</td><td>○</td><td>—</td><td>○</td><td>●</td><td>◯</td><td>★</td></tr>
+<tr><td><strong>12</strong> AI/ML</td><td>—</td><td>—</td><td>—</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>◯</td><td>●</td></tr>
+<tr><td><strong>13</strong> 元抽象</td><td>—</td><td>—</td><td>—</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td></tr>
+</tbody></table>
+</div>
+<p><strong>符号说明</strong>:</p>
+<ul>
+<li><code>●</code> 该部分<strong>主线章节</strong>在这层</li>
+<li><code>◯</code> 强相关 (但非主线)</li>
+<li><code>○</code> 触及但不深入</li>
+<li><code>★</code> 跨层桥接专项 (e.g. 信息论的 Shannon 容量把第 3 层 RTL 与第 10 层 AI 用同一组数学串起来)</li>
+<li><code>⤴</code> 导论卷贯通所有层</li>
+<li><code>—</code> 不涉及</li>
+</ul>
+<p><strong>怎么用这张表</strong>:</p>
+<ul>
+<li><strong>横看一行</strong>: 一个部分主要钻研哪些层.
+例: 第 2 OS 横跨 4-7 层 (microarch + ISA + kernel + POSIX); 第 8 组成原理横跨 1-5 (硬件视角); 第 12 AI/ML 纵跨 4-10 (训练靠 GPU + PyTorch 运行时 + 模型本身).</li>
+<li><strong>纵看一列</strong>: 某抽象层被哪些部分讲解.
+例: 第 4 层 microarch 主要由第 8 部分讲, 第 10 与第 11 部分做硬件级桥接 (Spectre 在第 10 侧信道里用, 第 11 LDPC/Polar Tanner 图里涉及微架构并发结构).</li>
+<li><strong>空白诊断</strong>: 你接到一份任务, 想"我不熟第 X 层", 纵列扫立刻找到对应部分.</li>
+</ul>
+<hr />
+<h2 id="三14-部分--形态演进-矩阵"><a class="header" href="#三14-部分--形态演进-矩阵">三、14 部分 × 形态演进 矩阵</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>部分 / 形态</th><th>Mainframe</th><th>Mini</th><th>PC</th><th>MCU</th><th>Mobile/ARM</th><th>Cloud/Web</th><th>AI/XPU</th></tr></thead><tbody>
+<tr><td>导论</td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td></tr>
+<tr><td>0 数学</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>工具</td></tr>
+<tr><td>1 DSA</td><td>—</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td></tr>
+<tr><td>2 OS</td><td>●</td><td>●</td><td>●</td><td>◯</td><td>○</td><td>◯</td><td>○</td></tr>
+<tr><td>3 网络</td><td>○</td><td>○</td><td>●</td><td>●</td><td>◯</td><td>◯</td><td>○</td></tr>
+<tr><td>4 DB</td><td>●</td><td>●</td><td>◯</td><td>—</td><td>—</td><td>◯</td><td>○</td></tr>
+<tr><td>5 编译</td><td>○</td><td>●</td><td>●</td><td>○</td><td>●</td><td>◯</td><td>◯</td></tr>
+<tr><td>6 分布式</td><td>—</td><td>—</td><td>○</td><td>—</td><td>○</td><td>●</td><td>○</td></tr>
+<tr><td>7 系统设计</td><td>—</td><td>—</td><td>—</td><td>—</td><td>○</td><td>◯</td><td>◯</td></tr>
+<tr><td>8 组成原理</td><td>●</td><td>●</td><td>●</td><td>●</td><td>●</td><td>●</td><td>◯</td></tr>
+<tr><td>9 计算理论</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>○</td></tr>
+<tr><td>10 密码学</td><td>◯</td><td>○</td><td>○</td><td>—</td><td>●</td><td>◯</td><td>○</td></tr>
+<tr><td>11 信息论</td><td>●</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>○</td></tr>
+<tr><td>12 AI/ML</td><td>—</td><td>—</td><td>—</td><td>—</td><td>○</td><td>○</td><td>●</td></tr>
+<tr><td>13 元抽象</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td></tr>
+</tbody></table>
+</div>
+<p><strong>怎么用</strong>:</p>
+<ul>
+<li>一行告诉你这部分笔记<strong>主要面向哪种形态设计</strong>.</li>
+<li>例: 第 4 DB 在 Mainframe / Mini 时代主战, Cloud/Web 时代仍是后端核心; 第 12 AI/ML 几乎只在 AI/XPU 段才出现 (其前身可追到 1957 Rosenblatt perceptron, 但没 XPU 算力就上不了规模).</li>
+<li>DSA / 计算理论 / 元抽象与硬件形态弱关联, 它们是"平台无关的抽象研究".</li>
+</ul>
+<hr />
+<h2 id="四14-部分--历史年代-矩阵"><a class="header" href="#四14-部分--历史年代-矩阵">四、14 部分 × 历史年代 矩阵</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>部分 / 年代</th><th>1936-44</th><th>45-70</th><th>71-90</th><th>91-06</th><th>06-15</th><th>16-23</th><th>24-26</th></tr></thead><tbody>
+<tr><td>导论</td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td><td>⤴</td></tr>
+<tr><td>0 数学</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td></tr>
+<tr><td>1 DSA</td><td>—</td><td>●</td><td>●</td><td>●</td><td>◯</td><td>◯</td><td>○</td></tr>
+<tr><td>2 OS</td><td>—</td><td>●</td><td>◯</td><td>◯</td><td>○</td><td>○</td><td>○</td></tr>
+<tr><td>3 网络</td><td>—</td><td>ARPANET</td><td>●</td><td>◯</td><td>○</td><td>QUIC</td><td>XDP/DPDK</td></tr>
+<tr><td>4 DB</td><td>—</td><td>●</td><td>●</td><td>NewSQL</td><td>NewSQL</td><td>Vector</td><td>Vector DB</td></tr>
+<tr><td>5 编译</td><td>—</td><td>●</td><td>●</td><td>GCC/LLVM</td><td>JIT</td><td>—</td><td>MLIR</td></tr>
+<tr><td>6 分布式</td><td>—</td><td>—</td><td>—</td><td>●</td><td>◆</td><td>◆</td><td>◆</td></tr>
+<tr><td>7 系统设计</td><td>—</td><td>—</td><td>○</td><td>●</td><td>◆</td><td>◆</td><td>Operator+MCP</td></tr>
+<tr><td>8 组成原理</td><td>●</td><td>●</td><td>●</td><td>●</td><td>●</td><td>◆</td><td>XPU+HBM4</td></tr>
+<tr><td>9 计算理论</td><td>●</td><td>●</td><td>○</td><td>○</td><td>○</td><td>—</td><td>—</td></tr>
+<tr><td>10 密码学</td><td>○</td><td>●</td><td>●</td><td>○</td><td>ECC/ZKP</td><td>TLS 1.3</td><td>PQC</td></tr>
+<tr><td>11 信息论</td><td>●</td><td>●</td><td>○</td><td>◆</td><td>LDPC/Polar</td><td>—</td><td>深化</td></tr>
+<tr><td>12 AI/ML</td><td>—</td><td>○</td><td>○</td><td>○</td><td>●</td><td>●</td><td>◆</td></tr>
+<tr><td>13 元抽象</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>●</td><td>○</td></tr>
+</tbody></table>
+</div>
+<p>符号: <code>◆</code> 该年代此部分是其最热的研究方向之一.</p>
+<p><strong>怎么用</strong>:</p>
+<ul>
+<li><strong>纵看一列</strong>告诉你"在那个年代里跟上主流要读哪几章".</li>
+<li>例 2024-26 列: 主线 8 (XPU+HBM4) + 12 (AI/ML 大模型推理) + 7 (Operator+MCP) + 6 (分布式训练) + 5 (MLIR) 各章合 AI 故事; 11 (信息论深化) + 10 (PQC 抗量子) + 13 (元抽象) 给补底.</li>
+<li><strong>横看一行</strong>告诉你"这部分在哪几段是 hot, 哪几段是支撑".</li>
+</ul>
+<hr />
+<h2 id="五四类典型读者画像的纵贯走法"><a class="header" href="#五四类典型读者画像的纵贯走法">五、四类典型读者画像的纵贯走法</a></h2>
+<p>不同背景的人读完导论, 推荐的"主线缩短" 路径不同. 这里给 4 个画像 + 各自 4 视图的"主题必看" 与 "纵贯加速":</p>
+<h3 id="51-画像-a-web-后端工程师"><a class="header" href="#51-画像-a-web-后端工程师">5.1 画像 A: Web 后端工程师</a></h3>
+<ul>
+<li>你已熟: HTTP / SQL / Docker / K8s / 微服务</li>
+<li>你要补:
+<ul>
+<li><strong>横切主线</strong>: 第 3 网络 (<code>networking/README.md</code>) — 隧道深入 TCP/QUIC; 第 4 DB (<code>databases/README.md</code>); 第 6 分布式 (<code>distributed/README.md</code>); 第 7 系统设计 (<code>system-design/README.md</code>)</li>
+<li><strong>AI 主轴</strong>: 第 0 数学 → <a href="../math/linalg.html">线代</a> → <a href="../math/prob.html">概率</a> → 第 12 AI/ML (<code>ai-ml/README.md</code>) (训练 + 推理服务)</li>
+<li><strong>纵贯加速</strong>: 第 2 OS (<code>os/README.md</code>) — linux 内核 epoll / io_uring 会让你 RPC / DB 性能提升</li>
+<li><strong>形态演进</strong>: 第 8 组成原理里的 <a href="../computer-arch/interconnects.html">interconnects</a> / <a href="../computer-arch/memory-hierarchy.html">memory-hierarchy</a> — 知道 AWS Nitro / 阿里 CIPU 与 NVMe-of 在数据中心怎么排布</li>
+</ul>
+</li>
+<li><strong>预估时间</strong>: 上述 4 部主学科加 2 部辅助 ≈ 30-40 小时</li>
+</ul>
+<h3 id="52-画像-b-移动--app-工程师"><a class="header" href="#52-画像-b-移动--app-工程师">5.2 画像 B: 移动 / App 工程师</a></h3>
+<ul>
+<li>你已熟: Swift / Kotlin / Flutter / iOS / Android, app 架构</li>
+<li>你要补:
+<ul>
+<li><strong>横切主线</strong>: 第 8 组成原理 (<code>computer-arch/README.md</code>) — ARM v9 / NPU; 第 12 AI/ML (<code>ai-ml/README.md</code>) — 端侧推理 / Apple Intelligence / NPU 模型</li>
+<li><strong>AI 主轴</strong>: 第 0 数学概率 + 微积分 (训练后小程序); 第 12 foundations/transformer (端侧推理)</li>
+<li><strong>纵贯加速</strong>: 第 2 OS (<code>os/net/README.md</code>) — 移动 OS 实际是 Linux + libc / Apple Darwin; 第 5 编译 (<code>compilers/codegen/jit.md</code>) — V8 / HotSpot / Swift runtime</li>
+<li><strong>形态演进</strong>: 第 5 节 <a href="mainframe-xpu.html#%E5%85%AD%E9%98%B6%E6%AE%B5-5-arm--%E7%A7%BB%E5%8A%A8-2007-">mainframe-xpu §6 ARM/移动</a></li>
+</ul>
+</li>
+<li><strong>预估时间</strong>: 30-50 小时</li>
+</ul>
+<h3 id="53-画像-c-ml-工程师"><a class="header" href="#53-画像-c-ml-工程师">5.3 画像 C: ML 工程师</a></h3>
+<ul>
+<li>你已熟: PyTorch / Transformer / 模型 fine-tune</li>
+<li>你要补:
+<ul>
+<li><strong>横切主线</strong>: 第 0 数学 ( пора → 已具备则 skip); 第 8 组成原理 (GPU SM / NPU / Tensor Core / HBM / 互联); 第 12 AI/ML 全部</li>
+<li><strong>纵贯加速</strong>: 第 2 OS (NCCL / RDMA / GPU 隔离); 第 6 分布式 (ZeRO / Megatron / Pipeline 并行); 第 7 系统设计 (推理服务 + KV cache + 限流)</li>
+<li><strong>承接链</strong>: 看 <a href="standing-on-shoulders.html#%E4%BA%94%E7%BC%96%E8%AF%91%E5%99%A8--%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%AE%A9%E6%9C%BA%E5%99%A8%E5%8F%AF%E8%AF%BB%E5%8F%98%E6%88%90%E4%BA%BA%E5%8F%AF%E5%86%99">standing-on-shoulders §AI 主轴</a> — AI 训练不靠 Deng 基础承接链跑不动</li>
+<li><strong>形态演进</strong>: AI/XPU 段全看 (<code>mainframe-xpu.md#八阶段-7-ai--xpu-异构时代-2012-</code>)</li>
+</ul>
+</li>
+<li><strong>预估时间</strong>: 50-80 小时 (这条最长, 因为 ML 是横切最广的方向)</li>
+</ul>
+<h3 id="54-画像-d-硬件--嵌入式工程师"><a class="header" href="#54-画像-d-硬件--嵌入式工程师">5.4 画像 D: 硬件 / 嵌入式工程师</a></h3>
+<ul>
+<li>你已熟: Verilog / RTL / MCU / 时序约束</li>
+<li>你要补:
+<ul>
+<li><strong>横切主线</strong>: 第 8 组成原理 (cpu-pipeline / superscalar / memory-hierarchy / gpu / ai-accelerators 全部); 第 2 OS (<code>os/README.md</code>) 看到硬件 / 内核 / 驱动的对接; 第 10 密码学 (<code>crypto/sidechannel.md</code>) Spectre / Meltdown; 第 11 信息论 (<code>info-theory/README.md</code>)</li>
+<li><strong>AI 主轴</strong>: 第 0 数学线代 + 概率 → 第 12 AI/ML (要知道 attention 张量形状如何映射到 Tensor Core / NPU)</li>
+<li><strong>纵贯加速</strong>: 第 5 编译 (<code>compilers/sema/ssa.md</code>) MLIR / SSA 是硬件描述顶层; 第 9 计算理论 (<code>theory/automata.md</code>) DFA / FSM 与 RTL 状态机对偶</li>
+<li><strong>形态演进</strong>: 全段都看, 你要纵串了</li>
+</ul>
+</li>
+<li><strong>预估时间</strong>: 60-80 小时</li>
+</ul>
+<hr />
+<h2 id="六独立主线地图"><a class="header" href="#六独立主线地图">六、独立主线地图</a></h2>
+<h3 id="61-横切-按学科"><a class="header" href="#61-横切-按学科">6.1 横切 (按学科)</a></h3>
+<p>每部分一句话定位 + 入口页 + 推荐阅读时长:</p>
+<div class="table-wrapper"><table><thead><tr><th>部分</th><th>一句话</th><th>入口</th><th>估读时长</th></tr></thead><tbody>
+<tr><td>0 数学</td><td>离散+线代+概率+优化, 喂全书全部</td><td><a href="../math/index.html">math/README</a></td><td>8-12h</td></tr>
+<tr><td>1 DSA</td><td>数据形态 × 性能空间的设计空间</td><td><a href="../dsa/index.html">dsa/README</a></td><td>20-30h</td></tr>
+<tr><td>2 OS</td><td>把硬件封成可写代码的虚机器</td><td><a href="../os/index.html">os/README</a></td><td>15-25h</td></tr>
+<tr><td>3 网络</td><td>协议分层 + 拥塞 + modern stack</td><td><a href="../networking/index.html">networking/README</a></td><td>15-20h</td></tr>
+<tr><td>4 DB</td><td>并发 / 故障下状态一致</td><td><a href="../databases/index.html">databases/README</a></td><td>15-20h</td></tr>
+<tr><td>5 编译</td><td>把人话变机器码的流水线</td><td><a href="../compilers/index.html">compilers/README</a></td><td>15-20h</td></tr>
+<tr><td>6 分布式</td><td>让 N 台机器表现得像 1 台</td><td><a href="../distributed/index.html">distributed/README</a></td><td>12-18h</td></tr>
+<tr><td>7 系统设计</td><td>反推 + 分解 = 工程师能力核心</td><td><a href="../system-design/index.html">system-design/README</a></td><td>12-18h</td></tr>
+<tr><td>8 组成原理</td><td>从晶体管到 XPU 的硬件栈</td><td><a href="../computer-arch/index.html">computer-arch/README</a></td><td>20-30h</td></tr>
+<tr><td>9 计算理论</td><td>什么是可计算 / 高效可计算</td><td><a href="../theory/index.html">theory/README</a></td><td>10-15h</td></tr>
+<tr><td>10 密码学</td><td>把对抗难度转移为协议设计目标</td><td><a href="../crypto/index.html">crypto/README</a></td><td>12-18h</td></tr>
+<tr><td>11 信息论</td><td>Shannon 极限的工程化</td><td><a href="../info-theory/index.html">info-theory/README</a></td><td>12-15h</td></tr>
+<tr><td>12 AI/ML</td><td>数据替代显式规则的程序写法</td><td><a href="../ai-ml/index.html">ai-ml/README</a></td><td>15-25h</td></tr>
+<tr><td>13 元抽象</td><td>把 1-12 横通, 上钻一层</td><td><a href="../_meta/index.html">_meta/README</a></td><td>6-10h</td></tr>
+</tbody></table>
+</div>
+<p><strong>总计</strong>: ≈ 200-280 小时通读全书完整深度 ≈ 11-15 周 (周 20 小时). 但你不必通读, 各画像只读对应 4-6 部即可入门.</p>
+<h3 id="62-纵贯线-不同形态的一台设备走通-14-部分"><a class="header" href="#62-纵贯线-不同形态的一台设备走通-14-部分">6.2 纵贯线: 不同形态的"一台设备走通 14 部分"</a></h3>
+<p>形态演进每个段都给出"在那段你手中, 这套抽象层级怎么落下来":</p>
+<h4 id="a-large-scale-训练集群-2026-h100h200b200gb200-pod"><a class="header" href="#a-large-scale-训练集群-2026-h100h200b200gb200-pod">A. Large-scale 训练集群 (2026 H100/H200/B200/GB200 pod)</a></h4>
+<pre><code>物理 (1)       HGx 中心机房供电 200 MW; 水冷闭环; HBM4 stack 工艺
+模拟 (2)       SRAM cell 在 SRAM cache bank
+RTL  (3)       NVIDIA SM 内部 RTL; NV-HBI 双 die 互连; CXL 3.0 PHY
+microarch(4)   SM + Tensor Core + Warp scheduler + 内存 pool; HBM3e/4
+ISA   (5)      PTX + SASS; host x86-64 / ARM / GPU kernel
+kernel(6)      Linux + NCCL 2.x + MOFED + eBPF + io_uring
+POSIX (7)      GPU driver + RDMA verbs + epoll + io_uring_setup
+运行时(8)      PyTorch (Python+Triton) + CUDA  + cuDNN + cuBLAS
+应用 (9)       Megatron + DeepSpeed + Ray + Wandb 监控
+AI   (10)      Transformer 训练 / 扩散 / VAE / 推理优化
+</code></pre>
+<p>涉及的本书部分: 8 + 2 + 5 + 6 + 7 + 12. 这条线就是 <a href="standing-on-shoulders.html#%E5%85%ABai-%E7%8A%B6%E6%80%81%E6%9C%BA%E7%9A%84%E9%AB%98%E7%BB%B4%E6%A8%A1%E5%BC%8F%E5%8C%96">standing-on-shoulders §AI 主轴</a> 的硬件对照版.</p>
+<h4 id="b-你口袋的-iphone--android-手机-2026"><a class="header" href="#b-你口袋的-iphone--android-手机-2026">B. 你口袋的 iPhone / Android 手机 (2026)</a></h4>
+<pre><code>物理 (1)       A18 / Snapdragon 8 Elite 3nm 工艺
+模拟 (2)       LPDDR5X + PMIC + PMU + OMAP
+RTL  (3)       Apple P-core + E-core + GPU + NPU RTL
+microarch(4)   OoO + 深流水 + 共享 L2 + imprecise branch pred
+ISA   (5)      ARM v9 / SVE2
+kernel(6)      Darwin XNU / Linux 6.x + Android
+POSIX (7)      bionic libc + Mach-O + libdispatch + ulib
+运行时(8)      Swift / Kotlin / JNI + ART JIT + WebKit JIT
+应用 (9)       iOS App / Android App; WebGPU in browser
+AI   (10)      Apple Intelligence / Google Gemini Nano 端侧推理
+</code></pre>
+<p>涉及的部分: 8 + 2 + 5 + 12 + (3 网络部分, 因 app 都用 HTTPS). 这就是 <a href="mainframe-xpu.html#%E5%85%AD%E9%98%B6%E6%AE%B5-5-arm--%E7%A7%BB%E5%8A%A8-2007-">mainframe-xpu §6 ARM/移动</a> 一个具体例子.</p>
+<h4 id="c-你公司后台的云原生服务-2026"><a class="header" href="#c-你公司后台的云原生服务-2026">C. 你公司后台的云原生服务 (2026)</a></h4>
+<pre><code>物理 (1)      云数据中心; SSD / nvme-of
+模拟 (2)      HBM on cache-LLC; DRAM
+RTL  (3)      (N/A 该层工程几乎不接触)
+microarch(4)  x86 / Graviton / Xeon-D 多核 + AVX-512 / AMX
+ISA   (5)     x86-64 / ARM v9
+kernel(6)     Linux + cgroup v2 + io_uring + eBPF
+POSIX (7)     rsyscall + epoll_wait; gVisor / Firecracker
+运行时(8)     Go runtime + Java Hot + V8 + containerd
+应用 (9)      K8s + envoy + prometheus + gRPC + DB
+AI   (10)     LLm tool use + RAG + 推理服务 + observability
+</code></pre>
+<p>涉及的部分: 2 + 3 + 4 + 6 + 7 + 12. 这是大多数 Web 后端工程师日常的纵贯.</p>
+<h4 id="d-智能家电--iot-端节点-2026"><a class="header" href="#d-智能家电--iot-端节点-2026">D. 智能家电 / IoT 端节点 (2026)</a></h4>
+<pre><code>物理 (1)    55nm MCU / 22nm RF SoC
+模拟 (2)    ADC + DAC + LDO + RF front-end
+RTL  (3)    Cortex-M33 RTL + BLE 控制器
+microarch(4) 2-4 stage pipeline + FPU + TCM + NVIC
+ISA   (5)   ARMv8-M / RISC-V RV32
+kernel(6)   Zephyr / FreeRTOS / 无 OS
+POSIX (7)    (部分实现 POSIX 子集)
+运行时(8)   MicroPython / Rust no_std + embassy
+应用 (9)    sensor 驱动 + MQTT 客户端; edge ML 推理
+AI   (10)   小模型 on TFLite Micro / CMSIS-NN / NPU
+</code></pre>
+<p>涉及的部分: 8 + 2 + 5 (轻) + 12 (轻). 形态见 <a href="mainframe-xpu.html#%E4%BA%94%E9%98%B6%E6%AE%B5-4-%E5%8D%95%E7%89%87%E6%9C%BA%E4%B8%8E%E5%B5%8C%E5%85%A5%E5%BC%8F-1976-">mainframe-xpu §5 单片机</a>.</p>
+<h3 id="63-ai-主轴-2024-2026-这三年最热路径"><a class="header" href="#63-ai-主轴-2024-2026-这三年最热路径">6.3 AI 主轴 (2024-2026 这三年最热路径)</a></h3>
+<pre><code>0 数学 ─→ 8 组成原理 (GPU/NPU/HBM/互联) ─→ 2 OS (io_uring/RDMA)
+                                                     │
+                                                     ↓
+5 编译(MLIR) ←─ 4 DB (vector DB) ←─ 6 分布式(ZeRO/Pipeline)
+                                                     │
+                                                     ↓
+                          7 系统设计(推理服务) ─→ 12 AI/ML (训练+推理)
+                                                     │
+                                                     ↓
+                                          13 元抽象 (hardware → software)
+</code></pre>
+<p>任意一段 missing 都读不下去. 这条线已经实际超过其他横切主线单条的总人数 (2024+ LLM / GenAI 工程师数 ~500 万 vs 传统 web 后端 ~1500 万, 但 AI 主轴增长更快).</p>
+<hr />
+<h2 id="七看新资料归位的-sop"><a class="header" href="#七看新资料归位的-sop">七、看新资料归位的 SOP</a></h2>
+<p>下面是<strong>用这页矩阵给任意新文档归位</strong>的 5 步操作:</p>
+<pre><code>Step 1. 看"它讲的是什么主概念" → 在 §2 横切里挑 1-3 个匹配部分
+Step 2. 看"它针对哪种设备 / 用户" → 在 §3 形态里挑 1-2 个匹配
+Step 3. 看"它大致什么时代出现 / hot" → 在 §4 年代里挑 1 个匹配
+Step 4. 看主要部分字:
+  - "GPU/NPU/HBM/CXL"  → §8 + §12
+  - "kernel / syscall / io_uring / eBPF" → §2
+  - "TCP / QUIC / TLS / HTTP" → §3
+  - "schema / SQL / WAL / MVCC / LSM" → §4
+  - "AST / IR / SSA / register alloc" → §5
+  - "Paxos / Raft / quorum / CRDT" → §6
+  - "cache / queue / sharding / rate limit" → §7
+  - "transistor / IS pipeline / SIMD" → §8
+  - "DFA / PDA / P vs NP / Turing" → §9
+  - "AES / RSA / ECC / ECDHE / ZKP" → §10
+  - "entropy / capacity / LDPC / Polar" → §11
+  - "softmax / Transformer / VAE / diffusion / Adam" → §12
+  - "amortized vs worst / 为什么 deep net 可训" → §13
+Step 5. 在矩阵上行+列打个 ●; 读完这页就画上 ●.
+</code></pre>
+<p><strong>示例</strong>: 给你一份"Groq LPU 推理 7B 模型 benchmark 白皮书". 走完 5 步:</p>
+<ol>
+<li>主概念 = 推理 ASIC + LLM → §8 + §12</li>
+<li>设备 = XPU 数据中心 → §3 形态 AI/XPU</li>
+<li>时代 = 2024-26 → §4 年代号</li>
+<li>关键字 = "LPU / Tensor Core / 互联带宽" → §8</li>
+<li>矩阵定位 = (§8, §12 行 vs AI/XPU 列 vs 2024-26 列).</li>
+</ol>
+<p>→ 立刻知道你<strong>必须先读第 8 组织原理响应章节 + 第 12 transformer 章节</strong>, 才不再卡白皮书里 "macro-op fusion vs VLIW" 类词.</p>
+<hr />
+<h2 id="八阅读模型"><a class="header" href="#八阅读模型">八、阅读模型</a></h2>
+<p>读完导论 5 章, 你应该形成如下"心智图":</p>
+<ul>
+<li>看一份新文档 / 论文 / 白皮书, 你能在 30 秒内:
+<ol>
+<li>把它的主题归类到某些部分 (横切)</li>
+<li>把它的硬件代归类到某段形态 (纵贯)</li>
+<li>把它入口处的定义对应到某个抽象层</li>
+<li>识别它依赖的契约以及可能泄漏源</li>
+</ol>
+</li>
+</ul>
+<p>这就是"计算机基础知识体系"的本质 — 任何进步的动作都是"在一层抽象里看到一个新机制", 而不是凭着名词链条不停换字眼.</p>
+<hr />
+<h2 id="九与导论各章的接口"><a class="header" href="#九与导论各章的接口">九、与导论各章的接口</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>导论章节</th><th>它给本页提供什么</th></tr></thead><tbody>
+<tr><td><a href="history.html">history</a></td><td>时间轴内容 → 填 §4 年代矩阵</td></tr>
+<tr><td><a href="abstraction-layers.html">abstraction-layers</a></td><td>10 层金字塔 → 填 §2 抽象层级矩阵</td></tr>
+<tr><td><a href="mainframe-xpu.html">mainframe-xpu</a></td><td>7 段形态演进 → 填 §3 形态矩阵</td></tr>
+<tr><td><a href="standing-on-shoulders.html">standing-on-shoulders</a></td><td>承接链 → 填 §6.2 不同形态纵贯</td></tr>
+<tr><td><a href="map.html">本页 map</a></td><td>把上述 4 视图<strong>对齐到 14 部分</strong>, 给查表 SOP</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="十给导论一份结束"><a class="header" href="#十给导论一份结束">十、给导论一份结束</a></h2>
+<ul>
+<li><a href="history.html">history</a>: 时间轴 1936 → 2026</li>
+<li><a href="abstraction-layers.html">abstraction-layers</a>: 抽象层 10 层</li>
+<li><a href="mainframe-xpu.html">mainframe-xpu</a>: 形态演进 7 段</li>
+<li><a href="standing-on-shoulders.html">standing-on-shoulders</a>: 承接链</li>
+<li><a href="map.html">本页 map</a>: 交叉索引</li>
+</ul>
+<p>读完导论 5 章, 你应该能在矩阵的 56 格 (14 部分 × 4 视图) 中<strong>为任意一份新材料归位</strong>, 再下钻各主题时不再"信息孤岛". 这就是这套笔记"由导论到 13 主题" 的阅读模型.</p>
+<hr />
+<h2 id="十一结束--速查表"><a class="header" href="#十一结束--速查表">十一、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回:</p>
+<ul>
+<li><strong>三张矩阵</strong>: 14 部分 × (抽象层级 / 形态演进 / 年代). 一行 = 一个部分的"在哪几个轴有重心"; 一列 = 一个轴上"哪几个部分热门".</li>
+<li><strong>四类读者画像</strong>: web 后端 / 移动 app / ML / 硬件嵌入式 — 四条缩短的纵贯路径.</li>
+<li><strong>AI 主轴</strong> (2024-26): 0 → 8 → 2 → 5 → 4 → 6 → 7 → 12 → 13 — 是当前最热的工程栈.</li>
+<li><strong>SOP</strong>: 看一份新文档 5 步归位 (主概念 → 形态 → 年代 → 关键词 → 矩阵 ●).</li>
+<li><strong>全书读完时</strong>: 用矩阵把每格都打 ●, 你就完成了"计算机基础知识体系"的入门.</li>
+</ul>
+</div>
+<hr />
+<p>回主目录:</p>
+<ul>
+<li><a href="index.html">导论 README</a></li>
+<li><a href="../index.html">全书 README</a></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../prologue/standing-on-shoulders.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../notes/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../prologue/standing-on-shoulders.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../notes/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

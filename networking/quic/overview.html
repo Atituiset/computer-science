@@ -1,0 +1,649 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>QUIC over UDP：解决什么 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="quic-over-udp解决什么"><a class="header" href="#quic-over-udp解决什么">QUIC over UDP：解决什么</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>QUIC 没有新 GSS 层概念，只是把 TCP 30 年没做透的"5 件事"重写一遍。本节走完 packet 字节布局、long/short header、流标识符、变长 packet number、frame 类型清单、ACK frame 结构、PTO 算法、 congestion control 接口——你能从字节角度认识 QUIC、从 wireshark 抓帧反查协议状态。重点：packet number 单调递增如何解决重传歧义。</p>
+<hr />
+<h2 id="一quic-包字节布局"><a class="header" href="#一quic-包字节布局">一、Quic 包字节布局</a></h2>
+<h3 id="11-header-两种形态"><a class="header" href="#11-header-两种形态">1.1 Header 两种形态</a></h3>
+<pre><code>Long Header (handshake / version neg):
+0                   1                   2                   3
++---------------+---------------+---------------+---------------+
+|1|  Form Bit   | Long Type (7) |                                 |
++---------------+---------------+               +
+|                          Version (32)                            |
++---------------+---------------+---------------+---------------+
+| DCID Len (8)  | Dest Connection ID (0..160)                     |
++---------------+---------------+---------------+---------------+
+| SCID Len (8)  | Src  Connection ID (0..160)                      |
++---------------+---------------+---------------+---------------+
+                          Variable per type:
+                          Initial Token, Length, PN, CRYPTO/STREAM
++                                payload                          +
++-----------------------------------------------------------------+
+
+Short Header (1-RTT application):
++--+—+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+|0|1| S | R | K | P | Packet Number (1..4)      |
++--+—+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+|                   Encrypted Payload         ...
++--+—+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>字段</th><th>bit</th><th>说明</th></tr></thead><tbody>
+<tr><td>Form bit</td><td>1</td><td>1=Long, 0=Short</td></tr>
+<tr><td>Fixed bit</td><td>1</td><td>必 1</td></tr>
+<tr><td>Spin bit</td><td>1</td><td>RTT 测量用 (常见 0/1 交替)</td></tr>
+<tr><td>Reserved bits</td><td>2</td><td>reserved</td></tr>
+<tr><td>Key phase bit</td><td>1</td><td>key rotation 切换</td></tr>
+<tr><td>Packet number size</td><td>2</td><td>1/2/4 字节</td></tr>
+<tr><td>DCID/SCID</td><td>可变长</td><td>0-20 字节，但变长编 1 字节 prefix</td></tr>
+</tbody></table>
+</div>
+<p>CID 是 <strong>变长</strong>（0-20B）+ 类型本身可协商；CID 长度在握手期协商：client 发起 initial，server echo client 选的长度。</p>
+<h3 id="12-long-header-4-个子类型"><a class="header" href="#12-long-header-4-个子类型">1.2 Long Header 4 个子类型</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Type bits</th><th>类型</th><th>用途</th></tr></thead><tbody>
+<tr><td><code>00</code></td><td>Initial</td><td>客户端先发，含 ClientHello CRYPTO frame</td></tr>
+<tr><td><code>01</code></td><td>0-RTT</td><td>客户端可选，携带 early data + 新 ClientHello</td></tr>
+<tr><td><code>10</code></td><td>Handshake</td><td>server 回，含完成 TLS 握手</td></tr>
+<tr><td><code>11</code></td><td>Retry</td><td>server 重发，要求 client 重发 initial（防 amplification attack）</td></tr>
+</tbody></table>
+</div>
+<h3 id="13-加密层次"><a class="header" href="#13-加密层次">1.3 加密层次</a></h3>
+<ul>
+<li><strong>Initial keys</strong>：用 DCID 作 salt + HKDF 衍生 → 加密 Initial packet CRYPTO frame</li>
+<li><strong>Handshake keys</strong>：从 TLS handshake secret 派生</li>
+<li><strong>0-RTT keys</strong>：PSK + 早期 traffic secret</li>
+<li><strong>1-RTT keys</strong>：主 traffic secret</li>
+<li><strong>Application keys</strong>：aead 加密 short header packets</li>
+</ul>
+<p>每层独立加密 → Initial packet 即使无 TLS handshake 也加密（防 ISP 看透握手）。</p>
+<hr />
+<h2 id="二frame-type-表"><a class="header" href="#二frame-type-表">二、Frame Type 表</a></h2>
+<pre><code>0x00  PADDING
+0x01  PING
+0x02  ACK
+0x03  ACK (ECN)
+0x04  RESET_STREAM
+0x05  STOP_SENDING
+0x06  CRYPTO
+0x07  NEW_TOKEN
+0x10-0x17  STREAM (8 variants: FIN/OFF/LEN flags)
+0x18  MAX_DATA
+0x19  MAX_STREAM_DATA
+0x1A  MAX_STREAMS (BIDI)
+0x1B  MAX_STREAMS (UNI)
+0x1C  DATA_BLOCKED
+0x1D  STREAM_DATA_BLOCKED
+0x1E  STREAMS_BLOCKED
+0x1F  NEW_CONNECTION_ID
+0x20  RETIRE_CONNECTION_ID
+0x21  PATH_CHALLENGE
+0x22  PATH_RESPONSE
+0x24  HANDSHAKE_DONE
+0x26  DATAGRAM
+0x1c-0x1d CONNECTION_CLOSE
+</code></pre>
+<p>每个 frame 类型有独立功能。STREAM frames (0x10-0x17) 含 FIN flag + offset + length 字段：</p>
+<pre><code>STREAM frame (Type|Fin|Len|Off):
+0                   1                   2
++---------------+---------------+---------------+
+|Frame Type| F | O | L |                       |
++---------------+                               |
+|                  Stream ID (varint)            |
++-----------------------------------------------+
+|              Offset (varint, if O=1)          |
++-----------------------------------------------+
+|              Length (varint, if L=1)          |
++-----------------------------------------------+
+|                 Stream Data (var len)         |
++-----------------------------------------------+
+</code></pre>
+<hr />
+<h2 id="三stream-id-与方向"><a class="header" href="#三stream-id-与方向">三、Stream ID 与方向</a></h2>
+<pre><code>Stream ID 编码:
+0x00 - 0x03    server-initiated bidi  ← HTTP/3 client server push 视角
+0x04 - 0x07    client-initiated bidi  ← HTTP/3 client request/response
+0x08 - 0x0B    server-initiated uni  ← 控制流 (SETTINGS)
+0x0C - 0x0F    client-initiated uni  ← client push 流
+</code></pre>
+<p>低 2 位编码：</p>
+<ul>
+<li>bit 0: 0 = client-initiated, 1 = server-initiated</li>
+<li>bit 1: 0 = bidi, 1 = uni</li>
+</ul>
+<p>每 stream 独立 flow control (MAX_STREAM_DATA、STREAM_DATA_BLOCKED) 与连接级流控 (MAX_DATA、DATA_BLOCKED) 双层。</p>
+<hr />
+<h2 id="四packet-number-单调递增"><a class="header" href="#四packet-number-单调递增">四、Packet Number 单调递增</a></h2>
+<h3 id="41-tcp-seq-的歧义"><a class="header" href="#41-tcp-seq-的歧义">4.1 TCP seq 的歧义</a></h3>
+<p>TCP 序号是按<strong>字节序 + 重传</strong> 维护。重传过的 segment 序号相同：</p>
+<pre><code>sender → seg seq=1000 + data
+       ↓ timeout
+       → seg seq=1000 + 同 data (重传)
+receiver
+       → ACK seq=1001 (无法分辨是确认 first 还是 second)
+</code></pre>
+<p>→ Karn 算法要求"重传过的包不计 RTT"。但 timestamp option 也是种 workaround。</p>
+<h3 id="42-quic-解法"><a class="header" href="#42-quic-解法">4.2 QUIC 解法</a></h3>
+<p>QUIC packet number <strong>每发一个包都+1</strong>（即便内容相同）：</p>
+<pre><code>包 1: stream data seq=1000
+       ↓ timeout
+包 2: stream data seq=1000  ← 包号已变！data seq 不变
+receiver → ACK 范围 [(包2号)] ... frame 含 ack_range
+sender 看到 ACK 包2号 → 100% 确认这是新包确认，不会跟踪 first → 混淆消除
+</code></pre>
+<pre><code class="language-c">// pseudo-code (ncheap sim)
+let mut next_pn = 0;
+
+fn send_packet(&amp;mut self, payload: Bytes) {
+    let pn = self.next_pn;
+    self.next_pn += 1;
+    ...
+}
+
+fn on_ack(&amp;self, ack_ranges: Vec&lt;(u64, u64)&gt;) {
+    let largest_acked = ack_ranges.iter().map(|r| r.1).max();
+    // detect new ack:
+    if largest_acked &gt; ack prior {
+        let rtt_sample = now - self.send_time(largest_acked);
+        // ack_delay recompute from frame:
+        let rtt = rtt_sample - ack_delay_field;
+        // update SRTT without Karn workaround needed
+    }
+}
+</code></pre>
+<p><strong>关键收益</strong>：不需要 timestamp option，每包 RTT 都能算。</p>
+<h3 id="43-packet-number-编码压缩"><a class="header" href="#43-packet-number-编码压缩">4.3 Packet Number 编码压缩</a></h3>
+<p>短 header packet number 1/2/4 字节可变。<code>truncated_pn</code> 用最低 N 位编码与预期下个 pn 比较：</p>
+<pre><code class="language-c">fn decode_pn(largest_pn: u64, truncated: u64, bits: u32) -&gt; u64 {
+    let expected = largest_pn + 1;
+    let candidate = (expected &amp; !((1&lt;&lt;bits)-1)) | truncated;
+    if candidate &lt; expected - (1&lt;&lt;(bits-1)) {
+        candidate + (1&lt;&lt;bits)
+    } else if candidate &gt; expected + (1&lt;&lt;(bits-1)) {
+        candidate - (1&lt;&lt;bits)
+    } else {
+        candidate
+    }
+}
+</code></pre>
+<p>→ 99% packet 只编 1 字节，省 byte。但接 packet loss 后还是要发 2 字节。</p>
+<h3 id="44-ack-frame-字段"><a class="header" href="#44-ack-frame-字段">4.4 ACK frame 字段</a></h3>
+<pre><code>ACK Frame:
+0                   1                   2
++---------------+---------------+----------+
+| Type 0x02     |  Largest Acknowledged (varint)
++---------------+---------------+----------+
+|  ACK Delay (varint)        ← 关键字段 ack_delay
++-------------------------------+
+|  ACK Range Count (varint)     |
++-------------------------------+
+|  First ACK Range (varint)     |   # 连续确认从 largest 往回数
++-------------------------------+
+|  Gap + Ack Range patterns     |   # 用于乱序 ACK
++-------------------------------+
+</code></pre>
+<p>ack_delay 编为 <code>us &gt;&gt; ack_delay_exponent</code>（协商时设 2^N）。sender 收到后回算：</p>
+<pre><code class="language-python">rtt_sample = (now - send_time_of_largest_acked) - (ack_delay_field &lt;&lt; ack_delay_exponent)
+srtt = 7/8*srtt + 1/8*rtt_sample  # RFC 9002 §5
+</code></pre>
+<p>→ socket 调度延迟从 RTT 估计<strong>剥离</strong>。</p>
+<hr />
+<h2 id="五pto-与重传"><a class="header" href="#五pto-与重传">五、PTO 与重传</a></h2>
+<h3 id="51-pto-探测超时"><a class="header" href="#51-pto-探测超时">5.1 PTO 探测超时</a></h3>
+<p>RFC 9002 定义 PTO 算法：</p>
+<pre><code>PTO = smoothed_rtt + max(4*rttvar, kGranularity) + max_ack_delay
+</code></pre>
+<p>比 TCP RTO 多 <code>max_ack_delay</code>，因为 sender 知道接收方 <code>ack_delay</code> 是应用回应故意延迟 ACK 的，不能算丢包信号。</p>
+<h3 id="52-pto-触发后"><a class="header" href="#52-pto-触发后">5.2 PTO 触发后</a></h3>
+<ul>
+<li>发 PING frame (空) 触 receiver 回 ACK</li>
+<li>不重置 cwnd=1 (与 TCP RTO 不同)</li>
+<li>packet number 单调 + 1，发探测包即可</li>
+</ul>
+<h3 id="53-丢包检测--rack"><a class="header" href="#53-丢包检测--rack">5.3 丢包检测 + RACK</a></h3>
+<p>QUIC 直接借鉴 TCP 已经成熟的 RACK (RFC 8985)：</p>
+<ul>
+<li>看 ACK 帧中 gap → 包 X 已 acked 但包 X-1 未 acked + 时间晚 → X-1 丢</li>
+<li>ack ranges 让乱序信息公开 → 不需"3 dup ACK"</li>
+</ul>
+<hr />
+<h2 id="六连接迁移"><a class="header" href="#六连接迁移">六、连接迁移</a></h2>
+<p>CID 是 QUIC 跨网络连续的根。</p>
+<pre><code>client → server: send packets with CID=0x9abc...
+
+client 切到 LTE 5G:
+   原 socket (wifi) 段口被 OS close，
+   新 socket (LTE) 同一进程继续用 CID=0x9abc
+server → 看到 CID 不变 → 仍查 conn state table = OK
+
+路径验证:
+client → server: PATH_CHALLENGE (with random 8 bytes) on new path
+server → client: PATH_RESPONSE (same 8 bytes) on same new path
+client 收到 PATH_RESPONSE → path validated → 切回 send on new
+</code></pre>
+<p>NAT rebinding 类似：client 看不到自己源 IP 突变，但 server 看到 packet 源 IP/port 变了 → server 主动 own PATH_CHALLENGE 验证 → 验证通过 = OK 切回 send。</p>
+<h3 id="61-nat-rebinding"><a class="header" href="#61-nat-rebinding">6.1 NAT rebinding</a></h3>
+<pre><code>client → NAT (公网 1.1.1.1:3000)
+       → server
+
+NAT 老化 → NAT 给 client 新 port 4000
+client 仍只知 NAT 后知，下个 packet NAT 通过出去:
+       → server src=1.1.1.1:4000  ← server 看 src 改变
+
+server → PATH_CHALLENGE to 1.1.1.1:4000
+client ← PATH_CHALLENGE → PATH_RESPONSE back
+server 切到 send 到 4000
+</code></pre>
+<h3 id="62-触发主动-migrate"><a class="header" href="#62-触发主动-migrate">6.2 触发主动 migrate</a></h3>
+<p>client 主动切：</p>
+<pre><code>1. client 在 lwifi socket 上 new socket cell + bind
+2. 在新 socket 发 packet 含 PATH_CHALLENGE
+3. 同时停止 lateral send
+4. 等 PATH_RESPONSE
+5. 切到新 socket send，并 retire old CID (让 server 路由表清)
+</code></pre>
+<p>中间盒看到 PATH_CHALLENGE 应该不 RTC reset 。</p>
+<h3 id="63-connection-close"><a class="header" href="#63-connection-close">6.3 connection close</a></h3>
+<p>正常 close：QUIC <code>CONNECTION_CLOSE</code> frame → receiver ack → close。
+重连成本：client 需新 Initial packet，TLS 1.3 impersonation 2nd RTT (0-RTT if resumption)。</p>
+<hr />
+<h2 id="七quic-拥塞控制接口"><a class="header" href="#七quic-拥塞控制接口">七、QUIC 拥塞控制接口</a></h2>
+<p>QUIC 把 cwnd、pacing rate、congestion event 留成接口（不是内置具体算法）：</p>
+<ul>
+<li>默认 NewReno (RFC 9002 §B)</li>
+<li>实现 ≥ = cubic in quiche/quic-go/msquic</li>
+<li>BBR v1/v2/v3 in lsquic, msquic-optional</li>
+</ul>
+<pre><code class="language-python"># QUIC 拥塞控制接口
+class CongestionController:
+    def on_packet_sent(self, packet_num, bytes):
+        pass
+
+    def on_packet_acked(self, ack_info, now):
+        # ack_info.ack_ranges: ranges acked
+        # ack_info.ack_delay: receiver 计算的延迟
+        pass
+
+    def on_congestion_event(self, lost_packets, now):
+        # 拥塞事件 (丢包 / ECN)
+        pass
+
+    def pacing_rate(self) -&gt; u64:
+        pass
+
+    def window(self) -&gt; u64:
+        pass
+</code></pre>
+<p>→ 不同算法实现 equippable。client/server 可协议协商 congestion controller (extension)。</p>
+<hr />
+<h2 id="八quic-库生态"><a class="header" href="#八quic-库生态">八、QUIC 库生态</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>库</th><th>组织</th><th>语言</th><th>主要用户</th></tr></thead><tbody>
+<tr><td>quiche</td><td>Cloudflare</td><td>Rust</td><td>Cloudflare CDN, Akamai</td></tr>
+<tr><td>lsquic</td><td>LiteSpeed</td><td>C</td><td>Akamai, Microsoft Edge</td></tr>
+<tr><td>ngtcp2</td><td>ngtcp2</td><td>C++</td><td>self-hosting</td></tr>
+<tr><td>msquic</td><td>Microsoft</td><td>C</td><td>Windows, Azure H3</td></tr>
+<tr><td>quic-go</td><td>Lucas Clemente</td><td>Go</td><td>fasthttp, transport-kit, GCP</td></tr>
+<tr><td>aioquic</td><td>aiohttp</td><td>Python</td><td>cloudflare dev</td></tr>
+<tr><td>quinn</td><td>crCrucial</td><td>Rust</td><td>rustls 集成</td></tr>
+</tbody></table>
+</div>
+<pre><code>$ curl -I --http3 https://www.cloudflare.com  (curl 7.66+ 自带 quiche 编译 )
+</code></pre>
+<hr />
+<h2 id="九产线部署观察"><a class="header" href="#九产线部署观察">九、产线部署观察</a></h2>
+<h3 id="91-udp-穿透率"><a class="header" href="#91-udp-穿透率">9.1 UDP 穿透率</a></h3>
+<p>Cloudflare 报告：H3 探测成功率对世界公网 ~80%；中国 / 部分企业 LAN &lt; 30%。Cloudflare 启 "Both HTTP/3 and HTTP/2"，client fallback to h2。</p>
+<h3 id="92-负载均衡-cid-路由"><a class="header" href="#92-负载均衡-cid-路由">9.2 负载均衡 CID 路由</a></h3>
+<p>CID 在 initial packet 编码，LB 必须按 CID 路由。L4 LB 不解 CID，要 LB 在 user-space：</p>
+<pre><code>肺部 load cityName:
+LB packet → quic parse → 取 DCID → hash → 一致性 → backend A
+backend A 接管 conn state
+
+client conn migration:
+   new packet 同 CID，
+   LB hash(DCID) = backend A → continue
+</code></pre>
+<p>Envoy Cloudflare 都支持，Nginx 1.25.3 quic 版也包含。</p>
+<h3 id="93-实际部署-4-大坑"><a class="header" href="#93-实际部署-4-大坑">9.3 实际部署 4 大坑</a></h3>
+<ol>
+<li>UDP 中间盒 ICMP 不可达 → QUIC 通常忽略 ICMP，跳过 PMTUD；改用 DPLPMTUD（基于 RFC 8899 探 path MTU）</li>
+<li>UDP 负载均衡 vs L4 LB → 需要 L7 LB 或 L4 LB 编 CID hash（如 Cloudflare）。</li>
+<li><strong>0-RTT replay</strong>：业务必须 anti-replay；server cache ticket + nonce + 5min。</li>
+<li>CPU 占用：1 个 QUIC stream 1 packet encryption 比 TCP 多 30%（DTLS overhead + 封装到 UDP per-packet-encry）；kernel 5.18+ 才支持 offload。</li>
+</ol>
+<hr />
+<h2 id="十抓帧示例"><a class="header" href="#十抓帧示例">十、抓帧示例</a></h2>
+<pre><code class="language-bash">$ tcpdump -i eth0 'udp port 443' -w quic.pcap
+$ tshark -r quic.pcap -Y 'quic'
+ 1 Initial Packet (DCID=0x9abc...) CRYPTO offset=0 len=512
+ 2 Initial Packet (DCID=0x9abc..., SCID=0x8def...) CRYPTO offset=0 len=128
+ 3 Handshake Packet (DCID=0x9abc...) CRYPTO offset=0 len=1024
+ ...
+</code></pre>
+<p>Cloudflare 向社区开源的 <a href="https://quiche.io"><code>quiche quinn</code></a> 提供可视化协议状态。</p>
+<hr />
+<h2 id="十一易错清单"><a class="header" href="#十一易错清单">十一、易错清单</a></h2>
+<ol>
+<li><strong>QUIC 不是 TCP 的"加速器"</strong>：是新 stack，把 TCP/TLS 重写</li>
+<li><strong>spin bit 不是 ack 包</strong>：是 RTT 测量用单位 bit，1→0→1 交替</li>
+<li><strong>ack_delay 单位是 µs / 2^N</strong>，不是直接 µs；exponent 在 transport parameters 协商</li>
+<li><strong>packet number 编码压缩</strong>：1/2/4 字节靠预期值预设最近</li>
+<li><strong>stream flow control 是两层</strong>：连接级 + stream 级；不要混淆</li>
+<li><strong>TLS 1.3 必须用 QUIC transport parameters extension 协商 parameters</strong>，不是用 TLS extension</li>
+<li><strong>CID 长 0-20 bytes, server 需要支持 cid_disc 推荐回 8 字节</strong></li>
+</ol>
+<hr />
+<h2 id="十二这一章带走的东西"><a class="header" href="#十二这一章带走的东西">十二、这一章带走的东西</a></h2>
+<ol>
+<li>QUIC packet = header (long/short) + frame (STREAM/ACK/CRYPTO/PADDING/...)，每 packet 独立加密</li>
+<li>packet number 单调递增 + ACK ranges 彻底解决重传歧义与 Karn 算法的需求</li>
+<li>ACK frame 含 ack_delay 字段让 RTT 估计不被 socket 调度干扰</li>
+<li>CID 是 conn 标识，让 NAT rebinding、mobile migration、LB routing 一致</li>
+<li>0-RTT 用 PSK + early data，replay 风险是应用层 anti-replay + 限幂等请求</li>
+<li>一线部署仍有 UDP 中间盒、LB 路由、CPU 加解密、IPv6 等挑战，但 met شر_tweet产</li>
+<li>主流库：quiche (CF), msquic (MS), lsquic (Akamai), quic-go, quinn, aioquic</li>
+</ol>
+<h2 id="下一节-"><a class="header" href="#下一节-">下一节 →</a></h2>
+<p><a href="0rtt.html">0-RTT / 连接迁移</a> — PSK resumption 安全细节、ticket nonce anti-replay、migration PATH_CHALLENGE 与 NAT rebinding 区别。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../networking/quic/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../networking/quic/0rtt.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../networking/quic/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../networking/quic/0rtt.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,597 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>5. Generative Models: VAE &amp; ELBO / 扩散模型 / AR 采样 / speculative decoding - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="5-generative-models-vae--elbo--扩散模型--ar-采样--speculative-decoding"><a class="header" href="#5-generative-models-vae--elbo--扩散模型--ar-采样--speculative-decoding">5. Generative Models: VAE &amp; ELBO / 扩散模型 / AR 采样 / speculative decoding</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>"生成模型"是把概率分布 $p(x)$ 当学习目标的一类模型. 直接学高维 $p(x)$ 不估计动, 所以四套主流方案分别走不同路:</p>
+<ol>
+<li><strong>Autoregressive (AR) / GPT 风</strong> — $p(x) = \prod_t p(x_t | x_{&lt;t})$.</li>
+<li><strong>Flow / Normalizing Flow</strong> — 用可逆变换把简单高斯推向复杂数据分布.</li>
+<li><strong>VAE</strong> — 引入隐变量 $z$, 最大化 ELBO (等价最小化 reverse-KL).</li>
+<li><strong>扩散模型 (Diffusion)</strong> — 加噪声 + 学去噪; ELBO 推到 Gaussian NLL 简化为 $(\epsilon - \epsilon_\theta)^2$.</li>
+</ol>
+<p>本章把这四类原理 + ELBO 数学一气讲透, 并补上<strong>采样加速工程</strong>: KV cache、temperature/top-k/top-p、speculative decoding.</p>
+<p>读完应能: 读 VAE 原 paper (Kingma 2013) / DDPM (Ho 2020) / Speculative Decoding (Leviathan 2022) 不再卡数学, 在 NumPy 上写出最简 VAE 与扩散训练循环.</p>
+<hr />
+<h2 id="一统一视角-生成模型--概率分布拟合"><a class="header" href="#一统一视角-生成模型--概率分布拟合">一、统一视角: 生成模型 = 概率分布拟合</a></h2>
+<h3 id="11-真实目标"><a class="header" href="#11-真实目标">1.1 真实目标</a></h3>
+<p>数据集 ${x_i}<em>{i=1}^n$ 视为某未知分布 $p</em>{\text{data}}(x)$ 的样本. 训练目标:</p>
+<p>$$ \arg\max_\theta \mathbb{E}<em>{x \sim \mathcal{D}} [\log p</em>\theta(x)] $$</p>
+<p>即<strong>最大似然</strong>, 回顾第零部分概率 §5.</p>
+<h3 id="12-为什么-mle-不够"><a class="header" href="#12-为什么-mle-不够">1.2 为什么 MLE 不够?</a></h3>
+<p>对复杂数据 (图像 / 文本), 直接定义 $p_\theta(x)$ 并求它是难事. 解决方案:</p>
+<ul>
+<li><strong>AR</strong>: 把 $p(x)$ 分解为 $\prod p(x_t | x_{&lt;t})$, 每一项可参数化为神经网络输出.</li>
+<li><strong>Flow</strong>: 通过可逆变化把 $x \sim p_\theta \Leftrightarrow z \sim \mathcal{N}(0, I)$, 用 change-of-variables.</li>
+<li><strong>VAE</strong>: 引隐变量 $z$, 学一个 encoder $q_\phi(z|x)$ 与 decoder $p_\theta(x|z)$, 联合似然 = ELBO.</li>
+<li><strong>Diffusion</strong>: 让 $z$ 有层级意义 ($x_0, x_1, \ldots, x_T$ 渐噪化), encoder 是固定 forward process, decoder 是学 reverse process.</li>
+</ul>
+<hr />
+<h2 id="二autoregressive-ar-采样"><a class="header" href="#二autoregressive-ar-采样">二、Autoregressive (AR) 采样</a></h2>
+<h3 id="21-概率链"><a class="header" href="#21-概率链">2.1 概率链</a></h3>
+<p>$$ p_\theta(x_{1:T}) = \prod_{t=1}^{T} p_\theta(x_t | x_{&lt;t}) $$</p>
+<p>每项参数化 = transformer decoder 的下一个 token 分布; 损失 = next-token CE (回顾 §3 Transformer).</p>
+<h3 id="22-与-nll-的等价"><a class="header" href="#22-与-nll-的等价">2.2 与 NLL 的等价</a></h3>
+<p>每步的负对数似然 = $\log V - \log p_\theta(x_t | x_{&lt;t})$. <strong>perplexity = $\exp(\mathrm{avgNLL})$</strong>, 一个常报指标.</p>
+<h3 id="23-采样"><a class="header" href="#23-采样">2.3 采样</a></h3>
+<pre><code class="language-python">def sample(model, prompt, n=64, temperature=1.0, top_p=0.9):
+    ids = list(prompt)
+    for _ in range(n):
+        logits = model(ids)            # 取 last position logits
+        logits = logits[-1] / temperature
+        # top-p / nucleus
+        sorted_l = np.sort(logits)[::-1]; cumprobs = np.cumsum(softmax(sorted_l))
+        cutoff = np.searchsorted(cumprobs, top_p)
+        kept = sorted_l[:cutoff + 1]
+        probs = softmax(kept); next_id = np.random.choice(kept.shape[0], p=probs)
+        ids.append(next_id)
+    return ids
+</code></pre>
+<h3 id="24-采样超参的数学含义"><a class="header" href="#24-采样超参的数学含义">2.4 采样超参的数学含义</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>超参</th><th>行为</th><th>直觉</th></tr></thead><tbody>
+<tr><td>$T \to 0$</td><td>argmax</td><td>贪心 / 确定输出</td></tr>
+<tr><td>$T = 1$</td><td>原分布</td><td>真样本</td></tr>
+<tr><td>$T \to \infty$</td><td>均匀</td><td>创造性最满</td></tr>
+<tr><td>Top-k</td><td>留 k 个最高 logits 余归一</td><td>限制样本在常见 token</td></tr>
+<tr><td>Top-p (nucleus)</td><td>累积概率到 p 的最少 token</td><td>动态阈值</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>经验上 LLM 任务: $T = 0.7 \sim 1.0$, top-p = 0.9 ~ 0.95, 适合开放式对话; 代码生成更低温 $T = 0.1 \sim 0.4$. 不随意把 $T$ 提高 → 让 LLM 像随机 token generator.</p>
+</div>
+<h3 id="25-kv-cache-自回归推理加速"><a class="header" href="#25-kv-cache-自回归推理加速">2.5 KV cache: 自回归推理加速</a></h3>
+<p>L 步推理: 第 $t$ 步每将 $x_t$ 与所有 $x_{&lt;t}$ 算 attention, $k_t, v_t$ 不变 → <strong>缓存 KV 矩阵</strong> 仅计算新一步.</p>
+<p>显存: 一卡 LLM 推理主要被 KV 占 (而非权重), 故 PagedAttention / MLA / 量化 KV 成工业核心.</p>
+<hr />
+<h2 id="三flow--normalizing-flow-概览"><a class="header" href="#三flow--normalizing-flow-概览">三、Flow / Normalizing Flow (概览)</a></h2>
+<h3 id="31-change-of-variables"><a class="header" href="#31-change-of-variables">3.1 Change of variables</a></h3>
+<p>设 $f: \mathbb{R}^d \to \mathbb{R}^d$ 可逆, $z \sim \mathcal{N}(0, I)$, $x = f(z)$. 则:</p>
+<p>$$ p_X(x) = p_Z(f^{-1}(x)) \cdot \left| \det \frac{\partial f^{-1}}{\partial x} \right| = \frac{p_Z(z)}{|\det J_f|} $$</p>
+<h3 id="32-训练"><a class="header" href="#32-训练">3.2 训练</a></h3>
+<p>$$ \log p_X(x) = \log p_Z(f^{-1}(x)) - \sum_i \log s_i $$</p>
+<p>其中 $s_i$ 是各 step 的雅可比行列式的 log abs. 需要 $f$ 形状让雅可比 close-form 易算, 例如:</p>
+<ul>
+<li>NICE / RealNVP: affine coupling layer.</li>
+<li>Glow: invertible 1×1 conv + actnorm + affine coupling.</li>
+</ul>
+<h3 id="33-ml-中位置"><a class="header" href="#33-ml-中位置">3.3 ML 中位置</a></h3>
+<p>不如 VAE / 扩散主流; 但在密度估计 / audio (WaveGlow) / 概率科普文中常见. 第零部分线代 §2 SVD/§5 行列式工具.</p>
+<hr />
+<h2 id="四vae-elbo--reverse-kl"><a class="header" href="#四vae-elbo--reverse-kl">四、VAE: ELBO = reverse KL</a></h2>
+<h3 id="41-模型"><a class="header" href="#41-模型">4.1 模型</a></h3>
+<p>设隐变量 $z$, 含 $p_\theta(x, z) = p(z) p_\theta(x|z)$. <strong>真实后验</strong> $p_\theta(z | x)$ 不可积, 用近似 $q_\phi(z | x)$:</p>
+<p>$$ \log p_\theta(x) = \log \int p_\theta(x, z) , dz $$</p>
+<p>Jensen 不等式 + 加 form:</p>
+<p>$$ \log p_\theta(x) = \mathbb{E}<em>{z \sim q</em>\phi(z|x)} \left[ \log \frac{p_\theta(x, z)}{q_\phi(z|x)} \right] + \mathrm{KL}(q_\phi(z|x) | p_\theta(z|x)) $$</p>
+<p>第一项是 <strong>ELBO</strong> (Evidence Lower Bound), 第二项 $\geq 0$. 最大化 ELBO ⇔ 最小化 $\mathrm{KL}(q_\phi | p_\theta(z|x))$.</p>
+<p>ELBO 拆开:</p>
+<p>$$ \mathcal{L}<em>{\text{ELBO}} = \mathbb{E}</em>{z \sim q_\phi(z|x)} \big[\log p_\theta(x|z)\big] - \mathrm{KL}\big(q_\phi(z|x) ,|, p(z)\big) $$</p>
+<ul>
+<li>第一项 = <strong>重建项</strong> (decoder likelihood).</li>
+<li>第二项 = <strong>KL 正则项</strong> (encoder 不偏离 prior 多少).</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>这就是 VAE 训练目标: max ELBO. 第零部分概率 §7 KL 不对称很关键 — 通过 reverse-KL ($q | p$) 让 $q$ 倾向 mode-seeking, 但在多模态真实后验下会缺一些质量.</p>
+</div>
+<h3 id="42-重参数技巧-reparameterization"><a class="header" href="#42-重参数技巧-reparameterization">4.2 重参数技巧 (reparameterization)</a></h3>
+<p>直接采 $z \sim \mathcal{N}(\mu, \sigma^2)$ 不可反传 (随机节点). 改写:</p>
+<p>$$ z = \mu + \sigma \odot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I) $$</p>
+<p>→ $\mu, \sigma$ 变 deterministic, 蒙特卡洛用同一 batch 多次采样.</p>
+<h3 id="43-vae-训练循环-pytorch-简版"><a class="header" href="#43-vae-训练循环-pytorch-简版">4.3 VAE 训练循环 (PyTorch 简版)</a></h3>
+<pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class VAE(nn.Module):
+    def __init__(self, d_x=784, d_z=20, d_h=400):
+        super().__init__()
+        self.enc = nn.Sequential(nn.Linear(d_x, d_h), nn.ReLU())
+        self.fc_mu = nn.Linear(d_h, d_z); self.fc_logvar = nn.Linear(d_h, d_z)
+        self.dec = nn.Sequential(nn.Linear(d_z, d_h), nn.ReLU(), nn.Linear(d_h, d_x), nn.Sigmoid())
+
+    def encode(self, x):
+        h = self.enc(x); return self.fc_mu(h), self.fc_logvar(h)
+
+    def reparam(self, mu, logvar):
+        std = (0.5 * logvar).exp()
+        return mu + std * torch.randn_like(std)
+
+    def decode(self, z): return self.dec(z)
+
+    def forward(self, x):
+        mu, logvar = self.encode(x); z = self.reparam(mu, logvar)
+        return self.decode(z), mu, logvar
+
+def vae_loss(x_recon, x, mu, logvar):
+    BCE = F.binary_cross_entropy(x_recon, x, reduction='sum')     # -E[log p(x|z)]
+    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())  # KL(N(μ,σ²) || N(0, 1))
+    return BCE + KLD
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>VAE 的"模糊"问题 — 重建项用 BCE/MSE 对应 Bernoulli/Gaussian decoder; 模糊因为高斯 decoder 平均多个模态. 加 GAN 判别器 / 改输出分布变 mixture / 改扩散走法解决.</p>
+</div>
+<h3 id="44-与第零部分接口"><a class="header" href="#44-与第零部分接口">4.4 与第零部分接口</a></h3>
+<ul>
+<li>ELBO = KL 反向最小化, 等价概率 §7.4 交叉熵 = 熵 + KL, 微积分 §6.3 信息几何 KL 局部 = Fisher 矩阵二次型.</li>
+</ul>
+<hr />
+<h2 id="五扩散模型-ddpm"><a class="header" href="#五扩散模型-ddpm">五、扩散模型 (DDPM)</a></h2>
+<h3 id="51-核心思想"><a class="header" href="#51-核心思想">5.1 核心思想</a></h3>
+<p>把数据 $x_0$ 在 $T$ 步里逐步加高斯噪声:</p>
+<p>$$ q(x_t | x_{t-1}) = \mathcal{N}(x_t; \sqrt{1 - \beta_t} x_{t-1}, \beta_t I) $$</p>
+<p>联合的有 closed-form:</p>
+<p>$$ q(x_t | x_0) = \mathcal{N}(x_t; \sqrt{\bar\alpha_t} x_0, (1 - \bar\alpha_t) I), \quad \bar\alpha_t = \prod_{s=1}^t (1 - \beta_s) $$</p>
+<p>→ 任意 $t$ 可从 $x_0$ 一步采样 (训时常用).</p>
+<h3 id="52-反向过程-用网络学"><a class="header" href="#52-反向过程-用网络学">5.2 反向过程 (用网络学)</a></h3>
+<p>$$ p_\theta(x_{t-1} | x_t) = \mathcal{N}(x_{t-1}; \mu_\theta(x_t, t), \Sigma_\theta(x_t, t)) $$</p>
+<h3 id="53-elbo-推到简化形式"><a class="header" href="#53-elbo-推到简化形式">5.3 ELBO 推到简化形式</a></h3>
+<p>DDPM 原 paper 推导完整 ELBO, 设 $\Sigma_\theta = \beta_t I$ 固定得到项:</p>
+<p>$$ \mathcal{L}_{t-1} = \mathbb{E}<em>q \left[ \frac{\beta_t^2}{2 \sigma_t^2 \alpha_t \beta_t} |\hat\mu</em>\theta(x_t, t) - \mu_q(x_t, x_0)|^2 \right] $$</p>
+<p>进一步 reparameterize 让网络预测"原始噪声" $\epsilon$ 而非 $\mu$:</p>
+<p>$$ \mathcal{L}<em>t^{\text{simple}} = \mathbb{E}</em>{x_0, \epsilon, t} \big| \epsilon - \epsilon_\theta(\sqrt{\bar\alpha_t} x_0 + \sqrt{1 - \bar\alpha_t} \epsilon, t) \big|^2 $$</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>工业训练: 输入网络 $x_t = \sqrt{\bar\alpha_t} x_0 + \sqrt{1 - \bar\alpha_t} \epsilon$ (前闭式), 预测噪声 $\epsilon$ 与真 $\epsilon$ 做 MSE. 这就是为什么所有"扩散训练循环"看起来这么朴素.</p>
+</div>
+<h3 id="54-训练循环-pytorch-简版"><a class="header" href="#54-训练循环-pytorch-简版">5.4 训练循环 (PyTorch 简版)</a></h3>
+<pre><code class="language-python">import torch.nn as nn
+
+class Diffusion(nn.Module):
+    def __init__(self, model, T=1000, betas=None):
+        super().__init__()
+        self.model = model                      # ε_θ(x_t, t)
+        self.T = T
+        if betas is None:
+            betas = torch.linspace(1e-4, 0.02, T)
+        alphas = 1.0 - betas
+        self.register_buffer('alphas_cumprod', torch.cumprod(alphas, 0))
+
+    def forward_loss(self, x0):
+        B = x0.shape[0]
+        t = torch.randint(0, self.T, (B,), device=x0.device)
+        eps = torch.randn_like(x0)
+        a_bar = self.alphas_cumprod[t].view(B, 1, 1, 1)
+        x_t = a_bar.sqrt() * x0 + (1 - a_bar).sqrt() * eps
+        eps_pred = self.model(x_t, t)
+        return nn.functional.mse_loss(eps_pred, eps)
+</code></pre>
+<h3 id="55-采样-慢的分步去噪"><a class="header" href="#55-采样-慢的分步去噪">5.5 采样: 慢的分步去噪</a></h3>
+<pre><code class="language-python">@torch.no_grad()
+def sample(self, shape):
+    x = torch.randn(shape)
+    for t in reversed(range(self.T)):
+        eps_pred = self.model(x, torch.full((shape[0],), t))
+        alpha = self.alphas[t]; alpha_bar = self.alphas_cumprod[t]
+        x0_pred = (x - (1 - alpha_bar).sqrt() * eps_pred) / alpha_bar.sqrt()
+        x = alpha.sqrt() * x0_pred + (1 - alpha).sqrt() * torch.randn_like(x) if t &gt; 0 else x0_pred
+    return x
+</code></pre>
+<h3 id="56-加速采样-ddim-2020"><a class="header" href="#56-加速采样-ddim-2020">5.6 加速采样 (DDIM, 2020)</a></h3>
+<p>DDPM 1000 步采样太慢, <strong>DDIM</strong> (Song 2021) 用非 Markov 跳步采样 50 步质量近似. 进一步:</p>
+<ul>
+<li><strong>DPM-Solver</strong> (Lu 2022): 10-25 步高质量采样.</li>
+<li><strong>Consistency Models</strong> (Song 2023): 1 步采样.</li>
+<li><strong>Latent Diffusion</strong> (Stable Diffusion 2022): 在 VAE latent 上扩散, 而非像素 → 大幅省算工程盈利.</li>
+</ul>
+<h3 id="57-与第零部分接口"><a class="header" href="#57-与第零部分接口">5.7 与第零部分接口</a></h3>
+<ul>
+<li>5.1 前向过程 ⇐ 概率 §3.2 连续分布高斯家族.</li>
+<li>5.3 ELBO 简化 ⇐ 概率 §5.5 + §7.2 KL + 信息论 §1 / 熵链式.</li>
+<li>5.6 DDIM / DPM-Solver 等 ⇐ 微积分 §1 数值方法 (ODE 求积).</li>
+</ul>
+<hr />
+<h2 id="六speculative-decoding-llm-推理加速"><a class="header" href="#六speculative-decoding-llm-推理加速">六、Speculative Decoding (LLM 推理加速)</a></h2>
+<h3 id="61-动机"><a class="header" href="#61-动机">6.1 动机</a></h3>
+<p>LLM 生成时每 token 一次 forward pass, GPU 利用率低. 用一个<strong>草稿小模型</strong>先猜 $k$ 个 token, 再用大模型一次 forward 验证.</p>
+<h3 id="62-算法"><a class="header" href="#62-算法">6.2 算法</a></h3>
+<ol>
+<li>draft model $M_d$ 自回归生成 $k$ 个候选 token $x_{1:k}$.</li>
+<li>target model $M_t$ 用 <strong>同一 prompt + $k$ token</strong> 做一次 forward, 得到各位置分布 $p_{1:k}^t$.</li>
+<li>对每位置 $i$, 比较 $x_i$ 在 $p_i^t$ 与 $p_i^d$ 的概率:
+<ul>
+<li>若 $p_i^t(x_i) \geq p_i^d(x_i)$: accept.</li>
+<li>若 $p_i^t(x_i) &lt; p_i^d(x_i)$: 以 $\left(1 - \frac{p_i^t(x_i)}{p_i^d(x_i)}\right)$ 概率拒绝, 拒绝则从残余概率 $\propto p_i^t - p_i^d$ 重采一个新 token.</li>
+</ul>
+</li>
+<li>拒后丢弃后续.</li>
+</ol>
+<h3 id="63-数学保证"><a class="header" href="#63-数学保证">6.3 数学保证</a></h3>
+<p>分布与原 target model 严格相同 (rejection sampling correctness). 因此生成不变, 只是更快 (草稿准 → 接受多 → 每 forward 吐多 token).</p>
+<h3 id="64-工程增益"><a class="header" href="#64-工程增益">6.4 工程增益</a></h3>
+<ul>
+<li>accepted fraction 0.5-0.7 时 2-3× speedup.</li>
+<li>与 KV cache 兼容: draft 与 target 共用 KV cache 接口, 同步多条 path.</li>
+<li>与 Medusa / EAGLE / Lookahead 等扩展思路是不同分支预测方案.</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>speculative decoding 的核心是<strong>概率分布一致性</strong>而非单纯接受率. 工程上仔细处理 <code>torch.distribution.Independent</code>、rejection 不能简化成 <code>argmax == argmax</code>, 否则会漫游偏离原分布.</p>
+</div>
+<hr />
+<h2 id="七统一对比"><a class="header" href="#七统一对比">七、统一对比</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>模型</th><th>训练目标</th><th>直接 / 间接</th><th>模式覆盖</th></tr></thead><tbody>
+<tr><td>AR (GPT)</td><td>next-token NLL</td><td>直接 MLE</td><td>mode-covering (但通过 CE 隐式规约)</td></tr>
+<tr><td>Flow</td><td>$\log p_X = \log p_Z - \log |\det J|$</td><td>直接 MLE</td><td>精确匹配</td></tr>
+<tr><td>VAE</td><td>ELBO max = reverse-KL min</td><td>间接 (下界)</td><td>mode-seeking (可能漏一些)</td></tr>
+<tr><td>Diffusion</td><td>$|\epsilon - \epsilon_\theta|^2$ (ELBO 简化)</td><td>间接 (下界, 等价 reverse-KL)</td><td>等价 NLL, 全模式</td></tr>
+<tr><td>GAN</td><td>minimax adversarial</td><td>间接</td><td>implicit, 隐式匹配</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>VAE 与扩散同属"反向 KL 最大化 ELBO"; 扩散其实是 Hierarchical VAE 的连续时间极限 (Score-based 视角). 把 VAE 弄懂以后, 扩散只是"用更大量级别的噪声扰动 + 设 encoder 完全固定"而已, 不需新数学.</p>
+</div>
+<hr />
+<h2 id="八与第零部分的全面接口"><a class="header" href="#八与第零部分的全面接口">八、与第零部分的全面接口</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>本部分</th><th>第零部分章节</th></tr></thead><tbody>
+<tr><td>1 MLE 视角</td><td>概率 §5</td></tr>
+<tr><td>2 AR / next-token CE</td><td>概率 §3 + §7 + 微积分 §2.3 softmax</td></tr>
+<tr><td>3 Flow / change of var</td><td>线代 §2 行列式 + 微积分 §2 雅可比</td></tr>
+<tr><td>4 VAE / ELBO / reverse KL</td><td>概率 §7 (KL 不对称, 交叉熵 = H + KL)</td></tr>
+<tr><td>5 Diffusion</td><td>概率 §3 + §5.5 + 信息论 (熵链)</td></tr>
+<tr><td>6 Speculative decoding</td><td>概率 §3.6 (acceptance sampling) + 概率 §4 (Bayes 全概率)</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="九结束--速查表"><a class="header" href="#九结束--速查表">九、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回:</p>
+<ul>
+<li><strong>生成模型 = 拟合 $p_\theta(x)$ 的 MLE</strong>; 直接 AR / Flow, 间接 VAE / 扩散 (ELBO 上界).</li>
+<li><strong>AR 训练</strong>: $-\sum \log p(x_t | x_{&lt;t})$; per-token CE; 反向 $s - \text{onehot}$.</li>
+<li><strong>Flow</strong>: change-of-variables, $\log p_X = \log p_Z - \log |\det J|$.</li>
+<li><strong>VAE</strong>: $\mathcal{L} = \mathbb{E}_q[\log p(x|z)] - \mathrm{KL}(q(z|x) | p(z))$; reparam trick; mode-seeking.</li>
+<li><strong>Diffusion</strong>: ELBO 推到 $|\epsilon - \epsilon_\theta(x_t, t)|^2$ 简化; forward 有闭式采样到任意 $t$.</li>
+<li><strong>DDIM</strong>: 非马尔可跳步; DPM-Solver 10-25 步; Consistency Models 1 步.</li>
+<li><strong>采样超参</strong>: $T$ 控创造; top-k/p 留高概率 mass.</li>
+<li><strong>KV cache</strong>: 推理时省重算, 长上下文显存主占.</li>
+<li><strong>Speculative decoding</strong>: 草稿 + target 验证, 严格保持原分布, 2-3× 速度.</li>
+</ul>
+</div>
+<hr />
+<p>回主目录: <a href="index.html">第十二部分 · 人工智能与机器学习 README</a>.
+下一篇系统正文: <a href="../_meta/index.html">第十三部分 · 元抽象: 跨章节大主题</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../ai-ml/optimizers.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../ai-ml/classical-ml.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../ai-ml/optimizers.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../ai-ml/classical-ml.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

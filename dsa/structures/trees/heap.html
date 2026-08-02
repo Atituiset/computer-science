@@ -1,0 +1,440 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>堆与优先队列 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../../favicon.svg">
+        <link rel="shortcut icon" href="../../../favicon.png">
+        <link rel="stylesheet" href="../../../css/variables.css">
+        <link rel="stylesheet" href="../../../css/general.css">
+        <link rel="stylesheet" href="../../../css/chrome.css">
+        <link rel="stylesheet" href="../../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="堆与优先队列"><a class="header" href="#堆与优先队列">堆与优先队列</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>堆是少数同时被理论和工程"普遍接受"的数据结构：<strong>完全二叉树 + 父子关键字序约束 + 用数组表示</strong>. 三个限制合起来让它在 cache 上友好、在常量上小、在 O(log n) 上稳定、在内存上零分配。Heap 的"完全二叉树用数组表示"是工程上<strong>用代数关系代替指针</strong>的最佳教学例子之一。</p>
+<h2 id="三种限制合一"><a class="header" href="#三种限制合一">三种限制合一</a></h2>
+<pre><code>完全二叉树: 除最后一层外全填, 且最后一层从左往右排;
+父子关序:     parent.key ≥ child.key (最大堆) 或 parent.key ≤ child.key (最小堆);
+数组表示:      层序编号, a[i] 的子是 a[2i+1] / a[2i+2], 父是 a[(i-1)/2].
+</code></pre>
+<p>为什么这三种限制合一能给出重大性能优势？</p>
+<ul>
+<li><strong>完全二叉树</strong> ⇒ 树高恰是 <code>⌈log₂(n+1)⌉</code>, <strong>没有退化空间</strong>.</li>
+<li><strong>父子不严格要求左右子孰大孰小</strong> ⇒ 平衡是最紧的, 增删不触发旋转动作。</li>
+<li><strong>数组表示</strong> ⇒ cache 友好 + 零指针开销 + 零 node malloc.</li>
+</ul>
+<h2 id="数组索引公式"><a class="header" href="#数组索引公式">数组索引公式</a></h2>
+<pre><code>索引从 0 开始:
+  parent(i) = (i - 1) / 2  (整除下取)
+  left(i)   = 2·i + 1
+  right(i)  = 2·i + 2
+索引从 1 开始:
+  parent(i) = i / 2
+  left(i)   = 2·i
+  right(i)  = 2·i + 1
+</code></pre>
+<p>1 起点比 0 起点快: <code>2·i</code> 是单条左移指令, 而 <code>2·i+1</code> / <code>2·i+2</code> 仍是单条左移加常量 add. 工程上不少教科书选 1 起点, 这就是原因.</p>
+<h2 id="基本操作-push--pop--heapify"><a class="header" href="#基本操作-push--pop--heapify">基本操作: push / pop / heapify</a></h2>
+<p><strong>sift_up</strong> (push 入堆):</p>
+<pre><code class="language-python">def sift_up(a, i):
+    while i &gt; 0 and a[(i-1)//2] &lt; a[i]:
+        a[(i-1)//2], a[i] = a[i], a[(i-1)//2]
+        i = (i-1)//2
+</code></pre>
+<p><strong>sift_down</strong> (替换根的情形, 用于 pop_max):</p>
+<pre><code class="language-python">def sift_down(a, i, n):
+    while True:
+        l, r = 2*i+1, 2*i+2
+        largest = i
+        if l &lt; n and a[l] &gt; a[largest]: largest = l
+        if r &lt; n and a[r] &gt; a[largest]: largest = r
+        if largest == i: return
+        a[i], a[largest] = a[largest], a[i]
+        i = largest
+</code></pre>
+<h2 id="heapify-为什么是-on-不是-on-log-n"><a class="header" href="#heapify-为什么是-on-不是-on-log-n">heapify 为什么是 O(n), 不是 O(n log n)?</a></h2>
+<p>按直觉: heapify 调用 ~n/2 次 sift_down, 每次最坏 O(log n) ⇒ O(n log n).</p>
+<p>但代价更精算: 保留下层叶子无需 sift (它们高为 0), <strong>叶子层 sift_down 是 O(0)</strong>, 上层才贵.</p>
+<pre><code>总代价 = Σ_k (n/2^(k+1)) · k
+       = n · (Σ k/2^(k+1))
+       = n · 1 = Θ(n)
+</code></pre>
+<p><strong>堆化整个数组 O(n)</strong>. 这是工程里 <code>container/heap.Init</code> / <code>make_heap</code> 的复杂度. 想快速把一个流变成一个堆时, 直接 Init 比 push 每个元素小 30%.</p>
+<h2 id="工程变体"><a class="header" href="#工程变体">工程变体</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>类型</th><th>用途</th></tr></thead><tbody>
+<tr><td><strong>binary heap</strong></td><td>默认用途, Dijkstra / Huffman / Top K</td></tr>
+<tr><td><strong>d-ary heap</strong></td><td>Dijkstra cache-aware, D = 4 或 8 常用</td></tr>
+<tr><td><strong>Fibonacci heap</strong></td><td>理论最优, 实操零优势</td></tr>
+<tr><td><strong>Pairing heap</strong></td><td>实操简洁、平均近最优</td></tr>
+<tr><td><strong>左偏树 / Skew heap</strong></td><td>可并堆</td></tr>
+<tr><td><strong>索引堆 (Indexed heap)</strong></td><td>Dijkstra 中要 O(log n) 减边</td></tr>
+<tr><td><strong>Brodal queue</strong></td><td>Fibonacci 的可并发实现</td></tr>
+</tbody></table>
+</div>
+<h2 id="索引堆-dijkstra-的真正关键"><a class="header" href="#索引堆-dijkstra-的真正关键">索引堆: Dijkstra 的真正关键</a></h2>
+<p>标准堆只能 pop 最小. 但 Dijkstra 中需要对已入堆的节点 <strong>降低距离再下沉</strong>. 要做这一步, 堆必须支持 <code>decrease_key</code>:</p>
+<pre><code>pos[v] = 节点 v 在堆数组里的下标
+decrease_key(v, new_dist):
+  heap[pos[v]] = new_dist
+  sift_up(pos[v])
+</code></pre>
+<p><strong>每 swap 一次就必须同时更新 pos</strong>: <code>pos[heap[i]] = i</code>. 否则 Dijkstra 不能在 O(E log V), 而是退化为 O(EV).</p>
+<h2 id="d-ary-堆为什么在-dijkstra-上更好"><a class="header" href="#d-ary-堆为什么在-dijkstra-上更好">d-ary 堆为什么在 Dijkstra 上更好</a></h2>
+<p>四叉堆、八叉堆在实践中比二叉堆更快, 为什么？</p>
+<ul>
+<li><strong>更浅</strong>: log_d n vs log_2 n, <strong>树高减半-三分之一</strong>;</li>
+<li><strong>更宽</strong>: 即每次 sift_down 要比 d 个孩子 (而不是 2 个), <strong>常数更大</strong>;</li>
+<li><strong>cache locality 更好</strong>: 数组的横切面被 cache line 覆盖时, 一个 cache line 同时有 d 个孩子.</li>
+</ul>
+<p><strong>实测</strong>: Dijkstra 在四叉堆上比二叉堆略快; 但 16 叉以上反而退化——因为 d 太大让 sift_down 的 compare 开销超过 cache 收益.</p>
+<p>这就是为什么 cpp <code>boost.heap</code> 等默认 d = 4 而不是 d = 2.</p>
+<h2 id="go-的-heap-接口实现"><a class="header" href="#go-的-heap-接口实现">Go 的 heap 接口实现</a></h2>
+<pre><code class="language-go">type IntHeap []int
+func (h IntHeap) Len() int           { return len(h) }
+func (h IntHeap) Less(i, j int) bool { return h[i] &lt; h[j] }
+func (h IntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *IntHeap) Push(x any)        { *h = append(*h, x.(int)) }
+func (h *IntHeap) Pop() any {
+    n := len(*h); x := (*h)[n-1]
+    *h = (*h)[:n-1]
+    return x
+}
+// 调用: heap.Init(&amp;h); heap.Push(&amp;h, 3); heap.Pop(&amp;h)
+</code></pre>
+<p>Go 标准库 <code>container/heap</code> 完整支持索引堆的写法: 在 Swap 里同时更新 pos[v]. 这是工程中 Dijkstra 类问题最常见的代码骨架.</p>
+<h2 id="多语言对比"><a class="header" href="#多语言对比">多语言对比</a></h2>
+<pre><code class="language-python">import heapq
+h = []
+heapq.heappush(h, 1)
+heapq.heappop(h)
+</code></pre>
+<pre><code class="language-cpp">#include &lt;queue&gt;
+std::priority_queue&lt;int, std::vector&lt;int&gt;, std::greater&lt;int&gt;&gt; h;  // 最小堆
+h.push(1); h.top(); h.pop();
+// 注意 priority_queue 不支持 erase 任意元素 - 需要自定义 + 墓碑
+</code></pre>
+<pre><code class="language-ts">// TS 没有内置, 自实现:
+class Heap&lt;T&gt; { /* ... siftdown, siftup ... */ }
+</code></pre>
+<h2 id="经典题"><a class="header" href="#经典题">经典题</a></h2>
+<ul>
+<li>LC 215 Kth Largest (最小堆 vs sort 取小 k);</li>
+<li>LC 347 Top K Frequent;</li>
+<li>LC 295 数据流的中位数: 双堆 - 左最大 + 右最小;</li>
+<li>LC 23 合并 K 个有序链表;</li>
+<li>LC 502 IPO: 贪心 + 堆.</li>
+</ul>
+<h2 id="软件硬件视角"><a class="header" href="#软件硬件视角">软件/硬件视角</a></h2>
+<ul>
+<li>中位数维护双堆=对 cache line 同时友好: 双 Heap 数组 cache 常驻;</li>
+<li>堆在 FPGA 上是 streaming-friendly sort: 每 cycle push 一个 / pop 一个 = pipeline pattern;</li>
+<li>堆在 persistent memory 里要注意: 太多 in-place 改 → 顺序写坏. Google 关注 "consistent heap" 是这个方向.</li>
+</ul>
+<h2 id="易错"><a class="header" href="#易错">易错</a></h2>
+<ol>
+<li><strong>维护 pos[v] 时忘更新</strong>: sift 中 swap 后必须同步更新 <code>pos[heap[i]] = i</code>;</li>
+<li><strong>d-ary 堆 sift_down 的比较循环搞反</strong>;</li>
+<li><strong>continue 条件位置错了</strong>: 堆会退化;</li>
+</ol>
+<h2 id="这一章带走的东西"><a class="header" href="#这一章带走的东西">这一章带走的东西</a></h2>
+<ul>
+<li>Heap = 完全二叉树 + 父子序 + 数组表示;</li>
+<li>heapify O(n) 不是 O(n log n) - 数学推导;</li>
+<li>索引堆 = Dijkstra 必备;</li>
+<li>d-ary 在 cache 现实下 ≈ 4 最佳;</li>
+<li>堆在 FPGA 是 streaming pattern 同构.</li>
+</ul>
+<p>下一节 → <a href="trie-union.html">字典树与并查集</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../../dsa/structures/trees/btree.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../../dsa/structures/trees/trie-union.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../../dsa/structures/trees/btree.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../../dsa/structures/trees/trie-union.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../../elasticlunr.min.js"></script>
+        <script src="../../../mark.min.js"></script>
+        <script src="../../../searcher.js"></script>
+
+        <script src="../../../clipboard.min.js"></script>
+        <script src="../../../highlight.js"></script>
+        <script src="../../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../../katex/katex.min.js"></script>
+        <script src="../../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../../katex-init.js"></script>
+        <script src="../../../mermaid.min.js"></script>
+        <script src="../../../mermaid-init.js"></script>
+        <script src="../../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

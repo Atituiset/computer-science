@@ -1,0 +1,517 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>4. 图灵机：deterministic / non-deterministic / Church-Turing - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="4-图灵机-deterministic--non-deterministic--church-turing"><a class="header" href="#4-图灵机-deterministic--non-deterministic--church-turing">4. 图灵机: deterministic / non-deterministic / Church-Turing</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>PDA 用栈做工作内存——但仍受单点读写限制。图灵机 (Turing Machine, TM) 把工作内存换成<strong>双向无限 tape + 可左右移动的读写头</strong>, 一下子获得了完整可计算性。本章把 TM 形式化, 解释 DTM vs NTM 等价 (在"算得动什么"层面), 并展示<strong>Church-Turing Thesis</strong>为何被认作"算法"的本质定义。Chruch-Turing 提供的"完全可计算"上界把后续章节 (不可判定, 复杂度) 的所有结论兜底——任何"算法" 函数必可由 TM 实现。</p>
+<hr />
+<h2 id="一tm-形式定义-7-tuple"><a class="header" href="#一tm-形式定义-7-tuple">一、TM 形式定义 (7-tuple)</a></h2>
+<p>$$ M = (Q, \Sigma, \Gamma, \delta, q_0, q_{\text{accept}}, q_{\text{reject}}) $$</p>
+<ul>
+<li>$Q$: 有限状态集.</li>
+<li>$\Sigma$: 输入字母表, $\Sigma \subsetneq \Gamma$.</li>
+<li>$\Gamma$: tape 字母表 (含空格符 $\sqcup$).</li>
+<li>$\delta: Q \times \Gamma \to Q \times \Gamma \times {L, R}$: 转移函数 (DTM; NTM 用到 $2^{Q \times \Gamma \times {L,R}}$).</li>
+<li>$q_0$: 起始状态.</li>
+<li>$q_{\text{accept}}$ / $q_{\text{reject}}$: halting 状态, 不再走一步.</li>
+</ul>
+<p><strong>接受</strong>: 进入 $q_{\text{accept}}$ 即接受该输入。<strong>拒绝</strong>: 进入 $q_{\text{reject}}$ 或永远运行不停 (后者即"循环").</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>TM 与 DFA/PDA 最大不同: TM 可以<strong>循环</strong>——PDA 读完输入就有定论 (理应停), TM 不强制停下。这就是停机问题之根。 SVM 横高。</p>
+</div>
+<pre class="mermaid">flowchart LR
+    subgraph Tape[&quot;双向无限带: ⋯ ⋯ ⋯&quot;]
+        c0[&quot;w1&quot;] --- c1[&quot;w2&quot;] --- c2[&quot;w3&quot;] --- c3[&quot;⊔&quot;] --- c4[&quot;⊔&quot;]
+    end
+    hd[&quot;读写头当前在 w2&quot;]
+    ctrl[&quot;有限控制: 当前状态 q&lt;br/&gt;δ(q, w2) = (q', w', L/R)&quot;]
+    hd -.读.-&gt; c1
+    c1 -.写后移动.-&gt; hd
+</pre>
+<hr />
+<h2 id="二instantaneous-description-与一步"><a class="header" href="#二instantaneous-description-与一步">二、Instantaneous Description 与一步</a></h2>
+<p>ID 标记: $u,q,v$ 表示带内为 $uv$ (其余默认是 $\sqcup$), 状态 $q$, 读写头指向 $v$ 的首字符.</p>
+<p>转移 $\delta(q, a) = (r, b, R)$ 表示:
+$$ u,q,a,v ;\vdash; u,b,r,v $$
+(把当前格写 b, 状态变 r, 头右移一格).</p>
+<p>同理 $\delta(q, a) = (r, b, L)$:
+$$ u,x,q,a,v ;\vdash; u,r,x,b,v $$</p>
+<p>接受 $\Leftrightarrow$ $u_0 q_0 w \vdash^* u q_{\text{accept}} v$ for some $u, v$.</p>
+<hr />
+<h2 id="三例子-接受-an-bn-cn"><a class="header" href="#三例子-接受-an-bn-cn">三、例子: 接受 $a^n b^n c^n$</a></h2>
+<p>构造如下:</p>
+<pre><code>1. 进入状态 q_loop: 不断在输入上扫
+   - 看一个 a, 改写为 X, 走到第一个 b, 改 Y, 走到第一个 c, 改 Z, 回头
+2. 重复直到全部 a 改 X (无 a 残留), 检查是否所有 b 都已改 Y, 所有 c 都已改 Z
+3. 检查通过 → accept; 否则 → reject
+</code></pre>
+<p>伪代码 (typical TM 转移表):</p>
+<div class="table-wrapper"><table><thead><tr><th>当前态</th><th>读到</th><th>新态</th><th>写</th><th>移</th></tr></thead><tbody>
+<tr><td>q1 (找 a)</td><td>a</td><td>q2</td><td>X</td><td>R</td></tr>
+<tr><td>q1</td><td>Y</td><td>q1</td><td>Y</td><td>R</td></tr>
+<tr><td>q1</td><td>Z</td><td>q1</td><td>Z</td><td>R</td></tr>
+<tr><td>q1</td><td>⊔</td><td>q_accept</td><td>⊔</td><td>R</td></tr>
+<tr><td>q2 (找 b)</td><td>a</td><td>q2</td><td>a</td><td>R</td></tr>
+<tr><td>q2</td><td>Y</td><td>q2</td><td>Y</td><td>R</td></tr>
+<tr><td>q2</td><td>b</td><td>q3</td><td>Y</td><td>R</td></tr>
+<tr><td>q2</td><td>⊔</td><td>q_reject</td><td>⊔</td><td>R</td></tr>
+<tr><td>q3 (找 c)</td><td>a</td><td>q3</td><td>a</td><td>R</td></tr>
+<tr><td>q3</td><td>Y</td><td>q3</td><td>Y</td><td>R</td></tr>
+<tr><td>q3</td><td>b</td><td>q3</td><td>b</td><td>R</td></tr>
+<tr><td>q3</td><td>Z</td><td>q3</td><td>Z</td><td>R</td></tr>
+<tr><td>q3</td><td>c</td><td>q4</td><td>Z</td><td>L</td></tr>
+<tr><td>q3</td><td>⊔</td><td>q_reject</td><td>⊔</td><td>R</td></tr>
+<tr><td>q4 (回 a)</td><td>a/Y/Z</td><td>q4</td><td>(保持)</td><td>L</td></tr>
+<tr><td>q4</td><td>X</td><td>q1</td><td>X</td><td>R</td></tr>
+</tbody></table>
+</div>
+<p>跨步回 X 就开始下一次扫描. 最后所有 a 都被 X 标记, 所有 b 都被 Y, 所有 c 都被 Z, 才按数匹配; 否则 reject.</p>
+<hr />
+<h2 id="四tm-模拟器-python"><a class="header" href="#四tm-模拟器-python">四、TM 模拟器 (Python)</a></h2>
+<pre><code class="language-python">from typing import Dict, Tuple, Set, Optional
+from collections import defaultdict
+
+class TM:
+    def __init__(self, Q, Gamma, delta, q0, q_accept, q_reject):
+        self.Q, self.Gamma = Q, Gamma
+        self.delta = delta   # dict[(state, symbol)] -&gt; (next_state, write, 'L' or 'R')
+        self.q0 = q0
+        self.q_accept, self.q_reject = q_accept, q_reject
+
+    def run(self, w: str, max_steps: int = 100_000) -&gt; Optional[bool]:
+        tape = list(w) or ['_']    # 至少一格以便读写
+        head = 0
+        q = self.q0
+        steps = 0
+        while q not in (self.q_accept, self.q_reject):
+            if steps &gt; max_steps:
+                return None
+            ch = tape[head] if 0 &lt;= head &lt; len(tape) else '_'
+            if head &lt; 0:
+                tape.insert(0, '_'); head = 0
+            if head &gt;= len(tape):
+                tape.append('_')
+            r = self.delta.get((q, ch))
+            if r is None: return False
+            nq, write, mv = r
+            tape[head] = write
+            head += -1 if mv == 'L' else 1
+            q = nq
+            steps += 1
+        return q == self.q_accept
+</code></pre>
+<p>注意 tape 双向无限是 lazy 实现: 越界时动态 prepend/append 空格.</p>
+<h3 id="41-typescript-实现"><a class="header" href="#41-typescript-实现">4.1 TypeScript 实现</a></h3>
+<pre><code class="language-ts">export type TM = {
+  delta: Map&lt;string, { q: string; w: string; mv: 'L' | 'R' }&gt;;
+  q0: string;
+  qAccept: string;
+  qReject: string;
+};
+
+export function runTM(m: TM, w: string, maxSteps = 100_000): boolean | null {
+  const tape: string[] = w.length ? [...w] : ['_'];
+  let head = 0;
+  let q = m.q0;
+  for (let step = 0; step &lt; maxSteps; step++) {
+    if (q === m.qAccept) return true;
+    if (q === m.qReject) return false;
+    if (head &lt; 0) { tape.unshift('_'); head = 0; }
+    if (head &gt;= tape.length) tape.push('_');
+    const t = m.delta.get(`${q}|${tape[head]}`);
+    if (!t) return false;
+    tape[head] = t.w;
+    head += t.mv === 'L' ? -1 : 1;
+    q = t.q;
+  }
+  return null;
+}
+</code></pre>
+<hr />
+<h2 id="五dtm-vs-ntm-等价"><a class="header" href="#五dtm-vs-ntm-等价">五、DTM vs NTM 等价</a></h2>
+<p>非确定性 TM: $\delta: Q \times \Gamma \to 2^{Q \times \Gamma \times {L,R}}$. 接受 iff 存在一条 computation branch 到 $q_{\text{accept}}$.</p>
+<p><strong>定理</strong>: NTM $N$ 接受语言 $L$  iff  存在 DTM $M$ 接受 $L$. 证明思路: 不必模拟具体选择分支——用 BFS 探索 computation tree, <strong>dovetail</strong> (交错运行所有分支, 一边推进一边 elimination), 终会发现某接受态. 但模拟代价: 选 k 路 / 步, 深度 t → DTM 状态 $O(b^t)$, <strong>指数级 slowdown</strong>.</p>
+<p>关键意义: 在"算得了什么"层面二者等价; 在"算得多快"层面 NTM 有指数加速. 这就是 NP 的定义底座 (NTM 多项式时间 ⇒ DTM 可验证).</p>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>二者在 $\mathcal{R}$ (递归) 与 $\mathcal{RE}$ (RE) 这一层等价; 在 P 与 NP 这层至今开放——P=NP? 这是七大千禧难题之一, 与 2002 年 Sipser 教材中 "P vs NP" 公开题对应.</p>
+</div>
+<hr />
+<h2 id="六tm-变体与等价"><a class="header" href="#六tm-变体与等价">六、TM 变体与等价</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>变体</th><th>表达力</th></tr></thead><tbody>
+<tr><td>单带 DTM</td><td>标准</td></tr>
+<tr><td>多带 DTM</td><td>等价 (k 带模拟单带 O(t²) 复杂度)</td></tr>
+<tr><td>双向无限带</td><td>等价单向无限带</td></tr>
+<tr><td>2-stack PDA</td><td>等价 TM</td></tr>
+<tr><td>2-counter Minsky machine</td><td>等价 TM (强反直觉)</td></tr>
+<tr><td>Cellular automaton (1D)</td><td>等价 TM</td></tr>
+<tr><td>Tag system</td><td>等价 TM</td></tr>
+<tr><td>Quantum TM</td><td>与 TM 在"可识别"层面等价; 复杂度差异由 BQP</td></tr>
+</tbody></table>
+</div>
+<p><strong>Minsky 2-counter</strong>: 仅两个整数寄存器 + 加减一 + 零测试, 已是 Turing-complete. 这对 brainfuck / assembly 这类极简语言证明 Turing-complete 提供"模板".</p>
+<hr />
+<h2 id="七语言层级"><a class="header" href="#七语言层级">七、语言层级</a></h2>
+<ul>
+<li>$\mathcal{R}$ (recursive / decidable): 存在 DTM 必停且正确判定的语言.</li>
+<li>$\mathcal{RE}$ (recursively enumerable): 存在 DTM 接受所有 ∈ L 的输入, 但不在 L 上可能<strong>永不停</strong>.</li>
+<li>co-$\mathcal{RE}$: $\mathcal{RE}$ 的补; 接受所有 not in $L$ 的输入.</li>
+<li>$\mathcal{RE} \cap \text{co-}\mathcal{RE}$ = ${L \mid L \text{ and } \overline{L} \text{ both RE}}$ = $\mathcal{R}$. (经典定理)</li>
+</ul>
+<p>关系: $\mathcal{R} \subsetneq \mathcal{RE}$. 停机问题 $H$ 在 $\mathcal{RE}$ 但不在 $\mathcal{R}$, 其补 $\overline{H}$ 不在 $\mathcal{RE}$. 这把语义 cap 给下一章.</p>
+<hr />
+<h2 id="八church-turing-thesis"><a class="header" href="#八church-turing-thesis">八、Church-Turing Thesis</a></h2>
+<p>形式命题 (非定理, 是"论题"): "直觉上可计算的 = TM 可计算的". 验证工具:</p>
+<ul>
+<li><strong>Church</strong> (1936) 用 λ-calculus 给同样"算法"集合.</li>
+<li><strong>Turing</strong> (1936) 用 Turing Machine.</li>
+<li><strong>Post</strong> (1936) canonical systems.</li>
+<li><strong>Gödel</strong> (1934) general recursive functions.</li>
+<li><strong>Markov</strong> 算法.</li>
+<li>现代: 固定型编程语言 (Haskell/Python/C/A concrete Turing-equivalent).</li>
+</ul>
+<p>之后所有自然计算模型都最终被证明等价于 TM. 但严格说<strong>只对"经典串计算"成立</strong>——量子计算机算 BQP ⊆ 不可解超越超多项差异, 但教会论题仍兼容这些模型 (BQP 仍可由 TM 模拟, 只是超多项慢).</p>
+<h3 id="81-对工程而言"><a class="header" href="#81-对工程而言">8.1 对工程而言</a></h3>
+<p>任何图灵完备的编程语言 (C / Java / Python / Rust / Lua / Lisp / Brainfuck) 都能模拟任何其他图灵完备语言. 不能模拟的不可计算函数 (停机判定, virus detection) 在<strong>任何</strong>语言都不能模拟. 这给"程序分析不可能 100% 准确"纯粹形式化背书.</p>
+<hr />
+<h2 id="九universal-tm-utm"><a class="header" href="#九universal-tm-utm">九、Universal TM (UTM)</a></h2>
+<p>存在可编码任意 TM 的 UTM: 输入 $\langle M \rangle w$ (TM 编码 + 输入), 模拟 $M$ 在 $w$ 上跑.</p>
+<p>构造: 把 $\langle M \rangle$ 当 tape 上数据, UTM 用三层 loop 模拟:</p>
+<ul>
+<li>当前状态 + 当前置 读写头位置.</li>
+<li>查表 (用 $\langle M \rangle$ 解决) 找对应转移.</li>
+<li>改写 tape + 移头 + 改态.</li>
+</ul>
+<p>意义: 计算硬件可"程序即数据"——这条原理 1945 直接孕育了 Von Neumann 架构. 至今 CPU 编译产物存指令在内存里跑, 同形存储, 直接源自 UTM.</p>
+<hr />
+<h2 id="十busy-beaver-忙碌海狸"><a class="header" href="#十busy-beaver-忙碌海狸">十、Busy Beaver (忙碌海狸)</a></h2>
+<p>记 $\Sigma(k)$ = k 状态 TM 跑出的最大 1 个数后停; $S(k)$ = 最大 steps 后停.</p>
+<p>Rado 1962 提出, 是"小但不可计算"序列典型代表:</p>
+<div class="table-wrapper"><table><thead><tr><th>k</th><th>$\Sigma(k)$</th><th>$S(k)$</th></tr></thead><tbody>
+<tr><td>1</td><td>1</td><td>1</td></tr>
+<tr><td>2</td><td>4</td><td>6</td></tr>
+<tr><td>3</td><td>6</td><td>21</td></tr>
+<tr><td>4</td><td>13</td><td>107</td></tr>
+<tr><td>5</td><td>≥4098 (2022 推到 ≥47M)</td><td>≥47M (iterates Graham)</td></tr>
+<tr><td>6</td><td>&gt;10↑↑15</td><td>(实不可推算)</td></tr>
+</tbody></table>
+</div>
+<p>$\Sigma(k)$ 增长 <strong>超过任何</strong>可计算函数 $f$ (无论多快). 证明: 反证, 设可计算, 则构造 TM $M$: 找到 $k$ 使 $\Sigma(k) &gt; n \cdot \log_2 f(m)$, 把 $f$ 公式嵌入循环——可自我产生矛盾.</p>
+<p>工程意义: 与 Ackermann 函数 (DSA 数论章给出) 同级反直觉"非可计算"实例; 任何自诩"确定上限"的代码静态分析都面临 Busy Beaver 镜面——你不可能证明任意 100 行 C 程序在合理时间内停.</p>
+<hr />
+<h2 id="十一与其他章节的桥"><a class="header" href="#十一与其他章节的桥">十一、与其他章节的桥</a></h2>
+<ul>
+<li><strong>下一节 [不可判定]</strong>: 把"$H$ 不在 $\mathcal{R}$"展开. Rice 定理把"判定程序任意非平凡语义性质" universalize fail.</li>
+<li><strong>第五部分 [compilers]</strong>: 解析器是 PDA, 但除了 CFG 之外, 类型推断 (Hindley-Milner) 是有限阶语法——用 TM 派生不会爆炸. 实验证: 全 ML 类型系统等价一种有限阶 Polymorphic λ-calculus, 而后者图灵完全.</li>
+<li><strong>第八部分 [computer-arch]</strong>: 物理 CPU + 内存 = TM 实体化; quantum GPU = BQP 实体化.</li>
+</ul>
+<hr />
+<p>下一节 → <a href="undecidability.html">不可判定性</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../theory/cfg-pda.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../theory/undecidability.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../theory/cfg-pda.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../theory/undecidability.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

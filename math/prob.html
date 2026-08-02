@@ -1,0 +1,596 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>3. 概率统计: 分布 / 贝叶斯 / MLE / MAP / 极限 / KL - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="3-概率统计-分布--贝叶斯--mle--map--极限--kl"><a class="header" href="#3-概率统计-分布--贝叶斯--mle--map--极限--kl">3. 概率统计: 分布 / 贝叶斯 / MLE / MAP / 极限 / KL</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>工程里的"概率"是<strong>刻画不确定性的语言</strong>: 你不知道这台机器 next minute 崩不崩, 但你能给一个分布; 你不知道 key 碰撞概率, 但你能算 bound; 你不知道 transformer 学到的 embedding 集中在哪儿, 但你能用 KL 散度告诉它"靠近分布 $P$ 别乱漂". 这一篇覆盖:</p>
+<ol>
+<li><strong>概率空间与随机变量</strong> — PSPACE / 离散 vs 连续 / pmf vs pdf / CDF.</li>
+<li><strong>期望 / 方差 / 协方差</strong> — 随机变量的"代数".</li>
+<li><strong>核心分布家族</strong> — Bernoulli / Binomial / Geometric / Poisson / Uniform / Exponential / Normal / Categorical / Multinomial.</li>
+<li><strong>联合、条件、贝叶斯</strong> — $\Pr(A|B) = \Pr(B|A)\Pr(A)/\Pr(B)$; 一句话逼回去重写不少系统.</li>
+<li><strong>MLE / MAP / EM</strong> — 数据 → 参数的反推; ML 训练就是 MLE 大写版.</li>
+<li><strong>极限定理: LLN / CLT / 大偏差</strong> — "为什么 N=30 够了 / 为什么 4-sigma rarely".</li>
+<li><strong>熵 / 交叉熵 / KL 散度</strong> — 信息论与 ML 的最小公因子, 见信息论章节.</li>
+<li><strong>万一线性 GC 不可解的不确定</strong>: Concentration inequalities — Markov / Chebyshev / Hoeffding.</li>
+</ol>
+<p>目标: 看到 "$\arg\max_\theta \prod_i p(x_i|\theta)$" 与 "$\arg\max_\theta \mathbb{E}_{z \sim q}[\ldots]$" 不再绕路查.</p>
+<hr />
+<h2 id="一概率空间与随机变量"><a class="header" href="#一概率空间与随机变量">一、概率空间与随机变量</a></h2>
+<h3 id="11-三件套-kolmogorov-公理"><a class="header" href="#11-三件套-kolmogorov-公理">1.1 三件套 (Kolmogorov 公理)</a></h3>
+<p>概率空间 $(\Omega, \mathcal{F}, \Pr)$:</p>
+<ul>
+<li>$\Omega$ = 样本空间 (一切可能结果).</li>
+<li>$\mathcal{F} \subseteq 2^\Omega$ = 事件 $\sigma$-代数 (对补、可数并封闭).</li>
+<li>$\Pr: \mathcal{F} \to [0, 1]$ 满足:
+<ol>
+<li>$\Pr(\Omega) = 1$.</li>
+<li>$\Pr(E) \geq 0$.</li>
+<li>可数可加: 不相交 $E_i$ ⇒ $\Pr(\bigcup E_i) = \sum \Pr(E_i)$.</li>
+</ol>
+</li>
+</ul>
+<p><strong>随机变量</strong> $X: \Omega \to \mathbb{R}$, 它把"实验结果"映射成数值. $X$ 决定概率分布 $\Pr_X(S) = \Pr(X^{-1}(S))$.</p>
+<h3 id="12-离散-vs-连续"><a class="header" href="#12-离散-vs-连续">1.2 离散 vs 连续</a></h3>
+<ul>
+<li>离散: 概率质量函数 (pmf) $p_X(x) = \Pr(X = x)$.</li>
+<li>连续: 概率密度函数 (pdf) $f_X$; $\Pr(a \leq X \leq b) = \int_a^b f_X(x) dx$; pdf 可 &gt; 1.</li>
+</ul>
+<p><strong>累计分布 (CDF)</strong>: $F_X(t) = \Pr(X \leq t)$. 单调非降, 右连续, $\lim_{t\to-\infty}F=0$, $\lim_{t\to\infty}F=1$.</p>
+<h3 id="13-联合--边缘--条件"><a class="header" href="#13-联合--边缘--条件">1.3 联合 / 边缘 / 条件</a></h3>
+<ul>
+<li>联合 pmf/pdf: $p_{X,Y}(x, y)$ 或 $f_{X,Y}(x, y)$.</li>
+<li>边缘: $p_X(x) = \sum_y p_{X,Y}(x, y)$ (离散) 或 $\int f_{X,Y}(x, y) dy$ (连续).</li>
+<li>条件: $p(x | y) = p(x, y) / p(y)$.</li>
+</ul>
+<hr />
+<h2 id="二期望与方差"><a class="header" href="#二期望与方差">二、期望与方差</a></h2>
+<h3 id="21-期望"><a class="header" href="#21-期望">2.1 期望</a></h3>
+<p>$$ \mathbb{E}[X] = \begin{cases} \sum_x x , p(x) &amp; \text{离散} \ \int x , f(x), dx &amp; \text{连续} \end{cases} $$</p>
+<p><strong>线性性</strong> (无论是否独立): $\mathbb{E}[aX + bY] = a \mathbb{E}[X] + b \mathbb{E}[Y]$.</p>
+<p><strong>乘积</strong>: $\mathbb{E}[XY] = \mathbb{E}[X]\mathbb{E}[Y]$ 仅当 $X, Y$ 独立.</p>
+<p><strong>Jensen 不等式</strong>: $\varphi$ 凸 ⇒ $\mathbb{E}[\varphi(X)] \geq \varphi(\mathbb{E}[X])$.</p>
+<h3 id="22-方差与协方差"><a class="header" href="#22-方差与协方差">2.2 方差与协方差</a></h3>
+<p>$$ \operatorname{Var}(X) = \mathbb{E}[(X - \mu)^2] = \mathbb{E}[X^2] - (\mathbb{E}[X])^2 $$</p>
+<p>$$ \operatorname{Cov}(X, Y) = \mathbb{E}[(X - \mathbb{E}X)(Y - \mathbb{E}Y)] = \mathbb{E}[XY] - \mathbb{E}X\mathbb{E}Y $$</p>
+<p>$$ \operatorname{Cov}(aX, Y) = a \operatorname{Cov}(X, Y), \quad \operatorname{Var}(X \pm Y) = \operatorname{Var}X + \operatorname{Var}Y \pm 2\operatorname{Cov}(X, Y) $$</p>
+<p>独立 ⇒ 协方差为 0 (逆命题不成立). 反例: $Y = X^2$, $X$ 取 ±1.</p>
+<p><strong>相关系数</strong> $\rho = \mathrm{Cov}/(\sigma_X \sigma_Y) \in [-1, 1]$.</p>
+<h3 id="23-标准化与-z-score"><a class="header" href="#23-标准化与-z-score">2.3 标准化与 z-score</a></h3>
+<p>$$ z = \frac{X - \mu}{\sigma} $$</p>
+<p>→ 标准化的 $z$ 期望 0, 方差 1. Six-Sigma / Grubbs 检验 / 异常点检测都基于这个.</p>
+<hr />
+<h2 id="三核心分布家族"><a class="header" href="#三核心分布家族">三、核心分布家族</a></h2>
+<h3 id="31-离散"><a class="header" href="#31-离散">3.1 离散</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>名称</th><th>pmf</th><th>期望 / 方差</th><th>用法</th></tr></thead><tbody>
+<tr><td><strong>Bernoulli</strong> $B(p)$</td><td>$p^x(1-p)^{1-x}$</td><td>$\mu = p$, $\sigma^2 = p(1-p)$</td><td>一次试验 / 一行二分</td></tr>
+<tr><td><strong>Binomial</strong> $\mathrm{Bin}(n,p)$</td><td>$\binom{n}{k} p^k (1-p)^{n-k}$</td><td>$\mu = np$, $\sigma^2 = np(1-p)$</td><td>$n$ 次独立, count</td></tr>
+<tr><td><strong>Geometric</strong> $\mathrm{Geom}(p)$</td><td>$(1-p)^{k-1} p$</td><td>$\mu = 1/p$</td><td>首次成功次数</td></tr>
+<tr><td><strong>Poisson</strong> $\mathrm{Poi}(\lambda)$</td><td>$e^{-\lambda} \lambda^k / k!$</td><td>$\mu = \sigma^2 = \lambda$</td><td>单位时间事件数</td></tr>
+<tr><td><strong>Negative Binomial</strong></td><td>$\binom{k+r-1}{k} p^k (1-p)^r$</td><td></td><td>直到 r 次成功</td></tr>
+<tr><td><strong>Categorical</strong></td><td>$p_1, \ldots, p_K$</td><td>—</td><td>似 1-of-K, softmax 输出</td></tr>
+<tr><td><strong>Multinomial</strong></td><td>$\frac{n!}{\prod x_i!}\prod p_i^{x_i}$</td><td>$\mathbb{E}[X_i] = n p_i$</td><td>多类计数; transformer 词频</td></tr>
+</tbody></table>
+</div>
+<p><strong>Poisson 公式直觉</strong>: 当 $n \to \infty, p \to 0, np \to \lambda$ 时, $\mathrm{Bin}(n, p) \to \mathrm{Poi}(\lambda)$. 这就是网络中"罕见事件计数"为何都用 Poisson.</p>
+<h3 id="32-连续"><a class="header" href="#32-连续">3.2 连续</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>名称</th><th>pdf</th><th>期望 / 方差</th><th>用法</th></tr></thead><tbody>
+<tr><td><strong>Uniform</strong> $U(a,b)$</td><td>$\frac{1}{b-a}$</td><td>$\mu = \frac{a+b}{2}$, $\sigma^2 = \frac{(b-a)^2}{12}$</td><td>假设为先验 / 随机采</td></tr>
+<tr><td><strong>Exponential</strong> $\mathrm{Exp}(\lambda)$</td><td>$\lambda e^{-\lambda x}$</td><td>$\mu = 1/\lambda$, $\sigma^2 = 1/\lambda^2$</td><td>无记忆性, 排队论/MTBF</td></tr>
+<tr><td><strong>Normal</strong> $\mathcal{N}(\mu, \sigma^2)$</td><td>$\frac{1}{\sqrt{2\pi\sigma^2}} e^{-(x-\mu)^2/(2\sigma^2)}$</td><td>$\mu$, $\sigma^2$</td><td>CLT 产物</td></tr>
+<tr><td><strong>Gamma</strong> $\Gamma(\alpha, \beta)$</td><td>$\frac{\beta^\alpha}{\Gamma(\alpha)}x^{\alpha-1}e^{-\beta x}$</td><td>$\alpha/\beta$, $\alpha/\beta^2$</td><td>Exp 推广; 等待时间和</td></tr>
+<tr><td><strong>Beta</strong> $\mathrm{Beta}(\alpha, \beta)$</td><td>$\frac{x^{\alpha-1}(1-x)^{\beta-1}}{B(\alpha,\beta)}$</td><td>—</td><td>$[0,1]$ 上概率的先验</td></tr>
+<tr><td><strong>Chi-sq</strong> $\chi^2_k$</td><td>$\Gamma(k/2, 1/2)$</td><td>$k$, $2k$</td><td>统计检验</td></tr>
+<tr><td><strong>Student's t</strong></td><td>—</td><td>—</td><td>小样本, 未知方差</td></tr>
+</tbody></table>
+</div>
+<h3 id="33-正态分布皇冠属性"><a class="header" href="#33-正态分布皇冠属性">3.3 正态分布皇冠属性</a></h3>
+<p>$$ \mathcal{N}(\mu, \sigma^2): X = \mu + \sigma Z, Z \sim \mathcal{N}(0, 1) $$</p>
+<ul>
+<li><strong>68-95-99.7 法则</strong>: 1/2/3-sigma 范围内概率.</li>
+<li>标准 $Z = (X - \mu)/\sigma$.</li>
+<li>$\mathrm{Poi}(\lambda), \lambda \to \infty$ 渐近 $\mathcal{N}(\lambda, \lambda)$.</li>
+<li>独立正态之和仍正态 (稳定性).</li>
+</ul>
+<h3 id="34-多元正态-mvn"><a class="header" href="#34-多元正态-mvn">3.4 多元正态 (MVN)</a></h3>
+<p>$$ X \sim \mathcal{N}(\boldsymbol\mu, \Sigma), \quad f(\boldsymbol x) = \frac{1}{(2\pi)^{d/2}|\Sigma|^{1/2}} e^{-\frac{1}{2}(\boldsymbol x - \boldsymbol\mu)^\top \Sigma^{-1}(\boldsymbol x - \boldsymbol\mu)} $$</p>
+<ul>
+<li>$|\Sigma|$ 是协方差矩阵行列式.</li>
+<li>$\Sigma$ 正定 ⇒ 可写为 $\Sigma = L L^\top$, $X = \mu + L Z$ (采样技巧).</li>
+<li>边缘任意正态也是正态; 条件正态也是正态 (Bayesian inference 的便利).</li>
+</ul>
+<hr />
+<h2 id="四贝叶斯定理与全概率"><a class="header" href="#四贝叶斯定理与全概率">四、贝叶斯定理与全概率</a></h2>
+<h3 id="41-三段式"><a class="header" href="#41-三段式">4.1 三段式</a></h3>
+<p>$$ \Pr(A | B) = \frac{\Pr(B | A) \Pr(A)}{\Pr(B)} $$</p>
+<p>展开 $\Pr(B) = \sum_i \Pr(B | A_i) \Pr(A_i)$ 即<strong>全概率公式</strong>, 用于把"原因"$A_i$ 关联到"观察"$B$.</p>
+<h3 id="42-语言版图"><a class="header" href="#42-语言版图">4.2 语言版图</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>名称</th><th>公式</th><th>名号</th></tr></thead><tbody>
+<tr><td>后验</td><td>$\Pr(\theta</td><td>x)$</td></tr>
+<tr><td>似然</td><td>$\Pr(x</td><td>\theta)$</td></tr>
+<tr><td>先验</td><td>$\Pr(\theta)$</td><td>prior</td></tr>
+<tr><td>证据</td><td>$\Pr(x)$</td><td>evidence</td></tr>
+</tbody></table>
+</div>
+<p>$$ \text{posterior} \propto \text{likelihood} \cdot \text{prior} $$</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>这是 ML 里 Bayesian 的根基; 也是 Crypto "概率可忽略函数"与 Secure Sketch、Distributed 系统里"phase king""Byzantine agreement"的概率推理木骨架.</p>
+</div>
+<h3 id="43-经典例-罕见病阳性"><a class="header" href="#43-经典例-罕见病阳性">4.3 经典例: 罕见病阳性</a></h3>
+<p>发病率 $0.1%$, 检测阳性准确率 $99%$ (sensitivity=specificity=0.99). 你阳, 真病概率?</p>
+<p>$$ \Pr(\text{sick} | +) = \frac{0.99 \cdot 0.001}{0.99 \cdot 0.001 + 0.01 \cdot 0.999} \approx \frac{0.00099}{0.010989} \approx 9% $$</p>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>朴素直觉是"99% 检测准 ⇒ 真 99%". 实际是 9%——因为 prior 极稀疏. 这类 base-rate fallacy 在 ML 不平衡数据 / 监控告警 / IDS 系统里反复咬人.</p>
+</div>
+<h3 id="44-共轭先验速查"><a class="header" href="#44-共轭先验速查">4.4 共轭先验速查</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>似然</th><th>共轭先验</th><th>后验</th></tr></thead><tbody>
+<tr><td>Bernoulli</td><td>Beta</td><td>Beta</td></tr>
+<tr><td>Poisson</td><td>Gamma</td><td>Gamma</td></tr>
+<tr><td>Normal (已知 $\sigma$)</td><td>Normal</td><td>Normal</td></tr>
+<tr><td>Multinomial</td><td>Dirichlet</td><td>Dirichlet</td></tr>
+<tr><td>Exponential</td><td>Gamma</td><td>Gamma</td></tr>
+</tbody></table>
+</div>
+<p>→ LDA / 主题模型几乎全在这张表上演, 见后续 ML 章节.</p>
+<hr />
+<h2 id="五mle--map--em"><a class="header" href="#五mle--map--em">五、MLE / MAP / EM</a></h2>
+<h3 id="51-最大似然估计-mle"><a class="header" href="#51-最大似然估计-mle">5.1 最大似然估计 (MLE)</a></h3>
+<p>给定 i.i.d. 观测 $x_1, \ldots, x_n$, 取 $f(x; \theta)$ 的参数 $\theta$ 使观察到的数据<strong>最有说服力</strong>:</p>
+<p>$$ \hat\theta_{\text{MLE}} = \arg\max_\theta \prod_{i=1}^n f(x_i; \theta) $$</p>
+<p>工程上取 log 化为 sum:</p>
+<p>$$ \hat\theta_{\text{MLE}} = \arg\max_\theta \sum_i \log f(x_i; \theta) $$</p>
+<h3 id="52-几个经典-mle"><a class="header" href="#52-几个经典-mle">5.2 几个经典 MLE</a></h3>
+<p><strong>Bernoulli</strong>: $\hat p = \frac{1}{n} \sum x_i$ (样本均值).</p>
+<p><strong>Normal</strong> (未知 $\mu, \sigma^2$): $\hat\mu = \bar x$, $\hat\sigma^2 = \frac{1}{n}\sum (x_i - \bar x)^2$.</p>
+<p><strong>Uniform</strong> $U(0, \theta)$: $\hat\theta = \max x_i$. 注意 MLE 有偏 ($\mathbb{E}[\max] = \frac{n}{n+1}\theta$).</p>
+<h3 id="53-map--mle--prior"><a class="header" href="#53-map--mle--prior">5.3 MAP = MLE + Prior</a></h3>
+<p>$$ \hat\theta_{\text{MAP}} = \arg\max_\theta ; \prod f(x_i | \theta) \cdot p(\theta) $$</p>
+<p>MLE 即先验均匀的 MAP. 加入先验等同于<strong>正则化</strong>:</p>
+<ul>
+<li>似然 $\mathcal{N}(\bar x, \cdots)$ + 先验 $\theta \sim \mathcal{N}(0, \tau^2)$ ⇒ $\arg\min_\theta |y - X\theta|^2 + \frac{\sigma^2}{\tau^2} |\theta|^2$, 即 ridge regression.</li>
+<li>Laplacian 先验 ⇒ L1 = LASSO.</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>这就是机器学习里"为什么 L1 稀疏, L2 平滑"的数学根源——直接看先验的形状就行.</p>
+</div>
+<h3 id="54-em-算法-expectation-maximization"><a class="header" href="#54-em-算法-expectation-maximization">5.4 EM 算法 (Expectation-Maximization)</a></h3>
+<p>数据有隐变量 $z$ 时, 直接解 MLE 解不出. EM 迭代:</p>
+<ol>
+<li><strong>E 步</strong>: 写完整似然关于当前隐变量后验的期望
+$$ Q(\theta | \theta^{(t)}) = \mathbb{E}_{z | x, \theta^{(t)}}[\log p(x, z | \theta)] $$</li>
+<li><strong>M 步</strong>: $\theta^{(t+1)} = \arg\max_\theta Q(\theta | \theta^{(t)})$.</li>
+</ol>
+<p>应用: GMM (高斯混合), HMM (Baum-Welch), K-means (硬分版本).</p>
+<h3 id="55-elbo-与变分下界"><a class="header" href="#55-elbo-与变分下界">5.5 ELBO 与变分下界</a></h3>
+<p>$$ \log p(x) = \log \int p(x, z) dz \geq \mathbb{E}<em>{z \sim q}[\log p(x, z)] - \mathbb{E}</em>{z \sim q}[\log q(z)] $$</p>
+<p>右侧即 <strong>ELBO</strong> (Evidence Lower Bound), 见后续变分推断与 VAE. 最大化 ELBO ⇔ 最小化 $\mathrm{KL}(q | p)$.</p>
+<hr />
+<h2 id="六极限定理"><a class="header" href="#六极限定理">六、极限定理</a></h2>
+<h3 id="61-大数定律-lln"><a class="header" href="#61-大数定律-lln">6.1 大数定律 (LLN)</a></h3>
+<p>样本均值 $\bar X_n = \frac{1}{n}\sum X_i$ 几乎处处收敛到期望 $\mu$:</p>
+<p>$$ \bar X_n \xrightarrow{\text{a.s.}} \mu $$</p>
+<p>实践: Monte Carlo 取样本越多越逼近. <strong>没有"无法估计方差 → 我就多采样"的工程路径就靠它</strong>.</p>
+<h3 id="62-中心极限定理-clt"><a class="header" href="#62-中心极限定理-clt">6.2 中心极限定理 (CLT)</a></h3>
+<p>i.i.d. 期望 $\mu$ 方差 $\sigma^2$:</p>
+<p>$$ \sqrt n \cdot \frac{\bar X_n - \mu}{\sigma} \xrightarrow{d} \mathcal{N}(0, 1) $$</p>
+<p><strong>含义</strong>: 无论原分布, 样本均值经标准化渐近正态. 这就是正态分布"伞覆盖了一切"的成因; 也是 Bayes 不能免先验的 freq 默认.</p>
+<p><strong>例</strong>: 一枚硬币 $100$ 次, 头数近似正态, $\mu = 50, \sigma = 5$. 大概率落在 $[40, 60]$.</p>
+<h3 id="63-大偏差-chernoff--hoeffding"><a class="header" href="#63-大偏差-chernoff--hoeffding">6.3 大偏差 (Chernoff / Hoeffding)</a></h3>
+<p>LLN 说"最终到 $\mu$". 但要量化"偏离 $\epsilon$ 的概率多小":</p>
+<p><strong>Hoeffding 不等式</strong> (有界 $X_i \in [a_i, b_i]$):</p>
+<p>$$ \Pr\left[ \bar X_n - \mu \geq t \right] \leq \exp\left(-\frac{2 n^2 t^2}{\sum (b_i - a_i)^2}\right) $$</p>
+<p><strong>Chernoff bound</strong> (Bernoulli): $\Pr[\bar X_n \geq (p + \epsilon) n] \leq e^{-2 n \epsilon^2}$.</p>
+<p>→ 这就是"为什么 100 次抛硬币正反偏离 0.5 不超过 0.1 是 ~5%".</p>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>6-sigma (<code>Six Sigma</code>) 标准 = $6\sigma$ 容差 ⇒ defect rate &lt; 3.4 ppm = Hoeffding 直接给. 这是工业质检、A/B test 显著性、SLA 错误预算的概率骨架.</p>
+</div>
+<h3 id="64-markov--chebyshev--推导链"><a class="header" href="#64-markov--chebyshev--推导链">6.4 Markov / Chebyshev / 推导链</a></h3>
+<pre><code>Markov (最弱):    P[X ≥ a] ≤ E[X] / a               (X ≥ 0)
+Chebyshev:        P[|X - μ| ≥ t] ≤ Var X / t²
+Hoeffding:        exp(-2 n t²/(b-a)²)                 (i.i.d. 有界)
+Chernoff:         exp(-2 n ε²)                          (Bernoulli)
+</code></pre>
+<p>工程代码: 越往下用, 越用得上紧 (依赖越强 → bound 越松).</p>
+<h3 id="65-concentration-在-ml--distributed-的使用"><a class="header" href="#65-concentration-在-ml--distributed-的使用">6.5 Concentration 在 ML / Distributed 的使用</a></h3>
+<ul>
+<li>ML 中"经验风险 vs 真实风险" gap 用 Hoeffding 量化 (generalization).</li>
+<li>Distributed 中 quorum W+R&gt;N 的"读到最新写"概率 = majority 经 Chernoff 上界.</li>
+<li>测算 hash 冲撞概率 = birthday bound (鸽巢变体).</li>
+</ul>
+<hr />
+<h2 id="七信息论三件-熵--交叉熵--kl"><a class="header" href="#七信息论三件-熵--交叉熵--kl">七、信息论三件: 熵 / 交叉熵 / KL</a></h2>
+<h3 id="71-熵-重申信息论章-1"><a class="header" href="#71-熵-重申信息论章-1">7.1 熵 (重申信息论章 §1)</a></h3>
+<p>$$ H(X) = -\sum_x p(x) \log p(x), \quad H(X, Y), \quad H(X | Y), \quad I(X; Y) = H(X) - H(X | Y) $$</p>
+<p><strong>链式法则</strong>: $H(X, Y) = H(X) + H(Y | X)$.</p>
+<h3 id="72-kl-散度"><a class="header" href="#72-kl-散度">7.2 KL 散度</a></h3>
+<p>测两个分布 $p$ 与 $q$ 的"差异":</p>
+<p>$$ \mathrm{KL}(p | q) = \sum_x p(x) \log \frac{p(x)}{q(x)} $$</p>
+<ul>
+<li>$\mathrm{KL} \geq 0$, 等 0 当且仅当 $p = q$ a.s.</li>
+<li><strong>不对称</strong>: $\mathrm{KL}(p | q) \neq \mathrm{KL}(q | p)$. 选择方向决定 forward / reverse mode.</li>
+<li><strong>Forward</strong> $\mathrm{KL}(p | q)$: $q$ 必须覆盖 $p$ 全支撑; 倾向 mode-seeking 忽略低概率区.</li>
+<li><strong>Reverse</strong> $\mathrm{KL}(q | p)$: $q$ 倾向 mass-covering (mean-seeking), VAE 用这个.</li>
+</ul>
+<h3 id="73-交叉熵--熵--kl"><a class="header" href="#73-交叉熵--熵--kl">7.3 交叉熵 = 熵 + KL</a></h3>
+<p>$$ H(p, q) = H(p) + \mathrm{KL}(p | q) $$</p>
+<p>由于 $H(p)$ 对 $\theta$ 常量, <strong>最小化交叉熵 ⇔ 最小化 KL</strong>, ML 分类损失几乎全部用这个:</p>
+<p>$$ \mathcal{L}_{\text{CE}} = -\sum_i y_i \log \hat y_i $$</p>
+<h3 id="74-js-散度--对称化-kl"><a class="header" href="#74-js-散度--对称化-kl">7.4 JS 散度 = 对称化 KL</a></h3>
+<p>$$ \mathrm{JS}(p | q) = \frac{1}{2}\mathrm{KL}(p | m) + \frac{1}{2}\mathrm{KL}(q | m), ; m = (p+q)/2 $$</p>
+<p>GAN 的原始损失 = JS 的反向最大化.</p>
+<hr />
+<h2 id="八随机过程初步"><a class="header" href="#八随机过程初步">八、随机过程初步</a></h2>
+<h3 id="81-markov-链"><a class="header" href="#81-markov-链">8.1 Markov 链</a></h3>
+<p>状态空间 $S$, 转移 $P_{ij} = \Pr(X_{t+1} = j | X_t = i)$. <strong>无记忆性</strong>:</p>
+<p>$$ \Pr(X_{t+1} | X_t, \ldots, X_0) = \Pr(X_{t+1} | X_t) $$</p>
+<p>平稳分布 $\pi$: $\pi P = \pi$. 不可约+非周期 ⇒ 唯一, $P^k \to \mathbf{1}\pi^\top$.</p>
+<p><strong>应用</strong>: MCMC (Metropolis-Hastings / Gibbs), PageRank, HMM, 强化学习 (MDP 基础).</p>
+<h3 id="82-poisson-过程"><a class="header" href="#82-poisson-过程">8.2 Poisson 过程</a></h3>
+<p>事件到达速率 $\lambda$, 间隔 $\sim \mathrm{Exp}(\lambda)$ i.i.d.. 计数 $N(t) \sim \mathrm{Poi}(\lambda t)$.</p>
+<p><strong>应用</strong>: OS 排队论、CDN 缓存命中率、DB 连接池、限流桶.</p>
+<h3 id="83-排队论-mm1"><a class="header" href="#83-排队论-mm1">8.3 排队论 (M/M/1)</a></h3>
+<p>到达 Poisson, 服务 Exp, 1 个服务台:</p>
+<p>$$ \rho = \frac{\lambda}{\mu}, \quad L_q = \frac{\rho^2}{1-\rho}, \quad W_q = \frac{\rho/\mu}{1 - \rho} $$</p>
+<p>→ 资源利用率 $\rho \to 0.8$ 时队列开始爆炸, 这就是 SRE 不敢 &lt; 50% buffer 的原因.</p>
+<hr />
+<h2 id="九采样与估计实践"><a class="header" href="#九采样与估计实践">九、采样与估计实践</a></h2>
+<h3 id="91-monte-carlo"><a class="header" href="#91-monte-carlo">9.1 Monte Carlo</a></h3>
+<p>要算 $\mathbb{E}[f(X)]$ 没闭式 → 采样: $\frac{1}{n}\sum f(X_i)$, LLN 保证收敛, Hoeffding 给误差.</p>
+<pre><code class="language-python">import numpy as np
+def estimate_pi(n: int = 10_000_000) -&gt; float:
+    x = np.random.random(n); y = np.random.random(n)
+    return 4 * (x*x + y*y &lt; 1).mean()    # Naïve MC, σ ~ 0.5/√n
+# n=1e6 → π ≈ 3.1416 ± 5e-4
+</code></pre>
+<h3 id="92-重要采样-importance-sampling"><a class="header" href="#92-重要采样-importance-sampling">9.2 重要采样 (Importance Sampling)</a></h3>
+<p><strong>问题</strong>: 想算 $\mathbb{E}_p[f]$, 但只能从 $q$ 采样:</p>
+<p>$$ \mathbb{E}_p[f] = \mathbb{E}_q\left[f(x) \cdot \frac{p(x)}{q(x)}\right] $$</p>
+<p>→ 在 Off-policy RL / 罕见事件估计里必备. 也是 Transformer 推理"speculative decoding"的概率基础.</p>
+<h3 id="93-拒绝采样--metropolis"><a class="header" href="#93-拒绝采样--metropolis">9.3 拒绝采样 + Metropolis</a></h3>
+<ul>
+<li>拒绝采样: 找一个易采的 envelope $M q(x) \geq p(x)$, 采 $x \sim q$ 接受概率 $p(x)/(M q(x))$.</li>
+<li>Metropolis-Hastings: 当前 $x$, 提议 $x'$, 接受概率 $\min(1, \frac{p(x')q(x | x')}{p(x)q(x' | x)})$.</li>
+</ul>
+<hr />
+<h2 id="十结束--速查表"><a class="header" href="#十结束--速查表">十、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回:</p>
+<ul>
+<li><strong>期望</strong>: $\mathbb{E}[aX + bY] = a\mathbb{E}X + b\mathbb{E}Y$; 独立相乘: $\mathbb{E}[XY] = \mathbb{E}X\mathbb{E}Y$.</li>
+<li><strong>方差</strong>: $\operatorname{Var}(X \pm Y) = \operatorname{Var}X + \operatorname{Var}Y \pm 2\operatorname{Cov}$.</li>
+<li><strong>方差-期望公式</strong>: $\operatorname{Var}(X) = \mathbb{E}[X^2] - (\mathbb{E}[X])^2$.</li>
+<li><strong>Bernoulli</strong> $B(p)$: $\mu = p, \sigma^2 = p(1-p)$.</li>
+<li><strong>Poisson</strong> $\lambda$: $\mu = \sigma^2 = \lambda$; $\mathrm{Bin}(n,p_n) \to \mathrm{Poi}(np)$.</li>
+<li><strong>正态</strong>: $a + b Z \sim \mathcal{N}(a, b^2)$; 标准化 $(X-\mu)/\sigma$.</li>
+<li><strong>共轭</strong>: Beta-Bernoulli, Gamma-Poisson, Dirichlet-Multinomial.</li>
+<li><strong>贝叶斯</strong>: posterior ∝ likelihood × prior.</li>
+<li><strong>MLE/MAP</strong>: MLE = MAP-uniform; 联合类先验 Gaussian → ridge, Laplace → LASSO.</li>
+<li><strong>极限</strong>: $\bar X_n \to \mu$ (LLN); $\sqrt n (\bar X_n - \mu)/\sigma \to \mathcal{N}$ (CLT).</li>
+<li><strong>熵</strong>: $H(X) = -\sum p \log p$; 条件熵 $H(X|Y) = H(X, Y) - H(Y)$; 互信息 $I = H(X) - H(X|Y)$.</li>
+<li><strong>KL</strong>: $\mathrm{KL}(p | q) \geq 0$, 不对称; 交叉熵 = $H(p) + \mathrm{KL}$.</li>
+<li><strong>Markov 不等式 P[X ≥ a] ≤ E[X]/a</strong>; <strong>Hoeffding</strong> $\exp(-2n t^2/(b-a)^2)$.</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="calc-opt.html">4. 微积分与最优化: 链式法则 / 雅可比 / Hessian / 凸优化 / 信息几何</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../math/linalg.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../math/calc-opt.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../math/linalg.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../math/calc-opt.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

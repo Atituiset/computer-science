@@ -1,0 +1,469 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>逻辑时钟、向量时钟、HLC - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="逻辑时钟向量时钟hlc"><a class="header" href="#逻辑时钟向量时钟hlc">逻辑时钟、向量时钟、HLC</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>分布式系统<strong>无全局 wall clock</strong>——你不能用一个普通的 timestamp 来判定两事件先后。Lamport 1978 提出 <strong>Lamport Clock</strong>: 每节点维护单调自增 count, message 携带 count → 接收方更新成 max(local, msg_count)+1, 给事件一个<strong>全序但仅保因果 partial order</strong> 后将并发事件任意排序。Fidge 1988 与 Mattern 1989 各自独立发现 <strong>Vector Clock</strong>: N 节点维 N 维 count array 在节点间传播, 精确刻画 <code>happens-before</code>, 区分 concurrent vs causal-ordered pair。<strong>HLC (Hybrid Logical Clock, Kulkarni 2014)</strong> 融合 physical wall clock 的高位 + logical counter 低位, 给事件同时<strong>人友好的时间戳 + 因果关系</strong> —— CockroachDB / YugaByte / TiDB 都用 HLC 做事务 timestamp。本章梳理算法细节, 收敛条件, 用例 (Dynamo siblings, CockroachDB snapshot isolation), 与 typical bug (Lamport clock 单调 但并发 events 任意序 不区分)。</p>
+<hr />
+<h2 id="一lamport-clock-1978"><a class="header" href="#一lamport-clock-1978">一、Lamport Clock (1978)</a></h2>
+<h3 id="算法"><a class="header" href="#算法">算法</a></h3>
+<p>每节点维护 monotonic counter <code>LC_i</code>, 初始 0:</p>
+<pre><code>on event e at node i (send / receive / local): LC_i = LC_i + 1
+on send(m): attach LC_i to m
+on receive(m, LC_m): LC_i = max(LC_i, LC_m) + 1
+</code></pre>
+<h3 id="性质"><a class="header" href="#性质">性质</a></h3>
+<ul>
+<li><strong>happens-before</strong>: 若 <code>a → b</code> (同进程序 + send/recv + 传递闭包), 则 <code>LC(a) &lt; LC(b)</code>。</li>
+<li><strong>逆否命题不成立</strong>: <code>LC(a) &lt; LC(b)</code> 不蕴含 <code>a → b</code>——它们可能 concurrent。</li>
+<li><strong>全序扩展</strong>: 把 Lamport Clock + (process_id) lex 排, 得到 total order (任两个事件都可比), 但这是任意扩展, 不是 happens-before 原 partial order 的忠实反映。</li>
+</ul>
+<h3 id="用例"><a class="header" href="#用例">用例</a></h3>
+<ul>
+<li><strong>Mutual Exclusion via Lamport Clock</strong>: Lamport 1978 论文里给出 distributed mutex 算法, 提议临界区请求带 LC + process_id, 节点色 total order 排队。O(N²) messages, 严谨 but 低效; 不工业用 (因 Paxos/Raft 都更高效更好)。</li>
+<li><strong>DynamoDB (AWS) Order Stream</strong>: DynamoDB change stream 用 LC-style 时间戳排序 events 在 短时间窗内。</li>
+</ul>
+<h3 id="局限"><a class="header" href="#局限">局限</a></h3>
+<p>Lamport Clock <strong>不能</strong> 区分因果序与并发序:</p>
+<pre><code>A: send m_A (LC_A=5)
+B: send m_B (LC_B=5)        concurrent with A
+</code></pre>
+<p>两 event LC 相同, 看上去"同时间发生"; 真实它们 concurrent (不是 causally related)。</p>
+<p>vector clock 解决这 limit。</p>
+<hr />
+<h2 id="二vector-clock-fidge-1988-mattern-1989"><a class="header" href="#二vector-clock-fidge-1988-mattern-1989">二、Vector Clock (Fidge 1988, Mattern 1989)</a></h2>
+<h3 id="算法-1"><a class="header" href="#算法-1">算法</a></h3>
+<p>每节点 i 维护 N 维 vector <code>VC_i = (c_0, c_1, ..., c_{N-1})</code>, 初始全 0:</p>
+<pre><code>on local event at i: VC_i[i] += 1
+on send(m) at i: VC_i[i] += 1; attach VC_i to m
+on receive(m, VC_m) at i:
+    for all j: VC_i[j] = max(VC_i[j], VC_m[j])
+    VC_i[i] += 1
+</code></pre>
+<h3 id="关系比较"><a class="header" href="#关系比较">关系比较</a></h3>
+<p><code>VC_a ≤ VC_b</code> iff <code>∀ k: VC_a[k] ≤ VC_b[k]</code>
+<code>VC_a &lt; VC_b</code> iff <code>VC_a ≤ VC_b ∧ ∃ k: VC_a[k] &lt; VC_b[k]</code></p>
+<ul>
+<li><code>VC_a &lt; VC_b</code> ⟹ <code>a → b</code> (happens-before)</li>
+<li><code>VC_a || VC_b</code> (即不 ≤ 也不 ≥) ⟹ <code>a</code> 与 <code>b</code> concurrent</li>
+</ul>
+<h3 id="用例-1"><a class="header" href="#用例-1">用例</a></h3>
+<p><strong>Dynamo / Riak siblings</strong>: writes 带 VC, replica merge 给出 vector clock 比较:</p>
+<ul>
+<li>若 <code>VC_a &lt; VC_b</code> → discard <code>a</code> (newer overrides)</li>
+<li>若 <code>VC_a || VC_b</code> → 两个都保留为 sibling, 应用层 merge</li>
+</ul>
+<pre><code class="language-python">def merge(replica_a_value, replica_b_value, VC_a, VC_b):
+    if VC_a &lt; VC_b:
+        return replica_b_value, VC_b
+    elif VC_b &lt; VC_a:
+        return replica_a_value, VC_a
+    else:
+        # siblings; 应用层 merge function (or list all)
+        return [replica_a_value, replica_b_value], max(VC_a, VC_b)
+</code></pre>
+<h3 id="vector-clock-变种"><a class="header" href="#vector-clock-变种">Vector Clock 变种</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>变种</th><th>区别</th></tr></thead><tbody>
+<tr><td><strong>Version Vector (VV)</strong></td><td>仅 update on write, 不 update on read; Dynamo 用 VV。简单但 N 写 parties 固定。</td></tr>
+<tr><td><strong>Dotted Version Vector (DVV)</strong></td><td>引入 "dot" = (node_id, counter) 唯一标识一次 occurrence. 应用 client cluster anonymity (单 client 同 node)。 Riak 用。</td></tr>
+<tr><td><strong>Interval Version Vector (IVV)</strong></td><td>counter 改成 interval [start, end], 处理 dynamic membership, 节点 join/leave 不 reset。</td></tr>
+<tr><td><strong>DCVV (Dotted Cluster VV)</strong></td><td>DVV + cluster id, 高度 dynamic membership (Cassandra 内部曾用)。</td></tr>
+</tbody></table>
+</div>
+<h3 id="vector-clock-内存代价"><a class="header" href="#vector-clock-内存代价">Vector Clock 内存代价</a></h3>
+<p>每 message 维传 N 维整数, O(N) per event; Cassandra / Riak 在 N=100 nodes 情况 VC serialize ~1KB 包过载。常见优化 <strong>Dotted VV</strong> + compact representation.</p>
+<h3 id="局限-1"><a class="header" href="#局限-1">局限</a></h3>
+<p>Vector clock <strong>检测</strong> concurrency 但<strong>不解决</strong>conflict——应用层仍需 merge function. Riak DT (CRDT) 与 Riak siblings 都让 application 决定逻辑, vector clock 只是 procedure infrastructure.</p>
+<hr />
+<h2 id="三hlc-hybrid-logical-clock-kulkarni-2014"><a class="header" href="#三hlc-hybrid-logical-clock-kulkarni-2014">三、HLC (Hybrid Logical Clock, Kulkarni 2014)</a></h2>
+<h3 id="动机"><a class="header" href="#动机">动机</a></h3>
+<p>Pure logical clock 与人读时间无关 ("这 event 是 timestamp 1000, 但何时真实发生")；pure wall clock 受 NTP skew 影响 + 不保 happens-before。 HLC 融合:</p>
+<ul>
+<li>高位 = wall clock 时间 (<code>pt</code>)</li>
+<li>低位 = 逻辑 counter (<code>lt</code>)</li>
+<li>(pt, lt) 元组保证 causal happens-before + timestamp 接近 wall clock 真实发生时刻</li>
+</ul>
+<h3 id="算法-2"><a class="header" href="#算法-2">算法</a></h3>
+<pre><code>each node init HLC = (wall_now, 0)
+
+on local event at node i:
+    if wall_now &gt; HLC.pt:
+        HLC = (wall_now, 0)
+    else:
+        HLC = (HLC.pt, HLC.lt + 1)
+
+on send(m):
+    bump HLC (above); attach HLC to m
+
+on receive(m, HLC_m):
+    new_pt = max(wall_now, HLC.pt, HLC_m.pt)
+    if new_pt == HLC.pt == HLC_m.pt:
+        HLC = (new_pt, max(HLC.lt, HLC_m.lt) + 1)
+    elif new_pt == HLC.pt:
+        HLC = (new_pt, HLC.lt + 1)
+    elif new_pt == HLC_m.pt:
+        HLC = (new_pt, HLC_m.lt + 1)
+    else:
+        HLC = (new_pt, 0)
+</code></pre>
+<h3 id="性质-1"><a class="header" href="#性质-1">性质</a></h3>
+<ul>
+<li><code>a → b</code> ⟹ <code>HLC(a) &lt; HLC(b)</code> (lex by pt then lt)</li>
+<li><code>HLC(a) &lt; HLC(b)</code> ⟹ <code>a → b</code> (no false positives because counter monotonic)</li>
+<li>pt 接近真实 wall clock, 人读 HLC 时知道大致真实发生时刻</li>
+</ul>
+<h3 id="用例-2"><a class="header" href="#用例-2">用例</a></h3>
+<p><strong>CockroachDB HLC</strong>:</p>
+<ul>
+<li>每 transaction 用 HLC timestamp。</li>
+<li>HLC 与 wall clock bound skew (max_offset 默认 250ms) → 同物理事件可 timestamp 偏移 &lt; 250ms +1 logical tick.</li>
+<li>transaction read 是 snapshot isolation at HLC timestamp; 查 commit HLC &gt; read HLC 排除 commit-on-after-read 的 row.</li>
+</ul>
+<p><strong>YugaByte / TiDB</strong> 与 CockroachDB 类似, 内置 HLC + bounded skew.</p>
+<p><strong>MongoDB</strong>: 但 MongoDB 没用 HLC, 用 wall clock + reverse_sbe seq for global timestamp cluster clock.</p>
+<h3 id="bounded-skew"><a class="header" href="#bounded-skew">Bounded skew</a></h3>
+<p>HLC 让各节点 wall_now <strong>bounded</strong> skew (默认 250ms in CockroachDB), 通过 max_offset 配置后 cluster know if wall clock drift &gt; max_offset → 节点必须 fail exit.</p>
+<p>否则 HLC 不保 happens-before—— wall clock 直跳, counter 才保证.</p>
+<hr />
+<h2 id="四hlc-vs-truetime"><a class="header" href="#四hlc-vs-truetime">四、HLC vs TrueTime</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>HLC (CockroachDB)</th><th>TrueTime (Spanner)</th></tr></thead><tbody>
+<tr><td>同步精度</td><td>bounded skew ~250ms (NTP)</td><td>bounded skew ~7ms (GPS + 原子钟)</td></tr>
+<tr><td>Commit-style wait</td><td>不必 wait</td><td>commit-wait (wait until TT.now() latest &gt; commit_ts)</td></tr>
+<tr><td>软实时?</td><td>PT-approx not real-time</td><td>cl实事实时 (commit-wait ~14ms)</td></tr>
+<tr><td>Garbage-in short window?</td><td>≤ max_offset</td><td>commit-waitカバー</td></tr>
+<tr><td>实现复杂度</td><td>适中</td><td>expensive (timing hardware per datacenter)</td></tr>
+</tbody></table>
+</div>
+<p>HLC 比 TrueTime 简单 (NTP 普及) 但 commit wait 长 (250ms worst case 把 commit fully serialized across events). TrueTime 直接 GPS 持 7ms skew → commit wait 14ms。</p>
+<hr />
+<h2 id="五生产事故"><a class="header" href="#五生产事故">五、生产事故</a></h2>
+<h3 id="riak-vector-clock-sibling-风暴"><a class="header" href="#riak-vector-clock-sibling-风暴">Riak Vector Clock Sibling 风暴</a></h3>
+<p>Riak 2.0 一度 1995 严格 VC 让 client 看 sibling list; but application 不设 merge fn → sibling list 中 5 个 values; 用户不 that 失潘 krebs写 fail 加 format. Fix: Riak DT (CRDTs) let user set bucket type  data_type = counter/set/map, 默认让 Riak 内置 merge logic.</p>
+<h3 id="cassandra-lww--skew-lost-write"><a class="header" href="#cassandra-lww--skew-lost-write">Cassandra LWW + Skew Lost Write</a></h3>
+<p>Cassandra 单一 timestamp 驱动 LWW。某写入 client NTP skew 5 秒晚, 其 timestamp 偏大 → 后写 user 可能有 της late timestamp &gt; 中先existent。后写 overwrite 不合法 drifted NTP data wrote системы. Fix: 用 client_id + monotonic timestamp 而非 now(); 是Cassandra Java driver 自带。</p>
+<h3 id="cockroachdb-hlc-偏离--out-of-order-read"><a class="header" href="#cockroachdb-hlc-偏离--out-of-order-read">CockroachDB HLC 偏离 → Out-of-Order Read</a></h3>
+<p>CockroachDB HLC 假设 max_offset = 250ms。 某节点 NTP drift 超过 250ms 后, write ts 偏移 too far &gt; 其他节点会读到 stale committed 数据. Fix: cluster 启动 + 周期 monitor NTP divergence, 超过 251ms 让节点自行 fail exit.</p>
+<hr />
+<h2 id="六易错清单"><a class="header" href="#六易错清单">六、易错清单</a></h2>
+<ol>
+<li><strong>Lamport Clock 不能区分并发</strong>: LC(a) &lt; LC(b) 不能推 a → b, 因为 a 和 b 可能 concurrent. 要并发检测必用 Vector Clock。</li>
+<li><strong>Vector Clock 不解决 conflict, 仅 detect它</strong>: 应用层 merge function 必须好好设, 否则 sibling 无限堆积.</li>
+<li><strong>Vector Clock 必须传整个 vector 而非只是 last counter</strong>: 传 dot 而非 vector 就 lost causal info ⇒ DVV 设计 fixing 此。</li>
+<li><strong>HLC 不有 external consistency</strong>: HLC 假设 bounded skew, commit-wait 时达不到线性化世界的"real-time 一致"—— 上 bounded skew = 250ms CockroachDB commit-wait 不需 wait 直接发 ts, 因此 client 可能在 read 看到 future ts commit。 CockroachDB explicit <code>read_no_write_ahead</code> 处理。</li>
+<li><strong>HLC <code>max_offset</code> 必须 monitor</strong>: NTP drift 大会让 HLC invalid. cluster health dashboard 必须显示 skew。</li>
+<li><strong>Wall clock not monotonic</strong>: 重启或 NTP step 后 wall clock 可能跳 backwards. HLC 算法中 <code>if wall_now &gt; HLC.pt</code> 检查保护, 但 NTP <strong>stepping</strong> 总需要 long-term installreboot aware.</li>
+<li><strong>Vector Clock encoding 没用 delta compaction</strong>: 100 node VC 数组大. 工业用 sparse + delta encoding (如果 4 节 domany-HashMap gas has compile 快).</li>
+</ol>
+<hr />
+<h2 id="七这一章带走的东西"><a class="header" href="#七这一章带走的东西">七、这一章带走的东西</a></h2>
+<ol>
+<li>Lamport Clock 给 happens-before <strong>保 inter-process ordering</strong> 但不区分并发; vector clock 精确刻画并发但 N node cost.</li>
+<li>Vector Clock 在 Dynamo / Riak siblings 上 detect concurrent writes, application merge function 解决 conflict.</li>
+<li>HLC 融合 wall clock + logical counter, 给人友好的时间戳同时保 happens-before. CockroachDB / YugaByte / TiDB 内置。</li>
+<li>TrueTime (Spanner) 通过 GPS+ atomic clock 直接给 7ms 内 skew, commit-wait 实现 external consistency。 与 HLC API 形式 似但 hardware 差异大。</li>
+<li>Vector Clock vs Version Vector vs Dotted Version Vector vs Interval Version Vector 是 distributed stores 世代演进, 处理 client anonymity + dynamic membership。</li>
+<li>Lamport Clock Total Order (LC + process_id) 是任意 tie-break; 不能用来推并发 events simultaneous.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="physical.html">TrueTime / HLC / attestation</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../distributed/clock/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../distributed/clock/physical.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../distributed/clock/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../distributed/clock/physical.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

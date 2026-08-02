@@ -1,0 +1,525 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Inline / IPA / escape analysis - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="inline--ipa--escape-analysis"><a class="header" href="#inline--ipa--escape-analysis">Inline / IPA / Escape Analysis</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>Inline 的本质是函数调用 emit 在 caller 处展开——节省调用开销（passing 参数、保存寄存器、branch 一直到 callee 入口、return jump），更重要的是<strong>让下游 pass 看穿函数边界做更深的优化</strong>。Inline 单独看不重要，但它解锁了常量传播、DCE、向量化所有跨函数优化的能力。IPA (Inter-Procedural Analysis) 是跨函数的信息流分析——什么函数会逃逸什么指针、pure/pure 函数识别、call graph 构造。Escape Analysis 决定堆分配能否变成栈分配——Java HotSpot、Scala Dotty、Go escape analysis 都用这个砍掉 90% 的无用堆分配。</p>
+<hr />
+<h2 id="一inline-的成本-vs-收益"><a class="header" href="#一inline-的成本-vs-收益">一、Inline 的成本 vs 收益</a></h2>
+<h3 id="数值模型"><a class="header" href="#数值模型">数值模型</a></h3>
+<p>每次 call 的代机：</p>
+<ul>
+<li>几条指令准备参数（栈/寄存器安排）</li>
+<li><code>call</code> 指令（push return address, jump）—— 几个 cycle</li>
+<li>几条 callee prologue 保存 callee-saved 寄存器</li>
+<li>epilogue 恢复</li>
+<li><code>ret</code> 指令 (pop + jump)</li>
+</ul>
+<p>总开销 5-30 cycle 视现代 CPU 分支预测器、call/ret stack 是否存在而有不同。一次 call 不到 10 cycle 在 Branch Target Buffer + Return Address Stack 命中的情况下。</p>
+<h3 id="解锁-downstream-pass-的价值"><a class="header" href="#解锁-downstream-pass-的价值">解锁 downstream pass 的价值</a></h3>
+<pre><code class="language-c">int square(int x) { return x * x; }
+int sum(int x, int y) { return x + y; }
+
+int compute(int a) {
+    return sum(square(a), square(a + 1));
+}
+</code></pre>
+<p><code>square</code> 是小函数，inline 后：</p>
+<pre><code class="language-c">int compute(int a) {
+    int t1 = a * a;
+    int t2 = (a + 1) * (a + 1);
+    return t1 + t2;
+}
+</code></pre>
+<p>现在下游 pass 能看到 <code>t1 + t2</code> 的实际表达式。<strong>CSE</strong> 能识别 <code>a*a</code> 这种纯算术共现，<strong>strength reduction</strong> 能判定 <code>a*a</code> 是否需要查表——key benefit is <strong>下游 pass 不划界面</strong>。</p>
+<h3 id="llvm-inline-的-cost-model"><a class="header" href="#llvm-inline-的-cost-model">LLVM Inline 的 cost model</a></h3>
+<p><code>llvm::InlineCost</code> 估计 inline 后基本块数、指令数、call 数。常量参数 inline 后能消除死代码会减少成本。</p>
+<p>阈值：</p>
+<ul>
+<li><code>-O0</code>: 几乎不 inline</li>
+<li><code>-O1</code>: 偶尔 inline（小函数）</li>
+<li><code>-O2</code>: 中等阈值 inline（~50 指令阈值）</li>
+<li><code>-O3</code>: 激进 inline</li>
+<li><code>__attribute__((always_inline))</code>: 强制</li>
+<li>虚函数 / 间接调用：编译期不可 inline（除非 devirtualization）</li>
+</ul>
+<h3 id="c-模板的隐式-inline"><a class="header" href="#c-模板的隐式-inline">C++ 模板的隐式 inline</a></h3>
+<pre><code class="language-cpp">template&lt;int N&gt; int factorial() { return N * factorial&lt;N - 1&gt;(); }
+template&lt;&gt; int factorial&lt;0&gt;() { return 1; }
+
+int main() { return factorial&lt;5&gt;(); }     // 完全编译期展开 → return 120
+</code></pre>
+<p>模板 + 常量参数 → 整段代码 inline + SCCP + 常量折叠 = 编译期计算。这就是 C++ 表达式模板 (Eigen、Blitz) 的核心。</p>
+<hr />
+<h2 id="二ipa-inter-procedural-analysis"><a class="header" href="#二ipa-inter-procedural-analysis">二、IPA (Inter-Procedural Analysis)</a></h2>
+<p>Inline 是它的特例。<strong>IPA</strong> 包括：</p>
+<div class="table-wrapper"><table><thead><tr><th>分析类型</th><th>用途</th></tr></thead><tbody>
+<tr><td>Call Graph</td><td>谁调谁，用于 inline、devirt、reflection</td></tr>
+<tr><td>Mod/Ref Analysis</td><td>函数会修改/读取哪些全局/参数指针</td></tr>
+<tr><td>Pure Function Detection</td><td>没副作用，可被 DCE 删除</td></tr>
+<tr><td>Escape Analysis</td><td>哪些对象不会逃逸函数外，可栈分配</td></tr>
+<tr><td>Points-to Analysis</td><td>哪些指针可指向哪些对象</td></tr>
+</tbody></table>
+</div>
+<h3 id="modref-example"><a class="header" href="#modref-example">Mod/Ref Example</a></h3>
+<pre><code class="language-c">int g = 0;
+void f(int *p) { *p = 1; }
+void g_caller() {
+    f(&amp;g);          // Mod analysis: g 被 modified
+    return g;       // 不是 0，是 1
+}
+</code></pre>
+<p>IPA 知道 <code>f</code> 会 Mod 它的参数指针 → caller 知道 <code>g</code> 会被改 → 看穿 f 的行为。</p>
+<h3 id="pure-function-detection"><a class="header" href="#pure-function-detection">Pure Function Detection</a></h3>
+<pre><code class="language-c">int square(int x) { return x * x; }       // pure
+int counter() { static int n = 0; return ++n; }  // not pure (有 static 副作用)
+</code></pre>
+<p>Pure 函数：</p>
+<ul>
+<li>不读/写任何可变全局</li>
+<li>不调用非 pure 函数</li>
+<li>不 deref 可逃逸的指针</li>
+</ul>
+<p>LLVM 的 <code>inferattrs</code> pass 静态推断，能标 <code>readnone</code>/<code>nocallback</code> 等。LLVM 中段 pass 跑 lib 优化时 callee 标 readnone → caller 可以删 caller 看来"结果用不上的"调用。</p>
+<h3 id="devirtualization"><a class="header" href="#devirtualization">Devirtualization</a></h3>
+<p>虚函数调用 (C++ <code>virtual</code>) 通过 vtable 间接调用，编译期难内联。但若有上下文信息可推断动态类型：</p>
+<pre><code class="language-cpp">struct Base { virtual int f() { return 1; } };
+struct Derived : Base { int f() override { return 2; } };
+
+void caller() {
+    Derived d;
+    Base *p = &amp;d;
+    return p-&gt;f();     // 实际是 Derived::f，编译期可推
+}
+</code></pre>
+<p>LLVM 的 <code>devirt</code> pass:</p>
+<ul>
+<li>若 <code>p</code> 在函数内创建 (类型确定) → 直接 dispatch</li>
+<li>若是参数但 callgraph 显示只有一种可能实现 → speculatively devirt</li>
+<li>若是 vtable 上的 known call site 位置 → RFC</li>
+</ul>
+<p>Speculative devirtualization：先 emit direct call + guard check 类型→ 没识别成功 fallback 回 indirect call。<strong>VM 内的 type profile</strong> 收集动态类型分布，re-compile + OSR 重入更精确版本。</p>
+<hr />
+<h2 id="三escape-analysis"><a class="header" href="#三escape-analysis">三、Escape Analysis</a></h2>
+<p>###什么是 escape</p>
+<pre><code class="language-java">Object foo() {
+    Object o = new Object();
+    return o;          // o 逃逸到 caller
+}
+
+void bar() {
+    Object o = new Object();
+    use(o);            // 不再 escape → 可栈分配
+}
+</code></pre>
+<h3 id="java-hotspot-的-ea"><a class="header" href="#java-hotspot-的-ea">Java HotSpot 的 EA</a></h3>
+<p>HotSpot C2 在 Sea-of-Nodes 上做 escape analysis：</p>
+<ol>
+<li><strong>Global escape</strong>: 赋值给 static、return 给 caller、赋给 instance field 逃逸求外。</li>
+<li><strong>Arg escape</strong>: 传给其他函数作为参数（但仍仅 thread-local）。</li>
+<li><strong>No escape</strong>: 仅函数内访问。</li>
+</ol>
+<p>No escape 的 <code>new</code> 直接栈分配（scalar replace），同步锁消除（若未逃逸则 lock-to-unlock 信息可消除 monitor）。</p>
+<h3 id="go-的逃逸分析"><a class="header" href="#go-的逃逸分析">Go 的逃逸分析</a></h3>
+<p>Go 编译器（cmd/compile/internal/escape）做逃逸分析。常见规则：</p>
+<div class="table-wrapper"><table><thead><tr><th>写法</th><th>逃逸</th></tr></thead><tbody>
+<tr><td><code>func foo() *int { x := 1; return &amp;x }</code></td><td>逃逸到堆</td></tr>
+<tr><td><code>func foo() { x := 1; bar(&amp;x); }</code> 看 bar 是否会保存</td><td>取决于 bar</td></tr>
+<tr><td><code>fmt.Println(&amp;x)</code></td><td>经常逃逸（Fmt 处理 interface{}）</td></tr>
+<tr><td><code>s := make([]int, n)</code> n &gt; 64KB</td><td>逃逸到堆</td></tr>
+</tbody></table>
+</div>
+<p>Go 的 philosophy 是：能用栈就用栈，减少 GC 压力。<strong>初学者写 Go 总是 hybridize</strong>：<code>return []*Foo{...}</code> 让切片逃逸，切片里指针逃逸 → 大量堆 alloc。</p>
+<h3 id="rust-一切默认栈"><a class="header" href="#rust-一切默认栈">Rust 一切默认栈</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn foo() {
+    let x = Box::new(1);       // x 是 Box&lt;i32&gt; 指针，外层 stack，*x 仍在 heap
+    return *x;                  // 返回 i32，Box 释放 → 仅 stack 副作用
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Rust Box 总在 heap；其他默认 stack。Escape analysis 不需要——<code>move</code> 语义让所有权流动。</p>
+<hr />
+<h2 id="四lto-link-time-optimization"><a class="header" href="#四lto-link-time-optimization">四、LTO (Link-Time Optimization)</a></h2>
+<p>普通 IPA 受限于单 compilation unit：<code>a.c</code> 看不到 <code>b.c</code> 的函数实现。LTO 把 IR 总结到 link 阶段一起优化。</p>
+<h3 id="llvm-lto-流程"><a class="header" href="#llvm-lto-流程">LLVM LTO 流程</a></h3>
+<pre><code>clang -c a.c -flto -o a.o   # a.o 内含 LLVM BC，不是机器码
+clang -c b.c -flto -o b.o
+clang -flto a.o b.o -o prog
+# link 时把所有 BC 合并成一个 module
+# 跑 module-level inline、IPA、DCE、whole-program devirt
+</code></pre>
+<p><strong>ThinLTO</strong>：把 module 合并改成"summary + 并行 pass"——众多 TU 各自跑独立 opt pass，只用 cross-TU summary 信息——比 full LTO 速度快 4-8x, 收益小 10%。</p>
+<h3 id="firefoxchrome-的-lto"><a class="header" href="#firefoxchrome-的-lto">Firefox、Chrome 的 LTO</a></h3>
+<p>Chromium 用 ThinLTO + PGO —— TLDR 来说编译 30%、二进制小 15%、运行时快 5%。Link 阶段变成 30+ 分钟，但 binary 性能可接受。</p>
+<h3 id="gcc-lto-elf-vs-windows"><a class="header" href="#gcc-lto-elf-vs-windows">GCC LTO (ELF vs Windows)</a></h3>
+<p>GCC LTO 用 ELF section 存 IR，在 link 上合并。Windows COFF 用类似机制，工程师需 specifc linker (<code>gold</code> 或 <code>mold</code>) 加速。</p>
+<hr />
+<h2 id="五inline-的麻烦事"><a class="header" href="#五inline-的麻烦事">五、Inline 的麻烦事</a></h2>
+<h3 id="recursive-函数"><a class="header" href="#recursive-函数">Recursive 函数</a></h3>
+<pre><code class="language-c">int fact(int n) {
+    if (n == 0) return 1;
+    return n * fact(n - 1);
+}
+</code></pre>
+<p>inline 递归 → 无限展开。编译器识别 self-recursive edge，只 partial inline 一个 voxel。</p>
+<h3 id="大函数--多-call-site"><a class="header" href="#大函数--多-call-site">大函数 + 多 call site</a></h3>
+<pre><code class="language-c">void huge() { /* 5000 行 */ }
+void a() { huge(); }
+void b() { huge(); }
+</code></pre>
+<p>inline huge 到 a、b 后体积膨胀 2x。LLVM 的 strategy：保留一份 huge 给 a、b 调用，并对 a、b 做 partial inline（inline 入口 + 显式 jump 回 huge 中部）。</p>
+<h3 id="cross-language-inline"><a class="header" href="#cross-language-inline">Cross-language Inline</a></h3>
+<p>C + Rust FFI 不能 inline——调用走 ABI 边界。Rust 的 <code>pub fn</code> 在 <code>extern "C"</code> 后是 ABI 边界，不能 inline 进 C。但若都是 Rust lto=true 可以跨 crate inline。</p>
+<h3 id="cold-path-inline"><a class="header" href="#cold-path-inline">Cold Path Inline</a></h3>
+<p>PGO 显示某函数只在 0.1% 的执行路径调用：</p>
+<pre><code class="language-c">void fast_path() { /* hot */ }
+void slow_path() { /* cold, 1000 行 */ }
+void f() {
+    if (rare) slow_path();
+    else fast_path();
+}
+</code></pre>
+<p>cold path <strong>不要 inline</strong>——inline 增大 caller 体积，污染 i-cache。LLVM <code>coldcc</code> calling convention 让 cold path 放到 binary 末尾，对分支预测友好。</p>
+<h3 id="inline-反复制副作用"><a class="header" href="#inline-反复制副作用">Inline 反复制副作用</a></h3>
+<pre><code class="language-c">int counter() { static int n = 0; return ++n; }
+int f() { return counter() + counter(); }
+</code></pre>
+<p>inline 后：</p>
+<pre><code class="language-c">int f() { return (++n) + (++n); }
+</code></pre>
+<p>这改变了求值顺序（C UB / Rust/Java 有定义但结果不同）。<strong>绝不可 inline 非纯函数多次评估语义</strong>。LLVM 在没标 SSA 是 <code>readnone</code> 的情况下保守不 inline 多次。</p>
+<hr />
+<h2 id="六hotspot-的-layered-compilation"><a class="header" href="#六hotspot-的-layered-compilation">六、HotSpot 的 Layered Compilation</a></h2>
+<p>HotSpot 现代虚拟机用 <strong>tiered compilation</strong>：</p>
+<ol>
+<li><strong>Tier 0</strong>: 解释器</li>
+<li><strong>Tier 1</strong>: C1 编译，简单 Fast Compilation</li>
+<li><strong>Tier 2</strong>: C1 with profiling</li>
+<li><strong>Tier 3</strong>: C1 with profiling + 一些 opt</li>
+<li><strong>Tier 4</strong>: C2 编译——Sea-of-Nodes + escape analysis + aggressive inlining</li>
+</ol>
+<p>profile 收集每个 call site 被调用的实际类型、每条 branch 的触发次数。C2 编译时把 profiling C1 传来的 type/branch info 用进 inline 决策。<strong>这就是 Java 接近 C 性能的秘诀</strong>——无 profile 静态编译做不到 100% inline 决策正确。</p>
+<hr />
+<h2 id="七易错清单"><a class="header" href="#七易错清单">七、易错清单</a></h2>
+<ol>
+<li><strong><code>__attribute__((always_inline))</code> 不能强制 recursive inline</strong>：编译器拒绝递归，加 inline hint 也会被拒。</li>
+<li><strong>Inline 不代表语言层面的"声明 inline"</strong>：C++ <code>inline</code> 关键字只代表"允许多 TU 出现定义"，不强制 inline。</li>
+<li><strong>Cross-language LTO 需要同等 IR</strong>：Rust + C 不能 cross language LTO，除非都是 LLVM。GCC <code>lto-plugin</code> 处理 ELF link-time。</li>
+<li><strong>没标 pure 的 call 不要轻易 DCE</strong>：副作用错删是大事故。LLVM 的 LLVM IR 要 correct <code>readnone</code> 标注，否则保留。</li>
+<li><strong>Box 不在 stack</strong>：Rust Box 一定 heap。但 Option&lt;Box<T>&gt; 的某些编译期转换会布尔字段化（niche optimization），看懂 stack vs heap 区别。</li>
+<li><strong>Go 闭包捕获引用类型逃逸</strong>：<code>func() { s := []int{}; goroutine(func(){ s = append(s, 1) }); }</code> → s 逃逸到堆，由 goroutine 同时持有。</li>
+</ol>
+<hr />
+<h2 id="这一章带走的东西"><a class="header" href="#这一章带走的东西">这一章带走的东西</a></h2>
+<ol>
+<li>Inline 不省 cycle，是<strong>让下游 pass 看穿函数边界</strong>。</li>
+<li>IPA 是 mod/ref、pure detection、call graph 的统称，依赖 LTO 才能跨 translation unit。</li>
+<li>Escape Analysis 决定堆→栈分配，Java HotSpot、Go 编译器都用它砍 GC 压力。</li>
+<li>Devirtualization 需 profile + speculatively inline，HotSpot 把这套发挥到极致。</li>
+<li>Tiered Compilation 把 JIT 重编开销摊平——profile 收集 + OSR + 重入 = Java 接近 C 的核心机制。</li>
+<li>LTO 是 IPA 的 link-time 实施，ThinLTO 平衡编译时间与收益。</li>
+</ol>
+<hr />
+<p>下一节 → <a href="../codegen/index.html">Codegen 总览</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../compilers/opt/loop.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../compilers/codegen/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../compilers/opt/loop.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../compilers/codegen/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

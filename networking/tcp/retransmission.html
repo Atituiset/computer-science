@@ -1,0 +1,565 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>重传、SACK、RTO/RTT 估计 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="重传机制rtt--rto--sack--rack--tlp"><a class="header" href="#重传机制rtt--rto--sack--rack--tlp">重传机制：RTT / RTO / SACK / RACK / TLP</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>TCP 可靠字节流全靠"序号 + ACK + 重传"三条腿。最难的一段是"什么时候重传"——RTO 早了误重传浪费带宽，晚了延迟翻倍。本文从 Jacobson 1988 EWMA 公式追到 Linux <code>tcp_rtt_estimator</code>，再到 SACK / DSACK / F-RTO / RACK / TLP / ER 这一系列 RFC 9002 时代的演进，最后到 QUIC 在应用层重写一遍——告诉你协议为什么进化、内核代码怎么改、生产者看到什么告警。</p>
+<hr />
+<h2 id="一为什么重传这么难"><a class="header" href="#一为什么重传这么难">一、为什么重传这么难</a></h2>
+<p>单包送出去，sender 看到的反馈只有一类信号 = <strong>ACK 序号</strong>。三种可能性：</p>
+<pre><code>| ACK seq |      解读                       | sender 反应
+| &lt; send  |  乱序 / 丢 ACK                  | 等
+| == send |  接收方收到了                    | 推进 cwnd
+| &gt; send  |  接收方收到但回更前的 ACK (dup) | dup ACK++，可能丢包
+| RTO 触发| 网络在某段时间没回任何信号      | 退 cwnd=1, slow restart
+</code></pre>
+<p>设计目标：</p>
+<ul>
+<li><strong>早发现</strong>（少占 buffer，省 RTO）</li>
+<li><strong>少误判</strong>（重传好的包 = 浪费带宽 + 多余 RTO 重设）</li>
+<li><strong>抗乱序</strong>（route flap → seq 顺序到达破坏，不是丢）</li>
+<li><strong>抗 ACK delay</strong>（ипподрöm 不回立刻 ACK）</li>
+</ul>
+<p>四十年里这四条反复写新 RFC。</p>
+<hr />
+<h2 id="二rtt-估计jacobson-1988-ewma"><a class="header" href="#二rtt-估计jacobson-1988-ewma">二、RTT 估计（Jacobson 1988 EWMA）</a></h2>
+<h3 id="21-朴素均值的历史失败"><a class="header" href="#21-朴素均值的历史失败">2.1 朴素均值的历史失败</a></h3>
+<pre><code class="language-python"># 平均:  naive = sum(samples) / N
+# 问题1: 流式窗口大小? 100 包? 1000 包?
+# 问题2: 网络条件不会"瞬间变化"，平滑响应慢
+</code></pre>
+<p>1988 Jacobson 用<strong>指数加权移动平均 (EWMA)</strong>：</p>
+<p>$$
+\text{SRTT} = (1 - \alpha) \cdot \text{SRTT} + \alpha \cdot \text{SampleRTT}
+$$</p>
+<p>$$
+\text{RTTVAR} = (1 - \beta) \cdot \text{RTTVAR} + \beta \cdot |\text{SRTT} - \text{SampleRTT}|
+$$</p>
+<p>$$
+\text{RTO} = \text{SRTT} + \max(G, 4 \cdot \text{RTTVAR})
+$$</p>
+<ul>
+<li>$\alpha = 1/8$：每 RTT 内 8 个 sample，权重平滑</li>
+<li>$\beta = 1/4$：变化项权重 4 × 大</li>
+<li>$G$ = clock granularity (Linux jiffies，约 1ms)</li>
+</ul>
+<p>核心直觉：<strong>让 RTO 比 SRTT 大约 4 × RTTVAR</strong>——历史波动越大，预留越宽。</p>
+<h3 id="22-linux-实现"><a class="header" href="#22-linux-实现">2.2 Linux 实现</a></h3>
+<pre><code class="language-c">// net/ipv4/tcp_input.c
+static void tcp_rtt_estimator(struct sock *sk, const __u32 mrtt) {
+    struct tcp_sock *tp = tcp_sk(sk);
+    long m = mrtt;
+
+    if (tp-&gt;srtt_us) {                                    // 已有 SRTT
+        m -= (tp-&gt;srtt_us &gt;&gt; 3);                          // SRTT 新减老
+        tp-&gt;srtt_us += m;                                 // SRTT = (7/8)*旧 + (1/8)*新
+        if (m &lt; 0) m = -m;
+        m -= (tp-&gt;rttvar_us &gt;&gt; 2);
+        tp-&gt;rttvar_us += m;                                // RTTVAR EWMA
+    } else {
+        tp-&gt;srtt_us = m &lt;&lt; 3;                              // 初值 = 样本 * 8（移位等价 ×8）
+        tp-&gt;rttvar_us = m &lt;&lt; 1;                            // = 样本 * 2
+    }
+}
+
+// 再调 tcp_set_rto()
+__u32 tcp_set_rto(struct tcp_sock *tp) {
+    return usecs_to_jiffies(max(tp-&gt;srtt_us + (tp-&gt;rttvar_us &lt;&lt; 2), 1));
+}
+</code></pre>
+<p>等价数学：<code>RTO = SRTT + 4 * RTTVAR</code>，<strong>封顶</strong> RTO 受 sysctl 控制：</p>
+<pre><code class="language-bash">$ sysctl net.ipv4.tcp_min_rto_wtime net.ipv4.tcp_max_rto_wtime  # 实际只有 min/max
+$ cat /proc/sys/net/ipv4/tcp_min_rtt_timeout     # 200ms
+$ cat /proc/sys/net/ipv4/tcp_retries2            # 15（重传次数上限）
+</code></pre>
+<h3 id="23-karns-algorithm-rfc-2988"><a class="header" href="#23-karns-algorithm-rfc-2988">2.3 Karn's Algorithm (RFC 2988)</a></h3>
+<p>不能用"重传过的包"算 RTT——你没法区分收到的 ACK 是 ACK 原包还是 ACK 重传包。Karn 算法：<strong>重传过的包不参与 RTT 估计</strong>。</p>
+<h3 id="24-timestamp-option-rfc-7323"><a class="header" href="#24-timestamp-option-rfc-7323">2.4 Timestamp Option (RFC 7323)</a></h3>
+<p>解决 Karn 问题：每个 segment 携带 sender 写入时戳 TSval，receiver 在 ACK 中回 echo TSecr —— sender：</p>
+<pre><code class="language-c">sample_rtt = now - TSecr
+</code></pre>
+<p>每个 ACK 都能算 RTT 即便重传过也准确。Linux 默认开 (<code>net.ipv4.tcp_timestamps=2</code>，4.13 后用 RTC mode == 2，旧 RTT=1)。</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>Timestamp TSval 是 <strong>单调递增</strong>（kernel usec 时钟），不是 wall clock。echo 回来 kernel 在 ACK 中直接读 TSecr，不必管理回声对应。</p>
+</div>
+<h3 id="25-rtt-估错的灾难"><a class="header" href="#25-rtt-估错的灾难">2.5 RTT 估错的灾难</a></h3>
+<p>家用 4G 移动网络 RTT 抖动 5x 是常态：</p>
+<pre><code>RTT 50ms (基站拥塞) → RTT 200ms (基站恢复)
+</code></pre>
+<p>EWMA α=1/8 要 8 RTT 才追上。期间 RTO = 50+4×50=250ms 远小于实际 200ms 的 ACK 到达 → 假阳性 RTO → cwnd=1 重启。</p>
+<p>Linux 的 F-RTO (RFC 5682) 改善：</p>
+<ol>
+<li>RTO 触发，重传 + 等 ACK</li>
+<li>来的 ACK 若推进窗口 → 当初 RTO 是 spurious → 撤销 cwnd=1</li>
+<li>否则真丢 → 继续 slow start</li>
+</ol>
+<p><code>net.ipv4.tcp_frto=2</code> 默认。</p>
+<hr />
+<h2 id="三rto-调优盘"><a class="header" href="#三rto-调优盘">三、RTO 调优盘</a></h2>
+<h3 id="31-退避算法rfc-6298-25"><a class="header" href="#31-退避算法rfc-6298-25">3.1 退避算法（RFC 6298 §2.5）</a></h3>
+<pre><code class="language-c">icsk-&gt;icsk_rto = max(icsk-&gt;icsk_rto, icsk-&gt;icsk_rto &lt;&lt; 1);  // 每次超时翻倍
+// tcp_retries1=3, tcp_retries2=15 -&gt; 在到达 N 次后 abort
+</code></pre>
+<p>RTO指数退避：</p>
+<div class="table-wrapper"><table><thead><tr><th>触发次数</th><th>RTO 倍（粗略）</th></tr></thead><tbody>
+<tr><td>1</td><td>1×</td></tr>
+<tr><td>2</td><td>2×</td></tr>
+<tr><td>3</td><td>4×</td></tr>
+<tr><td>4</td><td>8×</td></tr>
+<tr><td>5</td><td>16×</td></tr>
+<tr><td>6</td><td>32×</td></tr>
+<tr><td>7</td><td>64× (Linux 上限 60s)</td></tr>
+</tbody></table>
+</div>
+<p><code>tcp_retries2=15</code> 最终 abort (~924 秒)，默认。</p>
+<h3 id="32-慢启动阈值--er-early-retransmit-rfc-5827"><a class="header" href="#32-慢启动阈值--er-early-retransmit-rfc-5827">3.2 慢启动阈值 + ER (Early Retransmit, RFC 5827)</a></h3>
+<p>cwnd &lt; 4 时<strong>永远凑不齐 3 dup ACK</strong>，就要 RTO。ER 算法：<code>DupThresh = max(2, cwnd-1)</code> —— 让小 cwnd 也能早重传。</p>
+<p><code>net.ipv4.tcp_early_retrans=3</code> Linux 4.x 默认。</p>
+<hr />
+<h2 id="四sackrfc-2018linux-1999-默认开"><a class="header" href="#四sackrfc-2018linux-1999-默认开">四、SACK（RFC 2018，Linux 1999 默认开）</a></h2>
+<h3 id="41-协议结构"><a class="header" href="#41-协议结构">4.1 协议结构</a></h3>
+<pre><code class="language-c">TCP Header option:
++---------+---------+---------+---------+
+| Kind=5  | Length  | LeftEdge 1 | ...
++---------+---------+---------+---------+
+</code></pre>
+<p>每 ACK 最多带 <strong>3 个 SACK block</strong>（受 option 40B 限制，4 个的话没空间给 TS）。</p>
+<pre><code>   sender                              receiver
+     seq=10 ────────────&gt; recv ok
+     seq=20 ────────────&gt; LOST
+     seq=30 ────────────&gt; recv ok
+     seq=40 ────────────&gt; recv ok
+     seq=50 ────────────&gt; LOST
+
+     ACK 11, SACK [30, 40], [40, 50]
+       ↑ 如何解读:
+         我已确认的是 10-19
+         我同时也收到了 30-39 和 40-49
+         我没收到 20-29 和 50-59
+       sender 知道只重传 seg 20 和 seg 50
+</code></pre>
+<h3 id="42-sender-的-scoreboard"><a class="header" href="#42-sender-的-scoreboard">4.2 sender 的 scoreboard</a></h3>
+<pre><code class="language-c">struct tcp_sock {
+    struct sk_buff_head write_queue;
+    struct tcp_sack_block scoreboard[TCP_NUM_SACK];  // 4 个 slot
+    struct tcp_sack_block duplicate_sack[1];
+    u32 sacked_out;            // SACKed 数
+    u32 retransmitted;          // 重传次数
+};
+</code></pre>
+<p>每个 SKB 维护 <code>sk_buff_state_bits</code>，标记 <code>S7</code> (acked)、<code>S_LOST</code> 等。Linux 的 <code>tcp_mark_head_lost</code> 选择"应该重传"集合。</p>
+<h3 id="43-dsack-duplicate-sack-rfc-2883"><a class="header" href="#43-dsack-duplicate-sack-rfc-2883">4.3 DSACK (Duplicate SACK, RFC 2883)</a></h3>
+<p>receiver 收到 sender 重传的包 → 完成 sender 重传任务。但发现：</p>
+<pre><code>ACK 100 (3001, 4000)        ← SACK block: 我没收到 30 号包
+sender 收到 → 重传 seg 30
+ACK 200 (3000, 3001)        ← 我之前误认丢了的 30 实际收到了，但新到的是重复
+</code></pre>
+<p>DSACK 块的左边界 &lt; ACK 中序号 → 告知 sender "你重传多了"。</p>
+<p>Linux 用 DSACK 触发 F-RTO + TCP mistimes summ：累计 3 DSACK → 信任 RTT 估计偏小，调高 RTO （<code>tcp_rack_mark_lost</code> 中的 spurious 检测）。</p>
+<h3 id="44-fack--rack"><a class="header" href="#44-fack--rack">4.4 FACK / RACK</a></h3>
+<ul>
+<li><strong>FACK</strong> (Forward ACK, 1996)：用最右 SACK 边算 in-flight → RTO 更准</li>
+<li><strong>RACK</strong> (Recent ACK, RFC 8985)：现代替代，2017 后 Linux 默认。<strong>核心思路</strong>：
+<blockquote>
+<p>如果我已经 ACK 了 seg X（时间 T_x），那 seg Y 必须在 T_y &lt; T_x + reo_wnd（reorder window）前 ACK；否则认为 seg Y 丢了。</p>
+</blockquote>
+</li>
+</ul>
+<pre><code class="language-c">rack-&gt;xmit_time = 1000ms    // 上次重传 seg X 时间
+rack-&gt;acked_time = 1100ms   // 新到达 ACK 时间
+// 若 seg Y.xmit_time &lt; rack.xmit_time 且 now - rack.acked_time &gt; reo_wnd
+// → seg Y 已 lost
+</code></pre>
+<p>RACK 不需要 dup ACK，也无须凑 3 次 → 抗乱序好、丢单包重传快、能处理 tail loss。</p>
+<hr />
+<h2 id="五tlp-tail-loss-probe-rfc-8985-同期"><a class="header" href="#五tlp-tail-loss-probe-rfc-8985-同期">五、TLP (Tail Loss Probe, RFC 8985 同期)</a></h2>
+<h3 id="51-问题描述"><a class="header" href="#51-问题描述">5.1 问题描述</a></h3>
+<p>连接末端丢少数包，sender 永远不会收到 dup ACK（dup ACK 只在 cwnd 内后续包继续到达时产生）。末端要等 RTO（200ms+）</p>
+<pre><code>sender: 1,2,3,4,5  (cwnd=5 全发完)
+                                seg 4 丢了，seg 5 也丢
+receiver 收 1,2,3 → ACK 1,2,3 → dup 1, dup 1
+sender dup &lt; 3 不会触发 fast retransmit → 等 RTO
+</code></pre>
+<h3 id="52-tlp-算法"><a class="header" href="#52-tlp-算法">5.2 TLP 算法</a></h3>
+<p>cwnd 末端 tail-loss，发一个 <strong>probe</strong> 包（新数据或重传尾包），强制 receiver 回 ACK：</p>
+<ul>
+<li>probe 触发 dup ACK → 启动 SACK/RACK → 选丢失重传</li>
+<li>不到 RTO 早 200ms 救活</li>
+</ul>
+<pre><code class="language-c">if (loss_state == TCP_LOSS_TLP_PROBE) {
+    if (acked_seq &lt; probe_seq)
+        tcp_xmit_retransmit_queue(sk, true);
+    else
+        tcp_rearm_rto(sk);
+}
+</code></pre>
+<p><code>net.ipv4.tcp_tail_loss_probe=1</code>（所有现代 kernel 默认）。</p>
+<hr />
+<h2 id="六quic-重传范式"><a class="header" href="#六quic-重传范式">六、QUIC 重传范式</a></h2>
+<p>QUIC 在应用层重写一切，主要原因：<strong>TCP 中间盒缓存 seq + RST 注入风险</strong>。</p>
+<h3 id="61-包号空间-monotonic-packet-number"><a class="header" href="#61-包号空间-monotonic-packet-number">6.1 包号空间 (Monotonic Packet Number)</a></h3>
+<p>QUIC 给每个包号<strong>单调递增</strong>，不仅序号：</p>
+<pre><code>包号 1: data seq 1000-2000
+        丢了重传 → 包号 2: 同 seq 1000-2000
+receiver 收到 2 → 还有一个 ACK 空间注 '包1' 我没收到，但包 2 我收到了同样的 seq 数据 → 不再 ACK 包1 → sender 知道包 1 已收到
+</code></pre>
+<p>彻底解决 spurious retransmit 的 ACK 混淆。</p>
+<h3 id="62-ack_delay"><a class="header" href="#62-ack_delay">6.2 ACK_DELAY</a></h3>
+<p>QUIC ACK option 含 <code>ack_delay</code> 字段，receiver 告诉 sender "我故意推迟 ACK 等 Xms"。sender 算 RTT 时扣回：</p>
+<pre><code class="language-python">RTT = (now - send_time) - ack_delay
+SRTT = (7/8)*SRTT + (1/8)*RTT
+</code></pre>
+<p>让 receiver 合并 ACK + 不污染 RTT 估计（RFC 9002）。</p>
+<h3 id="63-pto-probe-timeout"><a class="header" href="#63-pto-probe-timeout">6.3 PTO (Probe Timeout)</a></h3>
+<p>QUIC 不再用 RTO + binary backoff，用 PTO：</p>
+<pre><code>PTO = smoothed_rtt + max(4*rttvar, kGranularity) + max_ack_delay
+</code></pre>
+<ul>
+<li>指数 backoff，但<strong>也是探测</strong>而非"重传一切"。QUIC 没有僵死 last_ACK state。</li>
+</ul>
+<hr />
+<h2 id="七生产事故"><a class="header" href="#七生产事故">七、生产事故</a></h2>
+<h3 id="事故-1跨机房-rtt-抖动--rto-雪崩"><a class="header" href="#事故-1跨机房-rtt-抖动--rto-雪崩">事故 1：跨机房 RTT 抖动 → RTO 雪崩</a></h3>
+<p><strong>症状</strong>：跨城 ECMP 路径切换频繁，RTT 5ms → 50ms → 5ms 反复，TCP 流 throughput 跌落到 5%。</p>
+<p><strong>根因</strong>：(1) F-RTO 未启，(2) RTT 由于 timestamp option 在 path 1 设了 5ms，path 2 设了 50ms，SRTT 慢追；RTO 估 80ms 而实际 50ms 段丢 → spurious 重传 → cwnd 重启 N 次。</p>
+<p><strong>修复</strong>：开启 tcp_frto=2 + tcp_no_metrics_save=1（不缓存 metric），显式 RTT 时间窗。</p>
+<h3 id="事故-2高频短连接的rto--retry215问题"><a class="header" href="#事故-2高频短连接的rto--retry215问题">事故 2：高频短连接的"RTO + retry2=15"问题</a></h3>
+<p>某 API gateway 100 ms 超时，但 server 残重 TCP，client 等不到 RST，504 频发。<code>tcp_retries2=15</code> 默认 924s 才 RST。client K8s 已重试到上游健康——浪费 100 倍超时。</p>
+<p><strong>修复</strong>：</p>
+<pre><code class="language-bash">sysctl -w net.ipv4.tcp_retries2=8    # 降到 ~100s
+# 应用层upe socket SO_KEEPALIVE + 超时回收
+</code></pre>
+<h3 id="事故-3tlp-误探测导致-throughput-减半"><a class="header" href="#事故-3tlp-误探测导致-throughput-减半">事故 3：TLP 误探测导致 throughput 减半</a></h3>
+<p>TLP probe 在小 cwnd 时被误认 seg seq 丢了，触发 fast recovery 减半。</p>
+<p><strong>修复</strong>：4.6+ 后内核修复 <code>tcp_process_tlp_ack</code> 判定条件，已不踩坑；旧 kernel 升级。</p>
+<h3 id="事故-4bgp-邻居路由反复rto-起步值-1s--drop-traffic"><a class="header" href="#事故-4bgp-邻居路由反复rto-起步值-1s--drop-traffic">事故 4：BGP 邻居路由反复，RTO 起步值 1s → drop traffic</a></h3>
+<p>数据中心核心 BGP 路径切换 → RTT 真实 1ms 但路由过剩路径甚至更高，RTO 从 micro-RTT EWMA 出发但前若干包用 SYN 路径 RTO=1s 起步 → 触发后立即 RTO timeout。</p>
+<p><strong>修复</strong>：BBR 不依赖 RTT 估"丢"，BBR <code>tcp_early_retrans</code> 也可以。</p>
+<hr />
+<h2 id="八易错清单"><a class="header" href="#八易错清单">八、易错清单</a></h2>
+<ol>
+<li><strong>RTO ≠ srtt × 4</strong>：是 <code>srtt + 4 * rttvar</code>，必须有 RTT 偏差项</li>
+<li><strong>3 dup ACK</strong> 是 fast retransmit 阈值，<strong>但 ER/RACK 后 cwnd&lt;4 也能触发</strong></li>
+<li><strong>重传过的包不能算 RTT 估计</strong>（Karn 算法）——除非 timestamp option</li>
+<li><strong>DSACK</strong> 给 sender 看："你之前重传的其实是错的"——F-RTO 判定</li>
+<li><strong>RACK 是 2017 后默认</strong>（kernel 4.4+），不要说 "TCP 用 SACK" 就行了——RACK 已是丢弃检测主力</li>
+<li><strong>tcp_retries2</strong> 控制错误后的"放弃时间"——8 = 100s，15 默认 = 924s，短连接服务要降到 8</li>
+<li><strong>QUIC 的 PTO 不是 RTO</strong>——探测式超时，没有 last_ack 静态</li>
+</ol>
+<hr />
+<h2 id="九这一章带走的东西"><a class="header" href="#九这一章带走的东西">九、这一章带走的东西</a></h2>
+<ol>
+<li>RTT 估计是 EWMA + 4σ 法则，Linux <code>tcp_rtt_estimator</code> 是教科书实现</li>
+<li>SACK → DSACK → F-RTO → RACK → TLP 是 20 年递进：治"假阳性"与"末端丢"两类痛点</li>
+<li><code>tcp_timestamps=2</code> + <code>tcp_sack=1</code> + <code>tcp_rack=1</code> 是必需默认；任何 server 关闭都是事故源</li>
+<li>QUIC 用包号单调 + ack_delay 字段 + PTO 把所有 RTO 痛点根除——是 HTTP/3 用 QUIC 的副因，不是主因</li>
+<li>生产看 <code>nstat TcpExtTCPSpuriousRTOs</code>、<code>TcpExtTCPLostRetransmit</code>、<code>TcpExtTCPRetransFail</code> 是否振荡</li>
+<li><strong>tcp_retries2=15=924s 是隐藏坑</strong>——短连接服务一定要降到 8</li>
+</ol>
+<h2 id="下一节-"><a class="header" href="#下一节-">下一节 →</a></h2>
+<p><a href="../http/versions.html">HTTP 各版本</a> — HTTP/1.0 闭连接 → HTTP/1.1 keep-alive → HTTP/2 stream multiplexing + HPACK → HTTP/3 over QUIC。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../networking/tcp/congestion.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../networking/http/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../networking/tcp/congestion.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../networking/http/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

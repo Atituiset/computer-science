@@ -1,0 +1,477 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>故障检测、failure models - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="故障检测failure-models"><a class="header" href="#故障检测failure-models">故障检测、failure models</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>分布式算法建立在<strong>故障模型 (failure model)</strong> 假设上——节点会怎么死、网络会怎么丢。<strong>核心区分</strong>:</p>
+<ul>
+<li><strong>Crash-stop</strong>: 死了永远不回来。Paxos 经典模型。</li>
+<li><strong>Crash-recovery</strong>: 死后能重启但是稳定存储 OK, Scribe / GFS master replication 用这个。</li>
+<li><strong>Omission</strong>: 消息可能丢, 但节点本身能"接收其他节点" (重新传达)——网络层故障。</li>
+<li><strong>Byzantine</strong>: 节点可任意行为 (撒谎、串改、应该发 5 但发 9), 需 Byzantine Fault Tolerance (BFT) 算法。</li>
+</ul>
+<p>不存在能容忍"所有故障、又有 5 个 9 可用"的算法——这是不可能的。设计分布式系统从<strong>选 failure model</strong> 开始——决定后面用什么算法。本章梳理各 model、failure detector、heartbeat、phi-accrual 算法、asynchronous vs synchronous 网络的根本限制。</p>
+<hr />
+<h2 id="一failure-models"><a class="header" href="#一failure-models">一、Failure Models</a></h2>
+<h3 id="crash-stop-fail-stop"><a class="header" href="#crash-stop-fail-stop">Crash-stop (Fail-stop)</a></h3>
+<p>节点一旦死,<strong>永远不再发任何消息</strong>。 系统中越简单故障模型, 算法越容易写:</p>
+<ul>
+<li>节点之间互相发心跳; N 秒无心跳 → mark dead; leader 选举只看 evidence。</li>
+<li>一旦不准 recovery, 重启就是新身份 (新 node id)。</li>
+</ul>
+<p><strong>Paxos 多副本经典</strong>模型。 zookeeper-3.x ZAB acceptors 假设 crash-stop (但应用程序 failrecovery may restart state).</p>
+<h3 id="crash-recovery"><a class="header" href="#crash-recovery">Crash-recovery</a></h3>
+<p>节点死后可重启, 稳定存储 (persistent state) 保留 (e.g., Raft log fsync-ed)。这是真实工业系统的常态。</p>
+<p><strong>关键</strong>: 不能区分"crash恢复后" 与 "缓慢但已活"的节点——所以算法 need <strong>stable leader election</strong> + log <strong>commit 后</strong>注意 re-sync (at-least-once or exactly-once semantics).</p>
+<h3 id="omission"><a class="header" href="#omission">Omission</a></h3>
+<p>网络丢消息, 但节点本身正常。 分:</p>
+<ul>
+<li><strong>Send omission</strong>: 节点发送丢, 接收正常。</li>
+<li><strong>Receive omission</strong>: 节点接收丢, 发送正常。</li>
+</ul>
+<p>Omission 看似温和, 但要<strong>至少 strong failure detector</strong> (Chandra-Toueg 1996) 才能 solve consensus。</p>
+<h3 id="byzantine-lamport-shostak-pease-1982"><a class="header" href="#byzantine-lamport-shostak-pease-1982">Byzantine (Lamport-Shostak-Pease 1982)</a></h3>
+<p>节点可任意行为——撒谎、伪造、不响应、发出非协议消息。 Byzantine Generals Problem 假设至多 f 个 byzantine 节点, 算法需 N ≥ 3f+1 (i.e., 备用超过 fault)。<strong>N≥3f+1 是 lower bound</strong>;PBFT (Practical BFT, Castro-Liskov 1999) 是经典 BFT 算法。</p>
+<p><strong>现代 BFT 应用</strong>:</p>
+<ul>
+<li><strong>区块链</strong>: Bitcoin PoW 算非典型 BFT (treat 作算力 majority); Tendermint、HotStuff、DiemBFT v1 是经典 BFT 算法。</li>
+<li><strong>集群 servers</strong>: 银行系统少量使用 PBFT 派生。</li>
+<li><strong>Spanner 复制组</strong>: 用 Paxos (crash-stop), 非 BFT。</li>
+</ul>
+<p>工程代价: BFT 比 crash-stop replication 算法负载 N=3f+1, 通信复杂 O(N²), 故都在 ≤20 replica 时用。</p>
+<h3 id="hybrid-model"><a class="header" href="#hybrid-model">Hybrid Model</a></h3>
+<p>工程上<strong>多种 model 混合</strong>:</p>
+<ul>
+<li>Spanner Paxos group 假设 crash-stop + omission (message can be delayed indefinitely);Scribe 协议处理 omission。</li>
+<li>BFT 区块链常 evidence treat extra Byzantine + crash-recovery 处理 by epoch leader rotating fast.</li>
+</ul>
+<hr />
+<h2 id="二failure-detector-形式化-chandra-toueg-1996"><a class="header" href="#二failure-detector-形式化-chandra-toueg-1996">二、Failure Detector 形式化 (Chandra-Toueg 1996)</a></h2>
+<h3 id="completeness-vs-accuracy"><a class="header" href="#completeness-vs-accuracy">Completeness vs Accuracy</a></h3>
+<p>A failure detector 是 oracle 给每个 process 提供"怀疑其他 process 已死"的列表。 评估四个性质:</p>
+<div class="table-wrapper"><table><thead><tr><th>性质</th><th>含义</th></tr></thead><tbody>
+<tr><td><strong>Completeness (strong)</strong></td><td>所有 eventually crash 节点 eventually 被某 process 怀疑</td></tr>
+<tr><td><strong>Completeness (weak)</strong></td><td>所有 crash 节点 eventually 被某 correct process 怀疑</td></tr>
+<tr><td><strong>Accuracy (strong)</strong></td><td>correct process <strong>永远</strong>不被怀疑 (无 spurious marking)</td></tr>
+<tr><td><strong>Accuracy (eventual)</strong></td><td>eventually, correct process 不再被怀疑</td></tr>
+<tr><td><strong>Accuracy (weak)</strong></td><td>部分 correct process 不被怀疑</td></tr>
+<tr><td><strong>Accuracy (monotonic)</strong></td><td>一旦不再怀疑 correct, 永远不再怀疑</td></tr>
+</tbody></table>
+</div>
+<h3 id="detector-分类"><a class="header" href="#detector-分类">Detector 分类</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>类型</th><th>Completeness</th><th>Accuracy</th></tr></thead><tbody>
+<tr><td>Perfect (P)</td><td>Strong</td><td>Strong</td></tr>
+<tr><td>Strong (S)</td><td>Strong</td><td>Weak + eventual</td></tr>
+<tr><td>Eventually Strong (◇S)</td><td>Weak + strong</td><td>Weak + eventual</td></tr>
+<tr><td>Eventually Perfect (◇P)</td><td>Strong</td><td>Eventual</td></tr>
+</tbody></table>
+</div>
+<h3 id="consensus-可解的-algebra"><a class="header" href="#consensus-可解的-algebra">Consensus 可解的 Algebra</a></h3>
+<p>Chandra-Toueg 证明: <strong>◇S</strong> (eventually strong) failure detector + asynchronous 网络 + N ≥ 2f+1 nodes → consensus 可解。 这是 Paxos 的本质——◇S 是 Paxos 隐式假设的 detector (任何节点, eventually 不再怀疑正确的 leader)。</p>
+<p>但<strong>纯异步网络</strong> 无假设时, FLP (Fischer-Lynch-Paterson 1985) 证明 consensus <strong>不可解</strong>——任意 consensus 算法都可能"indefinitate" due to one process can be  forever uncertain → 死锁。</p>
+<p>工程绕开 FLP: 引入<strong>随机化</strong> (Paxos proposer timeout + 随机 backoff); 引入◇S detector (heartbeat phi-accrual) eventually 结论。</p>
+<hr />
+<h2 id="三heartbeat-与-phi-accrual-检测"><a class="header" href="#三heartbeat-与-phi-accrual-检测">三、Heartbeat 与 Phi-Accrual 检测</a></h2>
+<h3 id="简单-threshold-heartbeat"><a class="header" href="#简单-threshold-heartbeat">简单 Threshold Heartbeat</a></h3>
+<pre><code>node A 每 1s 给 B 发 PING。
+B 间隔 5s 没收到 PING → 怀疑 A 挂了。
+</code></pre>
+<p>threshold fixed → 太大延迟检测, 太小误报。</p>
+<h3 id="phi-accrual-hayashibara-2004-cassandra-用"><a class="header" href="#phi-accrual-hayashibara-2004-cassandra-用">Phi-Accrual (Hayashibara 2004, Cassandra 用)</a></h3>
+<p><strong>Accrual</strong> 含义: 给每个 nodes 出"故障 suspicion level", 是连续值, 而非二值 (alive/suspect)。 算法:</p>
+<ol>
+<li><strong>统计历史 arrival time</strong>。 维护最近 N 个心跳到达间隔的滑动均值。</li>
+<li>假设 arrivals 服从正态分布 (实际用 exponential), 计算"since last heartbeat, 经过大空隙 X 自此没来的概率"是 phi 值。</li>
+<li>phi '越大, 越怀疑该节点死。</li>
+</ol>
+<pre><code>Phi(t) = -log10(P(t_now - t_last &gt; Δ | x drawn from past arrival distribution))
+</code></pre>
+<h3 id="cassandra-用法"><a class="header" href="#cassandra-用法">Cassandra 用法</a></h3>
+<pre><code>phi_threshold = 8
+every tick:
+  for each node peer:
+    phi = compute_phi(peer)
+    if phi &gt; threshold:
+       mark peer DOWN
+    else:
+       mark peer UP
+</code></pre>
+<p>Cassandra 默认 threshold = 8——对应 ~99.99999% 确认死。 <strong>Phi-accrual 减少 false-positive</strong> 比固定阈值好——网络抖动带来短 delay 不会直接 mark down。</p>
+<h3 id="swarmetcdgossip-failure-detection"><a class="header" href="#swarmetcdgossip-failure-detection">Swarm/Etcd/Gossip Failure Detection</a></h3>
+<p>许多系统用 Gossip 协议扩散状态:</p>
+<ul>
+<li>SWIM (Scalable Weakly-consistent Infection-style Process Group Membership): 多节点联合加直; 每节点 round-robin ping 一个 random member; ping 失败, random K 间接 ping; 仍 fail 加直suspect。</li>
+<li>Consul, Serf 用 SWIM 派生 implementation。</li>
+<li>etcd 用 Raft heartbeat + lease (3s timeout) 是 RAFT-style; 比 SWIM 更强的 consensus-detector.</li>
+</ul>
+<hr />
+<h2 id="四lease-vs-heartbeat-based"><a class="header" href="#四lease-vs-heartbeat-based">四、Lease vs Heartbeat-based</a></h2>
+<h3 id="lease"><a class="header" href="#lease">Lease</a></h3>
+<p>Leader lease 是分布时间"硬 lease": leader 获 lease 后 lease 期内<strong>保证没人挑战</strong>。 lease 过期必须 renew, 否则下 leader 接管。</p>
+<pre><code>grant lease to L1 valid [t0, t0+T_lease]
+if lease expired, no other leader can be elected in [t0+T_lease + ε] (给予 grace period buffer)
+</code></pre>
+<p>用于:</p>
+<ul>
+<li><strong>Chubby lease</strong>: 60s lease + renewal 30s, write 决策 on lease.</li>
+<li><strong>etcd Raft leader lease</strong>: defaulted 1s, upgrade per cluster config.</li>
+<li><strong>MongoDB multi-doc transactions lease</strong>: writes acquire 事务 timestamp within replica lease.</li>
+</ul>
+<h3 id="lease-与-flp-不冲突原因"><a class="header" href="#lease-与-flp-不冲突原因">Lease 与 FLP 不冲突原因</a></h3>
+<p>Lease 引入了<strong>时间维度</strong>——必同步式 + bound: 由于 bounded lease ⇒ bounded halting ⇒ exit FLP indefinite halting trap.</p>
+<h3 id="安全性要求"><a class="header" href="#安全性要求">安全性要求</a></h3>
+<p><strong>Clock skew 不能让 lease 过期时间误判</strong>: 系统必须给出统一 lease 时间-source。 实际工程: 给每节点 NTP 同步 + lease renew 用 Raft majority write 多副本 sync leader 的话同一 cluster time.</p>
+<hr />
+<h2 id="五flp-不可能性-fischer-lynch-paterson-1985"><a class="header" href="#五flp-不可能性-fischer-lynch-paterson-1985">五、FLP 不可能性 (Fischer-Lynch-Paterson 1985)</a></h2>
+<h3 id="定理"><a class="header" href="#定理">定理</a></h3>
+<p><strong>纯异步网络</strong> (消息延迟无上限) 下, <strong>如果有 1 个节点可能 crash</strong>, 那 deterministic consensus 算法无法保证 termination (eventually all correct 都 AGREE).</p>
+<h3 id="证明-sketch"><a class="header" href="#证明-sketch">证明 sketch</a></h3>
+<p>构造一个 initial configuration <code>C0</code> 是 bivalent—— 可 decide 0 or decide 1 (depend on 内部 schedule). 算法必须转 <code>C0</code> into a <code>0-valent</code> 或 <code>1-valent</code> state——但我们可以<strong>streer schedule</strong> 让一个<strong>关键步骤</strong> (e.g., 某个 message deliver) 在 system 处于 bivalent 时 crash 那么 node。去掉那个 message → system stays bivalent forever—— 阻止 termination.</p>
+<h3 id="工程绕开"><a class="header" href="#工程绕开">工程绕开</a></h3>
+<p>绕开 FLP:</p>
+<ol>
+<li><strong>Randomized consensus</strong>: 算法随机。 Paxos 用 randomized proposal number; Ben-Or 1983 也是 randomized. 阻止 indefinite 死锁.</li>
+<li><strong>Failure detector with ◇S</strong>: eventual weak detector 允许 eventually "skip crashed"—— disconnect indefinite bivalent.</li>
+<li><strong>Partial synchronous assumption</strong>: 实际 assumption "eventual message delivery"——一段 indefinite 第 phase 后总收得到 message。这与 eventual detector 一致.</li>
+</ol>
+<p>工程区间 distributed consensus algorithms 都 mix 这三种 trick.</p>
+<hr />
+<h2 id="六不可靠故障检测的应用"><a class="header" href="#六不可靠故障检测的应用">六、不可靠故障检测的应用</a></h2>
+<h3 id="eureka-netflix-ap-failover"><a class="header" href="#eureka-netflix-ap-failover">Eureka (Netflix) AP Failover</a></h3>
+<p>Eureka server 之间的 replication 用 AP + eventual converge — 单 server crash (- circuit b/c lapsed -active); clients 调用 target 多 target 多 server 走 best-effort. Eureka heartbeat 每 30s lease 90s. <strong>可用性优先于一致</strong>, 默认 eventual heartbeat may show stale.</p>
+<h3 id="cassandra-phi-accrual-adjustment"><a class="header" href="#cassandra-phi-accrual-adjustment">Cassandra Phi-Accrual Adjustment</a></h3>
+<p>Cabbandra 默认 phi = 8. Failure with spiking traffic chatter: heartbeat delay 短 preservation phi=4 时小哥显 高但 adjust phi=12 reduce false-positive, 但 increase detection delays (慢) — SLA trade-off.</p>
+<hr />
+<h2 id="七故障模型与算法选表"><a class="header" href="#七故障模型与算法选表">七、故障模型与算法选表</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Failure Model</th><th>Consensus 算法</th><th>Storage 算法</th><th>例</th></tr></thead><tbody>
+<tr><td>Crash-stop</td><td>Paxos, Raft, Multi-Paxos</td><td>Primary-Backup, Chain Replication</td><td>Chubby, etcd</td></tr>
+<tr><td>Crash-recovery</td><td>Paxos+log, ZAB</td><td>同上 + log replay</td><td>Zookeeper</td></tr>
+<tr><td>Omission + crash</td><td>Paxos+◇S detector</td><td>同上 + retransmit</td><td>TCP, Cassandra</td></tr>
+<tr><td>Byzantine</td><td>PBFT, HotStuff, Tendermint</td><td>Blockchains, some bank liveness</td><td>Bitcoin, Cosmos Hub</td></tr>
+<tr><td>Hybrid</td><td>BFT hybrid Paxos 多副本 to Byzantine 内</td><td>集群 in/out cross-datacenter 太</td><td>跨云金融 system</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="八易错清单"><a class="header" href="#八易错清单">八、易错清单</a></h2>
+<ol>
+<li><strong>Pure async network + 1 crash impossible → 找绕</strong> : 算 deterministic consensus 必须 0 个 crash. 工程用 random + detector + bound message 释出 FLP.</li>
+<li><strong>Lease 是 explicit 时间 grant, 不是 implicit structure</strong>: lease 没理清导致 leader skaring cluster extra; 心 延迟 timeout abide by overlap of 2+ lease. detected Oversize g超 leaked Trasure.</li>
+<li><strong>Phi value vs fixed threshold</strong>: 不要 混用 "5 秒 没心跳" 与 phi, 前者 fail over war 不 平稳. 自动后 finalize entry process SQL form.</li>
+<li><strong>Byzantine ≠ 不诚实硬件 BTC smart contract Byzantine</strong> : byzantine 假设攻击者不能 break cryptographic signature, 工程实际 alleviate 难度. BC store multi node crypto.</li>
+<li><strong>FLP "impossible" ≠ 现实不能 consensus</strong>: FLP 论证 existence of  indep scheduling let never choosing . 但实际 scheduled clock times 不知 form partial synchoronus path</li>
+<li><strong>Crash recovery ≠ state must flush to disk</strong>: 没 fsync WAL 的 crash recovery 系统是 NOT crash-safe (new replica 读 data corruption state.consensus on false commit).</li>
+<li><strong>leader lease + externalizing duree certain手机</strong>: 调度器 必 包含 grace time wait os difference treat。</li>
+</ol>
+<hr />
+<h2 id="九这一章带走的东西"><a class="header" href="#九这一章带走的东西">九、这一章带走的东西</a></h2>
+<ol>
+<li>Failure model 是 distributed algorithms 的底层假设——crash-stop 比 crash-recovery 简单, byzantine 最复杂。</li>
+<li>Paxos/Raft 等 crash-stop consensus 上 exist in real-world via crash-recovery (用 fsync log).</li>
+<li>Chandra-Toueg ◇S failure detector + asynchronous → Consensus 可解. Raft heartbeat + lease 是 implicit ◇S detector。</li>
+<li>Phi-accrual failure detector 提供 continuous suspicion, configurable threshold, less false-positive。</li>
+<li>FLP 不能解决 in purely asynchronous model. 工程 evasion: randomization + DETECTOR + partial synchronous assumption.</li>
+<li>BFT 需要 3f+1 nodes 与 O(N²) communication, 工程上限定 budget ≤20 nodes 块 .</li>
+</ol>
+<hr />
+<p>下一节 → <a href="../consensus/index.html">共识</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../distributed/concepts/ordering.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../distributed/consensus/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../distributed/concepts/ordering.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../distributed/consensus/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

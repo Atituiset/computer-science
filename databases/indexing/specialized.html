@@ -1,0 +1,474 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Hash index、GIN、GiST、BRIN - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="hash-indexgingistbrinsp-gist"><a class="header" href="#hash-indexgingistbrinsp-gist">Hash index、GIN、GiST、BRIN、SP-GiST</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>PostgreSQL 默认 B+ tree 之外提供 5 类 specialized secondary index。各适合不同访问模式：Hash O(1) 等值、GIN 倒排、GiST 空间/范围/不平衡、SP-GiST 非平衡树 (radix/quadtree)、BRIN 块范围摘要 (大表顺序列)。本节看完应该知道何时该选 specialized index 替代 B-tree（或反之），以及 PG 14/15/16 的改进。</p>
+<div class="table-wrapper"><table><thead><tr><th>类型</th><th>适合</th></tr></thead><tbody>
+<tr><td>Hash</td><td>等值 only</td></tr>
+<tr><td>B-Tree</td><td>范围 + 等值 + 排序（最常用）</td></tr>
+<tr><td>GIN</td><td>倒排 JSONB / 全文 / 数组</td></tr>
+<tr><td>GiST</td><td>空间 / 范围 quadtree / 重边 (SET)</td></tr>
+<tr><td>SP-GiST</td><td>非平衡树 (radix / quadtree)</td></tr>
+<tr><td>BRIN</td><td>块范围摘要 (大表顺序列)</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="一hash-index"><a class="header" href="#一hash-index">一、Hash Index</a></h2>
+<p>O(1) 等值索引：</p>
+<pre><code class="language-sql">CREATE INDEX idx_email ON users USING HASH (email);
+SELECT * FROM users WHERE email = 'a@b';
+SELECT * FROM users WHERE email LIKE 'a%';   -- 不可用
+</code></pre>
+<p>PG 10+ Hash 才支持 WAL → crash-safe。可用 Buket Pattern + Overflow Page: bucket ID = hash(key) mod N。</p>
+<p>局限：</p>
+<ul>
+<li>仅等值（no range, no sorting）</li>
+<li>不能作为 unique constraint (PG 21 内不强制)</li>
+<li>比 B-tree 在低基数列优势不大</li>
+</ul>
+<p>实战：B-tree 通常已够；用 Hash 100% 仅等值且 key 长度大 (+20 byte) 时考虑。</p>
+<hr />
+<h2 id="二gin-generalized-inverted-index"><a class="header" href="#二gin-generalized-inverted-index">二、GIN (Generalized Inverted Index)</a></h2>
+<p>倒排索引：把"复合列"分解为元素 → 单元素 → posting list (含哪些 row)。</p>
+<ul>
+<li>数组 <code>INT[]</code> / <code>TEXT[]</code></li>
+<li>JSONB 字段</li>
+<li>全文 <code>TSVECTOR</code></li>
+</ul>
+<pre><code class="language-sql">CREATE INDEX idx_tags ON posts USING GIN (tags);
+SELECT * FROM posts WHERE tags @&gt; ARRAY['pg'];
+SELECT * FROM posts WHERE tags &amp;&amp; ARRAY['pg','mysql'];
+
+CREATE INDEX idx_data ON events USING GIN (jsonb_col);
+SELECT * FROM events WHERE jsonb_col-&gt;&gt;'action' = 'click';
+
+CREATE INDEX idx_fulltext ON articles USING GIN (to_tsvector('english', body));
+SELECT * FROM articles WHERE to_tsvector('english', body) @@ to_tsquery('database &amp; index');
+</code></pre>
+<h3 id="21-gin-优势"><a class="header" href="#21-gin-优势">2.1 GIN 优势</a></h3>
+<ul>
+<li>查询时间 O(#key) 而非 O(rows)</li>
+<li>支持 <code>@&gt;</code> <code>&lt;@</code> <code>&amp;&amp;</code> <code>?</code> <code>@?</code> JSONB 操作</li>
+<li>全文搜索不依赖外部 Elasticsearch (中小 workload)</li>
+</ul>
+<h3 id="22-gin-缺陷"><a class="header" href="#22-gin-缺陷">2.2 GIN 缺陷</a></h3>
+<ul>
+<li>索引生成慢（每元素加 posting list 操作）</li>
+<li>索引 update 慢 → 高频写场景用 <code>fastupdate=on</code>（pending list 暂存)</li>
+<li>不支持 UNIQUE constraint</li>
+<li>空间开销大 (单位 row 量)</li>
+</ul>
+<p><code>fastupdate = on</code> (<code>gin_pending_list_limit = 4MB</code>)：在 pending list 中累积 update → 后台批量刷。<code>gin_pending_list_limit</code> 大收益取决于写压力。</p>
+<h3 id="23-gin-险-pg-14"><a class="header" href="#23-gin-险-pg-14">2.3 GIN 险, PG 14+</a></h3>
+<ul>
+<li>PG 14 引入 JSONB path expression GIN</li>
+<li>PG 15 引入 multirange column</li>
+<li>PG 16 改进 sort + bitmap scan 与 GIN 整合</li>
+</ul>
+<hr />
+<h2 id="三gist-generalized-search-tree"><a class="header" href="#三gist-generalized-search-tree">三、GiST (Generalized Search Tree)</a></h2>
+<p>允许定义自定义 split 函数 → 可实现不同数据结构：R-tree (空间)、range 类型、 SET (e.g. <code>ltree</code>, <code>seg</code>, <code>pg_trgm</code>).</p>
+<pre><code class="language-sql">-- btree_gist extension: GiST ops for common types
+CREATE EXTENSION btree_gist;
+CREATE INDEX idx_range ON events USING GiST (ts during tsrange);
+
+-- 全文搜索 trigram
+CREATE EXTENSION pg_trgm;
+CREATE INDEX idx_name_trgm ON users USING GIN (name gin_trgm_ops);  -- OR GIST
+-- pg_trgm GIN ok: "name LIKE '%bob%'"
+
+-- 空间
+CREATE INDEX idx_geom ON landmarks USING GIN (geom);  -- or GIN
+</code></pre>
+<h3 id="31-gist-用例"><a class="header" href="#31-gist-用例">3.1 GiST 用例</a></h3>
+<ul>
+<li>时间范围 (<code>tsrange</code>, <code>daterange</code>)</li>
+<li>空间矩形/点 <code>&lt;-&gt;</code>、<code>&lt;#&gt;</code>、<code>&amp;&amp;</code> 等</li>
+<li>不等/相对位置 取代 B+ tree 的 = / &gt; 比较</li>
+</ul>
+<h3 id="32-gist-vs-b-tree"><a class="header" href="#32-gist-vs-b-tree">3.2 GiST vs B-tree</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>GiST</th><th>B-tree</th></tr></thead><tbody>
+<tr><td>顺序</td><td>自定义 partition function</td><td>单调 key 比较排序</td></tr>
+<tr><td>优势</td><td>范围 overlap / 空间</td><td>等值 / 范围</td></tr>
+<tr><td>性能</td><td>通常 O(log N) + 维度 overhead</td><td>O(log N)，简单、紧凑</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="四sp-gist-space-partitioned-gist"><a class="header" href="#四sp-gist-space-partitioned-gist">四、SP-GiST (Space-Partitioned GiST)</a></h2>
+<p>非平衡树根 radix tree / quadtree / trie / kdtree 的实战设计。每节点 partition 函数可以非二分。</p>
+<pre><code class="language-sql">CREATE EXTENSION pg_trgm;  -- uses SP-GiST
+CREATE INDEX idx_text_trgm ON articles USING SP-GiST (name gist_trgm_ops);
+
+-- inet / cidr
+CREATE INDEX ON bps_logs USING SP-GiST (ip inet_ops);
+
+-- box 2D space
+CREATE EXTENSION cube;
+CREATE INDEX idx_cube ON records USING SP-GiST (cube field);
+</code></pre>
+<p>实战限用：仅当 key 自带刻度 (radix 前缀、坐标 spatial dim) 时唯一。</p>
+<hr />
+<h2 id="五brin-block-range-index"><a class="header" href="#五brin-block-range-index">五、BRIN (Block Range Index)</a></h2>
+<p>每 ~128 个连续 page (1 MB 数据) 存 min/max + null count + count → index size 仅每 (128 × 8KB) ~50 B.</p>
+<pre><code class="language-sql">CREATE INDEX ts_brin ON events USING BRIN (timestamp);
+</code></pre>
+<h3 id="51-brin-适用"><a class="header" href="#51-brin-适用">5.1 BRIN 适用</a></h3>
+<ul>
+<li>时间列与物理顺序高度相关 → BRIN 极有效</li>
+<li>大表 (<code>events</code>, logs) 顺序写入，旧数据不修改</li>
+</ul>
+<h3 id="52-brin-缺陷"><a class="header" href="#52-brin-缺陷">5.2 BRIN 缺陷</a></h3>
+<ul>
+<li>仅做"block-level"过滤 → 必须扫 candidate blocks</li>
+<li>等值查询仍可能扫多 block</li>
+<li>不适合 ossified 插入模式 (e.g. UUID random insertion → 物理不按时间)</li>
+</ul>
+<p>实战 100GB log table:</p>
+<pre><code>B-tree: 200MB index, 比 BRIN 50× 空间
+BRIN:    5MB index, 时间 in 顺序文 → 99% block skip
+</code></pre>
+<h3 id="53-brin-pages_per_range"><a class="header" href="#53-brin-pages_per_range">5.3 BRIN pages_per_range</a></h3>
+<pre><code class="language-sql">CREATE INDEX ts_brin ON events USING BRIN (timestamp)
+    WITH (pages_per_range = 64);  -- 64 × 8KB = 512 KB per range
+</code></pre>
+<p>调小 (16 pages) 摘要精度高； 调大 (512 pages) 索引更小但 block-skip 概率降。</p>
+<hr />
+<h2 id="六postgres-仅-b-tree-唯一约束-15"><a class="header" href="#六postgres-仅-b-tree-唯一约束-15">六、Postgres 仅 B+ tree 唯一约束 (15+</a></h2>
+<p>PG 15 之前 UNIQUE 约束只能用 B-tree。PG 15+ 让 UNIQUE 可被任何 "amcanunique" index 支持 (GiST with <code>amcanunique</code> 一部 GiST opclass 例子 (e.g. <code>range_ops</code>) 也支持 UNIQUE 重部分)。</p>
+<hr />
+<h2 id="七产线事故"><a class="header" href="#七产线事故">七、产线事故</a></h2>
+<h3 id="71-hash-index-在-pg-9-是-silent-crash-unsafe"><a class="header" href="#71-hash-index-在-pg-9-是-silent-crash-unsafe">7.1 Hash index 在 PG 9 是 silent crash unsafe</a></h3>
+<p>9 以前的版本，Hash index 坏不收→ 应改 B-tree。12+ 之后稳定。</p>
+<h3 id="72-gin-fastupdate-update-异常慢"><a class="header" href="#72-gin-fastupdate-update-异常慢">7.2 GIN fastupdate update 异常慢</a></h3>
+<p>某业务 1000 行 / 测入 GIN (tags) → 平均慢 50ms。fixed by <code>gin_pending_list_limit = 32MB</code> + <code>autovacuum_vacuum_scale_factor = 0.02</code> 让 autovacuum 自动清 pending list 步调一致。</p>
+<h3 id="73-brin-时间不单调"><a class="header" href="#73-brin-时间不单调">7.3 BRIN 时间不单调</a></h3>
+<p>旧业务 random update <code>events</code>，BRIN 时间 index 大多 blocks 都 min/max 全覆盖 → 全表扫描 hit 率 100%。 discovered bug 用 <code>BRIN (id)</code> 改用 B-tree。</p>
+<h3 id="74-gist-范围-bloat"><a class="header" href="#74-gist-范围-bloat">7.4 GiST 范围 bloat</a></h3>
+<p>业务 tsrange all in 1 small segments 表 deite phenomen stats; GiST 1000 sub-block partial clustered large 因为 reorder by extend update 多越来越稀 → REINDEX needed every weekend.</p>
+<h3 id="75-sp-gist-trigram-mismatch"><a class="header" href="#75-sp-gist-trigram-mismatch">7.5 SP-GiST trigram mismatch</a></h3>
+<p>业务用 SP-GiST (name gist_trgm_ops) 但 GIN trigram 真正更适 LIKE 全 第% 检…，后者 FTS-ùtrgram 更佳。</p>
+<hr />
+<h2 id="八易错清单"><a class="header" href="#八易错清单">八、易错清单</a></h2>
+<ol>
+<li>Hash index 不能 UNIQUE constraint</li>
+<li>GIN update 慢 — 必带 <code>fastupdate=on</code></li>
+<li>GiST ≠ 必适空间；OS 顺序 also 适 GiST 更慢 范围</li>
+<li>BRIN 仅在时间与物理空间 高度相关时有用</li>
+<li>SP-GiST 不默认支持 range / 全文 — 需 extension</li>
+<li>trigram LIKE 查询 GIN &gt; GiST; trigram stemmer 等 = 倒排索引模式</li>
+</ol>
+<hr />
+<h2 id="九这一章带走的东西"><a class="header" href="#九这一章带走的东西">九、这一章带走的东西</a></h2>
+<ol>
+<li>PostgreSQL 6 类索引各有 access pattern 专长; B-tree 是默认且 50/50 各场景</li>
+<li>Hash 只适合等值 + 已 长 enough → 95% 业务仍用 B-tree</li>
+<li>GIN 倒排 → array / JSONB / 全文 在 DB 内可免除 Elasticsearch</li>
+<li>GiST 范围 + 空间 / ltree 多专用; 索引 bloat 修 REINDEX</li>
+<li>BRIN 极窄场景（时间物理高度相关）但小到 ~5MB，可表 100GB</li>
+<li>SP-GiST 主要用于 radix tree + spatial quadtree (IP-prefix/网络) 仅 stationary cases tup-compoundable</li>
+<li>PG 15+ UNIQUE 支持 non-B-tree — 让 ratio trange 做 unique possible</li>
+</ol>
+<h2 id="下一节-"><a class="header" href="#下一节-">下一节 →</a></h2>
+<p><a href="explain.html">执行计划：EXPLAIN ANALYZE 怎么读</a> — PostgreSQL / MySQL 计划字段语义、Buffers/Planning Time/loops/time 均值</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../databases/indexing/lsm.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../databases/indexing/inverted-index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../databases/indexing/lsm.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../databases/indexing/inverted-index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

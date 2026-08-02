@@ -1,0 +1,428 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>inode、dentry、page cache - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="inodedentrypage-cache"><a class="header" href="#inodedentrypage-cache">inode、dentry、page cache</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>你说 <code>cat /etc/passwd</code>，看似"打开一个文件然后读字节"。实际内核做了五层抽象:</p>
+<pre><code>路径 /etc/passwd
+   ↓ (dentry 树解析)
+inode 号 + fs 元信息
+   ↓
+磁盘 block 列表 (extent / direct / indirect)
+   ↓
+page cache (一次 page 4 KB)
+   ↓
+块层 + IO 调度
+   ↓
+NVMe 提交 queue → DRAM 落块
+</code></pre>
+<p>每层都是一个 cache, 每层都各有失效模式. 这一章把这套链路拆开, 让你看清 <code>open + read</code> 在 OS 内部到底是怎么发生的——同时也解释为什么 PostgreSQL / InnoDB / Rocks 这些系统都坚持自己再做一遍 IO 层.</p>
+<h2 id="1-dentry-路径字符串看到的虚拟树"><a class="header" href="#1-dentry-路径字符串看到的虚拟树">1. dentry: 路径字符串看到的虚拟树</a></h2>
+<p>当你 <code>cat /etc/passwd</code> 内核要先做 <strong>path resolution</strong>:</p>
+<pre><code>/   →  根 dir inode 1
+etc →  在根 dir 找 "etc" 这一项
+       这一项指向下一层 dentry
+passwd → 在 etc dir 找 "passwd" 这项
+       拿到 final inode
+</code></pre>
+<p>每一层访问都是一次目录扫描 (实际是个 hash/遍历查找). preload 内存里维护 dentry cache (dcache), 命中即命中.</p>
+<p><strong>dcache 是 OS 层 "路径 → inode" 的缓存</strong>. 内核启动后大部分系统的 <code>/usr/bin</code> 等热目录可达 dcache 100% 命中.</p>
+<h2 id="2-inode-一个文件的-metadata"><a class="header" href="#2-inode-一个文件的-metadata">2. inode: 一个文件的 metadata</a></h2>
+<p>inode 装着:</p>
+<pre><code>文件大小
+所有者 + 权限
+atime / mtime / ctime
+文件数据 block 列表 (extent 或 direct + indirect)
+文件类型 (regular / dir / link / device / FIFO)
+</code></pre>
+<p><strong>注意 inode 不带文件名</strong>——文件名是它在父目录这条 dentry 的属性. 一份 inode 可被多个 dentry 指 (hardlink), 即一个文件可以多个文件名, 但 inode 本身唯一.</p>
+<p>读 inode 也走过 VFS 层后到具体 fs, 在 ext4 上是 <code>ext4_inode</code> 结构, 字段 packed, 256 字节起步, 大文件可扩展.</p>
+<h2 id="3-extent-vs-indirect-block-怎么描述一个文件的所有数据块"><a class="header" href="#3-extent-vs-indirect-block-怎么描述一个文件的所有数据块">3. extent vs indirect block: 怎么描述"一个文件的所有数据块"</a></h2>
+<p>历史方案是 BSD 早期用 <strong>direct block + indirect block + double indirect + triple indirect</strong>:</p>
+<pre><code>inode 前 12 个 block pointer 直接给前 12 × 4 KB = 48 KB;
+第 13 个 pointer → 一块装 1024 pointer → 1024 × 4 = 4 MB;
+第 14 个 pointer → 一块装 1024 个 pointer → 每 pointer 又指向装 1024 pointer 的块;
+第 15 个 → 4 GB;
+</code></pre>
+<p>听起来文艺但不工程友好 —— 大文件一次访问多级寻址 + cache miss.</p>
+<p><strong>现代文件系统改用 extent</strong>: 一个 extent 直接表示 <code>[起始 block, 长度 L blocks]</code>. ext4 一个 inode 装内嵌 4 个 extent, 一个 extent 默认最大 32 KB (现代改进后 extent tree 可以扩展). XFS 用 B+ 树 extent.</p>
+<p>extent 的好处:</p>
+<ul>
+<li>顺序文件 metadata 极小 (1 GB 文件 = 一个 extent entry);</li>
+<li>顺序 IO 友好 (磁盘一次 sequential read);</li>
+<li>大文件碎片化 metadata 节省 cookie.</li>
+</ul>
+<p><strong>这是 DSA 中 B+ 树 + 顺序物理化 在 OS 文件系统层的同构</strong>.</p>
+<h2 id="4-page-cache-把读过的页-留在-dram"><a class="header" href="#4-page-cache-把读过的页-留在-dram">4. page cache: 把"读过的页" 留在 DRAM</a></h2>
+<p>文件 IO 的真实路径不是 <code>read → disk</code>:</p>
+<pre><code>read(fd, buf, n)
+   ↓
+explicit_filemap_read → page cache 命中 →
+   ↓                                ↓
+命中就 memcpy 到 buf            miss →
+                              submit_bio → 块层 / NVMe
+                              data 拉进 page cache
+                              再 memcpy 到 user buf
+</code></pre>
+<p><code>read</code> 总是先看 page cache, <code>mmap</code> 是更高级别坐进 page cache 让用户空间零拷贝访问.</p>
+<p><strong>page cache 是 OS 层的"通用 read cache"</strong>, 对所有进程间共享——如果两个进程同时 cat 同一个文件, 同一个 page cache 被 reused.</p>
+<h2 id="5-dirty-page-与-writeback"><a class="header" href="#5-dirty-page-与-writeback">5. dirty page 与 writeback</a></h2>
+<p>写路径:</p>
+<pre><code>write(fd, buf, n)
+   ↓
+page cache 上写 (与 read 反过来, 先看命中)
+   ↓
+mark dirty + 设置 dirty 标记位
+   ↓
+  pthread_async + writeback thread 慢慢 submit_bio 来刷盘
+   ↓
+disk 完成, 清 dirty 标记
+</code></pre>
+<p><code>write</code> 在 99% 情况下不立刻写盘. 这是 OS 优化的核心: 把 write-burst 缓冲起来 + 顺序刷盘 + 由 IO 调度合并相邻 page.</p>
+<p>但要持久化, 用户必须 <code>fsync(fd)</code> —— <strong>强制把 dirty 同步刷盘并等 disk ACK</strong>. fsync 之前的数据<strong>可能在断电 / panic 中丢</strong>, 这是 crash consistency 的核心题.</p>
+<h2 id="6-文件-io-怎么测性能"><a class="header" href="#6-文件-io-怎么测性能">6. 文件 IO 怎么测性能</a></h2>
+<pre><code class="language-bash"># 系统 cache 命中
+time cat /etc/passwd &gt; /dev/null          # 几百 μs
+
+# 强制读盘 + Drop cache
+echo 3 &gt; /proc/sys/vm/drop_caches
+time cat large_file &gt; /dev/null           # 看盘速度
+
+# 用 fio 做 raw benchmark
+fio --name=test --filename=/tmp/a --rw=randread --bs=4k --size=1G --iodepth=8 --numjobs=8
+
+# 看 page cache 占用大小
+free -h
+vmstat 1
+</code></pre>
+<h2 id="7-多语言--多运行时"><a class="header" href="#7-多语言--多运行时">7. 多语言 / 多运行时</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>语言</th><th>默认 IO 路径</th><th>优势 / 坑</th></tr></thead><tbody>
+<tr><td>C <code>read/write</code></td><td>系统调用 + page cache</td><td>取决于 fsync</td></tr>
+<tr><td>Go <code>os.File.Read</code></td><td>同上 + goroutine 调度 不阻塞 GMP</td><td><code>GOMAXPROCS</code> 满时阻塞会 M 扩</td></tr>
+<tr><td>Rust <code>File::read</code></td><td><code>libc</code> wrapper, 内 <code>read</code></td><td>async 用 <code>tokio::fs</code> 走 epoll + thread pool</td></tr>
+<tr><td>Java <code>InputStreamReader</code></td><td>JVM 内 heap buffer + page cache</td><td>双层 buffer 有时浪费</td></tr>
+<tr><td>Python <code>open().read</code></td><td>C InputStreamReader 流式 buffer</td><td>写大文件建议 <code>buffering</code> 调大</td></tr>
+</tbody></table>
+</div>
+<p>各语言 IO 接口都 wraps 系统 syscall, 抽象同一, 仅 syntactic 差异. <strong>真正工程上 IO 性能差别主要看 cache 是否被正确使用 + fsync 频率</strong>.</p>
+<h2 id="8-pg--innodb--rocks-的自己再写-io"><a class="header" href="#8-pg--innodb--rocks-的自己再写-io">8. PG / InnoDB / Rocks 的"自己再写 IO"</a></h2>
+<p>主流数据库 (PG / MySQL / MongoDB / RocksDB) <strong>绕过操作系统 page cache + 自己做缓存管理</strong>:</p>
+<ul>
+<li>内 buffer pool 是 OS page cache 的平行物, 但能精确控制 LRU + 大小 + writeback;</li>
+<li>使用 <code>O_DIRECT</code> flag (下一章详谈) 让 IO 不进 page cache;</li>
+<li>自己做 pread + WAL + checksum.</li>
+</ul>
+<p>为什么? OS page cache 弱在<strong>多线程 + 大内存 + 多 workload 共享机器时不可预期</strong>. 自家 buffer pool 能控 : 哪个 thread 等谁、 cache hit 高 / 低、flush 时频率.</p>
+<h2 id="9-i_size--i_blocks--dense-sparse-file"><a class="header" href="#9-i_size--i_blocks--dense-sparse-file">9. i_size + i_blocks / dense sparse file</a></h2>
+<p>inode 的 <code>i_sb</code> (super block) 信息中含 <code>i_blocks</code> (used blocks count, 1 block = 512B).  Linux <code>du -h</code> 用 <code>i_blocks × 512</code> 实际盘占用, 而 <code>ls -l</code> 用 <code>i_size</code> 逻辑大小. 这两者差距来自 sparse file 不一定真占用 block. mkfile 输出 50 GB sparse 文件 = 0 i_blocks, 但 i_size = 50 GB.</p>
+<p><code>fallocate --dig</code> 通过 fallocate syscall 让 fs 提前置位 extent 但不实际写入 0, 当 metadata-first allocator, 极适合"预占大文件 + 慢慢填充". 不预先 fallocate 大文件, 等 first write 时 fs 才动态分 extent, 在 high perf IO 场景上要 fallocate + O_DIRECT.</p>
+<h2 id="10-这一章带走的东西"><a class="header" href="#10-这一章带走的东西">10. 这一章带走的东西</a></h2>
+<ul>
+<li><code>open + read</code> 实际穿五层 VFS/dentry/inode/page cache/block layer;</li>
+<li>extent 模型是 indirect block 的工程演进 (少 metadata + 友 cache);</li>
+<li>page cache 是不分进程共享的 read cache;</li>
+<li>write 默认仅写 page cache, fsync 才保证持久化;</li>
+<li>数据库普遍走 O_DIRECT 绕 page cache, 自己实现 buffer pool.</li>
+</ul>
+<p>下一节 → <a href="filesystems.html">ext4 / XFS / Btrfs 设计差异</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../os/fs/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../os/fs/filesystems.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../os/fs/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../os/fs/filesystems.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

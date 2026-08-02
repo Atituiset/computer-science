@@ -1,0 +1,477 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Little&#x27;s Law、利用率模型 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="littles-law"><a class="header" href="#littles-law">Little's Law</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p><strong>Little's Law</strong> (John D.C. Little, 1961, MIT Sloan) 是排队论中最常用、最被广泛引用的定理:</p>
+<p>$$L = \lambda W$$</p>
+<ul>
+<li><strong>$L$</strong> = 系统中平均实体数 (concurrent occupations, queue + service)</li>
+<li><strong>$\lambda$</strong> = 到达率 (arrival rate, 实体/unit time)</li>
+<li><strong>$W$</strong> = 平均逗留时间 (实体在系统中停留的总时间)</li>
+</ul>
+<p>它跨<strong>任意</strong>到达分布 + <strong>任意</strong>服务分布 + <strong>任意</strong>队列情形都成立. 是 back-of-envelope 估算 threadpool size、queue depth、worker count 的 first principle. 本章推导公式、应用例 (限流器、池容量、API P99)、与经典 counter-example (non-stable 系统如何破坏 validity)、Little's Law 在工业 ops 的应用 (SRE pool sizing)。</p>
+<hr />
+<h2 id="一直觉与形式化"><a class="header" href="#一直觉与形式化">一、直觉与形式化</a></h2>
+<h3 id="直觉"><a class="header" href="#直觉">直觉</a></h3>
+<p>如果:</p>
+<ul>
+<li>1 秒 来 1 个 客人 (λ=1/s)</li>
+<li>每个客人在店里待 5 秒 (W=5s)</li>
+<li>那么店里 "steady state" 平均同时有 1×5=5 个客人 (L=5)</li>
+</ul>
+<p>或说: 每秒进来 1 个客人, 每个客人占用 5 个细秒-slot (resource), 总 steady state 占用是 5 个 slots = 5 同时客人.</p>
+<h3 id="形式化"><a class="header" href="#形式化">形式化</a></h3>
+<p>证明 (simplified version, stable M/M/1):</p>
+<p>设稳态到达率 λ, 服务率 μ (μ&gt;λ 稳定). Little's Law 在任意 markov chain stationary distribution 中 apply. 完整 proof 需要 ergodic average argument.</p>
+<h3 id="三变量--推论"><a class="header" href="#三变量--推论">三变量 + 推论</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>变量</th><th>稳态关系</th></tr></thead><tbody>
+<tr><td>未来到达 rate λ 与系统稳定性 要求 λ &lt; μ (μ 是服务率)</td><td>stability condition</td></tr>
+<tr><td>L = λ × W</td><td>Little's Law</td></tr>
+<tr><td>若 system is FIFO 单 server: 等待时间 W_q = L_q / λ (queue 内 L_q, 等 average time in queue only)</td><td>同公式</td></tr>
+<tr><td>Conflict ratio ρ = λ/μ</td><td>单 server 利用率</td></tr>
+<tr><td>ρ → 1 ⇒ L → ∞ (queue 长度→∞, latency→∞)</td><td>"Bottleneck saturation"</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="二工业应用例"><a class="header" href="#二工业应用例">二、工业应用例</a></h2>
+<h3 id="例-1-thread-pool-sizing"><a class="header" href="#例-1-thread-pool-sizing">例 1: Thread Pool Sizing</a></h3>
+<p>API server 突发到达: λ = 1000 req/s, 平均 per-request 服务时间 W = 50ms.</p>
+<p>应用 Little's Law:
+$$L = 1000 \text{req/s} × 0.050 \text{s} = 50 \text{reqs concurrent}$$</p>
+<p>需要 ≥ 50 工作线程(每 worker 一次处理 1 个 request). 否则 queue 涨 ⇒ W 涨 ⇒ P99 latency 涨.</p>
+<h3 id="例-2-database-connection-pool"><a class="header" href="#例-2-database-connection-pool">例 2: Database Connection Pool</a></h3>
+<p>PostgreSQL 平均 query 5ms, 突发 30K queries/s:
+$$L = 30K × 0.005 = 150 \text{connections concurrent}$$</p>
+<p>设 NB PG max=100, queue 50 等待 ⇒ W 边界 queue add ≈ queuing delay 即 50/30K = 1.7ms; 这是 backpressure. DBA set pool=200 → connection far exceeds max=100 throughput cap → connection refused. Pool=150 是 sweet spot.</p>
+<p><strong>经验公式</strong>: pool size = avg_request_time × peak_qps (Little's law) <strong>+ safety headroom 20%</strong>, 网络 spare capacity.</p>
+<h3 id="例-3-api-gateway-rate-limit"><a class="header" href="#例-3-api-gateway-rate-limit">例 3: API Gateway Rate Limit</a></h3>
+<p>Token bucket 风格 rate limit:</p>
+<ul>
+<li>100 RPS token refill</li>
+<li>each request consumes 1 token</li>
+<li>burst 5 token initial bucket</li>
+</ul>
+<p>$$L_{tokens} = refill × burst refill period$$</p>
+<p>通常 Little's Law 应用于"waiting queue":</p>
+<ul>
+<li>到达 λ=200/s, 服务 μ=100/s ⇒ unstable ⇒ L → ∞</li>
+<li>必须配 <code>Bounded Queue with Backpressure</code> (限流器)</li>
+</ul>
+<h3 id="例-4-queue-talk-code"><a class="header" href="#例-4-queue-talk-code">例 4: Queue, Talk Code</a></h3>
+<p>Kafka topic 承接 1M events/s produce rate, consumer 处理 0.2M/s → consumer lag:</p>
+<ul>
+<li>L_lag = (λ_producer - λ_consumer) × time</li>
+<li>1 hour lag = 1M-0.2M = 0.8M × 3600 = 2.88B events.</li>
+</ul>
+<p>→ 必须加消费者 (subscribing 同 group). 9 more consumers × 0.2M/s each = 1.8M/s consume, lag decreases.</p>
+<h3 id="例-5-pinning-worker-pool-for-cron-tasks"><a class="header" href="#例-5-pinning-worker-pool-for-cron-tasks">例 5: Pinning worker pool for cron tasks</a></h3>
+<p>K8s 集群 running 1000 concurrently active CronJobs, 平均 job runs 5min:
+$$L = expected _arrival × W = how many CronJobs/sec × 300 sec$$</p>
+<p>若 scheduled frequency 总和 10/sec入 enqueued:
+$$L = 10 × 300 = 3000 \text{ concurrent Pods}$$</p>
+<h3 id="例-6-cache-capacity-planning"><a class="header" href="#例-6-cache-capacity-planning">例 6: Cache capacity planning</a></h3>
+<p>Redis cache:</p>
+<ul>
+<li>到达: 100K QPS read calls.</li>
+<li>平均响应时间: 0.5ms (sub-ms cache hit).</li>
+<li>$L = 100K × 0.0005 = 50$ concurrent connections.</li>
+<li>Redis pipelining: 1 connection handles 50 ops (pipeline batch) → reduce to 1 concurrent connection (per worker thread pool).</li>
+</ul>
+<h3 id="例-7-connection-static-关闭-delay-reverse"><a class="header" href="#例-7-connection-static-关闭-delay-reverse">例 7: Connection static: 关闭 delay reverse</a></h3>
+<p>Server 5K QPS with persistent HTTP/2 connection work from clients:
+$$L = 5K × W = 5K × 1s (keep-alive default) = 5K open connections$$</p>
+<p>must bump fd-max limit to 65535.</p>
+<h3 id="例-8-storage-write-throughput"><a class="header" href="#例-8-storage-write-throughput">例 8: Storage Write Throughput</a></h3>
+<p>PostgreSQL 1MB writes 要 1ms (fsync bound).</p>
+<p>100MB/s write rate = 100 concurrent 1MB writes in flight = 100 fsyncs concurrent → but fsync 1ms 串行化 → actually max 1000 fsync/sec → max ~1MB × 1000 = 1GB/s.</p>
+<p>反推 bound:</p>
+<ul>
+<li>$W_{fsync} = 1ms$</li>
+<li>服务率 $μ = 1000/s$</li>
+<li>arrived $λ = 50K/s$ if each is a 1KB write batched 50K → unstable.</li>
+<li>batched to 1ms 一 fsync with 100 batched writes per fsync → effective λ=500/s sat at μ. Sweet spot is batched with <code>synchronous_commit=off</code> + <code>wal_writer_delay=10ms</code> aggregation.</li>
+</ul>
+<hr />
+<h2 id="三counter-examples-littles-law-失效情形"><a class="header" href="#三counter-examples-littles-law-失效情形">三、Counter-Examples: Little's Law 失效情形</a></h2>
+<h3 id="不-稳态"><a class="header" href="#不-稳态">不 稳态</a></h3>
+<p>队列只在 λ&lt;μ (稳定条件)才 stable. λ&gt;μ ⇒ 无限增长, Little's Law 仍可用 $L = L(0) + λt - μt$ for transient (t时间), 但 steady-state 极限定理不成立. industrial example: 流量激增引发 backpressure.</p>
+<h3 id="突发-vs-平均"><a class="header" href="#突发-vs-平均">突发 vs 平均</a></h3>
+<p>平均 λ=10/s但 突发 100/s for 1 second:</p>
+<ul>
+<li>Little's Law 用平均算 $L=10×W$, 但 burst 期间 W trajectory 可能短暂超 stable W 估计 → P99 latency 实际 spiking. 平均不制约P99 致命.</li>
+</ul>
+<p>修: bursty service 自配超额 worker 处理 burst. 类似 batch 可以 concurrent 突发的 100+ tasks.</p>
+<h3 id="priority-queue-不-道"><a class="header" href="#priority-queue-不-道">Priority Queue 不 道</a></h3>
+<p>Priority queue 可能 starve 低 priority. λ&lt;=μ 总稳态, 但低 priority class 的 effective μ→ 0, 它的 W → ∞. Little's Law 仍适用 per class — one for low priority stretch.</p>
+<h3 id="state-dependent-服务率"><a class="header" href="#state-dependent-服务率">State-Dependent 服务率</a></h3>
+<p>服务率 μ dependent on system state (state-aware 算数据 增 mark)(和一个 load shedding 算法): $\mu \ne$ const.  Little's Law 只算 stable expected average λ &amp; W, 不描述 transient + state dependent dynamics.</p>
+<h3 id="closed-loop-network"><a class="header" href="#closed-loop-network">Closed Loop (Network)</a></h3>
+<p>用户 reply-driven retry 给系统再加 load (closed-loop), 客户端 λ 实际interface-dependent on observed latency (e.g., if server slow, user lowers its issue rate, "throttling"). Little's Law formula still works in expectation, but λ self-feedback depends on W ⇒ not externally regulated model.</p>
+<p>类似 example: HTTP client with finite pool (50 connection threads); individual request thread blocks ⇒ users don't issue new ones until release ⇒ instantaneous λ dynamically bounded.</p>
+<hr />
+<h2 id="四littles-law-边界应用"><a class="header" href="#四littles-law-边界应用">四、Little's Law 边界应用</a></h2>
+<h3 id="queueing-theory-推论-kingman-公式"><a class="header" href="#queueing-theory-推论-kingman-公式">Queueing Theory 推论 Kingman 公式</a></h3>
+<p>单 server M/M/1 queue:</p>
+<p>$$W_{total} = \frac{1}{\mu - \lambda}$$</p>
+<p>即 delay explodes 1/(μ-λ) when arrival → capacity. P99 latency 公式 (金海 method):</p>
+<p>$$W_{P99} \approx \frac{ln(100)}{\mu - \lambda}$$</p>
+<p>→ 1% overload → P99 latency 4.6× mean.</p>
+<p>应用: never run server at λ/μ &gt; ~80%. Always leave μ 20% headroom. P99 latency is very sensitive to saturation point.</p>
+<h3 id="universal-scalability-law-usl-neil-gunther"><a class="header" href="#universal-scalability-law-usl-neil-gunther">Universal Scalability Law (USL, Neil Gunther)</a></h3>
+<p>$$X(N) = \frac{λ N}{1 + α(N-1) + β N(N-1)}$$</p>
+<ul>
+<li>N = 并发数</li>
+<li>α = contention cost (锁竞争, 锁开销)</li>
+<li>β = coherency cost (consensus coordination)</li>
+</ul>
+<p>β=0 (no coherency): Amdahl scaling. With coherency increasing, throughput 比 retrograde past N*.</p>
+<p>USL 是 Little's Law 的 capacity scaling 推广, 用于 capacity planning 实际 SRE work.</p>
+<hr />
+<h2 id="五工业-best-practice"><a class="header" href="#五工业-best-practice">五、工业 Best Practice</a></h2>
+<h3 id="pool-sizing-公式"><a class="header" href="#pool-sizing-公式">Pool Sizing 公式</a></h3>
+<pre><code>pool_size = peak_QPS × avg_response_time_seconds × safety_factor
+</code></pre>
+<p>where <code>peak_QPS</code> is 业务 peak (考虑 5-10× diurnal 突发); <code>avg_response_time_seconds</code> 实测含 cache miss P50; <code>safety_factor = 1.2 - 1.5</code>.</p>
+<h3 id="connection-pool-cap"><a class="header" href="#connection-pool-cap">Connection Pool Cap</a></h3>
+<p>PostgreSQL / MySQL connection pool max:
+$$pool_{max} = \frac{max(TPDB_tps)}{QPS_per_pool}$$</p>
+<p>但是 DB max connections 实际受 shared_buffers RAM; 100 connection 20MB each = 2GB shared buffer. Diminishing returns 在 connection &gt;50.</p>
+<h3 id="k8s-hpa-based-on-queue-depth"><a class="header" href="#k8s-hpa-based-on-queue-depth">K8s HPA Based on Queue Depth</a></h3>
+<p>HPA scaling on Kafka consumer <code>queuelag</code> 比 CPU 利用率更精确——stability 与 queue depth 显著关系. <code>Sharded Queue Lag = lag/consumers/60</code> → if lag/consumer &gt; 60s需要加消费者.</p>
+<h3 id="slo-with-littles-law"><a class="header" href="#slo-with-littles-law">SLO with Little's Law</a></h3>
+<p>SRE SLO: target availability 99.9% = 8.6 sec/min deficit budget.</p>
+<p>$$budget = (total _time) × (1 - SLI_{target})$$</p>
+<p>Throughput stable under nominal arrival rate. SLO violation triggers autoscale/degrade.</p>
+<hr />
+<h2 id="六典型事故"><a class="header" href="#六典型事故">六、典型事故</a></h2>
+<h3 id="netflix-spotinstance-queue-backlog-2009"><a class="header" href="#netflix-spotinstance-queue-backlog-2009">Netflix SpotInstance Queue Backlog 2009</a></h3>
+<p>某 auto-scaling based on CPU fanout: λ=N req/s consumers consume once CPU done; but CPU 相 throughput saturated → lag grows → Little's Law predicts sustained queue grows linearly. Fix: HPA metric on queue depth (Kafka consumer <code>lag</code>).</p>
+<h3 id="twitter-kestrel-queue-transient-stack-2011"><a class="header" href="#twitter-kestrel-queue-transient-stack-2011">Twitter Kestrel Queue Transient Stack 2011</a></h3>
+<p>Kestrel原始的 Little's Law not fully digestible — burst λ not stable. Queue overflow caused OOM. Fix: strict bounded queue + immediate backpressure to producer (Twitter internal Scala).</p>
+<h3 id="slack-2019-connection-drops"><a class="header" href="#slack-2019-connection-drops">Slack 2019 connection drops</a></h3>
+<p>Slack WebSocket connection pool capped at 10K, 然而 Little's Law pred L=20K concurrent stable state. Result: dropped 5K connections every 5min. Fix: bump Linux ulimit + net.core.somaxconn, deploy larger泓 worker pool.</p>
+<hr />
+<h2 id="七易错清单"><a class="header" href="#七易错清单">七、易错清单</a></h2>
+<ol>
+<li><strong>Little's Law 是 stable state</strong>: λ&lt;μ req'd. λ&gt;=μ → unbounded growth, 公式 temporarily得不到 pull L 不 steady.</li>
+<li><strong>顿 mean time vs Juan99</strong>: Little's Law 只 defend 平均; P99 的 interp 通过 Kingman formula 的人际必借extra.</li>
+<li><strong>Connection pool 大不总好</strong>: DB max_connections 制限 RAM, 每 connection消耗 ~5-20MB. Postgres 最多 推荐几一百, 超过风险 OOM.</li>
+<li><strong>Thread pool sizing必算 cache hit ratio</strong>: cache miss 让 W 增大⇒ L 增大, 现在 pool 突然over-subscription。 测试 службу best worst-case scenario。</li>
+<li><strong>Backpressure based on queue depth 不是 CPU</strong>: queue depth 是 lateness (queue内等待时间) directly → better autoscale signal.</li>
+<li><strong>Burst arrival 能 找 transient overload</strong>: λ average 1×10/s, but 1秒内 1000 réqs; 服务者正有效 only stable at slow rate ⇒ 1秒内设 queue 暴发 → transient P99 bad.</li>
+<li><strong>Rate limiters 不 是 little's law in themselves</strong>: token bucket 是幼儿建立 model on variation of μ, 上 limit λ to &lt;= 50%. SaaS rate limit 关系 setting the μ - λ 整 stability rules.</li>
+</ol>
+<hr />
+<h2 id="八这一章带走的东西"><a class="header" href="#八这一章带走的东西">八、这一章带走的东西</a></h2>
+<ol>
+<li>Little's Law $L = \lambda \times W$ 是 stable system 的稳态不变量, 适用于生死意毛任何queue with stable regime.</li>
+<li>工业 best practice: pool size = peak QPS × avg响应 时 × 安全 factor(1.2-1.5).</li>
+<li>不能 oversubscribe μ: 必须 leave 20% 容量 headroom以避免 P99 latency blow up.</li>
+<li>Kingman formula: 单 server M/M/1 queue $W = 1/(\mu-\lambda)$, P99 latency $≈ W × ln(100)$. α=0.95 → latency 20× backof 2.9. ring.</li>
+<li>Universal Scalability Law 购机 capacity scaling, Better than Amdahl, 包含 coherency term β for cluster contention.</li>
+<li><strong>Coherency cost</strong> increases quadratically with N, which is 是 why shared read-only cache 离线 nodes can use simple sharding 不 rehashable.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="load-patterns.html">负载模式</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../system-design/estimation/back-of-envelope.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../system-design/estimation/load-patterns.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../system-design/estimation/back-of-envelope.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../system-design/estimation/load-patterns.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

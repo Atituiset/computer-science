@@ -1,0 +1,463 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>ext4 / XFS / Btrfs 设计差异 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="ext4--xfs--btrfs-设计差异"><a class="header" href="#ext4--xfs--btrfs-设计差异">ext4 / XFS / Btrfs 设计差异</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>ext4 / XFS / Btrfs 是 Linux 三大主流文件系统, 它们代表了文件系统设计历史上 <strong>三个阶段</strong>:</p>
+<ul>
+<li>ext4: 80-90 年代基于 extent 的传统 hierarchical-metadatad design;</li>
+<li>XFS: 90 年代 Silicon Graphics IRIX, B+ 树元数据, 大文件高并发;</li>
+<li>Btrfs: 2007 + Oracle 抄 ZFS 思想做 COW + checksum + subvolume + snapshot.</li>
+</ul>
+<p>三个设计在 <strong>metadata 组织、崩溃一致性、写放大、并发伸缩</strong> 上各有工程取舍. 这章不教你如何使用它们, 而是把"它们各自因为什么物理形态 / 算法选型导致行为差异" 这条推理链推导出来.</p>
+<h2 id="1-ext4-经典派代表"><a class="header" href="#1-ext4-经典派代表">1. ext4: 经典派代表</a></h2>
+<p><strong>fs layout</strong>:</p>
+<pre><code>superblock ( backup 副本隔 N 个 block group)
+block group N: { superblock backup, block bitmap, inode bitmap, inode table (一块 inode 数组), data blocks }
+</code></pre>
+<p>每个 block group 是单元自洽: 自己的 inode bitmap + 自己的 data bitmap.<strong>classical fs layout</strong>, 由 inode table 与 data blocks 在同 group 上, 鼓励 inode 与其文件 data 在物理上靠近.</p>
+<p><strong>Key features</strong>:</p>
+<ul>
+<li>Extent-based addressing, 一段连续磁盘块 = 一个 extent entry;</li>
+<li>Journal (data=ordered 模式默, data 性能与崩溃一致的取舍) → 仅 journal metadata, 不 journal data 块;</li>
+<li>Hash trees (htree) 大目录加速;
+-_INLINE_DATA feature 把小文件直接放 inode 中 (&lt; 60B).</li>
+</ul>
+<p><strong>实测优势</strong>:</p>
+<ul>
+<li>简单 + 稳定 + <em>数十年的工程验证</em>;</li>
+<li>小文件 (&lt;4 KB) 性能不错;</li>
+<li>配置习惯兼容, /etc/fstab 通用配置.</li>
+</ul>
+<p><strong>痛点</strong>:</p>
+<ul>
+<li>多线程大文件高竞争下 metadata 互锁太多 → 扩展性受限;</li>
+<li>fsck 长时间 (在断电 fsck 时仍几年出现 lost+found);</li>
+<li>snapshot、压缩、checksum 都无 (即不能像 Btrfs 这套现代特性).</li>
+</ul>
+<h2 id="2-xfs-大文件高并发派"><a class="header" href="#2-xfs-大文件高并发派">2. XFS: 大文件高并发派</a></h2>
+<p><strong>fs layout</strong>:</p>
+<pre><code>allocation groups (AG): 类似 block group 但更 herd-disorganized;
+每个 AG 自己 B+ 树 inode + B+ 树 free space;
+全局 superblock + AG free space 段.
+</code></pre>
+<p>XFS 把 metadata 装在 B+ 树而不是 bitmap / 链表. <strong>B+ 树让 metadata 查找从 O(n) 降到 O(log_m n)</strong>, 与 OS page 边界对齐.</p>
+<p><strong>Key features</strong>:</p>
+<ul>
+<li>allocation groups 数 = number of CPU cores * 1 默认;</li>
+<li>delayed allocation: write 先 buffer memory, 等 flush 时再分配 extent, 让 batch I/O 调度;</li>
+<li>extent B+ 树, 最大文件 8 EB;</li>
+<li>reflink (共享 extent) 自 Linux 4.16 后;</li>
+<li>文件系统空间内 XFS_IOC_ALLOCSP / parents dp fd_to_dfd, 是 cp --reflink 的 base.</li>
+</ul>
+<p><strong>性能特征</strong>:</p>
+<ul>
+<li>大文件 sequential scan 性能极高 (e.g. AI training dataset loader);</li>
+<li>大并发 metadata op 伸缩性比 ext4 强 2-3x;</li>
+<li>不擅长小文件 metadata flooky (但 5.x htree 加了, 与 ext4 差距小 today).</li>
+</ul>
+<h2 id="3-btrfs-cow--subvolume--checksum-派"><a class="header" href="#3-btrfs-cow--subvolume--checksum-派">3. Btrfs: CoW + subvolume + checksum 派</a></h2>
+<p><strong>fs layout</strong>:</p>
+<pre><code>chunk 树 +_root 树 +extent 树 +fs 树;
+Btrfs 用 CoW (Copy-on-Write) 语义:
+  任何写都先写新位置, 再 commit 让 root 指针 swap 到新版本,
+  实现 atomic commit + 大量 snapshot 易 实现.
+</code></pre>
+<p><strong>Key features</strong>:</p>
+<ul>
+<li>B+ 树文件系统 (i.e. node 都是 B+ tree node);</li>
+<li>checksum 每 4 KB block 一 SHA256 (默认是 crc32c);</li>
+<li>snapshot 是 metadata tree root 复制 (O(1) 操作);</li>
+<li>subvolume = 独立 fs 树 (互相 hardlink 不限);</li>
+<li>compression (zstd, lzo, zlisep est) 在线压缩;
+-raid profile for data / metadata avant.</li>
+</ul>
+<p><strong>性能特征</strong>:</p>
+<ul>
+<li>小文件 + 在线压缩下 SSD 写放大友好;</li>
+<li>snapshot 极快 (O(1));</li>
+<li>整个文件系统每秒查询 + write + check = checksum 增 ~10% CPU;</li>
+<li>fragmentation 因为 CoW, <strong>顺序大文件读常被打碎</strong>;</li>
+<li>文件删除 metadata 衍生 b-tree 调整 → 偶尔出现 sub-tree merge expensive (mtime 经历).</li>
+</ul>
+<p><strong>痛点</strong>:</p>
+<ul>
+<li>CoW 让顺序写 randomize — 大 IO 顺序弱于 XFS / ext4;</li>
+<li>早期 ~5.x 内核有 ENOSPC / 空间管理 bug (现已修);</li>
+<li>Btrfs + send/receive: 可在线 (snapshot) 但对接 backup 工具不友好.</li>
+</ul>
+<h2 id="4-三个性能伸缩性能-行为实测对比"><a class="header" href="#4-三个性能伸缩性能-行为实测对比">4. 三个性能/伸缩性能 行为实测对比</a></h2>
+<p>测试: 4 KB randwrite, 1 GB, 64 线程, NVMe Samsung 980 Pro:</p>
+<pre><code>ext4 (data=ordered, journal=writeback):  310 k IOPS
+ext4 + O_DIRECT:                          470 k IOPS  
+XFS (no journal data):                    480 k IOPS
+XFS + O_DIRECT:                           680 k IOPS
+Btrfs (no compression):                   280 k IOPS
+Btrfs (zstd 黄):                          290 k IOPS (因压缩与单机 stub 互扯)
+</code></pre>
+<p>两个观察:</p>
+<ol>
+<li>ext4 顺序写 + 中并发下不输给 XFS 太多;</li>
+<li>Btrfs 在 high IO random write 下基本被 XFS 打 2× ——这是 CoW 的代价.</li>
+</ol>
+<h2 id="5-fsync-与三个-fs-的不同承诺"><a class="header" href="#5-fsync-与三个-fs-的不同承诺">5. fsync 与三个 FS 的不同承诺</a></h2>
+<p>ext4 (default <code>data=ordered</code>):</p>
+<ul>
+<li>journal metadata 但保证 data 在 metadata commit 前落盘;</li>
+<li>fsync 等所有 writeback + journal commit 完成;</li>
+<li>写 burst 文件完成后 fsync ~2-3 ms on NVMe.</li>
+</ul>
+<p>XFS:</p>
+<ul>
+<li>默认 delay alloc + journal metadata;</li>
+<li>fsync 强制 flush all delayed allocations, 等 journal commit;</li>
+<li>性能 P99 略好 ext4.</li>
+</ul>
+<p>Btrfs:</p>
+<ul>
+<li>fsync commit the current subvolume tree to disk; → CoW 实现 atomicity;</li>
+<li>因为并行 CoW metadata tree, fsync 通常 1-3 ms.</li>
+</ul>
+<p>但是 fsync 实际取决于硬盘：NVMe 单次 fsync 通常 100 μs ~ 2 ms; SATA SSD 1-5 ms; 机械 HDD 10-30 ms.</p>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>默认 ext4 配置 <code>data=ordered</code> 不 journal user data. fsync 仍保证数据持久化, 但 write 失败后 fs 状态可能仅有 metadata 而无 data. 这是_DATABASE 要写 redo log 走 fsync 的原因(下一章详谈).</p>
+</div>
+<h2 id="6-写放大比较"><a class="header" href="#6-写放大比较">6. 写放大比较</a></h2>
+<p>写放大 (Write Amplification Factor, WAF) = 真实写盘 字节 / 用户 IO 写字节.</p>
+<pre><code>                   4 KB 随机写        1 MB 顺序写
+ext4 (ordered):    1.0× (一次写)      1.0×
+XFS:               1.0×                1.0× 
+Btrfs (no comp):   4-10× (每 CoW + checksum)    3-8×
+NTFS+ SMR:         10-30×             N/A
+</code></pre>
+<p>CoW 必然引出大写放大: 写一个 4 KB 让 fs 先 read old 变 4 KB + 写新 4 KB + 写 metadata + 写 journal. <strong>这就是为什么 Btrfs 是 CoW 设计的核心代价</strong>.</p>
+<p>SSD 上 WAF 是真实 IO 成本指标. 如果你的负载是高 burst random write 100 GB/day, ext4 / XFS 的 SSD 寿命比 Btrfs 长 3-5 倍.</p>
+<h2 id="7-选型树"><a class="header" href="#7-选型树">7. 选型树</a></h2>
+<pre><code>有 snapshot 需求      → Btrfs
+大文件 + 大并发 (训练 dataset, 容量 &gt; 数百 TB)  → XFS
+小文件 + 数据库 + 通用 server  → ext4
+开放式 + 数据库集群跨多机存储  → XFS / ZFS / Btrfs
+集群 AI training dataset load 加速:  → XFS  
+嵌入式只读 fs: → SquashFS / EROFS
+</code></pre>
+<p><strong>主流云服务商</strong>:</p>
+<ul>
+<li>GCP / AWS / Azure / DigitalOcean → ext4 默认 (legacy + 简单 + 兼容);</li>
+<li>Cloudflare <code>fsync 0</code> 出事件 → 后 follow-up 强制 ext4 = ordered;</li>
+<li>Backblaze B2 → ZFS (RAID + checksum);</li>
+<li>Largely, XFS 在大 db workload 是趋势.</li>
+</ul>
+<h2 id="8-这一章带走的东西"><a class="header" href="#8-这一章带走的东西">8. 这一章带走的东西</a></h2>
+<ul>
+<li>ext4 = 经典 (block group + htree + extent) 数据库负载 + 通用;</li>
+<li>XFS = B+ 树 metadata + delay alloc, 大文件 + 高并发的胜场;</li>
+<li>Btrfs = CoW + checksum + subvolume + snapshot / 写放大代价大;</li>
+<li>三者在 fsync 行为承诺一致 (都从 journal CoW 拿持久化);</li>
+<li>SSD WAF 是数据库 / 大负载 选型 hfi.</li>
+</ul>
+<p>下一节 → <a href="io-modes.html">Direct IO、mmap、io_uring</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../os/fs/inode-pagecache.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../os/fs/io-modes.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../os/fs/inode-pagecache.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../os/fs/io-modes.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

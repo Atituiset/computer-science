@@ -1,0 +1,514 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>2. 操作模式: ECB / CBC / CTR / GCM (AEAD) 与 nonce-reuse 灾难 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="2-操作模式-ecb--cbc--ctr--gcm-aead-与-nonce-reuse-灾难"><a class="header" href="#2-操作模式-ecb--cbc--ctr--gcm-aead-与-nonce-reuse-灾难">2. 操作模式: ECB / CBC / CTR / GCM (AEAD) 与 nonce-reuse 灾难</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>块密码处理固定 128-bit block. 把它扩到任意长 message 的协议叫<strong>Operation Mode</strong>. ECB 是 naive 也已 broken (tux 攻击); CBC 抗篡改弱; CTR 流密码化适合并行; GCM 给 AEAD (Authenticated Encryption with Associated Data) 一次给 ciphertext+tag. 现代选用<strong>几乎仅 GCM 和 ChaCha20-Poly1305</strong>——TLS 1.3 砍除 CBC. Nonce reuse 在 GCM/CTR 是密码学界<strong>两次即死</strong>级破坏.</p>
+<hr />
+<h2 id="一ecb-electronic-codebook-最朴素也最弱"><a class="header" href="#一ecb-electronic-codebook-最朴素也最弱">一、ECB (Electronic Codebook): 最朴素也最弱</a></h2>
+<p>每个 block 独立加密: $c_i = E_k(m_i)$. 解密反: $m_i = D_k(c_i)$.</p>
+<pre><code class="language-python">def ecb_encrypt(key: bytes, msg: bytes) -&gt; bytes:
+    bs = 16
+    if len(msg) % bs != 0:
+        msg = pad(msg, bs)
+    return b"".join(aes_encrypt_block(msg[i:i+bs], key) for i in range(0, len(msg), bs))
+</code></pre>
+<h3 id="11-致命-同明文-block-产生同密文-block"><a class="header" href="#11-致命-同明文-block-产生同密文-block">1.1 致命: 同明文 block 产生同密文 block</a></h3>
+<p>Tux cartoon: ECB encrypt Tux 企鹅 PNG, 即使加密后 image 仍可辨出企鹅轮廓. 业界反通用: ECB <strong>永远不要</strong>用于 data.</p>
+<h3 id="12-唯一使用-case"><a class="header" href="#12-唯一使用-case">1.2 唯一使用 case</a></h3>
+<ul>
+<li>单 block 的小消息加密 (例如 exchange password ciphered 频率 &lt; 1 block 输入熵): 严格 data length &lt; block_size; 否则 ECB = mistake.</li>
+</ul>
+<pre class="mermaid">flowchart LR
+    M1[block1] --&gt; E[&quot;E_k&quot;] --&gt; C1[c1]
+    M2[block2] --&gt; E2[&quot;E_k&quot;] --&gt; C2[c2]
+    M3[block3] --&gt; E3[&quot;E_k&quot;] --&gt; C3[c3]
+    style C1 fill:#fdd
+    style C2 fill:#ffd
+    style C3 fill:#fdd
+</pre>
+<hr />
+<h2 id="二cbc-cipher-block-chaining-串行多一字节-xor-链"><a class="header" href="#二cbc-cipher-block-chaining-串行多一字节-xor-链">二、CBC (Cipher Block Chaining): 串行多一字节 XOR 链</a></h2>
+<p>$$ C_0 = \text{IV (不保秘)} $$
+$$ C_i = E_k(M_i \oplus C_{i-1}) $$</p>
+<p>解密 $M_i = D_k(C_i) \oplus C_{i-1}$.</p>
+<pre><code class="language-python">def cbc_encrypt(key: bytes, IV: bytes, msg: bytes) -&gt; bytes:
+    bs = 16
+    assert len(IV) == bs
+    pad_msg = pkcs7_pad(msg, bs)
+    prev = IV
+    out = bytearray()
+    for i in range(0, len(pad_msg), bs):
+        block = bytes(a ^ b for a, b in zip(pad_msg[i:i+bs], prev))
+        enc = aes_encrypt_block(block, key)
+        out.extend(enc)
+        prev = enc
+    return bytes(out)
+</code></pre>
+<h3 id="21-优缺"><a class="header" href="#21-优缺">2.1 优缺</a></h3>
+<p><strong>优</strong>: 同明文不同 IV ⇒ 得不同密文 ✓; padding 长度可包装信息.</p>
+<p><strong>缺</strong>:</p>
+<ul>
+<li><strong>串行</strong>: 每 block 需前密文, 不利并行.</li>
+<li><strong>不抗篡改</strong>: 攻击者可交换两 ciphertext blocks, 解密后破语义; padding oracle attack (Vaudenay 2002) 让 attacker 通过 padding error messages 在 polynomial time 内 recover plaintext for TLS-supported-old server.</li>
+<li><strong>IV must unpredictable</strong>: IV 选 counter 简便但 small IV 容易被 predict + chosen-plaintext attack (Lucky13 / BEAST) 实证.</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p><strong>Padding Oracle</strong> (POODLE 2014): SSL 3.0 的 CBC-MAC + padding 验证回报 last byte 是否 pad. Padding error 状态 leaked → 攻击者多次发同一密文 板 ctxt, 改 last byte 直 non-padding-error → 解出 plaintext 上一字节. 重复 → 解全 plaintext byte。故 SSL 3.0 deprecate; 改用 AEAD only.</p>
+</div>
+<hr />
+<h2 id="三ctr-counter-mode-把-block-cipher-变流密码"><a class="header" href="#三ctr-counter-mode-把-block-cipher-变流密码">三、CTR (Counter) mode: 把 block cipher 变流密码</a></h2>
+<p>$$ C_i = M_i \oplus E_k(\text{nonce} , | , \text{counter}_i) $$</p>
+<pre><code class="language-python">def ctr_encrypt(key: bytes, nonce: bytes, msg: bytes) -&gt; bytes:
+    counter_blocks = (len(msg) + 15) // 16
+    keystream = b""
+    for i in range(counter_blocks):
+        cblock = nonce + struct.pack("&gt;I", i)
+        keystream += aes_encrypt_block(cblock, key)
+    return bytes(a ^ b for a, b in zip(msg, keystream[:len(msg)]))
+</code></pre>
+<h3 id="31-性能--特性"><a class="header" href="#31-性能--特性">3.1 性能 + 特性</a></h3>
+<ul>
+<li><strong>完全并行</strong>: 每 $E_k$ 独立计算 → SIMD/multi-core 灾难.</li>
+<li><strong>无 padding</strong>: 任意 length message.</li>
+<li><strong>加密解密同算法</strong>: 一致 XOR.</li>
+<li><strong>stream-cipher-like</strong>: 重复 nonce ⇒ 同 keystream ⇒ 多条消息 XOR 立刻破. <strong>必须</strong>保证 nonce 不重.</li>
+</ul>
+<h3 id="32-iv--counter-管理"><a class="header" href="#32-iv--counter-管理">3.2 IV / counter 管理</a></h3>
+<ul>
+<li>96-bit nonce + 32-bit counter: nonce password syntactic; counter 在 record 内由 protocol designer 共议.</li>
+<li>不重复: 用 increment-counter 1 次 = 1 message. 不分 distinct message.</li>
+</ul>
+<h3 id="33-改性可重-单-bit-翻转直接-plaintext-翻位"><a class="header" href="#33-改性可重-单-bit-翻转直接-plaintext-翻位">3.3 改性可重: 单 bit 翻转直接 plaintext 翻位</a></h3>
+<p>CTR 不用密码本身验完整性. 因此 CTR 单独用 = broken. 必须带 MAC (HMAC or Poly1305). 这就是 GCM 的来源.</p>
+<hr />
+<h2 id="四gcm-galoiscounter-mode-aead-paramount"><a class="header" href="#四gcm-galoiscounter-mode-aead-paramount">四、GCM (Galois/Counter Mode): AEAD paramount</a></h2>
+<p>把 CTR encryption + GHASH-based authentication 合一并. 给 (ciphertext, tag) 双输出.</p>
+<h3 id="41-把-message-切三段"><a class="header" href="#41-把-message-切三段">4.1 把 message 切三段</a></h3>
+<ul>
+<li>$A$ (associated data, e.g. TLS header): 不加密, 但要 integrity.</li>
+<li>$P$ (plaintext): 加密成 ciphertext $C$.</li>
+<li>$IV$: 96-bit 推荐, 长度可调但用 NATN 图 12 后文中 "短 IV" 上 nonce unwrap simplex.</li>
+</ul>
+<h3 id="42-加密段"><a class="header" href="#42-加密段">4.2 加密段</a></h3>
+<p>跟 CTR 相同: $C_i = P_i \oplus E_k(J_0 + i)$, 其中 $J_0 = (\text{IV} , | , 0^{31}1)$.</p>
+<h3 id="43-ghash"><a class="header" href="#43-ghash">4.3 GHASH</a></h3>
+<p>在 GF(2^128) 上做多项式计算:
+$$ T = \text{GHASH}_H(A, C) \oplus E_k(J_0) $$
+其中 $H = E_k(0^{128})$ 为 hash subkey, GHASH 是关于 H 的 неприем不接受 polynomial MAC:
+$$ \text{GHASH}_H(X_1, \ldots, X_n) = ((\cdots((X_1 H \oplus X_2) H \oplus X_3) H \cdots ) H \oplus X_n) H $$</p>
+<p>最后 $\oplus E_k(J_0)$ 把 auth tag 与 IV specific.</p>
+<h3 id="44-验证"><a class="header" href="#44-验证">4.4 验证</a></h3>
+<p>接到 (IV, A, C, T):</p>
+<ul>
+<li>重计算 $T' = \text{GHASH}_H(A, C) \oplus E_k(J_0)$.</li>
+<li>用 constant-time compare <code>crypto_verify_16</code> 比较 $T'$ 与 $T$.</li>
+<li>等则接受.</li>
+</ul>
+<h3 id="45-工程注意"><a class="header" href="#45-工程注意">4.5 工程注意</a></h3>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>** nonce reuse 绝不能 — 一旦重 同 key/IV, 攻击者可恢复 plaintext, 且 recover GHASH key $H$ 进而 forge 任意消息 tag.**</p>
+</div>
+<p>Joux 2006 "authentication fail" 的 GCM nonce-reuse attack 是密码学上范式级破坏. <strong>HTTPS 多 record 加密每条 lift new IV</strong>; 像 mTLS / DTLS 1.4 / QUIC 都 ordered sequence degree + IV computed record-by-record rule sent.</p>
+<hr />
+<h2 id="五aead-为什么必须-encrypt-then-mac"><a class="header" href="#五aead-为什么必须-encrypt-then-mac">五、AEAD: 为什么必须 encrypt-then-MAC</a></h2>
+<p>历史:</p>
+<ul>
+<li><strong>MAC-and-Encrypt</strong> (旧 SSL/TLS 1.0+): ciphertext = E(MAC || plaintext). attacker 可 cut tags/截断恢复 plaintext (Lucky13 attack).</li>
+<li><strong>MAC-then-Encrypt</strong> (TLS 1.2 CBC 套 overlapping): ciphertext = E(plaintext || MAC). 同样 padding oracle.</li>
+<li><strong>Encrypt-then-MAC</strong> (modern AEAD): ciphertext = E(plaintext), tag = MAC(plaintext). 验 tag 后才解 — verifier 不见 plaintext, 防 oracle.</li>
+</ul>
+<p>GCM = E-then-MAC 内建, ChaCha20-Poly1305 也是. TLS 1.3 仅留这两个 AEAD. RFC 5116 把 AEAD 形式化:
+$$\text{AEAD.encrypt}(k, n, A, P) = (C, T)$$
+$$\text{AEAD.decrypt}(k, n, A, C, T) = P \text{ (or fail)}$$</p>
+<hr />
+<h2 id="六poly1305-one-time-mac"><a class="header" href="#六poly1305-one-time-mac">六、Poly1305: one-time MAC</a></h2>
+<p>Bernstein's polynomial MAC:
+$$\text{tag} = (\sum m_i r^i) \mod p$$ 其中 $p = 2^{130} - 5$, $r$ 是 key.
+Compute by carryless multiply + mod reduction, fast 软件 AVX.</p>
+<p>与 ChaCha20 配对的 RFC 7539:</p>
+<pre><code class="language-python">POLY1305_PRIME = (1 &lt;&lt; 130) - 5
+
+def poly1305_mac(key: bytes, msg: bytes) -&gt; bytes:
+    r = int.from_bytes(key[:16], 'little') &amp; 0x0ffffffc0ffffffc0ffffffc0fffffff
+    s = int.from_bytes(key[16:], 'little')
+    acc = 0
+    for i in range(0, len(msg), 16):
+        chunk = msg[i:i+16]
+        n = int.from_bytes(chunk + b'\x01' + b'\x00' * (15 - len(chunk)), 'little')
+        acc = (acc + n) * r % POLY1305_PRIME
+    tag = (acc + s) % (1 &lt;&lt; 128)
+    return tag.to_bytes(16, 'little')
+</code></pre>
+<p>Pair with ChaCha20: 用 ChaCha20 derived Poly1305 one-time key from block 0 of ChaCha20 keystream. <strong>One-time</strong>: each message 用 new key, derivation explicitly nonce-keyed → 安全.</p>
+<hr />
+<h2 id="七密钥管理-旋转--衍生"><a class="header" href="#七密钥管理-旋转--衍生">七、密钥管理: 旋转 + 衍生</a></h2>
+<h3 id="71-kdf-key-derivation-function"><a class="header" href="#71-kdf-key-derivation-function">7.1 KDF (Key Derivation Function)</a></h3>
+<p>主 key 不直接做多个密钥; HKDF (HMAC-based KDF) RFC 5868 把种子密钥 stretch 为多自然 child-key.</p>
+<pre><code class="language-python">import hmac, hashlib
+def HKDF_expand(prk: bytes, info: bytes, L: int) -&gt; bytes:
+    n = (L + 31) // 32
+    T, okm = b"", b""
+    for i in range(1, n + 1):
+        T = hmac.new(prk, T + info + bytes([i]), hashlib.sha256).digest()
+        okm += T
+    return okm[:L]
+</code></pre>
+<p>TLS 1.3 用 HKDF 阶段 derive:</p>
+<ul>
+<li>early secret = HKDF-Extract(salt=0, IKM=PSK)</li>
+<li>handshake secret = HKDF-Extract(salt=early, IKM=ECDHE_shared)</li>
+<li>master secret = HKDF-Extract(salt=handshake, IKM=0)</li>
+<li>traffic secret = HKDF-Expand(master secret, label, length)</li>
+<li>...</li>
+</ul>
+<h3 id="72-密钥运输-metadata"><a class="header" href="#72-密钥运输-metadata">7.2 密钥运输 metadata</a></h3>
+<ul>
+<li>One-time vs long-term: TLS 主会长实测 1 hours，重 keyed connection (each connection old ECDHE ephemeral keys).</li>
+<li>Key rotation: 由于 factoring attack etc 等渐进, 每 6-12 months 轮转 long-term RSA/ECDSA cert (受 Let's Encrypt 90-day actuate).</li>
+</ul>
+<h3 id="73-forward-secrecy"><a class="header" href="#73-forward-secrecy">7.3 Forward Secrecy</a></h3>
+<p>长期私钥 leak 不解旧投资。机制: 每会话用不同 DH ephemeral, 共享秘密 derived 即用即弃 hash&amp;; HKDF could pregen — even今天永久泄漏 only affect future sessions not 全 archived past.</p>
+<hr />
+<h2 id="八tls-13-aead-现实"><a class="header" href="#八tls-13-aead-现实">八、TLS 1.3 AEAD 现实</a></h2>
+<p>TLS 1.3 record layer 全部是 AEAD:</p>
+<ul>
+<li>AES-128-GCM / AES-256-GCM</li>
+<li>ChaCha20-Poly1305</li>
+<li>AES-128-CCM (IoT 低温场景)</li>
+</ul>
+<p>每条 record: nonce = static IV (4-byte prefix from handshake) XOR sequence number. <strong>Avoid random nonce generation—用 deterministic counter防 nonce reuse by design.</strong></p>
+<pre><code class="language-python">def tls13_nonce(static_iv: bytes, seq: int) -&gt; bytes:
+    return (int.from_bytes(static_iv, 'big') ^ seq).to_bytes(12, 'big')
+</code></pre>
+<hr />
+<h2 id="九归-index-灾难史"><a class="header" href="#九归-index-灾难史">九、归 index 灾难史</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>灾难</th><th>原因</th></tr></thead><tbody>
+<tr><td>PS3 ECDSA nonce reuse (Geohot 2010)</td><td>同 k 重 signed two messages ⇒ private key factor out in seconds</td></tr>
+<tr><td>WPA2 KRACK (2017, Mathy V.)</td><td>重置 nonce + replay allow decrypt WPA2 packets</td></tr>
+<tr><td>GSuite / Microsoft 365 GCM nonce reuse (2021言论)</td><td>nonce counter 误 reset → nonce reuse; message recoverable</td></tr>
+<tr><td>Telegram MTProto demo (2021)</td><td>Counter reset; found expose social</td></tr>
+<tr><td>IEEE 802.11i CCMP counter reset buggy drivers (2010s)</td><td>replay allowed</td></tr>
+<tr><td>VPN wireguard nonce (RFC 7748)</td><td>nonce 极慎重: counter 大于2^64 拒; 玩 60-hour day 矩阵性质.</td></tr>
+</tbody></table>
+</div>
+<p>工程 ineluctable: nonce mathematically critical; 业界 production code <strong>must use a counter sequencing model</strong> (DRBG (NIST SP 800-90A)) ; under no circumstance 用 <code>random()</code> 给 nonce 全 length generated.</p>
+<hr />
+<h2 id="十与项目其他章节交叉"><a class="header" href="#十与项目其他章节交叉">十、与项目其他章节交叉</a></h2>
+<ul>
+<li><strong>complexity.md / NIST PQC</strong>: post-quantum ChaCha20 vs PQ signed-multicase ML-KEM 不是 AEAD-style; KEM 只在 key exchange, 但 ChaCha20 仍安全 post-quantum (symme 加密上 quantum 加速 search = factorization-like).</li>
+<li><strong>os/net/epoll-iouring memcmp</strong>: AEAD 实现常常走 SIMD batching 结构, parallel 链 io framework 与真宏 integrate.</li>
+<li><strong>distributed consensus</strong>: 链crypt hash 函数 SHA-256 与 PoW 用 SMN structure; hashcash 类因子 (Adam Back 1997 PoW 出).</li>
+<li><strong>system-design/case/dynamo-family</strong>: cryptographic token idempotency 多 tall with secure random?；</li>
+</ul>
+<hr />
+<p>下一节 → <a href="asymmetric.html">非对称加密: RSA 与 ECC</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../crypto/symmetric.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../crypto/asymmetric.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../crypto/symmetric.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../crypto/asymmetric.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,514 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>8. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="8-强化学习与-rlhf-mdp--bellman--q-learning--policy-gradient--ppo--rlhf"><a class="header" href="#8-强化学习与-rlhf-mdp--bellman--q-learning--policy-gradient--ppo--rlhf">8. 强化学习与 RLHF: MDP / Bellman / Q-learning / Policy Gradient / PPO / RLHF</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>强化学习（RL）处理的是"<strong>没有正确答案，只有延迟奖励</strong>"的学习问题——Agent 在环境里行动、获得反馈、最大化长期回报。RL 有两套并行主线：<strong>value-based</strong>（学 Q 值，代表 Q-learning / DQN）和 <strong>policy-based</strong>（直接学策略，代表 Policy Gradient / PPO）。RLHF（基于人类反馈的强化学习）把 RL 用在语言模型上：用人类偏好训练奖励模型，再用 PPO 微调 LM 让输出更符合偏好——<strong>ChatGPT 时代的核心对齐技术</strong>。</p>
+<p>读完应能：</p>
+<ol>
+<li>形式化一个 MDP（状态/动作/转移/奖励/折扣），写出 Bellman 方程。</li>
+<li>区分 value-based vs policy-based，说出各自适用场景。</li>
+<li>推导 policy gradient 定理的核心公式，说出 PPO 的 clip 机制为什么稳。</li>
+<li>讲清 RLHF 三步流水线（SFT → Reward Model → PPO）和 GRPO/DPO 为什么是更省事的替代。</li>
+<li>看懂 DeepSeek-R1 / InstructGPT 论文里 RL 相关的数学记号。</li>
+</ol>
+<hr />
+<h2 id="一mdprl-的通用语言"><a class="header" href="#一mdprl-的通用语言">一、MDP：RL 的通用语言</a></h2>
+<h3 id="11-五元组"><a class="header" href="#11-五元组">1.1 五元组</a></h3>
+<p>一个马尔可夫决策过程（MDP）<code>(S, A, P, R, γ)</code>：</p>
+<ul>
+<li><code>S</code>：状态集合</li>
+<li><code>A</code>：动作集合</li>
+<li><code>P(s' | s, a)</code>：转移概率（马尔可夫性质：只看当前态，不看历史）</li>
+<li><code>R(s, a, s')</code>：奖励函数</li>
+<li><code>γ ∈ [0, 1]</code>：折扣因子（越远回报越不值钱，保证有限和）</li>
+</ul>
+<h3 id="12-策略与回报"><a class="header" href="#12-策略与回报">1.2 策略与回报</a></h3>
+<ul>
+<li>策略 <code>π(a | s)</code>：状态 → 动作的概率分布。</li>
+<li>折扣回报：<code>G_t = Σ_{k=0}^∞ γ^k R_{t+k+1}</code>。</li>
+<li>Agent 目标：最大化期望回报 <code>E_π[G_0]</code>。</li>
+</ul>
+<h3 id="13-与第零部分的接口"><a class="header" href="#13-与第零部分的接口">1.3 与第零部分的接口</a></h3>
+<p>MDP 是马尔可夫链（概率 §8 随机过程）加了"动作"维度 + 奖励。回顾 Markov 性质、平稳分布（<code>πP = π</code>）在 RL 里反复出现。</p>
+<hr />
+<h2 id="二贝尔曼方程rl-的解方程组"><a class="header" href="#二贝尔曼方程rl-的解方程组">二、贝尔曼方程：RL 的"解方程组"</a></h2>
+<h3 id="21-价值函数"><a class="header" href="#21-价值函数">2.1 价值函数</a></h3>
+<ul>
+<li><strong>状态价值</strong> <code>V^π(s) = E_π[G_t | S_t = s]</code>：从状态 s 开始，按 π 走，期望总回报。</li>
+<li><strong>动作价值</strong> <code>Q^π(s, a) = E_π[G_t | S_t = s, A_t = a]</code>：从 s 执行 a，之后按 π 走。</li>
+<li>关系：<code>V^π(s) = Σ_a π(a|s) Q^π(s, a)</code>。</li>
+</ul>
+<h3 id="22-bellman-方程"><a class="header" href="#22-bellman-方程">2.2 Bellman 方程</a></h3>
+<p>把 G_t 拆成"立即奖励 + 后续折扣价值"：</p>
+<p>$$V^\pi(s) = \sum_{a} \pi(a|s) \sum_{s'} P(s'|s,a) \left[ R(s,a,s') + \gamma V^\pi(s') \right]$$</p>
+<p>$$Q^\pi(s,a) = \sum_{s'} P(s'|s,a) \left[ R(s,a,s') + \gamma \sum_{a'} \pi(a'|s') Q^\pi(s',a') \right]$$</p>
+<p><strong>最优价值</strong>（max 算子替换均值）：</p>
+<p>$$V^<em>(s) = \max_a \sum_{s'} P(s'|s,a)\left[ R + \gamma V^</em>(s') \right]$$</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>Bellman 方程是"自指"方程——把未来价值写进当前价值。求解方式分三类：DP（已知 P，迭代）、MC（采样估计）、TD（用下一次估计更新，如 Q-learning）。</p>
+</div>
+<h3 id="23-动态规划视角"><a class="header" href="#23-动态规划视角">2.3 动态规划视角</a></h3>
+<p>如果转移概率 P 已知，V 迭代 <code>V_{k+1} = T V_k</code>（Bellman backup 算子）收敛到 V*，策略迭代 + 值迭代是标准解法。回顾 DSA 动态规划：<strong>最优子结构 + 重叠子问题</strong>——Bellman 方程就是 MDP 上的 DP。</p>
+<hr />
+<h2 id="三value-based-方法q-learning"><a class="header" href="#三value-based-方法q-learning">三、Value-based 方法：Q-learning</a></h2>
+<h3 id="31-核心想法"><a class="header" href="#31-核心想法">3.1 核心想法</a></h3>
+<p>不知道 P，就用<strong>采样</strong>估计 Q。Q-learning 用 TD 更新：</p>
+<p>$$Q(s,a) \leftarrow Q(s,a) + \alpha \left[ r + \gamma \max_{a'} Q(s',a') - Q(s,a) \right]$$</p>
+<ul>
+<li>括号里是 <strong>TD 误差</strong>（真实回报 - 当前估计）。</li>
+<li><code>max</code> 让它成为 off-policy（学的是最优策略，即使用 ε-greedy 探索）。</li>
+</ul>
+<h3 id="32-dqndeep-q-network2015"><a class="header" href="#32-dqndeep-q-network2015">3.2 DQN（Deep Q-Network，2015）</a></h3>
+<p>用神经网络近似 Q：<code>Q_θ(s,a) ≈ Q*(s,a)</code>。两大工程技巧：</p>
+<ol>
+<li><strong>经验回放（replay buffer）</strong>：存 (s,a,r,s')，随机采样训练 → 打破相关性。</li>
+<li><strong>目标网络</strong>：用隔 N 步冻结的 <code>Q_θ⁻</code> 计算 TD target，稳定训练。</li>
+</ol>
+<pre><code class="language-python"># 简化 DQN 更新
+for (s, a, r, s_next, done) in batch:
+    target = r if done else r + gamma * max_a' Q_target(s_next, a')
+    loss = F.mse_loss(Q_online(s)[a], target)   # 只更新选中的动作
+</code></pre>
+<h3 id="33-适用与局限"><a class="header" href="#33-适用与局限">3.3 适用与局限</a></h3>
+<ul>
+<li><strong>适用</strong>：离散动作空间（游戏、棋盘）、值函数好近似。</li>
+<li><strong>局限</strong>：连续动作空间难做 <code>max</code>；高维视觉尚可，复杂策略表达能力受限。</li>
+</ul>
+<hr />
+<h2 id="四policy-based-方法policy-gradient"><a class="header" href="#四policy-based-方法policy-gradient">四、Policy-based 方法：Policy Gradient</a></h2>
+<h3 id="41-直接学策略"><a class="header" href="#41-直接学策略">4.1 直接学策略</a></h3>
+<p>不用 Q，直接参数化策略 <code>π_θ(a|s)</code>（神经网络输出动作分布）。目标：</p>
+<p>$$J(\theta) = E_{\tau \sim \pi_\theta}[G_0(\tau)]$$</p>
+<p>其中 τ 是一条轨迹（状态-动作序列）。</p>
+<h3 id="42-policy-gradient-定理"><a class="header" href="#42-policy-gradient-定理">4.2 Policy Gradient 定理</a></h3>
+<p><strong>核心公式</strong>（REINFORCE）：</p>
+<p>$$\nabla_\theta J(\theta) = E_{\tau}\left[ \sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot G_t \right]$$</p>
+<p>直觉：<code>log π</code> 的梯度指向"让这条轨迹更可能"的方向，乘以回报 G_t 加权——高回报轨迹的动作概率上调，低回报下调。</p>
+<h3 id="43-减小方差baseline-与-advantage"><a class="header" href="#43-减小方差baseline-与-advantage">4.3 减小方差：baseline 与 advantage</a></h3>
+<p>直接 G_t 方差大。减一个 baseline b(s)（常为 V）：</p>
+<p>$$\nabla_\theta J(\theta) = E_{\tau}\left[ \sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \underbrace{(G_t - V(s_t))}_{\text{advantage } A_t} \right]$$</p>
+<p><strong>Advantage</strong> <code>A_t = G_t - V(s_t)</code>：这条动作比"平均"好多少。这是 actor-critic 框架的雏形（actor=策略，critic=价值基线）。</p>
+<hr />
+<h2 id="五trpo--pporl-的工程稳定化"><a class="header" href="#五trpo--pporl-的工程稳定化">五、TRPO / PPO：RL 的工程稳定化</a></h2>
+<h3 id="51-问题梯度上升让策略崩"><a class="header" href="#51-问题梯度上升让策略崩">5.1 问题：梯度上升让策略崩</a></h3>
+<p>直接 policy gradient 每步更新大步，策略突变 → 训练发散。TRPO/PPO 的核心思想：<strong>限制每次更新前后策略的差距</strong>。</p>
+<h3 id="52-trpotrust-region-policy-optimization2015"><a class="header" href="#52-trpotrust-region-policy-optimization2015">5.2 TRPO（Trust Region Policy Optimization，2015）</a></h3>
+<p>约束新旧策略的 KL 散度不超 δ：</p>
+<p>$$\max_\theta ; E\left[ \frac{\pi_\theta(a|s)}{\pi_{\theta_{old}}(a|s)} A_t \right] \quad \text{s.t.} \quad E[\mathrm{KL}(\pi_{\theta_{old}} | \pi_\theta)] \le \delta$$</p>
+<p>用自然梯度（Fisher 矩阵逆）求解——回顾第零部分微积分 §6 信息几何：<strong>KL 局部 = Fisher 二次型，自然梯度就是在分布空间的黎曼梯度</strong>。</p>
+<h3 id="53-ppoproximal-policy-optimization2017主流"><a class="header" href="#53-ppoproximal-policy-optimization2017主流">5.3 PPO（Proximal Policy Optimization，2017）——主流</a></h3>
+<p>PPO 把"约束"改成软 clip，不用算 Fisher：</p>
+<p>$$L^{CLIP}(\theta) = E\left[ \min\left( r_t(\theta) A_t, ; \mathrm{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) A_t \right) \right]$$</p>
+<ul>
+<li><code>r_t(θ) = π_θ(a|s) / π_θold(a|s)</code>：新旧策略概率比。</li>
+<li>clip 到 <code>[1-ε, 1+ε]</code>：当 A_t &gt; 0 时，r 不能涨超过 1+ε；A_t &lt; 0 时不能跌低于 1-ε。</li>
+<li><strong>直观</strong>：每步不让策略比旧策略偏离太多，同时不限制"应该提升的方向"。</li>
+</ul>
+<h3 id="54-为什么-ppo-是-rlhf-标配"><a class="header" href="#54-为什么-ppo-是-rlhf-标配">5.4 为什么 PPO 是 RLHF 标配</a></h3>
+<ul>
+<li>只需一阶梯度（不用 Fisher 逆），GPU 友好。</li>
+<li>clip 天然防止一步崩策略——语言模型微调尤其怕"一步生成崩溃"。</li>
+<li>支持大量并行 rollout + 单次多 epoch 复用。</li>
+</ul>
+<hr />
+<h2 id="六rlhf把-rl-用到语言模型"><a class="header" href="#六rlhf把-rl-用到语言模型">六、RLHF：把 RL 用到语言模型</a></h2>
+<h3 id="61-动机"><a class="header" href="#61-动机">6.1 动机</a></h3>
+<p>LM 训练是"预测下一个 token"，学的是"什么像人话"，不是"什么符合偏好"。RLHF 让 LM 优化一个表达人类偏好的奖励。</p>
+<h3 id="62-三步流水线"><a class="header" href="#62-三步流水线">6.2 三步流水线</a></h3>
+<pre><code>第 1 步: SFT 监督微调
+   用人工标注的指令-回答对, 普通 next-token CE 训练一个基础模型 π_SFT
+
+第 2 步: 训练奖励模型 RM
+   让人对同 prompt 的两个回答排序 (chosen / rejected)
+   训一个 reward model r_φ(x, y): 给定 (prompt, 回答) → 打分
+   用 pairwise ranking loss (Bradley-Terry 模型):
+       L = -E[ log σ( r_φ(x, y_w) - r_φ(x, y_l) ) ]
+
+第 3 步: 用 PPO 微调策略
+   初始化 π_θ = π_SFT
+   每次 rollout 采样回答 y ~ π_θ(·|x), 用 RM 打分
+   加上 KL 惩罚, 防止偏离 SFT 太远 (保持流畅度 + 防奖励黑客):
+       reward_total(x, y) = r_φ(x, y) − β·KL(π_θ(y|x) || π_SFT(y|x))
+   用 PPO 更新 π_θ
+</code></pre>
+<h3 id="63-bradley-terry-奖励建模"><a class="header" href="#63-bradley-terry-奖励建模">6.3 Bradley-Terry 奖励建模</a></h3>
+<p>排序对 (y_w 好于 y_l)，BT 假设：</p>
+<p>$$P(y_w \succ y_l) = \sigma\left(r_\phi(x, y_w) - r_\phi(x, y_l)\right) = \frac{\exp(r_\phi(y_w))}{\exp(r_\phi(y_w)) + \exp(r_\phi(y_l))}$$</p>
+<p>最大化这个 log-likelihood 训 RM——本质上是一个<strong>二分类（谁更好）的 logistic 回归</strong>。回顾第零部分逻辑回归的 softmax+CE。</p>
+<h3 id="64-为什么要-kl-惩罚"><a class="header" href="#64-为什么要-kl-惩罚">6.4 为什么要 KL 惩罚</a></h3>
+<ul>
+<li>纯奖励最大化 → 模型找到"骗 RM"的捷径（奖励黑客）。</li>
+<li>KL 项把策略钉在 SFT 附近，保留语言流畅度。</li>
+<li>β 是权衡：β 大 → 更保守（贴近 SFT）；β 小 → 更激进追奖励。</li>
+</ul>
+<h3 id="65-instructgpt--chatgpt-用的具体化"><a class="header" href="#65-instructgpt--chatgpt-用的具体化">6.5 InstructGPT / ChatGPT 用的具体化</a></h3>
+<ul>
+<li>OpenAI InstructGPT（2022）：SFT → RM（每 prompt 生成 4-9 个回答人工排序）→ PPO。</li>
+<li>关键点：<strong>RM 必须和策略一起评估</strong>，RL 阶段每轮 roll out 更新；推理时 RM 拿掉，只留微调后的 π_θ。</li>
+</ul>
+<hr />
+<h2 id="七grpo--dpo更省事的替代"><a class="header" href="#七grpo--dpo更省事的替代">七、GRPO / DPO：更省事的替代</a></h2>
+<h3 id="71-为什么要替代"><a class="header" href="#71-为什么要替代">7.1 为什么要替代</a></h3>
+<p>PPO 要<strong>同时训 4 个模型</strong>（policy、value critic、reference、reward），工程复杂、显存高、调参难。2023 后出现两个主流替代：</p>
+<h3 id="72-dpodirect-preference-optimization2023"><a class="header" href="#72-dpodirect-preference-optimization2023">7.2 DPO（Direct Preference Optimization，2023）</a></h3>
+<p><strong>核心洞察</strong>：奖励最大化 + KL 约束的闭环解可解析消掉奖励模型，直接对偏好对优化策略。</p>
+<p>DPO 损失：</p>
+<p>$$L_{DPO}(\theta) = -E_{(x,y_w,y_l)} \log \sigma\left( \beta \log\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)} - \beta \log\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)} \right)$$</p>
+<ul>
+<li>只有 <code>π_θ</code> 和 <code>π_ref</code>（冻结的 SFT），<strong>不需要 RM、不需要 PPO、不需要 rollout</strong>。</li>
+<li>一次 CE 式训练就能对齐——显著省算力。</li>
+</ul>
+<p><strong>缺点</strong>：没有"探索"（不像 RL 能采样新响应再打分）；对偏好数据质量敏感。</p>
+<h3 id="73-grpogroup-relative-policy-optimizationdeepseek-r1-用"><a class="header" href="#73-grpogroup-relative-policy-optimizationdeepseek-r1-用">7.3 GRPO（Group Relative Policy Optimization，DeepSeek-R1 用）</a></h3>
+<ul>
+<li>对同一个 prompt 采样<strong>一组</strong>（group）响应，用组内相对优势（不是学出来的 critic）：
+$$A_i = \frac{r_i - \mathrm{mean}(r_{group})}{\mathrm{std}(r_{group})}$$</li>
+<li>去掉 value network → 显存 / 训练复杂度大降。</li>
+<li>DeepSeek-R1 用它做 reasoning RL（verifiable reward：答案对不对、格式对不对）。</li>
+</ul>
+<h3 id="74-对比表"><a class="header" href="#74-对比表">7.4 对比表</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>方法</th><th>需要 RM</th><th>需要 rollout</th><th>需要 value net</th><th>复杂度</th><th>代表</th></tr></thead><tbody>
+<tr><td>PPO</td><td>✓</td><td>✓</td><td>✓</td><td>高</td><td>InstructGPT, ChatGPT</td></tr>
+<tr><td>DPO</td><td>✗</td><td>✗</td><td>✗</td><td>低</td><td>Llama-2-chat, Mistral, 大量开源</td></tr>
+<tr><td>GRPO</td><td>✓（可）</td><td>✓</td><td>✗</td><td>中</td><td>DeepSeek-R1, DeepSeek-V3</td></tr>
+<tr><td>Rejection sampling</td><td>✓</td><td>✓</td><td>✗</td><td>低</td><td>部分开源（只取 RM 最高的）</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="八rl-数学与第零部分的接口"><a class="header" href="#八rl-数学与第零部分的接口">八、RL 数学与第零部分的接口</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>RL 概念</th><th>第零部分对应</th></tr></thead><tbody>
+<tr><td>MDP / Markov 链 / 平稳分布</td><td>概率 §8 随机过程</td></tr>
+<tr><td>Bellman 方程 / DP</td><td>DSA DP + 概率</td></tr>
+<tr><td>Advantage = G - V</td><td>概率期望/方差</td></tr>
+<tr><td>TRPO 自然梯度 / KL 约束</td><td>微积分 §6 信息几何（Fisher 度量）</td></tr>
+<tr><td>Bradley-Terry / 排序损失</td><td>概率 §4 贝叶斯 + 逻辑回归（foundations §2）</td></tr>
+<tr><td>PPO clip / 蒙特卡洛 rollout</td><td>概率 §6 极限定理（MC 估计）</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="九结束--速查表"><a class="header" href="#九结束--速查表">九、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回：</p>
+<ul>
+<li><strong>MDP</strong>：<code>(S, A, P, R, γ)</code>；目标是最大化折扣回报。</li>
+<li><strong>Bellman</strong>：<code>V(s) = E_π[R + γV(s')]</code>；最优用 max 算子。</li>
+<li><strong>Q-learning</strong>：<code>Q ← Q + α[r + γmaxQ' - Q]</code>；off-policy TD。</li>
+<li><strong>Policy Gradient</strong>：<code>∇J = E[∇log π(a|s) · A_t]</code>；A_t 是 advantage。</li>
+<li><strong>PPO</strong>：clip 新旧策略比到 <code>[1-ε, 1+ε]</code>；一阶、稳、RLHF 标配。</li>
+<li><strong>RLHF</strong>：SFT → Reward Model(BT 排序) → PPO(+KL 惩罚)。</li>
+<li><strong>DPO</strong>：解析消掉 RM，直接对偏好对优化，省算力。</li>
+<li><strong>GRPO</strong>：组内相对 advantage，去 value net，DeepSeek-R1 用。</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="training-at-scale.html">9. 大模型训练工程: DP/PP/TP/ZeRO/FSDP/checkpoint</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../ai-ml/tokenizer.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../ai-ml/training-at-scale.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../ai-ml/tokenizer.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../ai-ml/training-at-scale.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

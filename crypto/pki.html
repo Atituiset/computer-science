@@ -1,0 +1,484 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>8. 证书链: X.509 / PKI / Certificate Transparency / OCSP - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="8-证书链-x509--pki--certificate-transparency--ocsp"><a class="header" href="#8-证书链-x509--pki--certificate-transparency--ocsp">8. 证书链: X.509 / PKI / Certificate Transparency / OCSP</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p><strong>PKI (Public Key Infrastructure)</strong> 是信任分发机制——客户端如何相信"我的公钥 = www.bank.com 的 server key"? 用 CA (Certificate Authority) 签发的 <strong>X.509 证书</strong> 包括 subject / issuer / 公钥 / 有效期 / SAN / 签名. 客户端本地审 root CA (operating system trust store), 由链路根 → ca —— leaf server cert 验证 (向上游历 trust anchor).</p>
+<p>这章把 X.509 cert ASN.1 结构 + chain building logic + CT log + OCSP 全套讲清.</p>
+<hr />
+<h2 id="一x509-证书结构"><a class="header" href="#一x509-证书结构">一、X.509 证书结构</a></h2>
+<p>X.509 v3 cert (ASN.1 DER / PEM) 含:</p>
+<pre><code>TBSCertificate (to be signed):
+  Version v3
+  Serial Number       unique per CA唯一字符 numeric identifier.let must.
+  Signature       算法(e.g. SHA256withECDSA
+  Issuer          Relevant: CN=Example Intermediate CA, O=...
+  Validity
+    notBefore: [RFC 5280 UTCTime]
+    notAfter: [RFC 5280 UTCTime]
+  Subject         CN=www.bank.com, O=Bank Corp
+  SubjectPublicKeyInfo   algorithm (Ed25519) + subject public key bytes
+  Extensions:
+    SubjectAltName (SAN)     critical → DNS = www.bank.com, www-2.bank.com
+    KeyUsage                  digitalSignature, keyEncipherment ...
+    ExtKeyUsage               serverAuth, clientAuth
+    BasicConstraints          CA:FALSE for leaf
+    AuthorityKeyIdentifier
+    SubjectKeyIdentifier
+    CertificatePolicies       ("CA/B forum trustpaths的样子 governance methods 责")
+    CRLDistributionPoints
+    AuthorityInfoAccess (OCSP URL)
+    SCTList (signed certificate timestamps, from CT logs)
+
+SignatureValue: [Issuer's private signing key output]
+</code></pre>
+<p>PEM 形式 = base64-encoded DER 拼装 BEGIN/END markers.</p>
+<h3 id="11-x509-cert-der-引用"><a class="header" href="#11-x509-cert-der-引用">1.1 X.509 cert DER 引用</a></h3>
+<pre><code class="language-python">from cryptography import x509
+from cryptography.hazmat.primitives import hashes
+
+cert_pem = open('cert.pem', 'rb').read()
+cert = x509.load_pem_x509_certificate(cert_pem)
+print(cert.subject)             # cn=www.bank.com
+print(cert.issuer)             
+print(cert.not_valid_after)     # expiry date
+print(cert.signature_algorithm_oid)  # SHA256withECDSA OID
+print(cert.extensions)          # all extensions
+</code></pre>
+<hr />
+<h2 id="二cert-path-building"><a class="header" href="#二cert-path-building">二、Cert path building</a></h2>
+<p>校验链: client 拿到 cert 沿着 issuer 一层层向上, 在 approved CA cert (trust store root) 处停 (root CA self-signed). Sufficiently, Runtime steps:</p>
+<ol>
+<li>Parse server cert + intermediate chain certs.</li>
+<li>Build chain from leaf to root.</li>
+<li>At each link check signature (issuer's public key signs leaf cert chain).</li>
+<li>Revocation check (CRL or OCSP).</li>
+<li>Validity period (notBefore / notAfter).</li>
+<li>Use usage extension for context (serverAuth or clientAuth).</li>
+</ol>
+<p>Use 在 RFC 5280 §6 algorithm.</p>
+<h3 id="21-path-building"><a class="header" href="#21-path-building">2.1 path building</a></h3>
+<ul>
+<li>RFC 5280构造 path 必须тере one valid path only多重目录 outgoing API election --- production chain issuers on multiple paths finding.</li>
+<li>Mozilla 或者 Chrome 拿 self build &amp; extension implement specific path steps.</li>
+</ul>
+<pre><code class="language-python">from cryptography.x509.oid import NameOID
+
+def verify_chain(chain: list, root: x509.Certificate) -&gt; bool:
+    # Verify leaf is up to issuer signed by next etc.
+    cert = chain[0]
+    for i in range(len(chain) - 1):
+        issuer = chain[i+1] if i &lt; len(chain) - 1 else root
+        if cert.issuer != issuer.subject:
+            return False
+        issuer_public_key = issuer.public_key()
+        try:
+            issuer_public_key.verify(
+                cert.signature, cert.tbs_certificate_bytes,
+                padding.PKCS1v15(), cert.signature_hash_algorithm
+            )
+        except:
+            return False
+        cert = issuer
+    return cert == root
+</code></pre>
+<hr />
+<h2 id="三ocsp-online-certificate-status-protocol"><a class="header" href="#三ocsp-online-certificate-status-protocol">三、OCSP (Online Certificate Status Protocol)</a></h2>
+<p>OCSP/RFC 6960: client 取 query CA 的 OCSP responder, identity pack "this cert serial" → get "good / revoked / unknown". 这快 many inverse-path.</p>
+<h3 id="31-stapling"><a class="header" href="#31-stapling">3.1 stapling</a></h3>
+<p>Client 不再 trust CA 维持 online responder — firewall may block OCSP endpoint. OCSP Stapling (RFC 6066): server 自己 fetch CA-attached response 出 OCSP signed 本 cert 状态 → staple with cert in TLS handshake. Client verify OCSP signature by CA 在 chain.</p>
+<h3 id="32-ocsp-must-staple"><a class="header" href="#32-ocsp-must-staple">3.2 OCSP must-staple</a></h3>
+<p>Cert extension "status_request=must-staple" (= 5 = enabled). If cert has this extension, clients ALWAYS require OCSP response stapled with cert. If absent → reject cert. 用于永远在线 high-trust CA, issuer policy 提示 certificate required.</p>
+<p>GEdge: Let's Encrypt can offer must-staple option. ~5% of Let's Encrypt cert 总采 must-staple.</p>
+<hr />
+<h2 id="四crl-certificate-revocation-list"><a class="header" href="#四crl-certificate-revocation-list">四、CRL (Certificate Revocation List)</a></h2>
+<p>RFC 5280 §5: CA periodically issues signed list of revoked serials. Client download CRL if cert's CRLDistributionPoints extension is set. CRL has <code>nextUpdate</code> 指出刷新 schedule, after that date client must download new.</p>
+<h3 id="41-crl-缺点"><a class="header" href="#41-crl-缺点">4.1 CRL 缺点</a></h3>
+<ul>
+<li>HUGE list (Google inspiration CERT approximate 10M revokes today).</li>
+<li>Latency: revoke and propagate up to UK hour.</li>
+<li>Client must fetch entire CRL (bad for mobile users).</li>
+</ul>
+<p>→ online OCSP prepended → CRL usage大幅industry http 唯 mTLS 嵌入 matching.</p>
+<hr />
+<h2 id="五certificate-transparency-ct"><a class="header" href="#五certificate-transparency-ct">五、Certificate Transparency (CT)</a></h2>
+<p>Google 2014 commercial users led by Ben Laurie et al. CT = append-only cryptographic log of all CA-issued certificates (RFC 6962).</p>
+<h3 id="51-为什么要-ct"><a class="header" href="#51-为什么要-ct">5.1 为什么要 CT</a></h3>
+<p>Old PKI: any CA in trust store can issue any cert for any domain. <strong>No one外部 saw</strong> the targeted issued cert. History shows:</p>
+<ul>
+<li>2011 Comodo Hack: 9 fraudulent certs issued.</li>
+<li>2011 DigiNotar Hack: 500+ fraudulent certs including <code>*.google.com</code>, Iran spied Chrome forced to drop DigiNotar from root store.</li>
+</ul>
+<p>Trust 失搭: 默认 happy accept → after the fact, user loss 反映 hella. CT 反互联网 historical – 信任 must be searchable publish.</p>
+<h3 id="52-architecture"><a class="header" href="#52-architecture">5.2 Architecture</a></h3>
+<p>Logs: append-only Merkle trees. Merkle root signed in STH (Signed Tree Head, every 1 hour approximately).</p>
+<p>Each cert logged digest signed by log = SCT (Signed Certificate Timestamp). Server then stapling the SCT into handshake via extension (RFC 8446 §4.2.1.7). Client validates SCT signature from log operator's public key.</p>
+<h3 id="53-monitors"><a class="header" href="#53-monitors">5.3 Monitors</a></h3>
+<p>Monitors (uanosos ofrec Sara Google银 public Gno money or Cond browser) pull logs, forensic watch new issuance. If unknown cert appears issuer G mahala trust notice immediately.</p>
+<h3 id="54-browser-enforcement"><a class="header" href="#54-browser-enforcement">5.4 Browser enforcement</a></h3>
+<p>Chrome 默认 reject cert 向 没包含足够 CT logs. Firefox policy 略不同.</p>
+<hr />
+<h2 id="六cert-path-validation-完整-algorithm-rfc-5280"><a class="header" href="#六cert-path-validation-完整-algorithm-rfc-5280">六、Cert path validation 完整 algorithm (RFC 5280)</a></h2>
+<ol>
+<li>Build chain from leaf to root. If multiple paths 尝试他, pick first verifiable.</li>
+<li>For each cert in chain:
+<ul>
+<li>Verify signature by next cert.</li>
+<li>Check validity periods intersect.</li>
+<li>Check BasicConstraints: CA cert must have <code>CA:TRUE</code>, path length not exceeded.</li>
+<li>Check KeyUsage for CA: at least keyCertSign.</li>
+<li>Check Revocation (CRL or OCSP if needed).</li>
+</ul>
+</li>
+<li>Verify chain length ≤ pathLenConstraint (encoded in CA cert).</li>
+<li>最终 terminated trust anchor in local store (subject name match).</li>
+</ol>
+<hr />
+<h2 id="七常见-attack--failure-mode"><a class="header" href="#七常见-attack--failure-mode">七、常见 attack / failure mode</a></h2>
+<h3 id="71-bad-missing-intermediate-cert"><a class="header" href="#71-bad-missing-intermediate-cert">7.1 BAD: missing intermediate cert</a></h3>
+<p>Client sends only leaf cert, not including intermediate in handshake (server misconfiguration TLS handshake 中 turns omit). Many legacy Android trust store don't have intermediate — fail.</p>
+<p>工程 fixing: 用 cert fullchain bundle in nginx <code>/etc/nginx/ssl/fullchain.pem</code>.</p>
+<h3 id="72-san-mismatch"><a class="header" href="#72-san-mismatch">7.2 SAN mismatch</a></h3>
+<p>Cert subject CN 是 <code>bank.com</code>, 但 client访问<code>www.bank.com</code>. If SAN Gebrauch不含 www.bank.com or DNS entry in SAN missing, client rejects.</p>
+<p>工程: UsaCert SAN 必须 include all variants.</p>
+<h3 id="73-expired-cert-operational-hygiene"><a class="header" href="#73-expired-cert-operational-hygiene">7.3 Expired cert (operational hygiene)</a></h3>
+<p>Symantec-like expired certs were 50K in annual volume; Let's Encrypt 用 acme-client auto-refresh solve.</p>
+<h3 id="74-hash-algorithm-obs"><a class="header" href="#74-hash-algorithm-obs">7.4 Hash algorithm obs</a></h3>
+<p>SHA-1-bind or MD5 cert signatures all attackable today. CT log 已 removed. Browser rejects.</p>
+<hr />
+<h2 id="八acme-自动化"><a class="header" href="#八acme-自动化">八、ACME 自动化</a></h2>
+<p>Let's Encrypt ACME 录 protocol simplified:</p>
+<ol>
+<li>Client requests challenge for domain.</li>
+<li>ACME server 给 HTTP-01 / DNS-01 / TLS-ALPN challenges.</li>
+<li>Client proves control of domain (HTTP <code>_acme-challenge</code> well-known URL or DNS TXT).</li>
+<li>ACME server cert CSR submitted signed by client.</li>
+<li>Cert issued - sent back.</li>
+</ol>
+<p>Let's Encrypt issues 90-day certs out of habit of改编 auto ACME timeline renewal. auto-rolling renewals now accounts for ~70% of all internet TLS certs (LETTUS industry 7+ industry 190M issued overall).</p>
+<hr />
+<h2 id="九坑性-cert-sanity-check-工程师-usually-忘"><a class="header" href="#九坑性-cert-sanity-check-工程师-usually-忘">九、坑性 cert sanity check 工程师 usually 忘</a></h2>
+<ul>
+<li>忘檀 fullchain course, root absent intermediate → browser trust "unknown issuer".</li>
+<li>panicked expiry renewal cycles不忘 not test процес list; valid failure on server cert pin strip dangerous.</li>
+<li>Wildcard (<code>*.bank.com</code>) validates only one subdomain level. <code>**.a.b.com</code> never valid.</li>
+<li>room certs over SAN (max 100 SAN per cert industry limit 2024 Let's Encrypt → stack 100 names).</li>
+<li>Some certs still use IPv4 SAN (e.g. certificate-shutter.org old CA → no DNS validation). Generally ok but check browser support.</li>
+</ul>
+<hr />
+<h2 id="十ct-punycode-与-idnà-punsign"><a class="header" href="#十ct-punycode-与-idnà-punsign">十、CT punycode 与 IDNà Punsign</a></h2>
+<p>Internationalized domain names (IDN) 用 Punycode (<code>example.中国</code> → <code>example.xn--fiqs8s</code>) in cert SAN. Security consideration IDN homograph attacks ( Cyrillic ' о ' ' ﾞ 中 ark mix CJK ' O ', called homograph). Browser publishes blocked IDN display policies.</p>
+<hr />
+<h2 id="十一cert-pinning--trust-on-first-use"><a class="header" href="#十一cert-pinning--trust-on-first-use">十一、Cert Pinning &amp; Trust On First Use</a></h2>
+<p><strong>Pinning</strong>: client hard-codes well known public key fingerprint, bypass standard chain verification. PayPal mobile 应用过 PIN. 困慢.</p>
+<p><strong>TOFU</strong> (Trust On First Use): SSH model — first connect records key, subsequent must match. Failures alert user's MITM possible. Migratingisie de杜boom 形.</p>
+<hr />
+<h2 id="十二桥梁"><a class="header" href="#十二桥梁">十二、桥梁</a></h2>
+<ul>
+<li><strong>tls13.md prev</strong>: cert in handshake.</li>
+<li><strong>distributed/fault/quorum.md</strong>: PKI roots must be cross-signed offline before root store trust anchors (Decade. Wrapped Tall end relying e琴不同的 root programs) — trust by chronological accumulation by historical 接 dig).</li>
+<li>**system-design/disable pinning功能 punchment API, system CIКенда mobile ولكممد++ 판 spinning trust roots multiく root store.</li>
+</ul>
+<hr />
+<p>下一节 → <a href="zkp.html">ZKP 入门</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../crypto/tls13.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../crypto/zkp.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../crypto/tls13.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../crypto/zkp.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

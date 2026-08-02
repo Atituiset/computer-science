@@ -1,0 +1,494 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>限流 / 熔断 / 降级 / 隔离舱 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="resilience-patterns-弹性模式"><a class="header" href="#resilience-patterns-弹性模式">Resilience Patterns (弹性模式)</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p><strong>Resilience</strong> = 系统在部分组件失效时仍提供 acceptable service 的能力。不靠 "完美系统没有故障" 的幻想, 而靠 <strong>degradation + fallback + circuit breaking + retry + timeout + bulkhead + rate limit</strong> 等工程师组合拳。Netflix Hystrix / Resilience4j 是把这些抽象 成 lib 的原型。本章梳理 8 个核心 resilience pattern, 实现方式 (Go / Java / Rust), 调参注意事项, 与典型事故 (circuit breaker too sensitive → 全部请求 reject, retry storm → self-DoS)。</p>
+<hr />
+<h2 id="一timeout"><a class="header" href="#一timeout">一、Timeout</a></h2>
+<h3 id="为什么重要"><a class="header" href="#为什么重要">为什么重要</a></h3>
+<p>每个下游 call 必须有 timeout。 无 timeout → 线程无限 wait → 资源耗尽 → cascade failure。</p>
+<h3 id="什么值"><a class="header" href="#什么值">什么值</a></h3>
+<ul>
+<li>下游 service P99 latency (假设) ~200ms</li>
+<li>设 timeout = P99 * 2 = 400ms (够 99.9%)</li>
+<li>对于 分 bucket service: 设 adaptive timeout: dynamic observe recent P99 + buffer.</li>
+</ul>
+<h3 id="adaptive-timeout-google-grpc"><a class="header" href="#adaptive-timeout-google-grpc">Adaptive Timeout (Google gRPC)</a></h3>
+<pre><code class="language-go">ctx, cancel := context.WithTimeout(ctx, 800 * time.Millisecond)
+</code></pre>
+<h3 id="connect-vs-request-timeout"><a class="header" href="#connect-vs-request-timeout">Connect vs Request timeout</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Timeout</th><th>影响</th></tr></thead><tbody>
+<tr><td>connect timeout</td><td>TCP握手 e.g. 50ms</td></tr>
+<tr><td>request timeout</td><td>full call inclu data e.g. 2s</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="二retry"><a class="header" href="#二retry">二、Retry</a></h2>
+<h3 id="幂等必须"><a class="header" href="#幂等必须">幂等必须</a></h3>
+<p>所有 retry 要求 <strong>idempotent operations</strong>: 不 double-pay. Use <code>Idempotency-Key</code> header in HTTP/gRPC.</p>
+<h3 id="retry策略-固定间隔--exponential-backoff--抖动"><a class="header" href="#retry策略-固定间隔--exponential-backoff--抖动">Retry策略: 固定间隔 / exponential backoff / 抖动</a></h3>
+<pre><code>retry_1: delay 500ms
+retry_2: delay 1s
+retry_3: delay 2s (cap 5s)
+</code></pre>
+<p>避免 retry storm: 限制 max retry to e.g. 3。</p>
+<h3 id="retry-budget"><a class="header" href="#retry-budget">Retry Budget</a></h3>
+<p>同一 service 同时 retry 有限 (e.g., max 1000 concurrent retry)。 否则 retry 让问题更坏。</p>
+<hr />
+<h2 id="三circuit-breaker"><a class="header" href="#三circuit-breaker">三、Circuit Breaker</a></h2>
+<h3 id="状态机"><a class="header" href="#状态机">状态机</a></h3>
+<pre><code>CLOSED → (failure count &gt; threshold) → OPEN → (wait timeout) → HALF-OPEN
+  ↑                                                   ↓ success
+  └─────────────────────────────────────────────────────┘
+          ↓ failure again: re-OPEN
+</code></pre>
+<ul>
+<li>CLOSED: 正常请求, 记录 failure.</li>
+<li>OPEN: 短路 request, 快速返回 fallback (不 调用下游).</li>
+<li>HALF-OPEN: 尝试 1-N probes; 成功 to CLOSED; 失败 to OPEN.</li>
+</ul>
+<h3 id="java-resilience4j-示例"><a class="header" href="#java-resilience4j-示例">Java Resilience4j 示例</a></h3>
+<pre><code class="language-java">CircuitBreakerConfig config = CircuitBreakerConfig.custom()
+    .failureRateThreshold(50)            // 50% 失败开闸
+    .slowCallRateThreshold(50)           // 50% too slow also
+    .slowCallDurationThreshold(Duration.ofSeconds(2))
+    .minimumNumberOfCalls(10)            // 最少 10 calls before open能 estimate
+    .waitDurationInOpenState(Duration.ofSeconds(30))  // 半开 30s
+    .permittedNumberOfCallsInHalfOpenState(3)
+    .build();
+</code></pre>
+<h3 id="切换-fallback"><a class="header" href="#切换-fallback">切换 fallback</a></h3>
+<pre><code class="language-java">@CircuitBreaker(name = "inventory", fallbackMethod = "getFallback")
+String getInventory(String productId) { ... }
+
+String getFallback(String productId, Exception e) {
+    return cache.getOrDefault(productId, "OUT_OF_STOCK");
+}
+</code></pre>
+<hr />
+<h2 id="四bulkhead"><a class="header" href="#四bulkhead">四、Bulkhead</a></h2>
+<h3 id="定义"><a class="header" href="#定义">定义</a></h3>
+<p>把 系统 资源 分 池: 每个池 限制最大 concurrency, 防止 某 path resources 耗完 → other paths starved。</p>
+<h3 id="例子-java线程池"><a class="header" href="#例子-java线程池">例子 (Java线程池)</a></h3>
+<pre><code>Inventory pool: max 20 threads
+Orders pool:    max 30 threads
+Search pool:    max 10 threads
+</code></pre>
+<p>如果 Inventory 高峰, 只有 20 thread耗尽, orders 仍通过。</p>
+<h3 id="semaphore-vs-thread-pool"><a class="header" href="#semaphore-vs-thread-pool">Semaphore vs thread pool</a></h3>
+<ul>
+<li><strong>semaphore bulkhead</strong>: limit concurrent calls but reuse same thread</li>
+<li><strong>thread pool bulkhead</strong>: full thread pool resource, heavyweight.</li>
+</ul>
+<hr />
+<h2 id="五rate-limiter"><a class="header" href="#五rate-limiter">五、Rate Limiter</a></h2>
+<h3 id="目的"><a class="header" href="#目的">目的</a></h3>
+<p>保护 被调 服务: 单 user/clients call 不能 exceed limit (e.g., 10 req/s for <code>search</code> API).</p>
+<h3 id="算法"><a class="header" href="#算法">算法</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>算法</th><th>适用</th></tr></thead><tbody>
+<tr><td>Token Bucket</td><td>通 bursty traffic; 每 1s refill N tokens max N burst</td></tr>
+<tr><td>Leaky Bucket</td><td>流出率固定, 队列满 drop</td></tr>
+<tr><td>Fixed Window</td><td>1s window 内 count 限制</td></tr>
+<tr><td>Sliding Window</td><td>更好的精确度 (Redis Sorted Set)</td></tr>
+</tbody></table>
+</div>
+<h3 id="token-bucket-实现"><a class="header" href="#token-bucket-实现">Token Bucket 实现</a></h3>
+<pre><code>Tokens per second: 10 (API key ABC)
+bucket max capacity: 15
+per second: add 10 tokens
+</code></pre>
+<h3 id="distributed-rate-limiter-redis--lua-script"><a class="header" href="#distributed-rate-limiter-redis--lua-script">Distributed Rate Limiter: Redis + Lua script</a></h3>
+<pre><code class="language-lua">local key = KEYS[1]
+local rate = tonumber(ARGV[1])
+local burst = tonumber(ARGV[2])
+local now = tonumber(ARGV[3])
+local ttl = 1
+
+local bucket = redis.call('HMGET', key, 'tokens', 'last_time')
+local tokens = tonumber(bucket[1]) or burst
+local last = tonumber(bucket[2]) or now
+local delta = math.max(now - last, 0)
+tokens = math.min(burst, tokens + delta * rate)
+
+if tokens &gt;= 1 then
+    redis.call('HMSET', key, 'tokens', tokens - 1, 'last_time', now)
+    redis.call('EXPIRE', key, ttl)
+    return 1
+else
+    return 0
+end
+</code></pre>
+<hr />
+<h2 id="六retry--circuit-breaking--rate-limiter-组合"><a class="header" href="#六retry--circuit-breaking--rate-limiter-组合">六、Retry + Circuit Breaking + Rate Limiter 组合</a></h2>
+<p>最误导: circuit breaker OPEN 时, 触发 retry → return fallback clear over 半开 尝试. 避免 retry 绕过半开.</p>
+<p>Good practice:</p>
+<ul>
+<li>Retry 一定 设在 circuit closed / half-open only.</li>
+<li>Circuit open → directly fallback (no retry).</li>
+<li>Rate limiter 高于 circuit breaker 前拦截.</li>
+</ul>
+<hr />
+<h2 id="七load-shedding"><a class="header" href="#七load-shedding">七、Load Shedding</a></h2>
+<h3 id="定义-1"><a class="header" href="#定义-1">定义</a></h3>
+<p>当 收到  request &gt; max capacity, 主动拒绝 (HTTP 503 vs 5秒 latent reply). preferable to 拒绝 快速 于 全超时。</p>
+<h3 id="distributed-limiting"><a class="header" href="#distributed-limiting">Distributed Limiting</a></h3>
+<pre><code>Queue depth &gt; threshold → reject.
+Token-based or thread pool queue-limited.
+</code></pre>
+<h3 id="netflix-concurrency-limits"><a class="header" href="#netflix-concurrency-limits">Netflix Concurrency Limits</a></h3>
+<p>Vegas 算法: 监视 RTT limit and dynamically adapt max concurrency.</p>
+<hr />
+<h2 id="八graceful-degradation--fallback-closures"><a class="header" href="#八graceful-degradation--fallback-closures">八、Graceful Degradation &amp; Fallback Closures</a></h2>
+<h3 id="优先级-ordering"><a class="header" href="#优先级-ordering">优先级 ordering</a></h3>
+<pre><code>primary service  →  try
+
+fallback 1:  Redis cache  (最新 stale)
+fallback 2:  Static default
+fallback 3:  empty response
+</code></pre>
+<h3 id="静态-fallback"><a class="header" href="#静态-fallback">静态 Fallback</a></h3>
+<ul>
+<li>search server 故障: 返回 "search 不可用 稍后 return".</li>
+<li>recommendation 故障: 显示 global trending instead of personalized recommendations.</li>
+</ul>
+<hr />
+<h2 id="九chaos-engineering"><a class="header" href="#九chaos-engineering">九、Chaos Engineering</a></h2>
+<p>Netflix Chaos Monkey, Chaos Kong (full region kill); random kill instances / regions, 系统 验证  resilience patterns self-heal。</p>
+<h3 id="example"><a class="header" href="#example">Example</a></h3>
+<ul>
+<li>Netflix Simian Army: periodically kill region in production. Engineers 构建 tolerance.</li>
+<li>Gremlin, Chaos Mesh, Litmus 提供云 native 混沌.</li>
+</ul>
+<hr />
+<h2 id="十典型事故"><a class="header" href="#十典型事故">十、典型事故</a></h2>
+<h3 id="netflix-circuit-breaker-open-lockout"><a class="header" href="#netflix-circuit-breaker-open-lockout">Netflix "Circuit Breaker Open Lockout"</a></h3>
+<p>Hystrix config 过 激, 半开 一 failure (from cold start) → 长 open 20min. 实际 下游 早已 健康, 但 circuit breaker 持续 拒绝. Fix: <code>half_open_permitted=3</code> and 短 open duration.</p>
+<h3 id="retry-storm-at-amazon"><a class="header" href="#retry-storm-at-amazon">Retry Storm at Amazon</a></h3>
+<p>Internal service 故障 后, retry storm (2 retries max → de facto 3× load on healthy instances). instances 之后 全被 retry queue 淹没。 Fix: retry budget + adaptive concurrency limit.</p>
+<h3 id="rate-limiter-too-tight-at-twitterip"><a class="header" href="#rate-limiter-too-tight-at-twitterip">Rate Limiter too tight at Twitter/IP</a></h3>
+<p>Twitter API 限每 IP 15 requests / 15min, proxy users behind same nat 让 公共  WiFi 用户 blocked unknowingly. Fix: token-based rate limit based on user_id, not IP.</p>
+<hr />
+<h2 id="十一易错清单"><a class="header" href="#十一易错清单">十一、易错清单</a></h2>
+<ol>
+<li><strong>Retry on non-idempotent function → double effects</strong> (especially writes). Idempotency key  must be.</li>
+<li><strong>Circuit breaker opening must have fallback</strong>: else return <code>500</code> fast only - same as downstream dead.</li>
+<li><strong>Retry burst: DoS downstream</strong>: max allow retry budget + exponential backoff with jitter.</li>
+<li><strong>Rate limit based on shared IP unreliably</strong>: very limit users behind NAT; use auth token.</li>
+<li><strong>Bulkhead size too small ⇒ own lock</strong>: monitor delay in bulkhead use reasonable capacity &amp; 多.</li>
+<li><strong>Timeout &lt; request P99 ⇒ false positive</strong>: adaptive timeout tracking.</li>
+</ol>
+<hr />
+<h2 id="十二这一章带走的东西"><a class="header" href="#十二这一章带走的东西">十二、这一章带走的东西</a></h2>
+<ol>
+<li>8 resilience patterns: Timeout / Retry + Exponential Backoff / Circuit Breaker / Bulkhead / Rate Limiter / Load Shedding / Fallback / Graceful Degradation.</li>
+<li>Resilience4j / Hystrix 是 Java 标准 lib.</li>
+<li>Rate limiter: Token Bucket per 用户, Redis Lua script distributed.</li>
+<li>Circuit breaker state machine: Closed → Open → Half-open.</li>
+<li>组合: retry within closed/half-open; no retry open; circuit breaker higher priority.</li>
+<li>Chaos engineering: Netflix / Gremlin / Chaos Mesh 验证。</li>
+<li>Retry storm + Rate Limit shared IP 是 典型事故。</li>
+</ol>
+<hr />
+<p>下一节 → <a href="../case/index.html">经典系统案例</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../system-design/scale/sharding-replication.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../system-design/scale/multi-region.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../system-design/scale/sharding-replication.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../system-design/scale/multi-region.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

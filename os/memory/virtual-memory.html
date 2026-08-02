@@ -1,0 +1,405 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>虚拟内存与地址翻译 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="虚拟内存与地址翻译"><a class="header" href="#虚拟内存与地址翻译">虚拟内存与地址翻译</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>你不是直接写 RAM——你写的地址是进程的"虚拟地址"。从 <code>mov rax, [0x7ffe]</code> 到 DRAM chip 收到字节，要经过 <strong>MMU + 页表 + TLB + cache + memory controller + DRAM row activate + column</strong> 这几层抽象。每跨一层都加一个常数。这一章把翻译链拆开，让你看到 <code>mov</code> 这一句汇编后面到底经历了什么。</p>
+<h2 id="虚拟地址到底虚拟什么"><a class="header" href="#虚拟地址到底虚拟什么">虚拟地址到底"虚拟"什么</a></h2>
+<p>进程地址空间是 OS 给的"幻觉"：</p>
+<pre><code>进程 A：
+  0x0000-0x7fff 代码 + 数据 + 堆
+  0x7ffe-0x8000 栈
+
+进程 B：
+  0x0000-0x7fff 代码 + 数据 + 堆
+  0x7ffe-0x8000 栈
+</code></pre>
+<p>两个进程都用 0x400000，独立，互不见对方的内存。<strong>这是虚拟内存唯一目的：进程隔离 + 让程序以为自己独占机器</strong>。</p>
+<p>实现上靠 Page Table：</p>
+<pre><code>进程虚拟地址 0x7fec_1234
+        ↓
+    [页表映射]
+        ↓
+   物理页帧号 + 页内偏移
+        ↓
+       DRAM 地址
+</code></pre>
+<p>每条 <code>mov</code> 都要 MMU 走一遍页表翻译——如果不缓存就一次翻译要 5 次内存读，IO 拖到几百 ns，CPU 跑不动。这就是为什么 TLB 是 MMU 必备的缓存。</p>
+<h2 id="地址翻译链路"><a class="header" href="#地址翻译链路">地址翻译链路</a></h2>
+<pre><code>虚拟地址 (VA)
+  = VPN(高 bit)  + PageOffset(低 12 bit, 4 KB page)
+        ↓
+[ L1 TLB → L2 TLB → Page table walk ]
+        ↓
+物理页帧号 (PFN)
+        ↓
+PA = PFN · PAGE_SIZE + PageOffset
+        ↓
+[ L1 cache → L2/L3 → DRAM ]
+</code></pre>
+<p>每一步都"可能 miss"。TLB miss 称"地址翻译 stall"；cache miss 称"data stall"。一次访存 if 都 miss 可能 100-200 ns. CPU 看到的 <code>mov rax, [x]</code> 这种简单操作在最坏情形可消耗 200 倍 cycle.</p>
+<h2 id="三级四级页表的真正原因"><a class="header" href="#三级四级页表的真正原因">三级/四级页表的真正原因</a></h2>
+<p>页表本身大；按 ridged 32-bit 系统：</p>
+<ul>
+<li>4 KB page × 32-bit 虚拟地址 = 2^20 个 page = 1 M entry × 8B = 8 MB / proc</li>
+</ul>
+<p><strong>进程 4 GB 虚拟空间页表全表 = 8 MB. 一个 64 GB 内存机器最多跑 8192 个 4GB 进程就炸</strong>——还是没算 OS 自己内存. 这就是"flat page table 不行".</p>
+<p>多级页表的核心思想: <strong>未使用的虚拟地址范围不需在内存里建中间节点</strong>.</p>
+<p>64-bit x86 long mode 使用 4 级页表 (CR3 + 4 · 9-bit index，每级 512 项):</p>
+<pre><code>9 bit  9 bit  9 bit  9 bit  12 bit
+PML4   PDPT   PD     PT     Page offset
+</code></pre>
+<p>5-level paging (LA57) 加一级 + 9 bit = 支持 57 bit VA.</p>
+<p>中间表项不存在就直接 "page fault"——不分配 page. 这让一个进程的页表绝大多数并未物化. <strong>这是多级页表的"课"：稀疏内容的物化使用"懒"的精神</strong>.</p>
+<p>类比 DSA：B 树与多级页表的根同源 —— <strong>i级索引稀疏, leaf 真物理</strong>. 这就是分隔中大幅降低空间复杂度的同一思想。</p>
+<h2 id="tlb-把翻译本身也加-cache"><a class="header" href="#tlb-把翻译本身也加-cache">TLB: 把"翻译本身"也加 cache</a></h2>
+<p>CPU 内部 L1/L2 TLB 缓存最近几条 VA→PA 翻译：</p>
+<ul>
+<li>L1 DTLB: 64-128 entry, ~1 cycle 全命中</li>
+<li>L2 STLB (shared TLB): 1K-4K entry, ~7 cycle</li>
+<li>OS 上下文切换时 invalidate 整个 TLB（旧架构）</li>
+</ul>
+<p>5-level LA57 后, working set 翻译加深的概率大幅上升 —— <strong>TLB miss 已经不再是 small CPU 内部常数</strong>, 而是内存级 (几十 ns) 浪费. 现代 Intel CPU 把 TLB 全部 keep in L2/L3 一致, "process-context id (PCID)" 让切换时不 invalidate TLB —— 节省 1-3% 系统时间.</p>
+<h2 id="虚拟内存的-5-个-ease-用"><a class="header" href="#虚拟内存的-5-个-ease-用">虚拟内存的 5 个 ease 用</a></h2>
+<ol>
+<li><strong>进程隔离</strong>: 每个进程独立 VA.</li>
+<li><strong>懒载入</strong>: <code>mmap</code> 后不实际加载, 真用时 page fault 触发 IO.</li>
+<li><strong>COW (copy-on-write)</strong>: <code>fork()</code> 不复制整个父进程内存, 只把所有页标 readonly, 写时再复制.</li>
+<li><strong>swap</strong>: 内存压力大时把不活跃页换到磁盘.</li>
+<li><strong>mmap files</strong>: 把文件按页映射到虚拟空间, "读文件" = 读内存.</li>
+</ol>
+<p>每一个 ease 用都是"懒 + cache" 的同一抽象: 实际上不立即做事，等真触发了再做。</p>
+<h2 id="性能上要关心的事"><a class="header" href="#性能上要关心的事">性能上要关心的事</a></h2>
+<h3 id="tlb-shootdown-的代价"><a class="header" href="#tlb-shootdown-的代价">TLB shootdown 的代价</a></h3>
+<p>当某个进程页表项被修改（如 munmap、用户主动改保护位），所有可能持有这条 TLB 项的 CPU 都要 invalidate. 这是 IPI (inter-processor interrupt)，<strong>单机下微秒级</strong>, 在 100 核机器上 shootdown 可达 50+ μs.</p>
+<p>解决方案：</p>
+<ul>
+<li>PCID: 减少跨进程切换全 invalidate;</li>
+<li>Lazy shootdown: 延迟到该 CPU 再次访问;</li>
+<li>大页 / huge page: 减少需要缓存的 TLB 项数量。</li>
+</ul>
+<h3 id="大页的对比"><a class="header" href="#大页的对比">大页的对比</a></h3>
+<pre><code>4 KB page、1 GB 内存 = 2^18 个 page.
+1 GB huge page、1 GB = 1 个 page.
+</code></pre>
+<p>TLB 容量小但 huge page 占一项就 hardware 抑制了 1 GB. <strong>hotspot 应用开 huge page 通常 P99 抖动立刻降 30-50%</strong>。但需要注意 huge page 容易 fragment，不建议完全 global 启用。</p>
+<h2 id="调试技巧"><a class="header" href="#调试技巧">调试技巧</a></h2>
+<pre><code>检查别墅页表 (PID=1234)
+cat /proc/1234/maps              # 用户态 VA 布局
+pmap -x 1234                     # 进程内存布局
+sudo cat /proc/1234/smaps        # 每段 VMA 详情
+</code></pre>
+<pre><code>检查 page table walk 性能
+perf stat -e page-faults,minor-faults,major-faults ./yourapp
+perf stat -e dTLB-load-misses,iTLB-load-misses ./yourapp
+</code></pre>
+<h2 id="这章带走的东西"><a class="header" href="#这章带走的东西">这章带走的东西</a></h2>
+<ul>
+<li>虚拟内存 = 进程隔离 + 懒加载 + COW + swap + mmap 五件套;</li>
+<li>4 级页表 = 用稀疏内容让物化内存变小;</li>
+<li>TLB miss 是常被忽略的性能杀手, huge page 是工程上 mitigations;</li>
+<li>一次 <code>mov rax,[0x7ffe]</code> 最坏 200+ cycle, 因为翻译通路要全走一遍;</li>
+<li>/proc/<pid>/{maps,smaps} 是入口起点.</li>
+</ul>
+<p>下一节 → <a href="tlb-hugepage.html">分页、TLB、Huge Page</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../os/memory/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../os/memory/tlb-hugepage.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../os/memory/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../os/memory/tlb-hugepage.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

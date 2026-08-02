@@ -1,0 +1,499 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>6. Complexity classes：P / NP / NPC / co-NP / PSPACE - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="6-complexity-classes-p--np--npc--co-np--pspace"><a class="header" href="#6-complexity-classes-p--np--npc--co-np--pspace">6. Complexity Classes: P / NP / NPC / co-NP / PSPACE</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>"可计算"分水岭只是 0/1 (停不停);"可高效计算"则是另一道连续谱. 把"高效"形式化为<strong>多项式时间</strong>, 得到最经典的一条链:</p>
+<p>$$ \text{L} \subseteq \text{NL} \subseteq \text{P} \subseteq \text{NP} \subseteq \text{PSPACE} \subseteq \text{EXPTIME} $$</p>
+<p>谁知道哪些包含关系是真/假, 哪些是著名的开放问题——<strong>P vs NP</strong> 是七大千禧难题之首, 而一系列等价关系 (NPC = NP 的"最难点") 把具体"自家问题难不难"的判断简化为一次归约测试.</p>
+<hr />
+<h2 id="一复杂度模型基础"><a class="header" href="#一复杂度模型基础">一、复杂度模型基础</a></h2>
+<h3 id="11-输入大小-n"><a class="header" href="#11-输入大小-n">1.1 输入大小 $n$</a></h3>
+<p>复杂度按输入<strong>长度</strong> $n = |\langle x \rangle|$ 度量. 用笛卡尔编码即可 (例如 $n$ 个 vertex 的 graph 编码长 ≈ $n^2$).</p>
+<h3 id="12-多项式--可行性"><a class="header" href="#12-多项式--可行性">1.2 多项式 = "可行性"</a></h3>
+<p>Cobham-Edmonds thesis (1964–1965): "<strong>多项式时间</strong> = 现实可行". 理由:</p>
+<ul>
+<li>多项式 → 随硬件 doubling, 解题规模积极涨幅 polynomial 多项.</li>
+<li>阶不影响 too much: n³ 比 n⁵ 提速 2 个数位也不致 broke.</li>
+<li>算法稳定: 多项式复合仍多项式.</li>
+</ul>
+<p>实践冲淡: $n^{10}$ 还是炸. 但学界平均<strong>固定边界</strong>, 目标投篮统一照 polynomial. 这是 NP-complete 论文体系所有结构性的来源.</p>
+<h3 id="13-tm-理论-vs-ram-工程"><a class="header" href="#13-tm-理论-vs-ram-工程">1.3 TM (理论) vs RAM (工程)</a></h3>
+<p>实际 CPU 不会按单带 TM 跑. RAM 模型 (单位操作 → O(1)) 与 TM ≥ 多项式 diff (RAM 上 O(n log n) sort ⇔ TM 上 O(n log² n)); 但 polynomial 边界不一致, Cobham-Edmonds thesis 跨模型 robust.</p>
+<hr />
+<h2 id="二类-p"><a class="header" href="#二类-p">二、类 P</a></h2>
+<p>$P = \bigcup_{k \geq 0} \text{TIME}(n^k)$. 现成例子:</p>
+<div class="table-wrapper"><table><thead><tr><th>问题</th><th>复杂度</th></tr></thead><tbody>
+<tr><td>排序</td><td>$O(n \log n)$</td></tr>
+<tr><td>最短路 (Dijkstra)</td><td>$O((n+m)\log n)$</td></tr>
+<tr><td>2-SAT</td><td>$O(n+m)$</td></tr>
+<tr><td>线性规划 (Interior Point)</td><td>$O(n^{3.5} \log \epsilon^{-1})$</td></tr>
+<tr><td>最大匹配</td><td>$O(n^{2.5})$</td></tr>
+<tr><td>素数判定 (AKS)</td><td>$O(\log^{7.5} n)$</td></tr>
+<tr><td>Matrix 矩乘</td><td>$O(n^{2.373})$ (理界); 工程用 $O(n^3)$</td></tr>
+</tbody></table>
+</div>
+<p>工程经验: P 的问题不要直接套 NPXX horror 实装——必定有 P 算法没找出. (DSA 章节帮你)</p>
+<hr />
+<h2 id="三类-np-验证的多项式等价"><a class="header" href="#三类-np-验证的多项式等价">三、类 NP: 验证的多项式等价</a></h2>
+<h3 id="31-两种等价定义"><a class="header" href="#31-两种等价定义">3.1 两种等价定义</a></h3>
+<p><strong>(E1) NDTM</strong>: NTM 接受的语言 (存在接受 computation branch), 且多项式 step 内必停.</p>
+<p><strong>(E2) 多项式可验证</strong>: $L \in \text{NP}$ iff 存在 DTM $V$ 与多项式 $p$, $x \in L \Leftrightarrow \exists c, |c| \leq p(|x|)$ 使 $V(x, c) = 1$ 在 poly 时间. 这里 $c$ 叫<strong>证书 (certificate)</strong>.</p>
+<p>二者等价 (NTM 路径作为 certificate).</p>
+<h3 id="32-经典-np-成员"><a class="header" href="#32-经典-np-成员">3.2 经典 NP 成员</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>问题</th><th>证书</th><th>验证式</th></tr></thead><tbody>
+<tr><td>SAT (满足性)</td><td>真值指派</td><td>substitute &amp; check</td></tr>
+<tr><td>3-coloring</td><td>着色方案</td><td>检查每条边两端异色</td></tr>
+<tr><td>TSP decision</td><td>路径顺序</td><td>长度 ≤ k?</td></tr>
+<tr><td>Hamiltonian cycle</td><td>顶点序</td><td>check 每邻接 + 起终相同</td></tr>
+<tr><td>Subset-sum</td><td>子集</td><td>sum 检查</td></tr>
+<tr><td>Integer programming</td><td>整数解</td><td>验证 $Ax = b, x \geq 0$</td></tr>
+<tr><td>Clique</td><td>顶点集</td><td>检查子集内全连边</td></tr>
+</tbody></table>
+</div>
+<h3 id="33-验证是-poly-搜索是-exp"><a class="header" href="#33-验证是-poly-搜索是-exp">3.3 验证是 poly; 搜索是 exp</a></h3>
+<pre><code class="language-python">def verify_sat(formula, assignment) -&gt; bool:
+    return formula.subs(assignment) is True   # O(|formula|)
+
+def solve_sat(formula, n_vars):
+    for asg in itertools.product([False, True], repeat=n_vars):
+        if verify_sat(formula, asg):
+            return asg
+    return None                                # worst: 2^n 次 verify
+</code></pre>
+<p>这就是 NP "比 P 多了一个 verify-polynomial" 的核心.</p>
+<hr />
+<h2 id="四npc-np-的最难点"><a class="header" href="#四npc-np-的最难点">四、NPC: NP 的"最难点"</a></h2>
+<h3 id="41-定义"><a class="header" href="#41-定义">4.1 定义</a></h3>
+<p>$A$ NPC iff:</p>
+<ul>
+<li>$A \in \text{NP}$;</li>
+<li>对任意 $B \in \text{NP}$, $B \leq_p A$ (多项式归约).</li>
+</ul>
+<h3 id="42-cook-levin-1971"><a class="header" href="#42-cook-levin-1971">4.2 Cook-Levin (1971)</a></h3>
+<p><strong>定理</strong>: SAT is NPC.</p>
+<p><strong>证明直觉</strong>: 任 NP 问题等价存在 NTM M 接受 $x \in L$. M 跑多项式 step 内停 ⇒ computation tableau 的网格能用 polynomial-size formula 描述 (每格"前一邻格 → 当前格"由 M 的转移函数确定的局部 constraints). 公式大小 poly, 满足 ⇔ M 接受. 故 NP 语言全部归约到 SAT.</p>
+<p>这是 Cook-Levin 模板, 一切 NP 完备性的"种子".</p>
+<h3 id="43-第二个-npc-sat--3-sat"><a class="header" href="#43-第二个-npc-sat--3-sat">4.3 第二个 NPC: SAT → 3-SAT</a></h3>
+<p>引入"clauses-of-3"标准形式. 配合 <strong>Karp reduction</strong> (真多项式), 把 SAT 的 SAT $\to$ 3-SAT 把"任意 clause 长度" 整成等长 3 clauses. 进 1972 Karp 论文: 21 个独立 NPC 问题.</p>
+<h3 id="44-npc-验证清单"><a class="header" href="#44-npc-验证清单">4.4 NPC 验证清单</a></h3>
+<p>证 $A$ NPC:</p>
+<ol>
+<li>$A \in \text{NP}$ (给证书 + 验证器).</li>
+<li>取已知 NPC 的 $B$, 构造多项式 $f$ 使 $x \in B \Leftrightarrow f(x) \in A$.</li>
+</ol>
+<p>工程抒发: 看到 NPC 问题意味着"暂时不要花时间找 poly 算法, 因为如果找到, P=NP".</p>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>NPC 不等于"无解" — 也不表示"必指数级". 一些 NPC 实际有"sub-exp"满足算法 (3-SAT 可以到 $1.31^n$ 而不是朴素 $2^n$). 工程关心参数化 (FPT)、近似 (PTAS) 等. (见 approximation.md)</p>
+</div>
+<hr />
+<h2 id="五co-np"><a class="header" href="#五co-np">五、co-NP</a></h2>
+<h3 id="51-定义"><a class="header" href="#51-定义">5.1 定义</a></h3>
+<p>$L \in \text{co-NP}$ iff $\overline{L} \in \text{NP}$.</p>
+<p>直觉: 答案是"否"拥有多项式可验证的证书. 例:</p>
+<ul>
+<li>UNSAT ("这个公式不可满足") ∈ co-NP. 证书: ... 没有任何简洁证书, hence 普遍认为 co-NP ≠ NP, 但虽未证.</li>
+<li>TAUT ("所有真值指派都使公式真") ∈ co-NP.</li>
+</ul>
+<h3 id="52-p-显然在-np--co-np"><a class="header" href="#52-p-显然在-np--co-np">5.2 P 显然在 NP ∩ co-NP</a></h3>
+<p>任何 P 问题, 答案是/否都可直接计算. 故 $P \subseteq NP \cap co-NP$. 反向开放.</p>
+<h3 id="53-重要成员-factor"><a class="header" href="#53-重要成员-factor">5.3 重要成员: FACTOR</a></h3>
+<p>整因式分解语言:
+$$ \text{FACTOR} = {(n, k) \mid n \text{ 含因子 } d, 1 &lt; d \leq k} $$</p>
+<p>属于 NP (证书: $d$; 验证 $d | n$) 也属于 co-NP (证书: 素因式分解全部证明 factor; 验证 $d \cdot e = n$ 与 PRIMES ∈ P). 因此 FACTOR ∈ NP ∩ co-NP.</p>
+<p>→ 业内大量证据支撑 <strong>FACTOR ∉ NPC</strong>, 因为若 FACTOR NPC, 则 NP = co-NP (推出一系列遭遇). 这恰好 crypto 安全假设: <strong>RSA 困难假设 factoring 困难</strong>, 但不能是 NPC; 否则密码学界塌缩.</p>
+<h3 id="54-交叉层关系"><a class="header" href="#54-交叉层关系">5.4 交叉层关系</a></h3>
+<pre><code>co-NP
+   ↑       NP
+   \      /
+    \    /
+  NP ∩ co-NP
+      |
+      P
+</code></pre>
+<hr />
+<h2 id="六pspace-内存多寡"><a class="header" href="#六pspace-内存多寡">六、PSPACE: 内存多寡</a></h2>
+<p>$PSPACE = \bigcup_k SPACE(n^k)$. 包容关系:
+$$ P \subseteq NP \subseteq PSPACE, \quad P \subseteq co\text{-}NP \subseteq PSPACE $$</p>
+<h3 id="61-qbf-是-pspace-complete"><a class="header" href="#61-qbf-是-pspace-complete">6.1 QBF 是 PSPACE-complete</a></h3>
+<p>量词布尔公式 (Quantified Boolean Formula): 形如 $\exists x \forall y \exists z, \phi(x, y, z)$. PSPACE-complete by alternating TM 等价 (Chandra-Kozen-Stockmeyer 1981).</p>
+<h3 id="62-pspace-典问题"><a class="header" href="#62-pspace-典问题">6.2 PSPACE 典问题</a></h3>
+<ul>
+<li>QBF decision</li>
+<li>generalized chess (n×n 棋盘) — EXPTIME-complete (略超 PSPACE).</li>
+<li>generalized Go (n×n) 含 no-pass 规则 — EXPTIME.</li>
+<li>million-step planning in STRIPS — PSPACE-complete.</li>
+</ul>
+<p>工程: PSPACE 经常表示"完整棋/puzzle 类" — 把 backtracking 但要保留 path 信息完整.</p>
+<h3 id="63-pspace--exptime"><a class="header" href="#63-pspace--exptime">6.3 PSPACE ⊆ EXPTIME</a></h3>
+<p>实际严格 less: PSPACE ⊆ EXPTIME 已证, PSPACE = EXPTIME 未知. 已知 P ⊊ EXPTIME (Time Hierarchy Theorem).</p>
+<hr />
+<h2 id="七其它经典层级"><a class="header" href="#七其它经典层级">七、其它经典层级</a></h2>
+<h3 id="71-l--nl-log-space"><a class="header" href="#71-l--nl-log-space">7.1 L / NL (log-space)</a></h3>
+<ul>
+<li>L: $O(\log n)$ 工作带 TM 决定问题. 解 ST-connectivity ($u \to v$ 在有向图上可走?) 实际 NL-complete. Reingold 2004 证 ST connectivity in undirected graph ∈ L.</li>
+<li>NL ⊆ P: 因 config 总共 $n^{O(1)}$ 个所以可仿真整图.</li>
+</ul>
+<h3 id="72-savitch-定理"><a class="header" href="#72-savitch-定理">7.2 Savitch 定理</a></h3>
+<p>$\text{NSPACE}(s(n)) \subseteq \text{SPACE}(s(n)^2)$. 直觉: DTM 用递归子调用, 每层记录分叉 config $s(n) \cdot \log$ 栈 → 总二次.</p>
+<p>→ NPSPACE = PSPACE. (把非确定性的代价翻平方成确定性的空间)</p>
+<h3 id="73-nc--ac-parallel"><a class="header" href="#73-nc--ac-parallel">7.3 NC / AC (parallel)</a></h3>
+<p>$NC^k$ = poly-size depth $O(\log^k n)$ Boothlean circuits 输出. NC = ⋃. 例子: $\text{sort} \in NC$ (parallel radix sort) ; $\text{Circuit Value} \in P$-complete 是 "inherently sequential" 证据.</p>
+<h3 id="74-随机化类"><a class="header" href="#74-随机化类">7.4 随机化类</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Class</th><th>含义</th></tr></thead><tbody>
+<tr><td>RP</td><td>"若 x ∈ L, 算法有 ≥ 1/2 概率接受; 若 x ∉ L, 必 reject"</td></tr>
+<tr><td>coRP</td><td>对称</td></tr>
+<tr><td>BPP</td><td>"无论 x ∈ L 与否, 算法有 ≥ 2/3 概率给正确答案"</td></tr>
+<tr><td>ZPP</td><td>RP ∩ coRP, "Las Vegas: 一直正确, 可能花更多时间"</td></tr>
+</tbody></table>
+</div>
+<p>广为猜测: $P = BPP$ (Adleman 证明 BPP ⊆ P/poly, Impagliazzo-Wigderson 1997 给出在合理 hardness 假设下的 derandomization ).</p>
+<h3 id="75-量子类"><a class="header" href="#75-量子类">7.5 量子类</a></h3>
+<ul>
+<li>BQP: 量子 poly-time &gt; 2/3 概率正确.</li>
+<li>Shor's algorithm 把 FACTOR ∈ BQP. Grover 把 unstructured search 从 $O(n)$ 到 $O(\sqrt n)$ (建议 NP 任何问题 $\Omega(\sqrt n)$ 是下界).</li>
+<li>BQP ⊆ PSPACE, 与 NP 关系不明朗 but plausible: <strong>NP ⊄ BQP</strong> (intellectual Q-computing 界主流观点), 否则整个 Computational Geometry 现代 crypto unraveling.</li>
+</ul>
+<hr />
+<h2 id="八oracles-与-relativization-障碍"><a class="header" href="#八oracles-与-relativization-障碍">八、Oracles 与 relativization 障碍</a></h2>
+<p>为理解 P vs NP 为何难, Baker-Gill-Solovay 1975: 存在 oracle $A$ 使 $P^A = NP^A$, 又存在 oracle $B$ 使 $P^B \neq NP^B$.  ⇒ "对角线论证"这种"证明停机问题"的工具<strong>单独</strong> 对 P vs NP 不够 (relativizing barrier).</p>
+<p>其后 Barrington et al. 给出 <strong>arithmeticization</strong> + <strong>natural proof</strong> barrier (Razborov-Rudich 1994) — 简化证明 attempt 全部 fall short of P vs NP.</p>
+<p>2010s 主流方法: algebraic geometry + Geometric Complexity Theory. 至今未破屏障.</p>
+<p>工程经验: <strong>不要</strong>自己宣称 "我证了 P=NP"; 几乎一定有错. 像 Deolalikar 2010世纪以来影响最大的尝试以非现实 locality 假设而失败.</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>业界假设 P ≠ NP 是 Cryptography RSA / 椭圆曲线安全的底座. 严格说, RSA 安全只假设 factoring 困难; <strong>factoring 困难 ≠ NPC难</strong>, 它属 NP ∩ co-NP. 真正"NP 困难"被假设需要 whole-NP 拼反抗数十亿亚马逊实例才行, 不严格满足 NP 困难, 但就 Showstopper 角度锲般.</p>
+</div>
+<hr />
+<h2 id="九工程应用两路径"><a class="header" href="#九工程应用两路径">九、工程应用两路径</a></h2>
+<h3 id="91-看到-np-hard-时怎么办"><a class="header" href="#91-看到-np-hard-时怎么办">9.1 看到 NP-hard 时怎么办</a></h3>
+<p>承认事; 不要"找多项式算法"; 大致三个出路:</p>
+<ul>
+<li><strong>近似</strong>: 给 $\epsilon$ 提出可证 $|OPT| \cdot (1+\epsilon)$ 内 PTAS.</li>
+<li><strong>参数化</strong>: 引参数 $k$, 找到 $O(2^k \cdot \text{poly}(n))$ 算法 (FPT).</li>
+<li><strong>启发式 + 局部搜索 / 遗传算法 / 强化学习</strong>: 无证明但经验例: vertex cover 用 LDS 在 5% 实例达 optimum.</li>
+</ul>
+<h3 id="92-看到-npc-时甚至要先识别"><a class="header" href="#92-看到-npc-时甚至要先识别">9.2 看到 NPC 时甚至要先识别</a></h3>
+<p>把新问题简化到 NPC 标准范式后, 用 8 个经典 NPC 文题本查询 (Garey-Johnson 红宝书)。常见:</p>
+<ul>
+<li>0/1 Knapsack (weak-NP): 实际可做 FP, $O(n \cdot W)$</li>
+<li>TSP (decision form): strong-NP, 不友边权巨数.</li>
+<li>Set cover: 强 NPC 且 inapproximation barrier $\Omega(\ln n)$.</li>
+</ul>
+<hr />
+<h2 id="十桥梁"><a class="header" href="#十桥梁">十、桥梁</a></h2>
+<ul>
+<li><strong>下一章 reduction</strong>: 给例: 3-SAT → Clique → Vertex Cover → Hamiltonian → TSP. 当你看新问题想"是不是 NPC", 直接用 reduction 链横立.</li>
+<li><strong>第八章 approximation</strong>: NPC 之后, 转手看 PTAS, APX-hard, hard-of-approximation.</li>
+<li><strong>第六部分 distributed</strong>: Paxos/Raft 在异步系统**≠ PSPACE/EXPTIME** 问题, 而是 <strong>FLP impossibility</strong> — 异步网络含 crash failure, 共识无确定算法. 这是另一维"不可解" (区别于本章语义解码).</li>
+</ul>
+<hr />
+<p>下一节 → <a href="reductions.html">Polynomial-time Reductions</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../theory/undecidability.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../theory/reductions.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../theory/undecidability.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../theory/reductions.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

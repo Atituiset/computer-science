@@ -1,0 +1,618 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>0-RTT / 连接迁移 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="0-rtt--连接迁移"><a class="header" href="#0-rtt--连接迁移">0-RTT / 连接迁移</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>0-RTT 让 client 在第一个 RTT 还没完成的时刻就发出应用层请求；连接迁移让 client 跨 ISP、跨物理链路保持续通信。两个机制都依赖 Connection ID 与 PSK，但都面临运维苛刻的边界。本节解开 PSK 派生、ticket anti-replay 防御策略、PATH_CHALLENGE 路径验证、移动端真实 migration 实战。重点：把"0-RTT 只 GET、CM 不破" 变成实际业务部署 checklist。</p>
+<hr />
+<h2 id="一psk-与-session-resumption"><a class="header" href="#一psk-与-session-resumption">一、PSK 与 Session Resumption</a></h2>
+<h3 id="11-概念层次"><a class="header" href="#11-概念层次">1.1 概念层次</a></h3>
+<pre><code>TLS handshake 1 RTT
+              ↓
+HKDF derives early_secret + handshake_secret + master_secret
+              ↓
+server 在 handshake 完成 + Application Data 后发 NewSessionTicket frame:
+       NewSessionTicket {
+           ticket_nonce = 0x...,
+           ticket_age_add = 0x...,
+           ticket_lifetime = 7200 sec,
+           ticket = &lt;encrypts resumption_master_secret + server state secret&gt;
+       }
+client 收 NewSessionTicket 后 cache:
+       - ticket bytes
+       - psk_identity = ticket
+       - psk = HKDF-Expand-Label(resumption_master_secret, "resumption", "", Hash.length)
+              ↑ 客户端从 full handshake derive 出来的
+</code></pre>
+<h3 id="12-第二次连接用-psk"><a class="header" href="#12-第二次连接用-psk">1.2 第二次连接用 PSK</a></h3>
+<pre><code>client → Initial packet:
+          ClientHello:
+              identity = ticket
+              obfuscated_ticket_age = ((now - ticket_receipt_time) + ticket_age_add) mod 2^32
+              key_share = X25519 pubkey   (for DLE-PSK, mode = psk_dhe_ke)
+          0-RTT packet:
+              CRYPTO frame with early data (e.g. HTTP/3 GET /index.html)
+              STREAM frames (HTTP/3 body if any)
+
+server decrypt Initial packet:
+   1. Hash ticket to find original master secret in cache
+   2. Verify obfuscated_ticket_age is reasonable (within lifetime)
+   3. Derive early traffic secret from PSK + new ClientHello
+   4. Decrypt 0-RTT early data
+   5. Process early data synchronously (server's CRYPTO frame scheduling)
+</code></pre>
+<h3 id="13-psk-vs-ecdhe-no-psk-对比"><a class="header" href="#13-psk-vs-ecdhe-no-psk-对比">1.3 PSK vs ECDHE (no PSK) 对比</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>PSK-only</th><th>PSK+DHE</th><th>Full ECDHE</th></tr></thead><tbody>
+<tr><td>握手 RTT</td><td>1 (or 0)</td><td>1</td><td>1</td></tr>
+<tr><td>0-RTT 가능</td><td>是</td><td>是</td><td>否</td></tr>
+<tr><td>前向安全</td><td>否</td><td>是</td><td>是</td></tr>
+<tr><td>推荐</td><td>不建议</td><td>强推</td><td>新 conn</td></tr>
+</tbody></table>
+</div>
+<p>PSK+DHE (<code>psk_dhe_ke</code>) 让 PSK resumption 仍有前向安全：即使 PSK 泄漏，所有历史流量仍由 ECDHE 派生的 secret 保护。</p>
+<hr />
+<h2 id="二0-rtt-详解"><a class="header" href="#二0-rtt-详解">二、0-RTT 详解</a></h2>
+<h3 id="21-packet-列表"><a class="header" href="#21-packet-列表">2.1 packet 列表</a></h3>
+<pre><code>1) Initial Packet (with PSK extension + key_share):
+      Crypto (ClientHello)
+2) 0-RTT Packet (encrypted with early traffic secret):
+      Crypto (early data part 1)
+      STREAM (HTTP/3 HEADERS + DATA)
+3) 0-RTT Packet (continued):
+      Crypto (early data part 2)
+      STREAM (continued)
+   ...
+4) After server's Handshake Done: client sends 1-RTT packets:
+      STREAM (application data after handshake)
+</code></pre>
+<p>client 端发完 0-RTT 后<strong>继续用 0-RTT secret 加密</strong> 应用数据直到 server Finished reply；之后切到 1-RTT。</p>
+<h3 id="22-0-rtt-接受条件"><a class="header" href="#22-0-rtt-接受条件">2.2 0-RTT 接受条件</a></h3>
+<p>server 决定是否接受：</p>
+<ul>
+<li>ticket 有效且未过期</li>
+<li>ALPN 协议匹配（HTTP/3 vs h2 vs dq）</li>
+<li>application protocol 与历史 session 一致</li>
+<li>SNI 与 ticket 中记录一致（防 cross-SNI replay）</li>
+</ul>
+<p>server 可以<strong>部分接受</strong>：拒绝 0-RTT early data 但接受 PSK resumption，让 cwait 1-RTT 完成发应用数据。client 看到 rejection 就回 1-RTT 发 data。</p>
+<h3 id="23-anti-replay-实战"><a class="header" href="#23-anti-replay-实战">2.3 anti-replay 实战</a></h3>
+<p><strong>RFC 8446 §8</strong>：</p>
+<blockquote>
+<p>"Implementations MUST NOT use early data for non-idempotent requests"
+"If implemented incorrectly, TLS 1.3 0-RTT creates a new replay attack channel"</p>
+</blockquote>
+<p>四道防线（建议全栈部署）：</p>
+<ol>
+<li><strong>业务层幂等限制</strong>：early_data 仅 GET/HEAD，POST/DELETE 等危险操作 server 端 detect <code>Early-Data: 1</code> 视为非约定后续，回 <code>425 Too Early</code> (RFC 8470)</li>
+<li><strong>application layer token</strong>：early data 中携带 unique request_id，server 维护 5min cache → 重复 request_id 拒</li>
+<li><strong>PSK + ticket_nonce 单调</strong>：server 给每个 ticket 分配 unique nonce，accept early_data 时入 cache;新 early_data 必 nonce 新</li>
+<li><strong>time window</strong>：ticket lifetime 严格 24小时，避免 long-term replay window</li>
+</ol>
+<h3 id="24-部署观察"><a class="header" href="#24-部署观察">2.4 部署观察</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>厂家</th><th>接受 0-RTT</th><th>anti-replay 策略</th></tr></thead><tbody>
+<tr><td>Cloudflare</td><td>是 (default)</td><td>token nonce cache + GET only</td></tr>
+<tr><td>AWS CloudFront</td><td>是 (selective)</td><td>业务路由 harness + replay reject</td></tr>
+<tr><td>Akamai</td><td>是 (selective)</td><td>nonce per ticket</td></tr>
+<tr><td>Google Services</td><td>是</td><td>业务路由 + replay window</td></tr>
+<tr><td>自部署 nginx</td><td>opt-in</td><td>必须自定义 module</td></tr>
+</tbody></table>
+</div>
+<p>实际 deployment：request_id 防重 / idempotency_key / 限 24h window / 1MB early data cap。</p>
+<h3 id="25-0-rtt-字节-budget"><a class="header" href="#25-0-rtt-字节-budget">2.5 0-RTT 字节 budget</a></h3>
+<pre><code>H3 SETTINGS frame:
+   SETTINGS_H3_DATAGRAM = 1
+   SETTINGS_QPACK_MAX_TABLE_CAPACITY = 4096
+   SETTINGS_H3_MAX_FIELD_SECTION_SIZE = 16384   ← early data 超过这个早期失败
+   SETTINGS_H3_ENABLE_CONNECT_PROTOCOL = 0
+</code></pre>
+<p>0-RTT max early data size 用 transport parameter <code>max_early_data_size</code> 协议。Cloudflare 实测 limit 4096B，避免 0-RTT 占带宽。</p>
+<hr />
+<h2 id="三连接迁移"><a class="header" href="#三连接迁移">三、连接迁移</a></h2>
+<h3 id="31-cid-与-4-tuple-解耦"><a class="header" href="#31-cid-与-4-tuple-解耦">3.1 CID 与 4-tuple 解耦</a></h3>
+<pre><code>TCP conn = (src_ip, src_port, dst_ip, dst_port)
+            ↑ 一改 conn 死
+QUIC conn = Connection ID (1-20 byte arbitrary randomly assigned)
+            ↑ 4-tuple 不参与 conn 状态 → 可以随便换
+</code></pre>
+<p>握手期 client 与 server 各发 SCID/DCID：</p>
+<pre><code>client Initial packet:
+   DCID = 0x9abc9abc (random 8 bytes by client)
+   SCID = 0x8888 (or empty)
+
+server Initial packet:
+   DCID = 0x9abc9abc (echo'd from client)
+   SCID = 0x... (random, server 选)
+</code></pre>
+<p>之后 client 用 DCID = server SCID 反向。每个方向均有 CID 与 packets 路由 table 一一对应。</p>
+<h3 id="32-new_connection_id-frame"><a class="header" href="#32-new_connection_id-frame">3.2 NEW_CONNECTION_ID frame</a></h3>
+<p>server 后续可以发更多 CID 给 client (写在 encrypted 1-RTT packets 中)：</p>
+<pre><code>NEW_CONNECTION_ID {
+   sequence_number = 2,
+   retire_prior_to = 0,    # sequence &lt; 此值 应主动 RETIRE_CONNECTION_ID
+   connection_id = 0x....,
+   stateless_reset_token = ... 16 bytes for 性能 reset
+}
+</code></pre>
+<p>机制作用：</p>
+<ul>
+<li>让 client 多 CID 多个 SPD alias 同时打 → 防 tracking</li>
+<li>一次 issue ~8 个 CID，rotate 池</li>
+</ul>
+<h3 id="33-path_challenge--path_response"><a class="header" href="#33-path_challenge--path_response">3.3 PATH_CHALLENGE / PATH_RESPONSE</a></h3>
+<pre><code>PATH_CHALLENGE frame body: random 8 bytes (binary token)
+PATH_RESPONSE frame body: same 8 bytes echo'd
+</code></pre>
+<p><strong>路径验证流程</strong>：</p>
+<pre><code>A → B: send packet on path_1 (CID 不变)
+A want switch path → send PATH_CHALLENGE to B with new 4-tuple
+                              ↑ random 8 bytes (&lt;path_x&gt;)
+B → A: receive PATH_CHALLENGE on path_x
+       send PATH_RESPONSE on the SAME path (path_x) with same 8 bytes
+A → B: receive PATH_RESPONSE on path_x → path_2 validated → start send on path_2
+</code></pre>
+<h3 id="34-nat-rebinding"><a class="header" href="#34-nat-rebinding">3.4 NAT Rebinding</a></h3>
+<p>NAT rebinding 是被动迁移：client 看到不变，server 看到变了。</p>
+<pre><code>家 NAT 老化期 300s → NAT 给新 port 给 client
+client 继续在 NAT 后 socket 发，packets 出来 NAT 后 src port 变了
+server 看到 src port 变 → 主动 PATH_CHALLENGE → 验证新 path → OK 后切回去
+client → 不感知
+</code></pre>
+<h3 id="35-migration-流程对比"><a class="header" href="#35-migration-流程对比">3.5 Migration 流程对比</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>NAT Rebinding (被动)</th><th>Active Migration (主动)</th></tr></thead><tbody>
+<tr><td>起因</td><td>NAT 切换 / ISP NAT 中 port rotation</td><td>client WiFi ↔ 4G 切换</td></tr>
+<tr><td>谁主动</td><td>server 立刻发 PATH_CHALLENGE</td><td>client 立刻在新 socket 发 PATH_CHALLENGE</td></tr>
+<tr><td>回应验</td><td>client 被动 PATH_RESPONSE</td><td>server 回 PATH_RESPONSE</td></tr>
+<tr><td>流中断</td><td>&lt; 1 RTT (server 推断)</td><td>切换 ≥ 1 RTT</td></tr>
+</tbody></table>
+</div>
+<h3 id="36-跨-isp-切换实战"><a class="header" href="#36-跨-isp-切换实战">3.6 跨 ISP 切换实战</a></h3>
+<p>某乘客在 youtube 上加速：</p>
+<pre><code>T=0: home WiFi, conn A start watching
+       client DCID = 0x..., 4G IP 1.1.1.1 port 4500 → CDN 2.2.2.2
+T=10s: leave home, WiFi lose → 4G active
+
+client 操作系统感知 socket drop:
+  same socket close 在 WiFi 下拉
+  new socket 在 4G 上起, 用 same CID = 0x...
+  
+T=11s: send PATH_CHALLENGE on new 4G path
+  packet goes through 4G modem (new NAT) → server sees src IP = 3.3.3.3
+  server → PATH_RESPONSE on 3.3.3.3
+  client validated → server will send new packets back to 3.3.3.3 → 继续 watch
+  total interrupted ≤ 1-2 s
+</code></pre>
+<p>如果 TCP+TLS：conn 死，client 必须重新建立 TCP connection + TLS handshake (1 RTT TLS 1.3 + slow start restart from cwnd=1) → 5+ 秒中断。</p>
+<hr />
+<h2 id="四cpu-加密--stateless-reset"><a class="header" href="#四cpu-加密--stateless-reset">四、CPU 加密 / stateless reset</a></h2>
+<h3 id="41-stateless-reset-防中间盒挂死"><a class="header" href="#41-stateless-reset-防中间盒挂死">4.1 stateless reset 防中间盒挂死</a></h3>
+<p>client 突然 abort without send CONNECTION_CLOSE，server 此 event 会留 connection 资源。stateless reset token 是方案：</p>
+<pre><code>server 给一个 connection_id 时也发出 token
+       NEW_CONNECTION_ID { ..., stateless_reset_token = T }
+
+server 看到 unknown DCID (OR off reboot 后) -&gt; 仍能 identify 原来是个 QUIC packet
+   生成 stateless reset packet 发出 token = T → client 收到理解 conn closed
+
+stateless reset packet:
+       short header + connection_id = unknown 0x... + a bit pattern (1)
+       ↑ 比 CONN_CLOSE 小得多 (with encrypted CONN_CLOSE frame 没法 decrypt)
+</code></pre>
+<h3 id="42-加密性能"><a class="header" href="#42-加密性能">4.2 加密性能</a></h3>
+<p>QUIC 每 packet 走 AEAD：</p>
+<ul>
+<li>AES-128-GCM：3 cycles/byte on AVX-512 → 12 Gbps per core</li>
+<li>ChaCha20-Poly1305：4 cycles/byte on AVX2 → 8 Gbps per core</li>
+</ul>
+<p>10 Gbps link + 1.5KB packet CPU 负载 1.7 Gbps/core。Cloudflare quiche 报告 QUIC server 50 Gbps 是命中 user space upgrade 满载。</p>
+<hr />
+<h2 id="五产线部署观察"><a class="header" href="#五产线部署观察">五、产线部署观察</a></h2>
+<h3 id="51-移动网络-migration-命中率"><a class="header" href="#51-移动网络-migration-命中率">5.1 移动网络 migration 命中率</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>网络</th><th>migration 命中率</th></tr></thead><tbody>
+<tr><td>WiFi → 4G 家庭场景</td><td>~95% QUIC migration 实际触发</td></tr>
+<tr><td>4G 行车跨基站</td><td>&lt;20% 命中（NAT port 频繁变	RENABLED）</td></tr>
+<tr><td>卫星切换</td><td>暂不稳</td></tr>
+<tr><td>LTE → WiFi Hotspot</td><td>~70% 成功</td></tr>
+</tbody></table>
+</div>
+<h3 id="52-lb--reverse-proxy-配置"><a class="header" href="#52-lb--reverse-proxy-配置">5.2 LB / Reverse proxy 配置</a></h3>
+<pre><code class="language-nginx">http3 {
+    server {
+        listen 443 quic reuseport;
+        http3 on;
+        ssl_protocols TLSv1.3;
+        ssl_early_data on;
+        add_header Alt-Svc 'h3=":443"';
+        
+        # QUIC 设置
+        quic_max_concurrent_streams 256;
+        quic_initial_max_data 16M;
+        quic_initial_max_stream_data 1M;
+        quic_idle_timeout 60s;
+        quic_retry on;
+    }
+}
+</code></pre>
+<p><code>quic_retry on</code> 让 server 启用 Retry packet 防 amplification attack：client initial + 0-RTT 总字节数 &lt;1200B 上限，retry 让 server 拒绝 0-RTT。</p>
+<h3 id="53-客户端配置-quiche"><a class="header" href="#53-客户端配置-quiche">5.3 客户端配置 quiche</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let mut config = quiche::Config::new(quiche::PROTOCOL_VERSION)?;
+config.set_application_protos(b"\x02h3")?;
+config.set_max_idle_timeout(30_000);                 // conn idle 30s
+config.set_max_udp_payload_size(1452);                // PMTU
+config.set_initial_max_data(15_360_000);              // conn-level flow
+config.set_initial_max_stream_data_bidi_local(1_536_000);
+config.set_initial_max_stream_data_bidi_remote(1_536_000);
+config.set_initial_max_streams_bidi(100);
+config.set_initial_max_streams_uni(10);
+config.set_disable_active_migration(false);           // 允许 migration
+config.enable_dgram(true, 1024, 1024);                 // datagram
+config.set_active_connection_id_limit(8);              // 多 CID pool
+<span class="boring">}</span></code></pre></pre>
+<h3 id="54-0-rtt-业务案例"><a class="header" href="#54-0-rtt-业务案例">5.4 0-RTT 业务案例</a></h3>
+<pre><code>推特 APP feed refresh:
+   第 1 次启动 app: full handshake 1 RTT, server 返 NewSessionTicket
+   ...
+   第 N 次 (24h 内): 0-RTT + GET /v2/feed
+      实测 P50 save 150ms (60ms RTT + trace send)
+      P99 save 200ms
+
+GET / HTTP/1.1
+Host: api.twitter.com
+X-Requested-With: twitter
+X-Device-ID: ...
+X-Request-ID: abc-123 ← anti-replay nonce
+</code></pre>
+<p>server 看到 early_data:</p>
+<ul>
+<li>取 X-Request-ID validate in cache</li>
+<li>执行 GET /feed → 回 200 + data</li>
+<li>同 request_id 来了 → reject 425</li>
+</ul>
+<hr />
+<h2 id="六产线事故"><a class="header" href="#六产线事故">六、产线事故</a></h2>
+<h3 id="事故-10-rtt-replay-在电商"><a class="header" href="#事故-10-rtt-replay-在电商">事故 1：0-RTT replay 在电商</a></h3>
+<p>某购物 APP 启用 0-RTT 后<strong>没有 anti-replay</strong>，攻击者录流重放 → 重复下单。中剂量 6 位数。</p>
+<p><strong>修复</strong>：</p>
+<ol>
+<li>业务层用 X-Request-Id (uuid) + 5min cache</li>
+<li>server 看到 <code>Early-Data: 1</code> 时 IP+uid+request_hash 入 cache</li>
+<li>路由约束：0-RTT 仅允许 GET / HEAD；POST 自动回到 1-RTT</li>
+<li>application_id_quota 限速</li>
+</ol>
+<h3 id="事故-2移动-migration-引发-server-累积-conn"><a class="header" href="#事故-2移动-migration-引发-server-累积-conn">事故 2：移动 migration 引发 server 累积 conn</a></h3>
+<p>某 LB 没识别 CID 路由 → migration 后包 route 到不同 backend → 第二个 backend 不知 conn state → reset。client 看到连接 drop 而重连。</p>
+<p><strong>修复</strong>：LB 用 user-space QUIC 解析 + CID 一致性 hash + 状态共享（如 redis）。</p>
+<h3 id="事件-3path_challenge-被中间盒-bufferpageentry"><a class="header" href="#事件-3path_challenge-被中间盒-bufferpageentry">事件 3：PATH_CHALLENGE 被中间盒 buffer.PageEntry</a></h3>
+<p>WiFi → LTE 切换，client 发 PATH_CHALLENGE，但运营商的路由器因为不熟悉的 IP 没回。client 等到 idle timeout 60s 拒连。</p>
+<p><strong>修复</strong>：调短 timeout（路径迁移不短、但 idle 总 timeout），或 fallback TCP+TLS。</p>
+<h3 id="事件-4udp-中间盒-fire-timeout"><a class="header" href="#事件-4udp-中间盒-fire-timeout">事件 4：UDP 中间盒 fire timeout</a></h3>
+<p>某国家出口防火墙 UDP idle timeout 60s，QUIC 慢连接往往 30s+ 才发 ping → 阻断。</p>
+<p><strong>修复</strong>：QUIC keepalive 改 15s + 自动 fallback TCP HTTPS。</p>
+<h3 id="事故-50-rtt-sentiment是批-但业务早期-run-break"><a class="header" href="#事故-50-rtt-sentiment是批-但业务早期-run-break">事故 5：0-RTT Sentiment是批 但业务早期 run break</a></h3>
+<p>某 API 在 0-RTT 时已收到流量 → 重启 backend。内存 cache 丢了 first 5min ticket nonce →- replay 之前 cache ticket 仍 work → 实际录流票 5min 内可重放。</p>
+<p><strong>修复</strong>：server 重启清 cache + session ticket rotation + 30s 上线 dryrun。</p>
+<hr />
+<h2 id="七易错清单"><a class="header" href="#七易错清单">七、易错清单</a></h2>
+<ol>
+<li><strong>0-RTT replay 是 cross-connection</strong>，TLS 1.3 不防护，必须 application frequency 检测 nonce / request_id</li>
+<li><strong>PSK-only 模式无前向安全</strong>，推荐 PSK+DHE</li>
+<li><strong>PATH_CHALLENGE 不应该用 known bytes</strong>，必用 random 8 字节</li>
+<li><strong>CID 长度建议 8 字节</strong>：4B 太短碰撞风险，20B too long bandwidth 浪费</li>
+<li><strong>NEW_CONNECTION_ID 多 CID 池可抗 correlation tracking</strong>：8个 CID ~8 同时可用</li>
+<li><strong>stateless reset token 是 server 给的</strong>，client 不要逼 send。server 在 conn state lost 时用</li>
+<li><strong>migration 必须完整验证 path</strong>：semi-validated state 暂时不应该算 ready</li>
+<li><strong>0-RTT 不能用于 streaming 长流</strong>：实际上 0-RTT 后必须切到 1-RTT，连续 streaming 已必须完整 handshake</li>
+</ol>
+<hr />
+<h2 id="八这一章带走的东西"><a class="header" href="#八这一章带走的东西">八、这一章带走的东西</a></h2>
+<ol>
+<li>0-RTT 用 PSK + early traffic secret，<strong>只有幂等请求能走</strong>，业务必须 anti-replay</li>
+<li>PSK-DHE 保前向安全，能 implement 0-RTT 兼顾 PFS</li>
+<li>CID 是连接唯一标识，让 mobile migration、LB routing 与 NAT rebinding 一致</li>
+<li>PATH_CHALLENGE / PATH_RESPONSE 是路径验证机制，是 migration 与 NAT rebinding 同一回事</li>
+<li>0-RTT 实战部署：request_id nonce + 5 分钟 anti-replay cache + 限 4-16KB</li>
+<li>migration 让 mobile 用户跨 ISP 持续使用，但 LB 必须解 CID；3-5 跳路由防水 dissipation 是变窄点</li>
+</ol>
+<h2 id="下一节-"><a class="header" href="#下一节-">下一节 →</a></h2>
+<p><a href="bbr.html">BBR 在 QUIC 下的表现</a> — ack_delay 解放、QUIC 流量整形、BBR v3 在 quiche / msquic 实验部署。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../networking/quic/overview.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../networking/quic/bbr.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../networking/quic/overview.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../networking/quic/bbr.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,631 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>gRPC / Protobuf / Thrift - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="grpc--protobuf--thrift--avro"><a class="header" href="#grpc--protobuf--thrift--avro">gRPC / Protobuf / Thrift / Avro</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>应用层从 JSON 走到 Protobuf，再锁进 gRPC-over-HTTP/2，是过去十五年的"RPC 黄金时代"。本节从字节布局讲 protobuf varint + wire-type 编码逻辑、gRPC-over-HTTP/2 的 trailers 锁定语义、Thrift 的 binary/compact 编码、Avro schema 进字节流与 Protobuf 的 schema 漂移。最后讲产线选型：gRPC 4 模式、Conn pool 池大小、流式透传 trace_id、core cancel 时刻。</p>
+<hr />
+<h2 id="一协议对比表"><a class="header" href="#一协议对比表">一、协议对比表</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>协议</th><th>schema</th><th>编码</th><th>传输</th><th>流式</th><th>大小</th><th>类型化</th><th>主留言</th></tr></thead><tbody>
+<tr><td>JSON</td><td>无</td><td>文本</td><td>HTTP/1.1 / 2</td><td>chunked</td><td>大</td><td>弱</td><td>REST 默认</td></tr>
+<tr><td>Protobuf</td><td><code>.proto</code></td><td>varint + length-delim</td><td>gRPC over HTTP/2</td><td>是</td><td>小</td><td>强</td><td>Google 内 ++</td></tr>
+<tr><td>Thrift</td><td><code>.thrift</code></td><td>binary / compact</td><td>TSocket/HTTP</td><td>弱</td><td>中</td><td>强</td><td>Facebook 仍用</td></tr>
+<tr><td>Avro</td><td>schema+</td><td>二进制 + type coded</td><td>Kafka / RPC</td><td>Weak</td><td>小</td><td>强</td><td>Hadoop 系</td></tr>
+<tr><td>Cap'n Proto</td><td><code>.capnp</code></td><td>共享内存 zero-copy</td><td>自带</td><td>是</td><td>中</td><td>强</td><td>Sandstorm 五圣器</td></tr>
+<tr><td>FlatBuffers</td><td><code>.fbs</code></td><td>零拷贝</td><td>各种</td><td>是</td><td>中</td><td>强</td><td>微信内 + Google</td></tr>
+<tr><td>MessagePack</td><td>无</td><td>紧凑 type-tag</td><td>各种</td><td>否</td><td>中</td><td>中</td><td>Reddit 等</td></tr>
+<tr><td>BSON</td><td>文档</td><td>BSON 编码</td><td>MongoDB 内部</td><td>否</td><td>中</td><td>中</td><td>Mongo 专用</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="二protobuf-字节布局"><a class="header" href="#二protobuf-字节布局">二、Protobuf 字节布局</a></h2>
+<h3 id="21-proto-定义"><a class="header" href="#21-proto-定义">2.1 .proto 定义</a></h3>
+<pre><code class="language-proto">syntax = "proto3";
+
+message Person {
+    int32 id = 1;
+    string name = 2;
+    repeated string emails = 3;
+    Address address = 4;
+}
+
+message Address {
+    string street = 1;
+    string city = 2;
+    string state = 3;
+}
+</code></pre>
+<p>每个字段有 (1) <code>field_number</code>、(2) <code>wire_type</code>、(3) <code>value</code>。</p>
+<h3 id="22-wire-type"><a class="header" href="#22-wire-type">2.2 Wire type</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>wire type</th><th>含义</th><th>用法</th></tr></thead><tbody>
+<tr><td>0</td><td>varint</td><td>int32/int64/uint32/uint64/sint32/sint64/bool/enum</td></tr>
+<tr><td>1</td><td>fixed64</td><td>fixed64/sfixed64/double</td></tr>
+<tr><td>2</td><td>length-delimited</td><td>string/bytes/embedded message/repeated packed</td></tr>
+<tr><td>5</td><td>fixed32</td><td>fixed32/sfixed32/float</td></tr>
+<tr><td>3 / 4</td><td>group (start / end)</td><td>proto2 only, deprecated</td></tr>
+</tbody></table>
+</div>
+<p>每字段开头为 1 个 varint，低 3 bit 是 wire_type，高位是 field_number：</p>
+<pre><code>key = (field_number &lt;&lt; 3) | wire_type
+</code></pre>
+<h3 id="23-varint-编码"><a class="header" href="#23-varint-编码">2.3 Varint 编码</a></h3>
+<pre><code class="language-python">def varint_encode(n):
+    out = b''
+    while n &gt;= 0x80:
+        out += bytes([(n &amp; 0x7F) | 0x80])  # 头位 1 = continue
+        n &gt;&gt;= 7
+    out += bytes([n &amp; 0x7F])
+    return out
+</code></pre>
+<p>值 <code>300</code> 编码为 <code>AC 02</code>：</p>
+<pre><code>300 = 0b100101100
+    → 低 7 bit: 0101100  → 10101100 (0xAC, 顶部 bit 1 还有)
+    → 接着 7 bit: 0000010 → 00000010 (0x02)
+</code></pre>
+<h3 id="24-负数用-zigzag"><a class="header" href="#24-负数用-zigzag">2.4 负数用 zigzag</a></h3>
+<p><code>int32</code> 负数会被强转 int64 (10 字节 varint) 浪费。<code>sint32</code> 用 zigzag：</p>
+<pre><code>0 → 0, -1 → 1, 1 → 2, -2 → 3, 2 → 4, ...
+zigzag(n) = (n &lt;&lt; 1) ^ (n &gt;&gt; 31)
+</code></pre>
+<p><code>300</code> 变 varint <code>02</code> 即可，节省 byte。</p>
+<h3 id="25-完整-person-编码"><a class="header" href="#25-完整-person-编码">2.5 完整 Person 编码</a></h3>
+<pre><code class="language-python"># Person { id=2, name="Alice", emails=["a@x", "b@x"], address={"Main", "PDX", "OR" } }
+
+# field 1 (id), wire_type=0
+0x08                    # key=(1&lt;&lt;3)|0=8
+0x02                    # varint 2
+
+# field 2 (name), wire_type=2 (length-delim)
+0x12                    # key=(2&lt;&lt;3)|2=0x12
+0x05                    # len=5
+"Alice"
+
+# field 3 (emails) repeated, wire_type=2
+0x1a 0x03 "a@x"         # key=(3&lt;&lt;3)|2, each appearance is one field
+0x1a 0x03 "b@x"
+
+# field 4 (address), wire_type=2
+0x22 0x0f               # len=15
+  0x0a 0x04 "Main"      # field 1, wire_type 2
+  0x12 0x03 "PDX"
+  0x1a 0x02 "OR"
+</code></pre>
+<p>总 ~30 字节。同样的 JSON 至少 70 字节。</p>
+<h3 id="26-前向兼容"><a class="header" href="#26-前向兼容">2.6 前向兼容</a></h3>
+<p>未知字段 (field_number 客户端不认识) → <strong>skip via wire_type</strong>：</p>
+<ul>
+<li>type 0:读完一个 varint</li>
+<li>type 1:读 8 字节</li>
+<li>type 2:读 length 字段后再读 length 字节</li>
+<li>type 5:读 4 字节</li>
+</ul>
+<p>→ 加新字段不破老客户端。但<strong>改 wire_type 必坏</strong>（field 1 从 varint 变 length-delim），所以 schema 演进只能：</p>
+<ul>
+<li>加新 field_number</li>
+<li>老字段保留但标 <code>reserved</code></li>
+<li>类型不兼容时改名 + reserved</li>
+</ul>
+<hr />
+<h2 id="三grpc-over-http2"><a class="header" href="#三grpc-over-http2">三、gRPC over HTTP/2</a></h2>
+<h3 id="31-一次调用布局"><a class="header" href="#31-一次调用布局">3.1 一次调用布局</a></h3>
+<pre><code class="language-http">HEADERS stream_id=N (END_HEADERS=1, END_STREAM=0):
+   :method  = POST
+   :scheme  = https
+   :path    = /myapp.Users/GetUser
+   :authority = api.example.com
+   content-type = application/grpc+proto
+   te = trailers
+   grpc-encoding = identity
+   grpc-accept-encoding = identity, gzip
+   x-request-id = 4f5a8...
+
+DATA frame (END_STREAM=0):
+   5 字节前缀: 1 字节 compressed_flag + 4 字节 length (≤ 2^32)
+   + protobuf bytes "4f 0a 02 41 ..."
+
+HEADERS frame (END_HEADERS=1, END_STREAM=1, trailers 状态 帧):
+   grpc-status = 0
+   grpc-message = OK
+</code></pre>
+<h3 id="32-4-种-rpc-模式"><a class="header" href="#32-4-种-rpc-模式">3.2 4 种 RPC 模式</a></h3>
+<pre><code class="language-proto">service MyService {
+    rpc GetUser(GetUserReq) returns (User);                    // unary
+    rpc StreamNews(SubscribeReq) returns (stream NewsUpdate);  // server stream
+    rpc Sum(stream Num) returns (Sum);                         // client stream
+    rpc Chat(stream Msg) returns (stream Msg);                 // bidi
+}
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>模式</th><th>req</th><th>resp</th><th>HTTP/2 stream 数</th></tr></thead><tbody>
+<tr><td>unary</td><td>1</td><td>1</td><td>1</td></tr>
+<tr><td>server</td><td>1</td><td>N</td><td>1 (N DATA frame)</td></tr>
+<tr><td>client</td><td>N</td><td>1</td><td>1</td></tr>
+<tr><td>bidi</td><td>N</td><td>N</td><td>1 双向 DATA frame 交错</td></tr>
+</tbody></table>
+</div>
+<p>所有 4 模式都走同一条 HTTP/2 stream (trades multiplexing)。</p>
+<h3 id="33-错误码-grpc-status"><a class="header" href="#33-错误码-grpc-status">3.3 错误码 (grpc-status)</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>code</th><th>含义</th></tr></thead><tbody>
+<tr><td>0</td><td>OK</td></tr>
+<tr><td>1</td><td>CANCELLED</td></tr>
+<tr><td>2</td><td>UNKNOWN</td></tr>
+<tr><td>3</td><td>INVALID_ARGUMENT</td></tr>
+<tr><td>4</td><td>DEADLINE_EXCEEDED</td></tr>
+<tr><td>5</td><td>NOT_FOUND</td></tr>
+<tr><td>6</td><td>ALREADY_EXISTS</td></tr>
+<tr><td>7</td><td>PERMISSION_DENIED</td></tr>
+<tr><td>8</td><td>RESOURCE_EXHAUSTED</td></tr>
+<tr><td>9</td><td>FAILED_PRECONDITION</td></tr>
+<tr><td>10</td><td>ABORTED</td></tr>
+<tr><td>11</td><td>OUT_OF_RANGE</td></tr>
+<tr><td>12</td><td>UNIMPLEMENTED</td></tr>
+<tr><td>13</td><td>INTERNAL</td></tr>
+<tr><td>14</td><td>UNAVAILABLE</td></tr>
+<tr><td>15</td><td>DATA_LOSS</td></tr>
+<tr><td>16</td><td>UNAUTHENTICATED</td></tr>
+</tbody></table>
+</div>
+<p>业务错误应<strong>用 trailer 中的 grpc-message</strong>或自定义 metadata，不要靠 status codes。OK=0 是 success，非 0 都视为 RPC failure。</p>
+<h3 id="34-grpc-interceptors"><a class="header" href="#34-grpc-interceptors">3.4 gRPC interceptors</a></h3>
+<pre><code class="language-go">// server-side
+type serverInterceptor struct{}
+func (s *serverInterceptor) Unary(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+    md, _ := metadata.FromIncomingContext(ctx)
+    traceID := md.Get("x-request-id")
+    ctx = context.WithValue(ctx, "trace_id", traceID)
+    start := time.Now()
+    resp, err := handler(ctx, req)
+    log.Printf("RPC %s status=%v dur=%v", info.FullMethod, status.Code(err), time.Since(start))
+    return resp, err
+}
+
+s := grpc.NewServer(grpc.UnaryInterceptor(&amp;serverInterceptor{}))
+</code></pre>
+<p>interceptor 链式：trace → metrics → auth → biz logic。</p>
+<h3 id="35-实战性能"><a class="header" href="#35-实战性能">3.5 实战性能</a></h3>
+<pre><code class="language-go">// 完整机房 setup
+conn, _ := grpc.DialContext(ctx, addr,
+    grpc.WithTransportCredentials(tls),
+    grpc.WithDefaultCallOptions(
+        grpc.MaxCallRecvMsgSize(64 * 1024 * 1024),  // 默认 4MB, 例 64MB
+        grpc.MaxCallSendMsgSize(64 * 1024 * 1024),
+    ),
+    grpc.WithInitialConnWindowSize(8 * 1024 * 1024),   // TCP 流控
+    grpc.WithInitialWindowSize(8 * 1024 * 1024),       // stream
+    grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin": {}}]}`),
+    grpc.WithKeepaliveParams(keepalive.ClientParameters{
+        Time:                30 * time.Second,
+        Timeout:             10 * time.Second,
+        PermitWithoutStream: true,
+    }),
+)
+</code></pre>
+<p>关键点：</p>
+<ul>
+<li>每项 call 默认 60s timeout</li>
+<li>HTTP/2 100 max concurrent streams 限制 → gRPC client 单 conn 同时调用上限 100</li>
+<li>建议 client pool ≥ 10 conn</li>
+<li><code>PermitWithoutStream=true</code> 让 keepalive 不需 active call 才发，防 NAT 老化 timeout 杀连接</li>
+</ul>
+<hr />
+<h2 id="四thrift"><a class="header" href="#四thrift">四、Thrift</a></h2>
+<h3 id="41-thrift-schema"><a class="header" href="#41-thrift-schema">4.1 .thrift schema</a></h3>
+<pre><code class="language-thrift">struct User {
+    1: i32 id
+    2: string name
+    3: list&lt;string&gt; emails
+}
+
+service UserService {
+    User getUser(1: i32 id),
+    oneway void deleteUser(1: i32 id),
+}
+</code></pre>
+<h3 id="42-tbinaryprotocol"><a class="header" href="#42-tbinaryprotocol">4.2 TBinaryProtocol</a></h3>
+<p>固定 4-byte 字段编号 + 类型：</p>
+<pre><code>struct 序列化:
+  field: [1 byte type] [2 byte field_id] [value]
+  end: [1 byte = 0]
+</code></pre>
+<p>字段编号显式 → 跨语言解码稳定。</p>
+<h3 id="43-tcompactprotocol"><a class="header" href="#43-tcompactprotocol">4.3 TCompactProtocol</a></h3>
+<p>类似 Protobuf，用 varint，更紧凑。</p>
+<h3 id="44-transport-层"><a class="header" href="#44-transport-层">4.4 Transport 层</a></h3>
+<ul>
+<li>TSocket：raw TCP</li>
+<li>TBufferedTransport：buffered TCP</li>
+<li>TFramedTransport：每 message 前缀 length (类似 length-delimited)</li>
+<li>THttpClient：HTTP 1.1 wrapper</li>
+</ul>
+<h3 id="45-现状"><a class="header" href="#45-现状">4.5 现状</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>用户</th><th>用法</th></tr></thead><tbody>
+<tr><td>Facebook</td><td>内部 API 仍主力</td></tr>
+<tr><td>Twitter (Finagle)</td><td>Scala Finatra Thrift</td></tr>
+<tr><td>Uber</td><td>TChannel → 后迁 H1</td></tr>
+<tr><td>Cassandra</td><td>thrift API (deprecated)</td></tr>
+</tbody></table>
+</div>
+<p>行业主流已迁 gRPC，但少数大公司仍维护 Thrift。</p>
+<hr />
+<h2 id="五avro"><a class="header" href="#五avro">五、Avro</a></h2>
+<h3 id="51-schema--数据流"><a class="header" href="#51-schema--数据流">5.1 schema + 数据流</a></h3>
+<pre><code class="language-json">{
+  "type": "record",
+  "name": "User",
+  "fields": [
+    {"name": "id", "type": "int"},
+    {"name": "name", "type": "string"},
+    {"name": "emails", "type": {"type": "array", "items": "string"}}
+  ]
+}
+</code></pre>
+<p>序列化：</p>
+<ul>
+<li><strong>字节流中不带 field_number</strong>：靠 schema 在 reader/writer 协同</li>
+<li>reader 用 schema 兼容性矩阵处理不同版本 (back 包装)</li>
+<li>一条记录 30 字节要比 Protobuf 5-10%</li>
+</ul>
+<p>Kafka + Avro 是大数据栈标配。Schema Registry (Confluent) 存所有 schema 版本，serializer 在 record 头加 4 字节 schema id。</p>
+<h3 id="52-avro-vs-protobuf"><a class="header" href="#52-avro-vs-protobuf">5.2 Avro vs Protobuf</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>Avro</th><th>Protobuf</th></tr></thead><tbody>
+<tr><td>字段编号</td><td>不带，schema 协同</td><td>1, 2, 3... 显式</td></tr>
+<tr><td>字节大小</td><td>&lt; Protobuf (10%)</td><td>紧凑</td></tr>
+<tr><td>schema 漂移</td><td>强 map 隐式类型</td><td>reserved + 类型不变</td></tr>
+<tr><td>流传输</td><td>不带 schema id → 配 Kafka Schema Registry</td><td>自描述</td></tr>
+<tr><td>主要生态</td><td>Hadoop, Kafka, Confluent</td><td>gRPC, Envoy, GRPC</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="六产线实战灾情"><a class="header" href="#六产线实战灾情">六、产线实战灾情</a></h2>
+<h3 id="61-grpc-stream-leak--server-内存爆"><a class="header" href="#61-grpc-stream-leak--server-内存爆">6.1 gRPC stream leak — server 内存爆</a></h3>
+<p>业务 client 不 <code>CloseSend()</code> 直接退出 → server 保留 stream context 直到 idle (1h) → 5k client × 1h = 500k concurrent streams → 内存 500 MB ×N → OOM。</p>
+<p><strong>修复</strong>：</p>
+<ol>
+<li>client 强制 <code>defer stream.CloseSend() + ctx cancel</code></li>
+<li>server 监控 <code>grpc_server_stream_started</code> 长寿命数</li>
+<li>server stream max age <code>MaxConnectionAge = 30m + GracefulStop</code></li>
+</ol>
+<h3 id="62-grpc-metadata-超-8kb"><a class="header" href="#62-grpc-metadata-超-8kb">6.2 gRPC metadata 超 8KB</a></h3>
+<p>某 API client 把 JWT token + 业务 metadata 全塞进 metadata → 16KB → HTTP/2 SETTINGS frame reject 默认 8KB，server 主动 reset stream。</p>
+<p><strong>修复</strong>：</p>
+<ol>
+<li>JWT 走 binary DATA frame 或 service-local context，不放 metadata</li>
+<li>服务端 nginx 配 <code>http2_max_field_size 32k; http2_max_header_size 64k;</code></li>
+<li>客户端控制 metadata 总字节并日志预警</li>
+</ol>
+<h3 id="63-conn-pool-大小不当"><a class="header" href="#63-conn-pool-大小不当">6.3 conn pool 大小不当</a></h3>
+<p>Web Tier 起 50 connection pool、每并发 100 QPS → backend 单连接 5k QPS、HTTP/2 100 stream 限制 → 5conn 满后余 0。流量超时 5k RPS。</p>
+<p><strong>修复</strong>：</p>
+<pre><code class="language-go">poolSize = ceil(QPS_per_conn / max_streams_per_conn) * 1.5
+// e.g., QPS 50k / 100 stream* 100 qps/stream = 5 conn, *1.5 = 8 conn安全
+</code></pre>
+<h3 id="64-protobuf-字段类型-wire-type-漂移"><a class="header" href="#64-protobuf-字段类型-wire-type-漂移">6.4 protobuf 字段类型 wire-type 漂移</a></h3>
+<p>某业务 schema 升级把 field 3 从 <code>int32</code> 变 <code>string</code> → 老 client 跳 wire_type 0，新 server 写 wire_type 2 → 老 client 跳过 → field 默认 0 → 业务 silent fail。</p>
+<p><strong>修复</strong>：用 <code>reserved 3</code>，新加 field <code>string newfield = 4</code>。</p>
+<h3 id="65-avro-schema-漂移反写"><a class="header" href="#65-avro-schema-漂移反写">6.5 Avro schema 漂移反写</a></h3>
+<p>某业务 schema v2 把 <code>int id</code> 改 <code>long id</code> → 老 consumer Bei schema v1 读 → <code>int → long</code> 是合法扩展，但 <code>long → int</code> 不行 → producer 升级 v2 没事，consumer 升级 v2 但 produce 旧 v1 数据 from backup consumer crash。</p>
+<p><strong>修复</strong>：Avro 强 backward / forward 兑 schema registry <code>confluent.compatibility=BACKWARD</code> 锁。</p>
+<hr />
+<h2 id="七易错清单"><a class="header" href="#七易错清单">七、易错清单</a></h2>
+<ol>
+<li><strong>Protobuf 不能改 wire_type</strong>：field_id 类型可能漂移 → 用 reserved + 新编号</li>
+<li><strong>repeated packed vs unpacked</strong>：proto3 默认 packed，读取端兼容但旧 proto2 后向不兼容</li>
+<li><strong>gRPC stream 报错是 trailer</strong>：HTTP/2 HEADERS frame 后置语义，不会出现在前置 frame</li>
+<li><strong>proto enum 必须有 0 value</strong>：proto3 强要求 (默认值)</li>
+<li><strong>gRPC metadata 与 HTTP/2 headers 一致</strong>，但 8KB 大小限制是 HTTP/2 默认上限</li>
+<li><strong>gRPC 0 错误 vs http 200 OK</strong>：gRPC level 错误独立于 HTTP，<strong>HTTP status 永远是 200</strong>，grpc-status trailer 给业务语义</li>
+<li><strong>Thrift vs Protobuf 大体相同字节</strong>，主要差别在 community + 工具链</li>
+<li><strong>JWT 在 gRPC metadata 中可能超 8KB</strong>；考虑放 propagated ctx 或 sidecar encrypt</li>
+</ol>
+<hr />
+<h2 id="八这一章带走的东西"><a class="header" href="#八这一章带走的东西">八、这一章带走的东西</a></h2>
+<ol>
+<li>Protobuf 字节布局是 varint + wire_type + length-delimited，前向兼容靠 wire_type skip，schema 漂移靠 reserved + new field</li>
+<li>gRPC-over-HTTP/2 用 stream_id 复用 + trailer 状态 锁定 grpc-status 语义；4 模式通用 1 HTTP/2 stream</li>
+<li>Thrift 与 Protobuf 编码相近，Thrift 显式 field number，Protobuf 显式 wire-type skip → 各自设计取向</li>
+<li>Avro 不带 field 编号、靠 schema registry 协同，<strong>Kafka 数据生态主流</strong></li>
+<li>gRPC 关键调优点：conn pool size = QPS × 1.5 / 100_streams_per_conn、metadata 8KB、keepalive + max_age</li>
+<li>stream leak 是 gRPC server 短寿工程盲区：必须 monitor stream age 分布与 grpc_server_stream_started 增量</li>
+</ol>
+<h2 id="下一节-"><a class="header" href="#下一节-">下一节 →</a></h2>
+<p><a href="../quic/overview.html">QUIC 概览</a> — QUIC packet 格式、stream 帧、conn ID、connection migration、loss recovery。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../networking/http/pki.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../networking/quic/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../networking/http/pki.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../networking/quic/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

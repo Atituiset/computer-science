@@ -1,0 +1,510 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>事务、ACID、隔离级别与现象 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="事务acid隔离级别与现象"><a class="header" href="#事务acid隔离级别与现象">事务、ACID、隔离级别与现象</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>事务是数据库把"原子执行一段状态变更"封装的最小单位。ANSI SQL-92 给了 4 个隔离级别 (RU/RC/RR/SER)，Berenson 1995 论文指出 ANSI 漏了 3 个 不能被 4 级别覆盖的异常 (写偏斜 / 读偏斜 / 丢失更新)。本节从 ACID 到锁矩阵、2PL（growing/shrinking phase）、S2PL/SS2PL、MVCC 实现的 Snapshot Isolation、PostgreSQL 的 SSI、CockroachDB 的 Serializable-only、Spanner 的 TrueTime 外部一致性——这是任何分布式数据库设计的必经课。</p>
+<hr />
+<h2 id="一acid"><a class="header" href="#一acid">一、ACID</a></h2>
+<div class="table-wrapper"><table><thead><tr><th></th><th>含义</th><th>实现机制</th></tr></thead><tbody>
+<tr><td>Atomicity</td><td>全或无（commit 或回滚整体）</td><td>undo log + commit marker</td></tr>
+<tr><td>Consistency</td><td>应用层不变量保持</td><td>constraints / FK / unique / trigger</td></tr>
+<tr><td>Isolation</td><td>并发事务互不干扰</td><td>2PL / MVCC / SSI / TS</td></tr>
+<tr><td>Durability</td><td>commit 后即使断电数据不丢</td><td>WAL（redo log）fsync + commit record</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>C <strong>不由 DB 保证</strong>——DB 只保证约束 / FK / unique 检查通过；A.I.D 是数据库机制。任何业务 invariant（"账户余额≥0"）必须 app 层 enforce。</p>
+</div>
+<hr />
+<h2 id="二ansi-sql-92-4-隔离级别"><a class="header" href="#二ansi-sql-92-4-隔离级别">二、ANSI SQL-92 4 隔离级别</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>级别</th><th>Dirty Read</th><th>Non-repeatable Read</th><th>Phantom</th></tr></thead><tbody>
+<tr><td>READ UNCOMMITTED</td><td>允许</td><td>允许</td><td>允许</td></tr>
+<tr><td>READ COMMITTED</td><td>不允许</td><td>允许</td><td>允许</td></tr>
+<tr><td>REPEATABLE READ</td><td>不允许</td><td>不允许</td><td>允许</td></tr>
+<tr><td>SERIALIZABLE</td><td>不允许</td><td>不允许</td><td>不允许</td></tr>
+</tbody></table>
+</div>
+<p>3 现象定义：</p>
+<div class="table-wrapper"><table><thead><tr><th>现象</th><th>描述</th></tr></thead><tbody>
+<tr><td>Dirty Read</td><td>T1 读到 T2 未提交的数据；T2 abort → T1 看到的数据从未存在</td></tr>
+<tr><td>Non-repeatable Read</td><td>T1 内两次读同 row 得不同值（T2 提交了修改）</td></tr>
+<tr><td>Phantom</td><td>T1 内 <code>WHERE</code> 范围两次得到不同 row set（T2 插入了新 row）</td></tr>
+</tbody></table>
+</div>
+<h2 id="三berenson-1995-critique"><a class="header" href="#三berenson-1995-critique">三、Berenson 1995 critique</a></h2>
+<p><code>A Critique of ANSI SQL Isolation Levels</code> 论文指出 ANSI 4 级别的<strong>formal definition</strong>有漏洞，且<strong>实用中漏了 3 个异常</strong>：</p>
+<ul>
+<li><strong>Dirty Write</strong>：T2 写 over T1 未提交写 → cascading abort</li>
+<li><strong>Lost Update</strong>：T1 读 v1，T2 commit v2，T1 写 v3 commit → v2 被丢</li>
+<li><strong>Read Skew</strong>：T1 读 row A 后（A 已被 T2 改 B），再读 B → 看到 T2 前的 A 与 后的 B，invariant 被破</li>
+<li><strong>Write Skew</strong>：两 tx 基于同一 SELECT 判定，写不同 row commit → 整体 invariant 失效</li>
+<li><strong>Cursor Lost Update / Read-then-Write Lock</strong> 等</li>
+</ul>
+<p>Berenson 提出 <strong>Snapshot Isolation (SI)</strong>：每事务开始时分配 snapshot（timestamp），所有 SELECT 都从 snapshot 看，所有 write 在 commit 时检测 − write-write conflict（如果两事务写同一 row → 后提交 abort）。</p>
+<div class="table-wrapper"><table><thead><tr><th>异常</th><th>SI 是否防护</th></tr></thead><tbody>
+<tr><td>Dirty Read</td><td>是</td></tr>
+<tr><td>Non-repeatable</td><td>是</td></tr>
+<tr><td>Phantom</td><td>是（snapshot 是只读的）</td></tr>
+<tr><td>Dirty Write</td><td>是</td></tr>
+<tr><td>Lost Update</td><td>是（write-write conflict abort）</td></tr>
+<tr><td>Write Skew</td><td><strong>否</strong></td></tr>
+<tr><td>Read Skew</td><td>是</td></tr>
+</tbody></table>
+</div>
+<p>→ <strong>SI 比 RR 更强但弱于 SERIALIZABLE</strong>。SI 不能防 write skew 是它的最大缺陷。</p>
+<hr />
+<h2 id="四典型-write-skew-案例"><a class="header" href="#四典型-write-skew-案例">四、典型 write skew 案例</a></h2>
+<pre><code>Two-doctor on-call invariant: 至少一医生 24/7 当班
+
+T1                            T2
+BEGIN                          BEGIN
+SELECT count(*) FROM on_call   SELECT count(*) FROM on_call
+  WHERE name IN ('Alice','Bob')  WHERE name IN ('Alice','Bob')
+=&gt; 2 (Alice + Bob 都当班)         =&gt; 2
+
+UPDATE on_call SET on_call=FALSE   
+  WHERE name='Alice'              UPDATE on_call SET on_call=FALSE
+                                    WHERE name='Bob'
+COMMIT                         COMMIT
+
+→ 现在 0 医生当班，invariant 被破
+</code></pre>
+<p>PostgreSQL SSI 能检测到 rw-anti-dependency（read-write conflict），abort 其中一个事务。</p>
+<hr />
+<h2 id="五锁矩阵与-2pl"><a class="header" href="#五锁矩阵与-2pl">五、锁矩阵与 2PL</a></h2>
+<h3 id="51-锁模式"><a class="header" href="#51-锁模式">5.1 锁模式</a></h3>
+<ul>
+<li><strong>S (shared)</strong> read lock</li>
+<li><strong>X (exclusive)</strong> write lock</li>
+<li><strong>IS (intent shared)</strong> 父表级 hint</li>
+<li><strong>IX (intent exclusive)</strong></li>
+<li><strong>SIX</strong> shared + intent exclusive</li>
+<li><strong>gap lock</strong> (MySQL InnoDB RR 防 phantom)</li>
+<li><strong>next-key lock</strong> = record + gap before</li>
+<li><strong>insert intent lock</strong></li>
+</ul>
+<h3 id="52-锁矩阵"><a class="header" href="#52-锁矩阵">5.2 锁矩阵</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>请求 \ 持有</th><th>S</th><th>X</th><th>IS</th><th>IX</th><th>SIX</th></tr></thead><tbody>
+<tr><td>S</td><td>✓</td><td>✗</td><td>✓</td><td>✗</td><td>✗</td></tr>
+<tr><td>X</td><td>✗</td><td>✗</td><td>✗</td><td>✗</td><td>✗</td></tr>
+<tr><td>IS</td><td>✓</td><td>✗</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>IX</td><td>✗</td><td>✗</td><td>✓</td><td>✓</td><td>✗</td></tr>
+<tr><td>SIX</td><td>✗</td><td>✗</td><td>✓</td><td>✗</td><td>✗</td></tr>
+</tbody></table>
+</div>
+<h3 id="53-两阶段锁定-2pl"><a class="header" href="#53-两阶段锁定-2pl">5.3 两阶段锁定 (2PL)</a></h3>
+<pre><code>1. Growing phase: T 加锁，no release
+2. Shrinking phase: T 释放，no acquire
+</code></pre>
+<ul>
+<li><strong>S2PL（Strict 2PL）</strong>：X 锁保留到 commit。防 cascading abort（其他事务不会用某个未 commit 的写）。</li>
+<li><strong>SS2PL（Strong Strict 2PL, Rigorous 2PL）</strong>：所有锁（S+X）保留到 commit。主流数据 库默认。</li>
+</ul>
+<h3 id="54-ss2pl--mvcc-组合"><a class="header" href="#54-ss2pl--mvcc-组合">5.4 SS2PL + MVCC 组合</a></h3>
+<p>读通过 MVCC 走 snapshot（无锁），写通过 SS2PL（X 锁到 commit）→ 避免读阻塞写、写阻塞读。这是 Oracle / SQL Server default，PostgreSQL RC 也类似。MySQL InnoDB RR 用 SS2PL + gap lock + MVCC。</p>
+<hr />
+<h2 id="六snapshot-isolation-si-实现机制"><a class="header" href="#六snapshot-isolation-si-实现机制">六、Snapshot Isolation (SI) 实现机制</a></h2>
+<p>每事务分配 snapshot_id：</p>
+<ul>
+<li>PostgreSQL: <code>xmin = current_txid</code> at <code>BEGIN</code></li>
+<li>InnoDB: <code>read_view = active_txns set snapshotted</code></li>
+<li>SQL Server: <code>READ_COMMITTED_SNAPSHOT</code></li>
+</ul>
+<pre><code class="language-c">// PostgreSQL snapshot admission
+HeapTupleSatisfiesMVCC(tuple, snapshot):
+    if (tuple.xmin &gt;= snapshot.xmax) return false;  // insert after snapshot
+    if (tuple.xmax is committed &amp;&amp; tuple.xmax &lt; snapshot.xmin) return false;  // deleted before snapshot
+    if (tuple.xmax == CurrentRunningXid) return false;
+    return true;
+</code></pre>
+<p>写：在 commit 时检测 write-write conflict（PostgreSQL 与 SI 等价 RR，InnoDB 也 SI 等价）。</p>
+<hr />
+<h2 id="七ssi-serializable-snapshot-isolation"><a class="header" href="#七ssi-serializable-snapshot-isolation">七、SSI (Serializable Snapshot Isolation)</a></h2>
+<p>PostgreSQL 9.1 起支持 SSI（论文 <em>"Serializable Snapshot Isolation"</em>, Cahill 2008）。<strong>核心思想</strong>：</p>
+<p>检测 <strong>rw-anti-dependency</strong>：T2 写的 row 被 T1 SELECT 过 → 如果两事务都 commit，可能产生 write skew → abort 其中一个。</p>
+<p>实现：每行被 SELECT 时记 SIREAD lock（实际上是个 predicate lock），commit 时检查这个 lock 是否被某 transaction 后续的 X 操作破坏。</p>
+<p>PostgreSQL 内部维护两个 graph：</p>
+<ol>
+<li><strong>rw-dep graph</strong>：节点 = 事务；边 = (T1 read → T2 write)</li>
+<li><strong>dangerous structure</strong> 检查：T1 → T2 → T1 形成环 → abort circle 中"youngest" txn</li>
+</ol>
+<p><strong>性能代价</strong>：SIREAD locks 大量内存，PG 通过 SIREAD lock partition 优化 + 仅检测 SELECT 命中 index 的 case（无 index 走 fallback 等价 boost）。</p>
+<p>CockroachDB / Spanner / FoundationDB 都是 SERIALIZABLE only。</p>
+<hr />
+<h2 id="八各-db-隔离级别默认与策略"><a class="header" href="#八各-db-隔离级别默认与策略">八、各 DB 隔离级别默认与策略</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>DB</th><th>default 默认</th><th>SERIALIZABLE 实现</th></tr></thead><tbody>
+<tr><td>PostgreSQL 9.1+</td><td>READ_COMMITTED</td><td>SSI（abort 重试）</td></tr>
+<tr><td>MySQL InnoDB</td><td>REPEATABLE_READ (gap lock 防 phantom)</td><td>强 2PL + gap lock</td></tr>
+<tr><td>Oracle</td><td>READ_COMMITTED (with snapshot)</td><td>SERIALIZABLE（实际 SI，无 write skew 防护）</td></tr>
+<tr><td>SQL Server</td><td>READ_COMMITTED</td><td>SERIALIZABLE（真 2PL）</td></tr>
+<tr><td>SQLite</td><td>SERIALIZABLE (writer-locks-all，无 MVCC)</td><td>单写者</td></tr>
+<tr><td>CockroachDB</td><td>SERIALIZABLE only</td><td>SSI + abort retry</td></tr>
+<tr><td>Spanner</td><td>external consistency (TrueTime)</td><td>TS + 2PL hybrid</td></tr>
+<tr><td>FoundationDB</td><td>SERIALIZABLE only</td><td>optimistic + OCC abort retry</td></tr>
+<tr><td>MongoDB WiredTiger</td><td>snapshot (≈ SI)</td><td>没原生 SERIALIZABLE</td></tr>
+<tr><td>Redis (单 thread)</td><td>- 不并发，无 isolation 问题</td><td>-</td></tr>
+<tr><td>etcd</td><td>SERIALIZABLE + lease strong read</td><td>raft log</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="九spanner-的-external-consistency"><a class="header" href="#九spanner-的-external-consistency">九、Spanner 的 external consistency</a></h2>
+<p>CockroachDB / Spanner 用 <strong>timestamp oracle + commit wait</strong>：</p>
+<ol>
+<li>全局单点 timestamp oracle 给事务 start_ts</li>
+<li>写后 commit_ts = start_ts + commit_wait（保证 commit 后 ts 真正超过 TS）</li>
+<li>读时用 ts 给 snapshot—— 因 commit_wait 保证 commit 之前 ts 都已发布</li>
+<li>真 SERIALIZABLE 不靠 SI 检测，靠"GLOBAL monotonic ts"</li>
+</ol>
+<p>但这要求 <strong>GPS + atomic clock</strong>（TrueTime API）。CockroachDB 用 NTP，commit_wait = 100ms+，写延迟变高。</p>
+<hr />
+<h2 id="十产线事故"><a class="header" href="#十产线事故">十、产线事故</a></h2>
+<h3 id="101-银行-write-skew-致-100-万转账复式记账不平衡"><a class="header" href="#101-银行-write-skew-致-100-万转账复式记账不平衡">10.1 银行 write skew 致 100 万转账复式记账不平衡</a></h3>
+<p><strong>症状</strong>：A 与 B 共享账户余额 100 万；T1 把 50 万转给 C，T2 检查余额剩 60 万，又把 50 万 transfer 给 D，<strong>两操作 commit 后账户余额 = -50</strong>。</p>
+<p><strong>根因</strong>：业务用 SI 隔离级别，没察觉 write skew 检测。</p>
+<p><strong>修复</strong>：业务加 <code>SELECT ... FOR UPDATE</code> 显式行锁；或者 PostgreSQL 把 <code>default_transaction_isolation = serializable</code>，让 SSI 自动检测并 abort。</p>
+<h3 id="102-mysql-gap-lock-死锁"><a class="header" href="#102-mysql-gap-lock-死锁">10.2 MySQL gap lock 死锁</a></h3>
+<pre><code class="language-sql">T1: SELECT * FROM orders WHERE user_id = 5 FOR UPDATE   # 在 user_id=5 范围上加 X gap
+T2: SELECT * FROM orders WHERE user_id = 5 FOR UPDATE   # 等 T1 释 X 锁
+T1: INSERT INTO orders(user_id, ...) VALUES (5, ...)    # 需要 insert intent lock
+    # 等 T2 的 X gap lock
+T2: INSERT INTO orders(user_id, ...) VALUES (5, ...)
+    # 等 T1 的 X gap lock
+→ deadlock; InnoDB abort one
+</code></pre>
+<p><strong>修复</strong>：改成 SERIALIZABLE 显式 acquire lock / 用 <code>INSERT ... ON DUPLICATE KEY UPDATE</code> 或业务上悲观锁全段。</p>
+<h3 id="103-postgresql-ssi-abort-风暴"><a class="header" href="#103-postgresql-ssi-abort-风暴">10.3 PostgreSQL SSI abort 风暴</a></h3>
+<p>业务读热 key 后写不在 read set → 但 SIREAD lock 大量占据 + abort 频。</p>
+<p><strong>修复</strong>：业务改 RR（无 SSI 监控）；或减小 read set（用 <code>WHERE id = $</code> 而非 <code>WHERE created_at &gt; $</code>，hit index 直接 pass predicate lock）。</p>
+<h3 id="104-redis-set-if-not-exists-是-occ不是-serializable"><a class="header" href="#104-redis-set-if-not-exists-是-occ不是-serializable">10.4 Redis "set if not exists" 是 OCC，不是 SERIALIZABLE</a></h3>
+<p>新手用 <code>GET → check → SET</code> 做"unique create"——多个并发都 GET 到 null → 都 SET → 都成功。</p>
+<p><strong>修复</strong>：用 <code>SET key value NX</code> 原子操作 或 Lua 脚本 atomic CAS。</p>
+<hr />
+<h2 id="十一易错清单"><a class="header" href="#十一易错清单">十一、易错清单</a></h2>
+<ol>
+<li><strong>REPEATABLE_READ 不是 SI</strong>——MySQL RR 实质 SS2PL+gap lock，PostgreSQL RR 实质 SI</li>
+<li><strong>MySQL gap lock 在 RC 关闭</strong>——<code>innodb_locks_unsafe_for_binlog</code> 或隔离级别 RC</li>
+<li><strong>SELECT FOR UPDATE 不受 MVCC</strong>——总是拿 X 锁</li>
+<li><strong><code>default_transaction_isolation</code></strong> 在 PostgreSQL 没锁表会出 RR fallback if 分片— GC 默认是 RC，业务要 explicit</li>
+<li>Postgres SERIALIZABLE abort 后业务<strong>必须 retry</strong>——常见 API 不带 retry 链路</li>
+<li>InnoDB RR 下 <code>UPDATE ... WHERE non_index_col</code> 会全表 next-key lock，单 UPDATE 卡全表</li>
+<li><code>LOCK IN SHARE MODE</code> (MySQL) 或 <code>FOR SHARE</code> (PG 9.5+) 是显式 S 锁</li>
+<li>Redis / DynamoDB / MongoDB 都<strong>没有 SERIALIZABLE</strong>，文档不要骗自己</li>
+</ol>
+<hr />
+<h2 id="十二这一章带走的东西"><a class="header" href="#十二这一章带走的东西">十二、这一章带走的东西</a></h2>
+<ol>
+<li>ACID 是property，2PL / MVCC / SSI / TS 都是实现手段</li>
+<li>ANSI SQL-92 4 级别漏了 write skew / lost update / read skew 3 异常，Berenson critique 补足</li>
+<li>SI 防 dirty/non-repeat/phantom + lost update，<strong>不能</strong>防 write skew</li>
+<li>SSI 用 rw-anti-dep 检测 write skew，PostgreSQL/CockroachDB/FoundationDB 全部 SERIALIZABLE only</li>
+<li>MySQL RR = SS2PL + gap lock + MVCC，PG RR = SI + write conflict abort</li>
+<li>Spanner external consistency 靠 TrueTime GPS+atomic clock，CockroachDB 用 NTP + commit_wait</li>
+<li>业务关键 invariant 应贴 SSI 或显式 FOR UPDATE，不要依赖默认隔离</li>
+</ol>
+<h2 id="下一节-"><a class="header" href="#下一节-">下一节 →</a></h2>
+<p><a href="mvcc.html">MVCC 原理：PostgreSQL vs InnoDB</a> — tuple header 字段、visibility rules、update = insert + mark、undo log history list、vacuum/purge 机制</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../databases/relational/relational.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../databases/relational/mvcc.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../databases/relational/relational.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../databases/relational/mvcc.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

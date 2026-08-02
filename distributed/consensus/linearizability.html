@@ -1,0 +1,464 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>ZooKeeper / etcd / Linearizability - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="zookeeper--etcd--linearizability"><a class="header" href="#zookeeper--etcd--linearizability">ZooKeeper / etcd / Linearizability</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p><strong>ZooKeeper</strong> (Yahoo! 2008 → Apache) 与 <strong>etcd</strong> (CoreOS 2013 → CNCF) 是分布式系统协调 (coordination service) 的工业 fact 标准。共同形态: 一个 small consistent KV/znode 存储 + 复制原语 + 通知/watch API + 配置中心 + 服务发现 + leader election + 分布式锁 + 元数据存储。ZooKeeper 用 ZAB (ZooKeeper Atomic Broadcast, Paxos 派生), etcd 用 Raft。 本章梳理 ZAB 对 Paxos 的关键优化、ZK 数据模型 (znode / ephemeral / sequential / watch) 与 session 机制、etcd 数据模型 (flat KV + lease + watch stream + compaction)、二者的 linearizability 实现(以及为什么默认 ZK 读不是 linearizable, etcd 默认是)、典型误用 (double-watch, ephemeral session reset) 与生产事故。</p>
+<hr />
+<h2 id="一zookeeper-架构"><a class="header" href="#一zookeeper-架构">一、ZooKeeper 架构</a></h2>
+<h3 id="zab-协议"><a class="header" href="#zab-协议">ZAB 协议</a></h3>
+<p><strong>ZAB (ZooKeeper Atomic Broadcast)</strong> 是 Flavio Junqueira 2008 设计的 Atomic Broadcast (Total Order Broadcast) 协议, 类 Paxos 但为 "log replication" 优化. 两个阶段:</p>
+<ol>
+<li><strong>Phase 1: Discovery + Synchronization (Leader Election)</strong>:
+<ul>
+<li>FastLeaderElection 选 leader (bully algorithm 派生)</li>
+<li>与所有 follower 同步: leader 把自己 last zxid 上所有 entries 复制到 followers /<strong>/</strong>,** 部分写到的 followers truncate divergent suffix**, 落后 followers 拉补议 missing entries.</li>
+</ul>
+</li>
+<li><strong>Phase 2: Broadcast (Multi-Paxos-style log replication)</strong>:
+<ul>
+<li>leader 接收 client write → 生成 zxid (单调增) → broadcast PROPosal 到所有 followers → majority 收到 → commit → broadcast commit.</li>
+</ul>
+</li>
+</ol>
+<h3 id="zxid"><a class="header" href="#zxid">zxid</a></h3>
+<p>zxid 是 64-bit 全序 monotonically-increasing id 由 epoch + counter 合成:</p>
+<pre><code>zxid = (epoch &lt;&lt; 32) | counter
+</code></pre>
+<p>epoch 是 每次 leader 切换自增一次; counter 每个 transaction 自增 1。 让 follower 通过 <code>zxid</code> 比较"在 log 哪里", 也让 client 记 session last seen zxid 用作 failover recovery.</p>
+<h3 id="znode-数据模型"><a class="header" href="#znode-数据模型">ZNode 数据模型</a></h3>
+<p>ZK 是 <strong>hierarchical tree</strong>, 路径如 <code>/app/services/api-1/config</code>:</p>
+<div class="table-wrapper"><table><thead><tr><th>节点类型</th><th>行为</th></tr></thead><tbody>
+<tr><td><strong>Persistent</strong> (持久)</td><td>直到显式 delete, 客户端 disconnect 不删</td></tr>
+<tr><td><strong>Ephemeral</strong> (临时)</td><td>客户端 session 结束自动删 (session timeout default 30-40s)</td></tr>
+<tr><td><strong>Sequential</strong> (顺序)</td><td>创建时 ZK 在路径尾追加 monotonic counter, /leader-elec/node → /leader-elec/node00001</td></tr>
+<tr><td><strong>Container</strong> (容器, 3.5.6+)</td><td>子节点全删后自动 delete, 避免 ephemeral 留 stale parent</td></tr>
+<tr><td><strong>TTL</strong> (3.5.6+)</td><td>在一段时间无被修改+无子节点时自动 delete</td></tr>
+</tbody></table>
+</div>
+<h3 id="watch-机制"><a class="header" href="#watch-机制">Watch 机制</a></h3>
+<pre><code class="language-python">zk.exists("/lock", watch=True)  # 一次性回调, 节点变化触发
+
+# 3.6+ 引入 persistent watcher: 注册后持续触发直到移除
+zk.addWatch("/foo", persistent=True)
+</code></pre>
+<p><strong>坑</strong>: 旧一次性 watch 在事件触发与 client register next watch 之间存在 race window, 可能 miss 中间变化。 Best practice: register 再 getData/getChildren (这是 "double register" 模式). 3.6+ PersistentWatcher 是正确做法.</p>
+<h3 id="session-机制"><a class="header" href="#session-机制">Session 机制</a></h3>
+<p>每个 client 连接有一个 <strong>session</strong>, 标识 session_id + 64bit password。 session timeout 配置(e.g., 30s). client 与 server 之间周期 ping, 任<strong>一 server</strong> 看到 session 客户端活动延长 session 的 expiry。</p>
+<p>若 client 与 majority server 长时间断连超 timeout → session expired → 所有 ephemeral node delete → watches trigger → 业务层若用 ephemeral 模拟占锁就<strong>释放锁</strong>。 这是 ZK distributed lock 模式核心。</p>
+<h3 id="读取-type"><a class="header" href="#读取-type">读取 Type</a></h3>
+<ul>
+<li><strong>Default read</strong> from <strong>任何 follower</strong>: NOT linearizable, may return stale.</li>
+<li><strong>Sync() before read</strong>: follower 先发 SYNC RPC 让 leader 告诉它 last committed zxid, 等 follower apply 到该 zxid 再回复 client → linearizable read。代价 ~1 extra RTT。</li>
+</ul>
+<hr />
+<h2 id="二etcd-架构"><a class="header" href="#二etcd-架构">二、etcd 架构</a></h2>
+<h3 id="raft--boltdb"><a class="header" href="#raft--boltdb">Raft + BoltDB</a></h3>
+<p>etcd v3 用 Raft (基于 etcd-raft lib, contributors 后抽出来为 hashicorp/raft) 复制所有 KV 写到 multi-replica log, 应用组 raft log 之后 commit 到 BoltDB(纯 Go kV store, 内存 + mmap)。 etcd 存储模型是 <strong>flat KV</strong> (不是树), key 是 string, value 是 protobuf-encoded struct。</p>
+<h3 id="lease--ttl"><a class="header" href="#lease--ttl">Lease + TTL</a></h3>
+<p>etcd v3 引入 <strong>Lease</strong>: 客户端 grant 一个 lease(分配 64-bit lease_id, TTL 例如 30s), 然后将 keys 绑到该 lease。 lease 与 ZK session 行为相似—— lease TTL 到期 no keepalive → 该 lease 上所有 keys 自动 expire。</p>
+<p>Lease 比 session 轻——一个 client 可同时持多个 lease，把不同语义的 keys 隔离 (e.g., service discovery keys vs config keys 各一 lease)。</p>
+<h3 id="watch-stream"><a class="header" href="#watch-stream">Watch stream</a></h3>
+<p>etcd v3 watch 用 <strong>gRPC server streaming</strong>:</p>
+<pre><code class="language-go">watcher := cli.Watch(ctx, "/foo/", clientv3.WithPrefix())
+for resp := range watcher {
+    for _, ev := range resp.Events {
+        // ev.Type == PUT/DELETE
+        // ev.Kv.Key, ev.Kv.Value, ev.Kv.ModRevision
+    }
+}
+</code></pre>
+<p>watch 是 <strong>persistent stream</strong> (不像 ZK 一次性), 触发不会 stream 中间 watch reset, 避免一次性 watch 的 race window。 stream 内 events 包 <code>ModRevision</code> (全局 revision 单调增), client 用 <code>store.Revision</code> 收齐 previous events 至 current revision.</p>
+<h3 id="mvcc--compaction"><a class="header" href="#mvcc--compaction">MVCC + Compaction</a></h3>
+<p>etcd 是 <strong>MVCC (multi-version)</strong>——每次 key 写入保存历史 revision(类似 Spanner 用 ts)。 这让 watch 能从任意历史 revision 开始 replay events。 Compaction 是后台 GC—— <code>cli.Compact(ctx, rev)</code> 删除所有 &lt; rev 的旧版本, 释放磁盘。</p>
+<h3 id="linearizable-vs-serializable-read"><a class="header" href="#linearizable-vs-serializable-read">Linearizable vs Serializable Read</a></h3>
+<pre><code class="language-go">// 默认 Linearizable: 通过 leader / ReadIndex / Lease Read 实现
+cli.Get(ctx, "/key")
+
+// WithSerializable: 走 follower 本地 read, 不 consensus check, 可 stale
+cli.Get(ctx, "/key", clientv3.WithSerializable())
+</code></pre>
+<p>默认 linearizable = etcd 用 leader + ReadIndex (1 RTT) 确认仍是 leader, 等本地 state machine apply 到 read index, 返回 client。若客户端跟 leader 不在同一集群需 follower forward 读则产生 ~3-5ms latency。</p>
+<hr />
+<h2 id="三zk-vs-etcd-工程比较"><a class="header" href="#三zk-vs-etcd-工程比较">三、ZK vs etcd 工程比较</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>ZooKeeper</th><th>etcd</th></tr></thead><tbody>
+<tr><td>协议</td><td>ZAB (Paxos variant)</td><td>Raft</td></tr>
+<tr><td>存储模型</td><td>znode tree (hierarchical path)</td><td>flat KV (但 prefix range query)</td></tr>
+<tr><td>API</td><td>自定义 binary, Java primary</td><td>gRPC + protobuf, multi-language</td></tr>
+<tr><td>Watch 模型</td><td>一次性 callback (3.6+ persistent watcher)</td><td>gRPC streaming, persistent by default</td></tr>
+<tr><td>Session 模型</td><td>TCP session</td><td>lease + TTL</td></tr>
+<tr><td>Read 默认</td><td>Follower local read (stale)</td><td>Linearizable leader read</td></tr>
+<tr><td>客户端代码</td><td>Java/Python/C client, ZK lib per ecosystem</td><td>Go/Java/Python/etc., gRPC stubs everywhere</td></tr>
+<tr><td>典型部署</td><td>~5 node cluster, JVM heap ~4GB</td><td>~3-5 node cluster, 默认 2GB data disk</td></tr>
+<tr><td>工业用</td><td>Hadoop, Kafka 旧版本, Solr, HBase leader</td><td>Kubernetes (1.20 之前) , TiKV, TiDB, Rook,不少 CNCF project</td></tr>
+</tbody></table>
+</div>
+<h3 id="为什么-k8s-换成-etcd"><a class="header" href="#为什么-k8s-换成-etcd">为什么 K8s 换成 etcd</a></h3>
+<p>ZK 用 JVM 内存大, 升级 JVM GC pause 长(~500ms), 导致 watch 重连, 偶发 5-10s service disruption. etcd 用 Go ~5MB binary + mmap 持久存, GC pause &lt;100ms, 适合 latency-sensitive Kubernetes control plane。 K8s 调用 etcd 平均不到 5ms, 远好于 ZK 的 30-100ms cluster median.</p>
+<p>但 ZK 在 <strong>大数据生态</strong> (Hadoop、Kafka 老 / Solr Cloud / HBase master election) 仍占主流——因为生态已建立在 znode 树之上, migration 成本高, 性能也 ok。</p>
+<hr />
+<h2 id="四linearizability-in-practice"><a class="header" href="#四linearizability-in-practice">四、Linearizability in Practice</a></h2>
+<h3 id="形式-reminder"><a class="header" href="#形式-reminder">形式 reminder</a></h3>
+<p>Linearizability (Herlihy-Wing 1990): 所有操作可被嵌进一个 total order, 使 (1) 顺序是 sequential-legal, (2) 与 real-time order 相符(若 op1 完成 before op2 开始)。</p>
+<h3 id="zk-与-etcd-的实现策略"><a class="header" href="#zk-与-etcd-的实现策略">ZK 与 etcd 的实现策略</a></h3>
+<p><strong>ZK</strong>: <strong>default read 不是 linearizable</strong>, 走 follower local state。 要 linearizable 必须 client 主动 <code>zk.sync()</code> 然后 <code>zk.get()</code> (1 extra RTT)。 多数 SDK wrapper 自动调 sync, 但 client 直 ZK API 时常忘记 → "短暂读到旧值"是误用常态。 ZK 3.4+ 已有线 negative caching + 非正式 linearizable read 但<strong>不</strong>AMLRT.</p>
+<p><strong>etcd</strong>: default read <strong>linearizable</strong>, 通过 ReadIndex 实现. 代价 1 RTT (~5ms local, 30-100ms cross-DC).If client opt-in <code>WithSerializable()</code> 可走 follower read 但放弃 linearizable。</p>
+<h3 id="distributed-lock-with-linearizability"><a class="header" href="#distributed-lock-with-linearizability">Distributed Lock with Linearizability</a></h3>
+<p>如果不 linearizable, distributed lock 实现 broken:</p>
+<pre><code>client A: acquire lock
+client A: GC pause 10s
+client B: 超时 acquire lock (skip expired A lock)
+client B: 进入 critical section
+client A: GC resume, 仍以为持有 lock
+→ 两个 client 同时 critical section。
+</code></pre>
+<p>修: ZK 与 etcd 都通过 <strong>fencing token</strong> + 各 critical section 端用 token dispose 查: 后到者 violates token order, server reject write。 这种 token 在 ZK 用 ephemeral-sequential child znode 的 seqnum, etcd 用 lease + ModRevision。</p>
+<p>Martin Kleppmann 2016 "How to do distributed locking" 论证 fencing token 是关键, 没 token distributed lock 不安全。</p>
+<hr />
+<h2 id="五典型误用与事故"><a class="header" href="#五典型误用与事故">五、典型误用与事故</a></h2>
+<h3 id="zk-double-register-watch-event-loss"><a class="header" href="#zk-double-register-watch-event-loss">ZK Double-Register Watch Event Loss</a></h3>
+<pre><code class="language-python">def watch_callback(event):
+    # 处理事件
+    pass
+
+zk.exists("/lock", watch_callback)
+zk.get("/lock", watch_callback)
+</code></pre>
+<p>两次注册同时 watch, 触发只 fire 一次, 中间 event 可能 miss (callback 内 "执行业务" 然后 register next watch, 但 register 期间 ZK 触发新 event 已发出但本地 callback 没 hook)。</p>
+<p>Fix: persistent watcher (3.6+) 或 callback 同步 register。</p>
+<h3 id="etcd-watcher-notification-loss"><a class="header" href="#etcd-watcher-notification-loss">etcd Watcher Notification Loss</a></h3>
+<p>etcd v3 watcher 有 <code>compacted revision</code> check —— client 启动 watch 时指定 <code>rev=N</code>, 但若 server 已 compact rev &gt; N → server returns <code>compactionRev &gt; N</code> 错误 → client 必须处理. 没处理 → silent miss events.</p>
+<p>Fix: client 监控 compaction event, 加 rewatch from currentRev + 业务级 reconciliation。</p>
+<h3 id="zk-session-reset-storm-during-gcp-maintenance"><a class="header" href="#zk-session-reset-storm-during-gcp-maintenance">ZK Session Reset Storm during GCP Maintenance</a></h3>
+<p>2021 GCP 维护期间 ZK leader 重启且 follower 网络抖动, 多个 client session 触发 reset, ephemeral nodes 大批 delete, leader election 触发 stampede——服务 dev machine 不在平分钟 de Leader elect expon为 backoff 后 渡过. Fix: client SDK 加 randomized election retry + jitter.</p>
+<h3 id="etcd-mvcc-database-space-exceeded"><a class="header" href="#etcd-mvcc-database-space-exceeded">etcd mvcc: database space exceeded</a></h3>
+<p>etcd 默认 2GB data backend, 长期写入但<strong>没定期 compaction</strong> → 满磁盘 → 拒收 new writes → cluster 进入 paused 状态. Fix: cron compaction (<code>etcdctl compact $rev; etcdctl defrag</code>), 或 <code>-auto-compaction-retention=1h</code> 自动 compact.</p>
+<h3 id="k8s-api-server-stw-timeout-waiting-for-etcd"><a class="header" href="#k8s-api-server-stw-timeout-waiting-for-etcd">K8s API Server "STW: timeout waiting for etcd"</a></h3>
+<p>etcd cluster quorum 失(2 of 3 down) → K8s API server 阻塞所有写(Pod schedule、ReplicaSet 都 stop)。 多个 K8s 集群挂报告有关 etcd 的 root cause, 推荐<strong>低 fsync latency NVMe</strong> disk + <strong>足够大 heap / high net bandwidth</strong> + <strong>不要在 low-IOPS disk 上跑 etcd</strong>—— disk IO 是 etcd 实际 P99 latency 决定因.</p>
+<hr />
+<h2 id="六易错清单"><a class="header" href="#六易错清单">六、易错清单</a></h2>
+<ol>
+<li><strong>ZK read 默认是 follower-local stale, 不是 linearizable</strong> — 必须 <code>sync()</code> 再读, 多数业务 case 不在意 stale 才可弊。 一定业务用 fenced.</li>
+<li><strong>ZK ephemeral session 不是客户端 single conn</strong> — session 跟 ZK quorum 持久, client 切 connection 不 reset session; 直到真 timeout(默认 30-40s)才 expire。</li>
+<li><strong>etcd 默认 KV 是 MVCC</strong> — Watch 必须 catch compaction 错误(<code>&lt;rev compacted</code>), 否则 silent miss。</li>
+<li><strong>etcd lease 续租必须 heartbeat ignore failure</strong> — gRPC client 必须周期 <code>lease.KeepAlive()</code>, 超过 TTL lease 自动 expire + keys 删, 业务回滚。</li>
+<li><strong>Distributed lock 没 fencing token 不安全</strong> — even with linearizability, long GC pause 仍可双 client 进 critical。 fencing token (znode seq / ModRevision) + critical section side verify 是 must.</li>
+<li><strong>ZK watch 一次性</strong> — 旧 API trigger 后必须 re-register, re-register 与新 event 间有 race; 用 3.6+ persistent watcher 或 careful double-register。</li>
+<li><strong>etcd linearizable read 不是 0-RTT</strong> — 默认是 1 RTT leader check, cross-DC 部署时必算这个进 SLA。</li>
+<li><strong>multi-region ZK/etcd 慎重</strong> — 跨洲 ping 200-300ms, leader lease renew 需要 cross-DC heartbeats, 业务抖动会触发不必要 election。可用 multi-cluster + cross-replicate (MirrorMaker-like) 不直接 multi-DC ZK。</li>
+<li><strong>ZK 5 节点不是"5个 9 可用"</strong> — true availability 取决于 election timeout、客户端 retry、long GC pause → client sessionId. 5 节点让你忍受 2 节点死但仍写。</li>
+</ol>
+<hr />
+<h2 id="七这一章带走的东西"><a class="header" href="#七这一章带走的东西">七、这一章带走的东西</a></h2>
+<ol>
+<li>ZK 用 ZAB (类 Paxos), etcd 用 Raft; ZK-生态大数据为主、 etcd-生态 CNCF/K8s 为主。</li>
+<li>ZK 数据是路径树 + ephemeral + sequential + watch; etcd 是 flat KV + lease + persistent watch stream + MVCC。</li>
+<li>ZK default read 是 follower-local(stale, 需 <code>sync()</code>), etcd default linearizable (1 RTT ReadIndex)。</li>
+<li>etcd MVCC: watch 必须 handle compaction error, 否则 silent event lost。</li>
+<li>Distributed lock 必带 fencing token (ZK ephemeral-sequential seq num / etcd ModRevision) 防止双 client 因 GC pause 同时进 critical section。</li>
+<li>Linearizability 是默认承诺(etcd) vs 外加承诺(ZK)的工程取舍, 影响测试用例 baseline。</li>
+<li>集群 quota / disk IO / GC pause 是 etcd 在 P99 下破裂的根本; ZK 是 JVM 重启损失.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="../replication/index.html">复制</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../distributed/consensus/raft.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../distributed/replication/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../distributed/consensus/raft.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../distributed/replication/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

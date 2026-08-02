@@ -1,0 +1,581 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Cache-aside / Read-through / Write-through - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="缓存模式-cache-patterns"><a class="header" href="#缓存模式-cache-patterns">缓存模式 (Cache Patterns)</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>常用的应用层 cache 与持久存储互动模式:</p>
+<ol>
+<li><strong>Cache-Aside</strong>: app 先查 cache; miss 才查 DB; 同时填 cache.</li>
+<li><strong>Read-Through</strong>: cache 自动从 DB load (cache service transparent block)</li>
+<li><strong>Write-Through</strong>: write 同步到 DB + cache, 同时更新.</li>
+<li><strong>Write-Behind / Write-Back</strong>: write 进 cache; async flush to DB. <strong>可能丢数据</strong></li>
+<li><strong>Refresh-Ahead</strong>: cache 提前 refetch before expiry</li>
+</ol>
+<p>每种 pattern 有适用场景与风险, 必须理解 trade-off. 本章也讲述 cache key naming (namespaced + tier-specific names), TTL 设计 (10s-7d), 但 biz 望(source-pattern instructions patterns not deep needed)。</p>
+<hr />
+<h2 id="一cache-aside-lazy-loading"><a class="header" href="#一cache-aside-lazy-loading">一、Cache-Aside (Lazy Loading)</a></h2>
+<h3 id="算法"><a class="header" href="#算法">算法</a></h3>
+<pre><code class="language-python">def get(key):
+    val = cache.get(key)
+    if val is None:    # cache miss
+        val = db.query(key)
+        if val:
+            cache.set(key, val, ttl=60)
+    return val
+
+def set(key, val):
+    db.update(key, val)
+    cache.delete(key)      # 也可 cache.set(), 但 stale 风险 with concurrent
+</code></pre>
+<h3 id="优点"><a class="header" href="#优点">优点</a></h3>
+<ul>
+<li>App 控制 cache decision (不一 transparent)</li>
+<li>TTL 控制 stale window</li>
+<li>Old version 不被 setDate; cache fals returned next miss should fetch 刷新</li>
+<li>适合 read-heavy, write-low</li>
+</ul>
+<h3 id="弱点"><a class="header" href="#弱点">弱点</a></h3>
+<ul>
+<li>Cache miss 后多重 client 同时 miss = thundering herd (multi-thread/few-client + same key 缓存 stampede) — mitigation: 互斥锁 / single-flight fetch.</li>
+<li>Write-through override 时 cache delete 仅不 invalidating writes disk to in ensure 別点 冰 hot path not-base + perator.</li>
+<li>TTL 必 must set  balancing staleness 与 cache pressure.</li>
+</ul>
+<h3 id="best-practice"><a class="header" href="#best-practice">Best Practice</a></h3>
+<ul>
+<li>Use <strong>lock+mset</strong>: each miss 先 acquire lock (SETNX), single worker fetches 持中 cache kills 后讀 + 讀 ensure write errors be escaped.</li>
+<li>Set short TTL + jitter 当防止 synchronous expiry → stampede to DB.</li>
+<li>监控 cache hit ratio 与 miss latency; alert on hit ratio &lt; 95% over 5 min.</li>
+</ul>
+<hr />
+<h2 id="二read-through"><a class="header" href="#二read-through">二、Read-Through</a></h2>
+<h3 id="算法-1"><a class="header" href="#算法-1">算法</a></h3>
+<pre><code class="language-python">class ReadThroughCache:
+    def __init__(self, cache_backend, loader_fn):
+        self.cache = cache_backend
+        self.loader = loader_fn
+    def get(self, key):
+        return self.cache.get(key, loader=self.loader)
+</code></pre>
+<p>Cache 类内部自动 miss 时 call loader function (database) + fill cache + 返 result。</p>
+<h3 id="优点-1"><a class="header" href="#优点-1">优点</a></h3>
+<ul>
+<li>App 不 用 handle miss logic; cache 透明处理.</li>
+<li>Multiple clients 经过 cache layer 一次 fetch — single-flight reduces stampede.</li>
+<li>Cache layer 集中 复杂 logic 跨 services reuse.</li>
+</ul>
+<h3 id="弱点-1"><a class="header" href="#弱点-1">弱点</a></h3>
+<ul>
+<li>Cache layer 全故障 ⇒ crash clouding (must have fallback + circuit breaker).</li>
+<li>Loader fn 同步含 disk call; cache 故障 ⇒ service down.</li>
+<li>"Single flight" usually not auto implemented. Must be explicit in cache library (e.g., Etsy/statsd, singleflight golang).</li>
+</ul>
+<h3 id="用例"><a class="header" href="#用例">用例</a></h3>
+<ul>
+<li>Twitter fatcache (origin Redis + loader goes to backend 集中 in-process) 缓存 image metadata.</li>
+<li>Memcached + libketama for transparent read-through clients.</li>
+</ul>
+<hr />
+<h2 id="三write-through"><a class="header" href="#三write-through">三、Write-Through</a></h2>
+<h3 id="算法-2"><a class="header" href="#算法-2">算法</a></h3>
+<pre><code class="language-python">def write(key, val):
+    db.update(key, val)         # commit first
+    cache.set(key, val, ttl=...)
+</code></pre>
+<p>同步 落 database + cache. 客户不 ack 直到 both write 成功.</p>
+<h3 id="优点-2"><a class="header" href="#优点-2">优点</a></h3>
+<ul>
+<li>Cache immediately fresh, no stale window.</li>
+<li>DB 缺 cache loss仍是 correct.</li>
+<li>Write-heavy 细节 确保 cache 更新及时.</li>
+</ul>
+<h3 id="弱点-2"><a class="header" href="#弱点-2">弱点</a></h3>
+<ul>
+<li>Write latency = DB write time + cache time. 比 cache-aside write 慢 (write 直接 DB 然后 cache delete).</li>
+<li>Cache 与 DB 暂 死锁 race if invalidations burst between transaction.</li>
+</ul>
+<h3 id="用例-1"><a class="header" href="#用例-1">用例</a></h3>
+<ul>
+<li>Inventory management, financial transaction log</li>
+<li>User preferences (mutated from any client; cache must be coherad).</li>
+<li>Object status (e.g., order status pipeline).</li>
+</ul>
+<hr />
+<h2 id="四write-behind--write-back"><a class="header" href="#四write-behind--write-back">四、Write-Behind / Write-Back</a></h2>
+<h3 id="算法-3"><a class="header" href="#算法-3">算法</a></h3>
+<pre><code class="language-python"># Write-Behind
+def write(key, val):
+    cache.set(key, val)     # only cache update
+    queue.put("write_to_db", key, val, due=immediate)
+    # async worker reads queue + flushes to db periodically
+</code></pre>
+<p>Cache update write first, <strong>DB writes batched / async</strong> to improve throughput.</p>
+<h3 id="优点-3"><a class="header" href="#优点-3">优点</a></h3>
+<ul>
+<li>Write latency = cache latency only, super fast.</li>
+<li>适合 write-heavy OLTP 入高 QPS (Telemetry, log, IoT).</li>
+<li>DB writes batched 减少 IO 操作; amplification reduce.</li>
+</ul>
+<h3 id="弱点-3"><a class="header" href="#弱点-3">弱点</a></h3>
+<ul>
+<li><strong>数据丢失 risk</strong>: cache 故障后 queue 等丢失; DB 有未写数据 史 lost + fatigue 倁 is preventing.</li>
+<li>Cache + DB 不 strictly consistent; cache mirr stop concurrent read 看 stale</li>
+<li>queue 长不满 = DR confirmation consistency 又 使 测试 errors latency</li>
+<li>必须 at-least-once semantics with idempotent retry.</li>
+</ul>
+<h3 id="用例-2"><a class="header" href="#用例-2">用例</a></h3>
+<ul>
+<li>Telemetry/log ingestiong</li>
+<li>IoT 设备 sensor reading (容忍丢样品 1s)</li>
+<li>Heartbeat / cloudmetric updates</li>
+<li>APM deger (Datadog spies writes to local buffer agent before engineering upload)</li>
+</ul>
+<hr />
+<h2 id="五refresh-ahead-proactive-caching"><a class="header" href="#五refresh-ahead-proactive-caching">五、Refresh-Ahead (Proactive Caching)</a></h2>
+<h3 id="算法-4"><a class="header" href="#算法-4">算法</a></h3>
+<p>Cache 配合 "Predictively refresh" 基于老 TTL inredictions:</p>
+<pre><code class="language-python">def get(key):
+    val = cache.get(key)
+    if val.is_near_expiry:
+        # 异步 refresh
+        sched_async_reload(key)
+    return val
+</code></pre>
+<p>cache 体外 让忠 客 elsewhere task
+miss. Scala. Most unjamat 白 州 大  上 那 is 多 thread whose variant processing DIC 流 满中 load 都一致.</p>
+<h3 id="用例-3"><a class="header" href="#用例-3">用例</a></h3>
+<ul>
+<li>高 current cache with long compute (image rendering, ML inference).</li>
+<li>主动预热cache for hot news events.</li>
+<li>Periodic refresh strategy = 模опримечCum Usage.</li>
+</ul>
+<h3 id="弱点-4"><a class="header" href="#弱点-4">弱点</a></h3>
+<ul>
+<li>Refresh worker too aggressive = load backs, DB unavailable 失败 risk。</li>
+<li>require configure with pro-active TTL Predicted; Tier bindings</li>
+<li>Not 支持一般 cache system; 需要 实验中 显 explicit code.</li>
+</ul>
+<hr />
+<h2 id="六cache-stampede--single-flight"><a class="header" href="#六cache-stampede--single-flight">六、Cache Stampede &amp; Single-Flight</a></h2>
+<h3 id="cache-stampede"><a class="header" href="#cache-stampede">Cache Stampede</a></h3>
+<p>许多 clients 同一时间 miss + 同 call DB → thundering herd, DB overloaded. 触发场景: 大 popular hot key TTL expire 同时, 导致所有 client miss same time.</p>
+<h3 id="mitigation-1-mutex--lock"><a class="header" href="#mitigation-1-mutex--lock">Mitigation 1: Mutex / Lock</a></h3>
+<pre><code class="language-python">def get(key):
+    val = cache.get(key)
+    if val is None:
+        if distributed_lock.try_acquire(key, ttl=10s):
+            try:
+                val = cache.get(key)
+                if val is None:
+                    val = db.query(key)
+                    cache.set(key, val, ttl=60)
+            finally:
+                distributed_lock.release(key)
+        else:
+            time.sleep(50ms)
+            return get(key)   # retry cache
+</code></pre>
+<p>Only first worker fetches DB; others sleep, retry cache (fill by first worker).</p>
+<h3 id="mitigation-2-two-layer-cache-l1--l2"><a class="header" href="#mitigation-2-two-layer-cache-l1--l2">Mitigation 2: Two-Layer Cache (L1 + L2)</a></h3>
+<p>L1 = local process cache (1s TTL, light)
+L2 = Redis (longer TTL, sharing)</p>
+<p>请求先 L1; L1 miss → L2; L2 miss → DB。</p>
+<h3 id="mitigation-3-probabilistic-early-refresh"><a class="header" href="#mitigation-3-probabilistic-early-refresh">Mitigation 3: Probabilistic Early Refresh</a></h3>
+<pre><code class="language-python">def get(key):
+    val, expire = cache.get(key)
+    if expire - now &lt; jitter(0.5, 50s):
+        # 5% probability to refresh early (spread-out 多 clients)
+        if random() &lt; 0.05:
+            cache.refresh(key)
+    return val
+</code></pre>
+<p>XFetch algorithm (Vattani et al. 2015): 每个 client random 决定 pre-fetch + 后 TTL expiry.  Distributed refresh bash 95-99% clients refresh before expiry → low pressure on DB.</p>
+<hr />
+<h2 id="七ttl-设计"><a class="header" href="#七ttl-设计">七、TTL 设计</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>TTL</th><th>适用场景</th></tr></thead><tbody>
+<tr><td>~5-15s</td><td>highly transactional data (inventory 与 price)</td></tr>
+<tr><td>30-60s</td><td>user data 可能 stale (user profile)</td></tr>
+<tr><td>5-15min</td><td>tags, categories (relatively static)</td></tr>
+<tr><td>1 hour</td><td>product catalog 配置</td></tr>
+<tr><td>24 hours</td><td>static content (styles)</td></tr>
+<tr><td>Permanent</td><td>immutable data with versioned key (asset files)</td></tr>
+</tbody></table>
+</div>
+<h3 id="plus-jitter-避-expire-同步"><a class="header" href="#plus-jitter-避-expire-同步">Plus-Jitter (避 expire 同步)</a></h3>
+<pre><code class="language-python">def set_with_jitter(key, val, base_ttl):
+    jitter = random(0, base_ttl * 0.1)
+    cache.set(key, val, ttl=base_ttl + jitter)
+</code></pre>
+<p>避免 cache miss storm when same key expires simultaneously.</p>
+<hr />
+<h2 id="八cache-key-design"><a class="header" href="#八cache-key-design">八、Cache Key Design</a></h2>
+<h3 id="naming-convention"><a class="header" href="#naming-convention">Naming Convention</a></h3>
+<p><code>{app_name}:{entity}:{id}:{version}</code></p>
+<p>例: <code>shopcart:user:42:v3</code></p>
+<ul>
+<li><code>app_name</code>: namespace 避开 conflict (use+cache)</li>
+<li><code>entity</code>: data class 类, doesn't clutter the registry</li>
+<li><code>id</code>: ttl oprumus</li>
+<li><code>version</code>: schema version critical for cache invalidation after code changes (deploy new code + bump version → fresh cache)</li>
+</ul>
+<h3 id="hash-cache-key-long-term-keys"><a class="header" href="#hash-cache-key-long-term-keys">Hash Cache Key (Long-Term Keys)</a></h3>
+<p>For keys &gt;250 chars (Redis max 512MB), 多 用 short content-addressed hash:</p>
+<pre><code>key = "feed:user:42:day:2024-05-01:" + sha1(query)[:8]
+</code></pre>
+<p>reduces key 大但是防 collision.</p>
+<h3 id="conditional-sweep-with-collections"><a class="header" href="#conditional-sweep-with-collections">Conditional Sweep With Collections</a></h3>
+<p>管理 key collection by prefix:</p>
+<ul>
+<li><code>keys shopcart:user:42:*</code></li>
+<li>(Redis keys * is O(N), slot ** SCAN 配 useARING 必 with count, production 上 is the careful our else)</li>
+</ul>
+<hr />
+<h2 id="九典型-use-cases"><a class="header" href="#九典型-use-cases">九、典型 Use Cases</a></h2>
+<h3 id="reddit-vote-caching-cache-aside--lock"><a class="header" href="#reddit-vote-caching-cache-aside--lock">Reddit vote caching (Cache-Aside + Lock)</a></h3>
+<pre><code class="language-python">def get_vote(player):
+    val = redis.get(f"vote:{player}")
+    if not val:
+        if redis.set(f"lock:{player}", "1", nx=True, ex=5):
+            val = db.get_vote(player)
+            redis.set(f"vote:{player}", val, ttl=60)
+            redis.delete(f"lock:{player}")
+        else:
+            sleeps(50 ms)
+            return get_vote(player)   # retry fill
+    return val
+</code></pre>
+<h3 id="bookingcom-catalog-search-cache-refresh-ahead"><a class="header" href="#bookingcom-catalog-search-cache-refresh-ahead">Booking.com catalog search cache (Refresh-Ahead)</a></h3>
+<p>预先 prefetch hot hotel之乡 cache 基于历史 search volume pattern; attenuate cache spikes; users see cache always with stable.</p>
+<h3 id="stripe-cache-write-write-through"><a class="header" href="#stripe-cache-write-write-through">Stripe cache write (Write-Through)</a></h3>
+<p>Each invoice create. 更新 cache (with TTL) and 同步写入 Postgres. Card 90+ minutes 检测 cache staleness + check coverage from DB.</p>
+<h3 id="linkedin-shared-feed-cache-read-through"><a class="header" href="#linkedin-shared-feed-cache-read-through">LinkedIn shared feed cache (Read-Through)</a></h3>
+<p>Read-through cache layer with loader function generating feed (expensive computation) once then cached; invalidation keyed RATED write 写 fly through更新 写 + read post eager since ttl+key align.</p>
+<hr />
+<h2 id="十典型事故"><a class="header" href="#十典型事故">十、典型事故</a></h2>
+<h3 id="cache-stampede-saleforce-2016"><a class="header" href="#cache-stampede-saleforce-2016">Cache Stampede Saleforce 2016</a></h3>
+<p>Cache 切 stampede after one shard was misconfigured with -1 TTL expiry. ~5K client miss same key 同 fetch DB → DB cluster overloaded ~30s. Fix: lock-based single flight + jitter TTL.</p>
+<h3 id="inconsistent-cache-for-stale-read-reddit"><a class="header" href="#inconsistent-cache-for-stale-read-reddit">Inconsistent Cache for Stale Read Reddit</a></h3>
+<p>Reddit 用 cache-aside 后,一会儿 update_post_metadata 直接 DB; cache + ttl 局 60s; 更新 时 缓存 中 stale. 用户 看 post metadata 60s 后 last 削减. Fix: 自动 update cache + 写后 "DEL key" pattern.</p>
+<h3 id="cache-invalidation-storm-us-government-hockey-team-site"><a class="header" href="#cache-invalidation-storm-us-government-hockey-team-site">Cache Invalidation storm US government hockey team site</a></h3>
+<p>"Balance updates" ⚠潜在 handle score update → 事件 200+ events invalidate local at thousands ton menu k "letter fui"- subscribe تشी invalidation list.  Invalidation delay thoroughly Tier 1 vs Dispatch bad. Fix: Write-through cache always use "data 一起 update DB + cache 依次 同步 rewrite exactly for data integrity)".</p>
+<hr />
+<h2 id="十一易错清单"><a class="header" href="#十一易错清单">十一、易错清单</a></h2>
+<ol>
+<li><strong>Cache-Aside 必 想到 thundering herd</strong>: single-flight lock, jitter TTL 防止 stampede。</li>
+<li><strong>Write-Behind 必须接受 at-least-once + idempotent retry</strong>: crash 时 data 可能重发 DB; DB upsert idempoton.</li>
+<li><strong>Read-Through cache miss fallback</strong>: cache layer fail 不应 kill service, must gracefully fall back to DB.</li>
+<li><strong>Cache key version + invalidate on code deployment</strong>: 旧 cache key 仍旧 craft 旧 data shape; version bump 强制 invalidate 全部.</li>
+<li><strong>TTL 不能太短 (低 hit ratio) 或太长 (stale)</strong>: 平衡; 5-60s 是常用短 TTL.</li>
+</ol>
+<hr />
+<h2 id="十二这一章带走的东西"><a class="header" href="#十二这一章带走的东西">十二、这一章带走的东西</a></h2>
+<ol>
+<li>Cache-Aside: app 直接控制, lazy fetch; stampede risk ⇒ use single-flight lock.</li>
+<li>Read-Through: cache layer transparent miss handling; single-flight native.</li>
+<li>Write-Through: DB + cache 同步 update; consistency strong, write latency 高.</li>
+<li>Write-Behind: cache first + async flush; 读写 fast but risk data loss on failure.</li>
+<li>Refresh-Ahead: 提前 refresh before TTL; prevents hot leaves cold at expiry.</li>
+<li>Single-Flight Pattern + Jitter TTL + XFetch prob refresh = best practice for 防止 stampede, 适用 high-scale cache.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="failure-modes.html">缓存失效模式与雪崩/穿透/击穿</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../system-design/cache/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../system-design/cache/failure-modes.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../system-design/cache/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../system-design/cache/failure-modes.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>B 树与 B+ 树 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../../favicon.svg">
+        <link rel="shortcut icon" href="../../../favicon.png">
+        <link rel="stylesheet" href="../../../css/variables.css">
+        <link rel="stylesheet" href="../../../css/general.css">
+        <link rel="stylesheet" href="../../../css/chrome.css">
+        <link rel="stylesheet" href="../../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="b-树与-b-树"><a class="header" href="#b-树与-b-树">B 树与 B+ 树</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>普通 BST 在 RAM 里可以正常工作，但当数据规模远超内存、必须以页为单位与磁盘交换时，<strong>树高 h 就直接等价于硬盘 IO 次数</strong>. 一次 SSD IO 约 100 μs，30 次磁盘 IO = 3 ms ⎯ 把 BST 直接搬到数据库上会跑出几秒级延迟. B+ 树的存在是为了让 h = 3~4 而不是 30——<strong>它不是"更好的 BST"，而是"为磁盘这种媒介专门设计的树"</strong>.</p>
+<h2 id="为什么标准-bst-不能当数据库索引"><a class="header" href="#为什么标准-bst-不能当数据库索引">为什么标准 BST 不能当数据库索引</a></h2>
+<ul>
+<li>数据库规模动辄 10⁹ 行 × 512 字节 ≈ 512 GB ⎯ 不可能装在内存里;</li>
+<li>红黑树 h ≈ log₂ 10⁹ ≈ 30;</li>
+<li>每层比较 1 次 + 1 次磁盘 IO，30 次磁盘 IO 太贵.</li>
+<li>一个 B+ 树节点用一个 page（4~16 KB）装几百个 entry, <strong>扇出 100+ ⇒ h = 3~4</strong> ⇒ IO 3~4 次.</li>
+</ul>
+<p>这就是 B+ 树解决的核心矛盾：<strong>树高 = 磁盘 IO 次数</strong>，所以扇出越大越好，<strong>扇出 ≈ page 大小 / key 大小</strong>.</p>
+<h2 id="b-树定义m-阶-b-树"><a class="header" href="#b-树定义m-阶-b-树">B 树定义（m 阶 B 树）</a></h2>
+<ol>
+<li>每个节点最多 m 个子节点, m-1 个 key;</li>
+<li>每个非根非叶节点至少 <code>⌈m/2⌉</code> 个子节点;</li>
+<li>所有叶子在同一层;</li>
+<li>节点内 key 有序.</li>
+</ol>
+<p><strong>插入触发分裂</strong>:</p>
+<pre><code>节点 key 数 = m-1（满了） → 插入后会变成 m → 取中间 key 上推到父节点
+                                      → 左右两半作为新两个孩子
+</code></pre>
+<p><strong>删除触发合并或借入</strong>:</p>
+<pre><code>节点 key 数 &lt; ⌈m/2⌉-1 →
+  case 1: 兄弟有多余 key → 借入
+  case 2: 兄弟也最小     → 与兄弟 + 父分隔 key 合并
+</code></pre>
+<h2 id="b-树与-b-树的差异"><a class="header" href="#b-树与-b-树的差异">B+ 树与 B 树的差异</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>B 树</th><th>B+ 树</th></tr></thead><tbody>
+<tr><td>数据位置</td><td>内部节点也装 sat data</td><td>所有 sat data 都在叶子</td></tr>
+<tr><td>叶子链</td><td>无</td><td>叶子有左右兄弟指针</td></tr>
+<tr><td>范围查询</td><td>中序遍历，多次 IO</td><td>沿叶子链顺扫，O(1) 次跳</td></tr>
+<tr><td>扇出</td><td>小一些</td><td>大（key 比记录小）</td></tr>
+</tbody></table>
+</div>
+<p>正是叶子链让 <code>WHERE a &gt; 10 AND a &lt; 1000</code> 类型查询变得超快：定位到第一个后顺扫一段.</p>
+<h2 id="真实实现与扇出"><a class="header" href="#真实实现与扇出">真实实现与扇出</a></h2>
+<ul>
+<li><strong>InnoDB</strong>: page size = 16 KB; 一行 100~500 字节 ⇒ 单页 30~150 行, 扇出近百; 3 层 B+ 树支持 10⁵~10⁶ 行索引; 4 层能上 10⁸.</li>
+<li><strong>PostgreSQL</strong>: B+ 树（叫 Btree） + heap table 分离存储, heap 是按 line pointer 的 append-only, B+ 树维护 (key, ctid) 映射.</li>
+<li><strong>SQLite</strong>: 缺省 page 4 KB; B+ 树存 table, B+ 树 或 混合存 index.</li>
+<li><strong>Ceph BlueStore / RocksDB</strong>: memtable + SSTable (LSM-tree), SSTable 内部块索引也是 B+ 树风格.</li>
+</ul>
+<h2 id="真物理页面与-io"><a class="header" href="#真物理页面与-io">真物理页面与 IO</a></h2>
+<p>一个 16 KB page → SSD 一次 4 KB 单元 IO 槽, 4 次但 OS 一次可批. NVMe 通过 PRP/SGL 把多个 page 一并 DMA. 这就是为什么<strong>4 KB / 16 KB page 是物理对齐的 sweet spot</strong>: Linux page 是 4 KB, NVMe 是 4 KB cache line, <strong>B+ 树 page ≈ OS page ≈ NVMe 块大小</strong>, 这层匹配让 OS 无需重新切 page.</p>
+<h2 id="复杂度"><a class="header" href="#复杂度">复杂度</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>操作</th><th>复杂度</th><th>实际 IO</th></tr></thead><tbody>
+<tr><td>search</td><td>O(log_m n)</td><td>⌈log_m n⌉</td></tr>
+<tr><td>insert</td><td>O(log_m n)</td><td>1 次写 + log_m n 次读 + 偶尔分裂</td></tr>
+<tr><td>delete</td><td>O(log_m n)</td><td>同上</td></tr>
+<tr><td>range(k₁, k₂)</td><td>O(log_m n + k)</td><td>1 次定位 + 顺扫</td></tr>
+</tbody></table>
+</div>
+<h2 id="如何选-m"><a class="header" href="#如何选-m">如何选 m</a></h2>
+<p>经验: <strong>使节点 ≈ 一个磁盘 page 大小</strong>.</p>
+<pre><code>m ≈ page_size / (sizeof(key) + sizeof(child_ptr))
+</code></pre>
+<p>例如 key 8 B, child ptr 8 B, page 16 KB ⇒ m ≈ 1024. 一般加 padding 实取 200~500.</p>
+<h2 id="split--borrow-框架"><a class="header" href="#split--borrow-框架">Split / Borrow 框架</a></h2>
+<pre><code class="language-go">// 节点最多 m = 4 个子、m-1 = 3 个 key; 最少 2 个子、1 个 key
+type BPlusNode struct {
+    isLeaf   bool
+    keys     []int
+    children []*BPlusNode
+    next     *BPlusNode // 叶子链
+}
+
+func splitChild(parent *BPlusNode, i int) {
+    full := parent.children[i]
+    mid := len(full.keys) / 2
+    upKey := full.keys[mid]
+
+    newNode := &amp;BPlusNode{isLeaf: full.isLeaf}
+    if full.isLeaf {
+        newNode.keys = append(newNode.keys, full.keys[mid:]...)
+        full.keys = full.keys[:mid]
+        newNode.next = full.next
+        full.next = newNode
+    } else {
+        newNode.keys = append(newNode.keys, full.keys[mid+1:]...)
+        newNode.children = append(newNode.children, full.children[mid+1:]...)
+        full.keys = full.keys[:mid]
+        full.children = full.children[:mid+1]
+    }
+    // 把 upKey + newNode 插入 parent
+    parent.keys = append(parent.keys, 0)
+    copy(parent.keys[i+1:], parent.keys[i:])
+    parent.keys[i] = upKey
+    parent.children = append(parent.children, nil)
+    copy(parent.children[i+2:], parent.children[i+1:])
+    parent.children[i+1] = newNode
+}
+</code></pre>
+<h2 id="lsm-tree-b-树的亲缘替代品"><a class="header" href="#lsm-tree-b-树的亲缘替代品">LSM-Tree: B+ 树的亲缘替代品</a></h2>
+<p>为什么 BigTable、Cassandra、RocksDB、LevelDB 都用 LSM-Tree 而不是 B+ 树？</p>
+<ul>
+<li>B+ 树插入<strong>就地写</strong>, <strong>每次至少 1 次随机 IO</strong>, SSD 上 4 KB 随机写代价远大于顺序写;</li>
+<li>LSM-Tree **append-only», 顺序写超快, 但读要扫描多层 + 多个 SSTable, 加 bloom filter 加速.</li>
+</ul>
+<p><strong>SSD 写放大</strong>指标上:</p>
+<ul>
+<li>B+ 树写放大 ~32× (16 KB page, 100 row/page ⇒ 一行写导致 16 KB 完整 page 写);</li>
+<li>LSM-tree 写放大 ~10-30× (后台 compaction).</li>
+</ul>
+<p>writes/s 上 LSM 常胜, reads/s 上 B+ 树常胜. 这就是为什么 OLTP DBMS（MySQL、PG）选 B+ 树, OLAP 列存 + WAL 选 LSM.</p>
+<h2 id="fpga--硬件视角"><a class="header" href="#fpga--硬件视角">FPGA / 硬件视角</a></h2>
+<p>B+ 树在 FPGA/SSD 上有特别的实验:</p>
+<ul>
+<li><strong>PG-Strom</strong>: PostgreSQL 扩展把 B+ 树扫描放到 GPU 上做 SIMD。</li>
+<li><strong>BlueDBM</strong>: MIT 风格 near-data processing，把 B+ 树节点 page 直接预存到 SSD controller 上.</li>
+<li><strong>P2IME/SAP HANA</strong>: 内存计算 + NVM 持久化 + B+ 树兼并内存与 SSD.</li>
+</ul>
+<p>不论什么方案, <strong>B+ 树抽象栈上有页、页是对 IO 的最小单位</strong> 这点都成立, 只是物化的层次不同.</p>
+<h2 id="易错点"><a class="header" href="#易错点">易错点</a></h2>
+<ol>
+<li><strong>分裂方向</strong>: 中间 key 上推, 注意偶数 m 时取左中还是右中要一致.</li>
+<li><strong>合并时父节点可能也下溢</strong>: 递归向上传播.</li>
+<li><strong>占位写与就地写</strong>: 数据库 page 改写要走 WAL 落盘顺序, 避免 page torn.</li>
+<li><strong>cache 边界</strong>: 节点 page 是 atomic unit, 不要在一个事务里同时改多个 page 后才 journal.</li>
+</ol>
+<h2 id="这一章带走的东西"><a class="header" href="#这一章带走的东西">这一章带走的东西</a></h2>
+<ul>
+<li>树高 = IO 次数, ⇒ 扇出越大越好;</li>
+<li>B+ 树的"叶子链"是范围查询优势之源;</li>
+<li>page 大小 ≈ OS page ≈ NVMe 块大小 ≈ sweet spot for IO;</li>
+<li>LSM vs B+ 树 = 顺序写 vs 随机写 vs 写/读负荷比例;</li>
+<li>在 SSD/NVM 时代, B+ 树与 LSM-Tree 是同抽象的两种物化.</li>
+</ul>
+<p>下一节 → <a href="heap.html">堆与优先队列</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../../dsa/structures/trees/avl-rbt.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../../dsa/structures/trees/heap.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../../dsa/structures/trees/avl-rbt.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../../dsa/structures/trees/heap.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../../elasticlunr.min.js"></script>
+        <script src="../../../mark.min.js"></script>
+        <script src="../../../searcher.js"></script>
+
+        <script src="../../../clipboard.min.js"></script>
+        <script src="../../../highlight.js"></script>
+        <script src="../../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../../katex/katex.min.js"></script>
+        <script src="../../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../../katex-init.js"></script>
+        <script src="../../../mermaid.min.js"></script>
+        <script src="../../../mermaid-init.js"></script>
+        <script src="../../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

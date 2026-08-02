@@ -1,0 +1,608 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>4. Optimizers &amp; Training Dynamics: Adam/AdamW/二阶 + 初始化/LayerNorm/warmup/checkpoint - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="4-optimizers--training-dynamics-adamadamw二阶--初始化layernormwarmupcheckpoint"><a class="header" href="#4-optimizers--training-dynamics-adamadamw二阶--初始化layernormwarmupcheckpoint">4. Optimizers &amp; Training Dynamics: Adam/AdamW/二阶 + 初始化/LayerNorm/warmup/checkpoint</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>训练 = 让损失下降, 但<strong>怎么走每一步</strong>比"走对方向"更重要. 这一章把第零部分微积分与优化 §5 一阶优化器谱系落到 ML 训练现实中, 覆盖:</p>
+<ol>
+<li><strong>SGD → Momentum → RMSProp → Adam → AdamW</strong> — 算法谱与各自"在哪个病上多了一手".</li>
+<li><strong>二阶与拟牛顿</strong> — Newton / L-BFGS / K-FAC / Sophia, 为什么在 Transformer 训练里几乎不用.</li>
+<li><strong>学习率调度与 warmup</strong> — cosine / linear / 多阶段、为什么 Transformer 必须有 warmup.</li>
+<li><strong>权重初始化</strong> — Xavier / He / 0.02 std / μP; σ 与 $\sqrt{d_k}$ 的呼应.</li>
+<li><strong>LayerNorm vs RMSNorm vs DeepNorm</strong> — 稳定深 stack 与大规模训练的实际替代.</li>
+<li><strong>梯度裁剪 / 梯度累积 / ZeRO 概览</strong> — 跨多卡的实践要点.</li>
+<li><strong>梯度累积梯度检查激活 checkpoint</strong> — 一卡跑大 batch 的"显存魔术".</li>
+<li><strong>训练动力学诊断</strong> — learning curve 健康度 / weight watch / glow / NaN 排查.</li>
+</ol>
+<p>读完应能: 从零组合一个 Transformer 训练 config 知道 lr 怎么取 / warmup 多少步 / 用什么优化器 / 何种 init, 出 NaN 时能定位.</p>
+<hr />
+<h2 id="一一阶优化器谱-回顾--ml-落地"><a class="header" href="#一一阶优化器谱-回顾--ml-落地">一、一阶优化器谱 (回顾 + ML 落地)</a></h2>
+<p>第零部分微积分与优化 §5 已列谱系, 这里聚焦每个在 ML 现实里的"为什么".</p>
+<h3 id="11-sgd-与小批量"><a class="header" href="#11-sgd-与小批量">1.1 SGD 与小批量</a></h3>
+<p>$$ \theta_{k+1} = \theta_k - \eta \cdot \hat g_k, \quad \hat g_k = \frac{1}{B}\sum_{i \in \text{batch}<em>k} \nabla</em>\theta \ell(f_\theta(x_i), y_i) $$</p>
+<p><strong>关键性能</strong>:</p>
+<ul>
+<li>收敛率: 凸 $\mathcal{L}^*$ → $O(1/k)$; 强凸 → $O(\exp(-k/L))$; 非凸 → $O(1/\sqrt{k})$ (到 stationary point).</li>
+<li>实际: 全 batch 太慢; $B = 32 \sim 2048$ 在 GPU 上高效; 大 $B$ ($\geq 4M$ tokens) 多卡下需 LARS / LAMB.</li>
+</ul>
+<h3 id="12-momentum-polyak-1964--nesterov-1983"><a class="header" href="#12-momentum-polyak-1964--nesterov-1983">1.2 Momentum (Polyak 1964 / Nesterov 1983)</a></h3>
+<p>$$ v_{k+1} = \beta v_k + \hat g_k, \quad \theta_{k+1} = \theta_k - \eta , v_{k+1} $$</p>
+<ul>
+<li>$\beta = 0.9$ 标配; 等效"惯性滑动"沿一致梯度方向加速, 抑制样本噪声.</li>
+<li>Nesterov 加速: $\hat g_k = \nabla f(\theta_k - \eta \beta v_k)$, 看一眼下一刻位置再求梯度. 凸情形最优 $O(1/k^2)$ 收敛率.</li>
+</ul>
+<h3 id="13-rmsprop-hinton-2012-未发表讲义"><a class="header" href="#13-rmsprop-hinton-2012-未发表讲义">1.3 RMSProp (Hinton 2012, 未发表讲义)</a></h3>
+<p>$$ \mathbb{E}[g^2]<em>k = \alpha \mathbb{E}[g^2]</em>{k-1} + (1 - \alpha) \hat g_k^2;\quad \theta_{k+1} = \theta_k - \eta \cdot \frac{\hat g_k}{\sqrt{\mathbb{E}[g^2]_k + \epsilon}} $$</p>
+<p><strong>解决了什么</strong>: 不同参数维度梯度量级不同, 大角度看各自的二阶矩自适应学习率. RNN 经典, 但 Transformer 几乎不单独用.</p>
+<h3 id="14-adam-kingma--ba-2014"><a class="header" href="#14-adam-kingma--ba-2014">1.4 Adam (Kingma &amp; Ba 2014)</a></h3>
+<p>回顾公式 (已在第零部分微积分与优化 §5 写过):</p>
+<p>$$ m_k = \beta_1 m_{k-1} + (1 - \beta_1) g_k $$
+$$ v_k = \beta_2 v_{k-1} + (1 - \beta_2) g_k^2 $$
+$$ \hat m_k = m_k / (1 - \beta_1^k), \quad \hat v_k = v_k / (1 - \beta_2^k) $$
+$$ \theta_{k+1} = \theta_k - \eta \cdot \frac{\hat m_k}{\sqrt{\hat v_k} + \epsilon} $$</p>
+<p><strong>默认</strong>: $\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 10^{-8}$.</p>
+<p><strong>特性</strong>:</p>
+<ul>
+<li>一阶 + 二阶自适应: 每参数签名 (precision) 调整步长.</li>
+<li>bias correction 让初期 $m, v$ 不被初始化 0 拉住.</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>Reddi et al. 2018 "On the Convergence of Adam" 证 Adam 在一些简单凸问题上不收敛, 给出 <strong>AMSGrad</strong> 修补 ($v_k \leftarrow \max(v_k, v_{k-1})$) 防步长反向放大. 但实际 LLM 训练里主流仍用 Adam 类变体, 因为样本噪声远超此问题.</p>
+</div>
+<h3 id="15-adamw-loshchilov--henter-20172019"><a class="header" href="#15-adamw-loshchilov--henter-20172019">1.5 AdamW (Loshchilov &amp; Henter 2017/2019)</a></h3>
+<p>AdamW 把 weight decay <strong>解耦</strong>:</p>
+<p>$$ \theta_{k+1} = \theta_k - \eta \cdot \left( \frac{\hat m_k}{\sqrt{\hat v_k} + \epsilon} + \lambda \theta_k \right) $$</p>
+<ul>
+<li>Adam 把 weight decay 写入梯度 $\hat g_k + \lambda \theta$, 与自适应冲突.</li>
+<li>AdamW 把 $\lambda \theta$ 直接乘 $\eta$ 外加, <strong>不进 $m, v$</strong>, 保留自适应对方向精度.</li>
+</ul>
+<p><strong>ML 实践</strong>: LLM 训练首选 AdamW. weight decay $\lambda = 0.01 \sim 0.1$; Bert-Base wd=0.01; LLaMA-2 wd=0.1.</p>
+<h3 id="16-谱系总结"><a class="header" href="#16-谱系总结">1.6 谱系总结</a></h3>
+<pre><code>SGD
+  └─ Momentum (Polyak/Nesterov): 沿一致方向加速
+      └─ RMSProp: 用二阶矩做按维度学习率
+          └─ Adam: 一阶+二阶组合
+              ├─ AMSGrad: 修 Adam 不收敛
+              ├─ NAdam: Nesterov + Adam
+              └─ AdamW: 解耦 weight decay ←── Transformer / LLM 主流
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>任务类型</th><th>配方</th></tr></thead><tbody>
+<tr><td>CV (ResNet/ViT 默认 SGD)</td><td>SGD+Momentum 0.9, weight decay 1e-4</td></tr>
+<tr><td>CV 加 augmentation</td><td>有时 SGD 比 Adam 更好 generalization</td></tr>
+<tr><td>RNN</td><td>RMSProp / Adam</td></tr>
+<tr><td>NLP / Transformer</td><td>AdamW + warmup + cosine</td></tr>
+<tr><td>Pretraining 大模型</td><td>AdamW + cosine + warmup + bf16 + ZeRO</td></tr>
+<tr><td>Fine-tune</td><td>AdamW wd=0.0 或 0.01, 较小 lr</td></tr>
+<tr><td>强化学习</td><td>Adam (PPO)</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="二二阶方法-为什么在深度学习中少见"><a class="header" href="#二二阶方法-为什么在深度学习中少见">二、二阶方法: 为什么在深度学习中少见</a></h2>
+<h3 id="21-newton-法回顾"><a class="header" href="#21-newton-法回顾">2.1 Newton 法回顾</a></h3>
+<p>$$ \theta_{k+1} = \theta_k - H^{-1}_k g_k $$</p>
+<p><strong>理论优点</strong>: 二次局部收玫; 极值附近极快.</p>
+<p><strong>ML 障碍</strong>:</p>
+<ol>
+<li><strong>$H^{-1}$ 太贵</strong>: $n$ 维 → $O(n^3)$ 反演. GPT-3 $n = 175B$ 不现实.</li>
+<li><strong>$H$ 在非凸鞍点附近不</strong>正定, 反向更可能下冲.</li>
+<li><strong>Mini-batch $H$ 是噪声估计</strong>, 方差大.</li>
+<li><strong>二阶自适应 learning rate</strong> 与一阶迭代式不易混合.</li>
+</ol>
+<h3 id="22-拟牛顿-l-bfgs"><a class="header" href="#22-拟牛顿-l-bfgs">2.2 拟牛顿 (L-BFGS)</a></h3>
+<p>不存 $H^{-1}$, 用最近 $m$ 步迭代差来近似 $\rho H^{-1}$.</p>
+<p><strong>ML 应用</strong>: 几乎只在小数据全 batch 优化里 (naive logistic regression / 非凸优化如 Deep Equilibrium Models 偶尔). 深度学习主流不用.</p>
+<h3 id="23-k-fac-martens--grosse-2015"><a class="header" href="#23-k-fac-martens--grosse-2015">2.3 K-FAC (Martens &amp; Grosse 2015)</a></h3>
+<p>Kronecker-Factored Approximate Curvature: 用 Kronecker 分解近似 Fisher 信息矩阵. 在 Transformer 训练里少数研究组尝试 (DeepSeek-1 略用), 但工业上仍主流一阶.</p>
+<h3 id="24-sophia--shampoo--muon-2023-2024"><a class="header" href="#24-sophia--shampoo--muon-2023-2024">2.4 Sophia / Shampoo / Muon (2023-2024)</a></h3>
+<ul>
+<li><strong>Shampoo</strong> (Gupta 2018): 用层结构做块对角 Preconditioner.</li>
+<li><strong>Sophia</strong> (Liu et al. 2023): 用 Hessian 估计的对角做曲率, 比 Adam 2× 收敛; LLaMA-scale 实验通过.</li>
+<li><strong>Muon</strong> (Keller Jordan 2024+): 用 Newton-Schulz iteration 做 GPU 友好的正交化梯度, 进一步加速 Qwen-class 训练.</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>这些二阶近似优化器进展是真正多工业尝试, 但仍未取代 AdamW 的主导地位, 主要因为 GPU/H100 上的优化 kernel 都为 AdamW 写. 但 Muon 这个新进展值得关注.</p>
+</div>
+<hr />
+<h2 id="三学习率调度"><a class="header" href="#三学习率调度">三、学习率调度</a></h2>
+<h3 id="31-固定-lr-的问题"><a class="header" href="#31-固定-lr-的问题">3.1 固定 LR 的问题</a></h3>
+<ul>
+<li>太大: 损失震荡或 NaN.</li>
+<li>太小: 训练慢.</li>
+<li>沿途: 不同阶段不同最优 LR.</li>
+</ul>
+<h3 id="32-常见调度"><a class="header" href="#32-常见调度">3.2 常见调度</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>调度</th><th>形式</th><th>用例</th></tr></thead><tbody>
+<tr><td><strong>Constant</strong></td><td>$\eta_k = \eta_0$</td><td>Baseline, 小数据</td></tr>
+<tr><td><strong>Step decay</strong></td><td>每 $K$ 步乘 0.1</td><td>CV 经典 (e.g. SGD step 30/60/90)</td></tr>
+<tr><td><strong>Exponential decay</strong></td><td>$\eta_k = \eta_0 \gamma^k$</td><td>罕用</td></tr>
+<tr><td><strong>Cosine annealing</strong> (Loshchilov 2017)</td><td>$\eta_k = \frac{\eta_{\min}}{2} + \frac{\eta_0 - \eta_{\min}}{2}(1 + \cos(\pi k/T))$</td><td>LLM 训练默认</td></tr>
+<tr><td><strong>Cosine + warmup</strong></td><td>见下</td><td>LLaMA、GPT 风格</td></tr>
+<tr><td><strong>Linear warmup → linear decay</strong></td><td>大批训练</td><td>BERT</td></tr>
+<tr><td><strong>OneCycle</strong> (Smith 2018)</td><td>LR 与 momentum 各反相位</td><td>找极限</td></tr>
+</tbody></table>
+</div>
+<h3 id="33-warmup-为什么-transformer-必要"><a class="header" href="#33-warmup-为什么-transformer-必要">3.3 Warmup: 为什么 Transformer 必要</a></h3>
+<ul>
+<li><strong>Post-LN Transformer</strong> 的不稳定性根在: 初期参数随机初始化, attention 输出均值方差与训练末期差大; $\partial \mathcal{L}/\partial W$ 早期量级大 → "Adam 二阶矩估计 $v$ 累积慢", 大步引起不稳.</li>
+<li>Pre-LN 缓解这点 (所以 LLaMA 之类可以短 warmup), 但仍推荐.</li>
+</ul>
+<p><strong>经典 cosine + warmup</strong>:</p>
+<pre><code class="language-python">import math
+
+def lr_schedule(step, warmup_steps, total_steps, base_lr, min_lr):
+    if step &lt; warmup_steps:
+        return base_lr * step / warmup_steps           # linear warmup
+    progress = (step - warmup_steps) / (total_steps - warmup_steps)
+    progress = min(max(progress, 0.0), 1.0)
+    return min_lr + 0.5 * (base_lr - min_lr) * (1 + math.cos(math.pi * progress))
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>LLaMA-1/2/3 配方 (粗略): 基础 LR <code>3e-4</code> Pretrain, <code>2e-5</code> SFT, <code>1e-5</code> DPO. warmup 2000 steps, cosine decay 到 10%, weight decay 0.1, gradient clip 1.0, β1=0.9, β2=0.95.</p>
+</div>
+<h3 id="34-restart-sgdr-与-compound"><a class="header" href="#34-restart-sgdr-与-compound">3.4 Restart (SGDR) 与 Compound</a></h3>
+<p><strong>SGDR</strong> (Loshchilov 2017): cosine 多次 restart 让跳出局部. 现代大模型少用, CV 小数据实战用.</p>
+<h3 id="35-lr-与-batch-size-的-linear-scaling-rule"><a class="header" href="#35-lr-与-batch-size-的-linear-scaling-rule">3.5 LR 与 Batch Size 的 linear scaling rule</a></h3>
+<p><strong>经验法则</strong>: batch $B \to kB$ 时 lr 也 $\eta \to k \eta$ (good up to a critical $B^*$, ~ 8K-16K tokens for GPT-style, 超过需要 sqrt scaling). 在 [Goyal et al. 2017] 的 ImageNet 工作里证实. LARS / LAMB 当超过 critical $B$ 时仍稳.</p>
+<hr />
+<h2 id="四权重初始化"><a class="header" href="#四权重初始化">四、权重初始化</a></h2>
+<h3 id="41-为什么不能全-0"><a class="header" href="#41-为什么不能全-0">4.1 为什么不能全 0</a></h3>
+<p>全 0 (或全常数) ⇒ 同层所有神经元同梯度同更新 → 退化为单 neuron → 永远学不动. 必须打破对称.</p>
+<h3 id="42-xavier-glorot-init---针对-tanh"><a class="header" href="#42-xavier-glorot-init---针对-tanh">4.2 Xavier (Glorot) init - 针对 $\tanh$</a></h3>
+<p>对 $y = W x$, $x, W$ iid $\sim \mathcal{N}(0, \sigma^2)$. $\operatorname{Var}(y) = d \sigma^2 \cdot \operatorname{Var}(x)$, 想 $\operatorname{Var}(y) = \operatorname{Var}(x)$ ⇒ $\sigma^2 = 1/d$.</p>
+<p>→ 经典 Xavier: $W_{ij} \sim \mathcal{N}(0, 1/d_{\text{in}})$ 或 $U(-\sqrt{6/(d_{\text{in}} + d_{\text{out}})}, \ldots)$.</p>
+<h3 id="43-he-kaiming-init---针对-relu"><a class="header" href="#43-he-kaiming-init---针对-relu">4.3 He (Kaiming) init - 针对 ReLU</a></h3>
+<p>ReLU 半数置 0, $\operatorname{Var}(\mathrm{ReLU}(y)) = \frac12 d \sigma^2 \operatorname{Var}(x)$ ⇒ 修 $\sigma^2 = 2/d_{\text{in}}$.</p>
+<p>PyTorch:</p>
+<pre><code class="language-python">nn.init.kaiming_normal_(W, mode='fan_in', nonlinearity='relu')
+</code></pre>
+<h3 id="44-transformer-默认-n0-002"><a class="header" href="#44-transformer-默认-n0-002">4.4 Transformer 默认 $N(0, 0.02)$</a></h3>
+<p>原版 Vaswani 2017 用 $\sigma = 0.02$ 对所有权重 (除 embeddings, LayerNorm $\gamma = 1, \beta = 0$). 实测用 $d^{-1/2}$ scaling 或 He 等价.</p>
+<h3 id="45-μp-yang-2022---让超参免调"><a class="header" href="#45-μp-yang-2022---让超参免调">4.5 μP (Yang 2022) - 让超参免调</a></h3>
+<p>最大痛点: pretrain 时一组 hyperparams 在 small model 上调好, 放到 70B 上 LR 不通适; μP (Maximal Update Parameterization) 设 init scale 与 lr 让"small → huge"不重新搜超参. LLaMA-2 70B 一些训练用 μP 思想.</p>
+<h3 id="46-embedding-init"><a class="header" href="#46-embedding-init">4.6 Embedding init</a></h3>
+<ul>
+<li>Embedding 通常 $\sim \mathcal{N}(0, 1/d)$, 让 token表示初始内积分布方免饱和.</li>
+<li>输出 logits 一般 transpose embedding (<code>weight tying</code>), 减少 params + 改善训练.</li>
+</ul>
+<hr />
+<h2 id="五训练稳定-诊断--修复"><a class="header" href="#五训练稳定-诊断--修复">五、训练稳定: 诊断 + 修复</a></h2>
+<h3 id="51-健康的-loss-曲线"><a class="header" href="#51-健康的-loss-曲线">5.1 健康的 loss 曲线</a></h3>
+<ul>
+<li><strong>Pretrain LM</strong>: 早期 loss 急降 (perplexity 从 30 → ~5); 中段慢降; 后期 plateau.</li>
+<li><strong>SFT</strong>: loss 起步 low (因 instruction format → few-shot fine-tune), 微降.</li>
+<li><strong>值得警惕</strong>: loss NaN 突跳 / loss 不降 / loss discrimination.</li>
+</ul>
+<h3 id="52-常见-nan-排查"><a class="header" href="#52-常见-nan-排查">5.2 常见 NaN 排查</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>现象</th><th>可能原因</th><th>修复</th></tr></thead><tbody>
+<tr><td>一启动就 NaN</td><td>init scale 太大 / softmax 没 log-sum-exp</td><td>降 init $\sigma$ / 用 <code>F.cross_entropy</code></td></tr>
+<tr><td>Warmup 后 NaN</td><td>lr 跳太大</td><td>加 warmup; 减少 base_lr</td></tr>
+<tr><td>跨若干步偶 NaN</td><td>bf16 underflow / 数据混入 nan</td><td>检查 data; 切 fp32-bf16 混合</td></tr>
+<tr><td>Loss 突跳几百</td><td>gradient clip 没开 / step 过大</td><td>clip 1.0; 降 batch 或 lr</td></tr>
+<tr><td>序列长升 NaN</td><td>RoPE 复频 overflow / KV cache quant error</td><td>patch position id, 用 fp32</td></tr>
+</tbody></table>
+</div>
+<h3 id="53-梯度裁剪"><a class="header" href="#53-梯度裁剪">5.3 梯度裁剪</a></h3>
+<p>实际 LLM 训练必开:</p>
+<pre><code class="language-python">torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+</code></pre>
+<p>按全局 $L_2$ 范数裁剪: $g \leftarrow g \cdot \min(1, \tau / |g|)$. 防 batch 异常梯度爆炸.</p>
+<h3 id="54-梯度累积"><a class="header" href="#54-梯度累积">5.4 梯度累积</a></h3>
+<p>显存不足 → 用累积模拟大 batch:</p>
+<pre><code class="language-python">optimizer.zero_grad()
+for i, (x, y) in enumerate(loader):
+    loss = model(x, y) / accum_steps
+    loss.backward()
+    if (i + 1) % accum_steps == 0:
+        clip_grad_norm_(...)
+        optimizer.step()
+        optimizer.zero_grad()
+</code></pre>
+<p>效果等同 batch = <code>accum_steps × physical_batch</code>, 但训练时间 $O(\text{accum})$.</p>
+<h3 id="55-激活-checkpoint-回顾-backprop-章-5"><a class="header" href="#55-激活-checkpoint-回顾-backprop-章-5">5.5 激活 checkpoint (回顾 backprop 章 §5)</a></h3>
+<p>trade 显存 vs 计算, 30-50% 显存换约 ~30% 时间. 大模型默认开.</p>
+<h3 id="56-ema--swa"><a class="header" href="#56-ema--swa">5.6 EMA / SWA</a></h3>
+<ul>
+<li>EMA: 存一份"权重指数滑动平均"用于评估, 训练用原参数. 提升稳定性.</li>
+<li>SWA (Stochastic Weight Averaging): 训练后周期负荷平均几 weights, 改善 final test acc.</li>
+</ul>
+<hr />
+<h2 id="六分布式训练-概览"><a class="header" href="#六分布式训练-概览">六、分布式训练 (概览)</a></h2>
+<p>详见 TODO 的"大模型训练工程"章节, 这里只点关键事实:</p>
+<h3 id="61-数据并行-dp"><a class="header" href="#61-数据并行-dp">6.1 数据并行 (DP)</a></h3>
+<p>每 GPU 持整模型, 各跑自己 batch, 反向后 all-reduce 平均梯度. 限制: 模型必须装下每卡.</p>
+<h3 id="62-zero-rajbhandari-2019-三个阶段"><a class="header" href="#62-zero-rajbhandari-2019-三个阶段">6.2 ZeRO (Rajbhandari 2019) 三个阶段</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Stage</th><th>分片</th><th>显存省</th></tr></thead><tbody>
+<tr><td>ZeRO-1</td><td>optimizer states (AdamW: $2n$ extra)</td><td>4-8×</td></tr>
+<tr><td>ZeRO-2</td><td>+ gradients</td><td>8×</td></tr>
+<tr><td>ZeRO-3</td><td>+ model weights</td><td>到 N_devices 倍</td></tr>
+</tbody></table>
+</div>
+<p>ZeRO-3 让 &gt;100B 训练在 8 × A100 = 640 GB 系统可行.</p>
+<h3 id="63-pipeline--tensor-并行"><a class="header" href="#63-pipeline--tensor-并行">6.3 Pipeline / Tensor 并行</a></h3>
+<ul>
+<li><strong>Pipeline</strong>: 把层切分到 N 个 GPU, 跑 micro-batch + 1F1B schedule.</li>
+<li><strong>Tensor</strong>: 在某一层内把矩阵乘切分 (列切 / 行切); Megatron-LM 经典.</li>
+<li><strong>Sequence Parallel</strong>: 把 seq 维切成多 GPU 共跑 attention; Flash+长 context 共同用.</li>
+</ul>
+<p><strong>Megatron-style</strong> (3D parallel): 数据并行 + 流水线 + 张量并行组合, 大模型 pretrain 通用.</p>
+<hr />
+<h2 id="七与第零部分的接口"><a class="header" href="#七与第零部分的接口">七、与第零部分的接口</a></h2>
+<ul>
+<li>§1-2 优化器 ⇐ 第零部分微积分与优化 §5 (一阶优化器谱系), §3 (Newton/Hessian).</li>
+<li>§3 warmup ⇐ 第零部分微积分 §3 Hessian (初期二阶矩估计不稳), 概率 §2 方差累积慢的 variance of sample mean.</li>
+<li>§4 init ⇐ 第零部分线代 §5 范数 + 概率 §2 variance of linear combination.</li>
+<li>§5 NaN 排查 ⇐ 第零部分概率 §1 离散 / 连续与 fp 数值表示.</li>
+<li>§6 ZeRO ⇐ 与数学关系浅; 与 OS 并发 / 网络带宽 trade-off 更深.</li>
+</ul>
+<hr />
+<h2 id="八最小可跑训练循环-pytorch"><a class="header" href="#八最小可跑训练循环-pytorch">八、最小可跑训练循环 (PyTorch)</a></h2>
+<pre><code class="language-python">import torch
+import torch.nn as nn
+import math
+
+def train_step(model, batch, optimizer, scheduler, accum_steps=1, max_grad=1.0):
+    model.train()
+    x, y = batch
+    with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+        logits = model(x)
+        loss = nn.functional.cross_entropy(logits.view(-1, logits.size(-1)), y.view(-1),
+                                            ignore_index=-1) / accum_steps
+    loss.backward()
+    if ((scheduler.steps + 1) % accum_steps == 0):
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad)
+        optimizer.step()
+        scheduler.step()
+        optimizer.zero_grad(set_to_none=True)
+    return loss.item() * accum_steps
+
+class CosineWarmup:
+    def __init__(self, optimizer, warmup, total, base, min_lr=0.0):
+        self.opt, self.warmup, self.total = optimizer, warmup, total
+        self.base, self.min_lr = base, min_lr; self.steps = 0
+    def step(self):
+        self.steps += 1
+        if self.steps &lt; self.warmup:
+            lr = self.base * self.steps / self.warmup
+        else:
+            p = (self.steps - self.warmup) / (self.total - self.warmup)
+            p = min(max(p, 0.0), 1.0)
+            lr = self.min_lr + 0.5 * (self.base - self.min_lr) * (1 + math.cos(math.pi * p))
+        for g in self.opt.param_groups: g['lr'] = lr
+</code></pre>
+<hr />
+<h2 id="九结束--速查表"><a class="header" href="#九结束--速查表">九、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回:</p>
+<ul>
+<li><strong>AdamW</strong>: $m, v$ 二阶矩 + bias correction + 解耦 weight decay; LLM 默认.</li>
+<li><strong>Sofia/Muon</strong>: 近期研究方向, 尚未取替 AdamW.</li>
+<li><strong>Warmup</strong>: 初期二阶矩估计未稳, 必须避免大 step; Pre-LN 可短 warmup.</li>
+<li><strong>Cosine + warmup + decay-to-min</strong> 是 Llama 系列默认配方.</li>
+<li><strong>init</strong>: $\sigma^2 = 1/d_{\text{in}}$ (Xavier) for $\tanh/\sigma$; $2/d_{\text{in}}$ (He) for ReLU; Transformer $N(0, 0.02)$ or He 等价.</li>
+<li><strong>LayerNorm</strong> (Pre-LN): 现代默认, 防深 stack 梯消失.</li>
+<li><strong>clip_grad_norm 1.0</strong> 几乎必开.</li>
+<li><strong>accumulation</strong>: 显存不足时模拟大 batch.</li>
+<li><strong>Checkpoint</strong>: trade 计算换激活显存.</li>
+<li><strong>NaN</strong>: 查 init / softmax 数值 / RoPE / bf16 / 数据.</li>
+<li><strong>ZeRO-3</strong>: &gt;100B pretrain 的标配.</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="generative.html">5. Generative Models: VAE &amp; ELBO / 扩散模型 / AR 采样 / speculative decoding</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../ai-ml/transformer.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../ai-ml/generative.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../ai-ml/transformer.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../ai-ml/generative.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

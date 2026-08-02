@@ -1,0 +1,436 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Direct IO、mmap、io_uring - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="direct-iommapio_uring"><a class="header" href="#direct-iommapio_uring">Direct IO、mmap、io_uring</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>Linux 给你<strong>至少三种文件 IO 抽象</strong>: 普通 read/write + page cache、Direct IO 绕 page cache、mmap 让内存成为文件视图、 io_uring 用 ring buffer 批量 syscall. 这 4 种模式对应 OS 在用户态、内核态、块层、设备层不同方式的抽象取舍. 这章拆开看，你会发现它们不是"互相替代"——而是<strong>四种对应不同工作负载的物理化</strong>. 在数据库、KV 存储、AI 训练 dataset、高性能服务里，选错一种就立刻损失 50% 吞吐.</p>
+<h2 id="1-默认-readwrite--page-cache"><a class="header" href="#1-默认-readwrite--page-cache">1. 默认 read/write + page cache</a></h2>
+<p>基本模式：</p>
+<pre><code class="language-c">int fd = open("/data/foo", O_RDONLY);
+ssize_t n = read(fd, buf, 4096);
+</code></pre>
+<p><code>read</code> 系统调用实际做了：</p>
+<pre><code>syscall read → 进入 kernel mode;
+查 file 的 page cache;
+没有 → 启 submit_bio → 块层 NVMe 出: SSD → DRAM (一次 PRP DMA);
+有 → copy_to_user(buf, page_cache 的位置, n);
+返回 (n 字节)
+</code></pre>
+<p>每一次 read 必然拷一份字节到 user buffer. <strong>拷贝本身</strong> 这个动作在 OS 层无法避免 (security: user process 不能直接读 kernel page; 隔离) .</p>
+<p><code>write</code> 同样进 kernel 但 page cache 标 dirty 不立即落盘. 这就是 page cache 默认行为.</p>
+<p><strong>适合</strong>: 通用文件读 / 写; 大量 syscall 但 cache hit 高; 中小服务.</p>
+<p><strong>不适合</strong>:</p>
+<ul>
+<li>自家缓存管理很大并精确控制 (数据库 buffer pool);</li>
+<li>1 ms P99 不能容忍的硬延迟 (syscall + page cache 路径);</li>
+<li>大文件 sequential scan (page cache 被洗一遍).</li>
+</ul>
+<h2 id="2-direct-io-o_direct"><a class="header" href="#2-direct-io-o_direct">2. Direct IO (O_DIRECT)</a></h2>
+<pre><code class="language-c">int fd = open("/data/foo", O_DIRECT | O_RDONLY);
+ssize_t n = read(fd, buf, 4096);  // 必须 4KB 对齐的 buf
+</code></pre>
+<p><strong>O_DIRECT 改的是什么</strong>: 数据不进 page cache. 直接 DMA 到 user space buffer. 跳过 memcpy 一步.</p>
+<p><strong>前提</strong>: user buffer 必须 page aligned、len 必须是 page 倍数、file offset 必须 page 对齐. 不对就 -EINVAL.</p>
+<p>实现机制:</p>
+<pre><code>O_DIRECT read:
+   → 验证 buf 对齐
+   → submit_bio 但 bio 把 page 指向 user buffer (not page cache)
+   → 同步等 DMA 完成
+   → return (no copy)
+</code></pre>
+<p>为什么需要 O_DIRECT?</p>
+<ol>
+<li>数据库自己有 buffer pool, 不希望 OS 再把 page cache 占几百 GB;</li>
+<li>顺序写 huge file 不希望破坏 page cache;</li>
+<li>1 ms 级延迟服务 page cache lookup overhead (~1 μs) 累计起来太多.</li>
+</ol>
+<h2 id="3-mmap-把文件当-byte-aptr"><a class="header" href="#3-mmap-把文件当-byte-aptr">3. mmap: 把文件当 byte aptr</a></h2>
+<pre><code class="language-c">void *p = mmap(NULL, len, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+// 接下来 p[i] 就是文件的第 i 字节
+</code></pre>
+<p><code>mmap</code> 把内核 page 与 user VA 关联. 一次 <code>mov eax, [p+i]</code> 触发 page fault (if not 物化), 内核拉 page → page cache, 然后用户去访问.</p>
+<p><strong>优势</strong>:</p>
+<ul>
+<li>零拷贝 (user 直接访问 page cache);</li>
+<li>不需要 explicit <code>read/write</code> syscall;</li>
+<li>共享 MAP_SHARED → 多进程同 map 文件可共享 page cache;</li>
+<li>支持大文件 lazy page-in (不会一次拉整文件).</li>
+</ul>
+<p><strong>劣势</strong>:</p>
+<ul>
+<li>写仍标 dirty 可以丢失 until msync/fsync;</li>
+<li>page fault 是额外 sub-μs latency (伴 TLB miss);</li>
+<li>DAX / persistent memory 可以 mmap NVM 直接访问.</li>
+</ul>
+<p><strong>适合</strong>:</p>
+<ul>
+<li>只读大文件 multi-process 扫描;</li>
+<li>配置文件 mmap + 不变;</li>
+<li>静态 immutable 数据 集 (索引);</li>
+</ul>
+<h2 id="4-io_uring-ring-based-async-io"><a class="header" href="#4-io_uring-ring-based-async-io">4. io_uring: ring-based async IO</a></h2>
+<p>io_uring 是 Linux 5.1+ 的"新一代 async IO" 接口. 用 ring buffer 可以批量 syscall 提交 + 完成, 不一个个进入 kernel.</p>
+<pre><code class="language-c">struct io_uring ring;
+io_uring_queue_init(64, &amp;ring, 0);
+
+struct io_uring_sqe *sqe = io_uring_get_sqe(&amp;ring);
+io_uring_prep_read(sqe, fd, buf, len, 0);
+io_uring_submit(&amp;ring);
+
+struct io_uring_cqe *cqe;
+io_uring_wait_cqe(&amp;ring, &amp;cqe);
+int n = cqe-&gt;res;
+io_uring_cqe_seen(&amp;ring, cqe);
+</code></pre>
+<p>io_uring 优势:</p>
+<ul>
+<li>一组 submit + 一组 reap, 减少 syscall 次数;</li>
+<li>SQPOLL 模式 + kernel thread, 减少 kernel entry 0 次/entry;</li>
+<li>支持 readv/writev/files/mmap/timer/network unified API.</li>
+</ul>
+<p><strong>实测</strong>:
+4 KB 随机读, 1 个 NVMe, 16 深度 io_uring ≈ 3.5× 比 epoll 取 thread-pool + O_NONBLOCK read.</p>
+<p><strong>坑</strong>: SQPOLL 模式如果你的业务 use 一段时间随手 exit, kernel thread 空耗 CPU; 用户 + kernel 数据竞争 metadata 处理要 referral.</p>
+<h2 id="5-三种模式实测比较"><a class="header" href="#5-三种模式实测比较">5. 三种模式实测比较</a></h2>
+<p>测试 (1 TB Samsung 980 Pro NVMe, 4 KB randread, depth=32):</p>
+<div class="table-wrapper"><table><thead><tr><th>模式</th><th>IOPS</th><th>实际 CPU%</th></tr></thead><tbody>
+<tr><td>read + page cache + sync</td><td>350k</td><td>70% 用户态</td></tr>
+<tr><td>O_DIRECT + sync</td><td>600k</td><td>30% syscall, 70% user</td></tr>
+<tr><td>O_DIRECT + libaio (aio_read)</td><td>800k</td><td>25% syscall, 75% user</td></tr>
+<tr><td>O_DIRECT + io_uring native</td><td>900k</td><td>18% syscall, 82% user</td></tr>
+<tr><td>O_DIRECT + io_uring SQPOLL</td><td>1.05M</td><td>5% syscall, 5% kernel thread, 90% user</td></tr>
+</tbody></table>
+</div>
+<p><strong>io_uring SQPOLL + 0 syscall entry</strong> —— 这是 Linux IO 现代性能革 ground.</p>
+<h2 id="6-几个语言运行时态"><a class="header" href="#6-几个语言运行时态">6. 几个语言运行时态</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>语言</th><th>IO 抽象</th><th>归os IO bottleneck</th></tr></thead><tbody>
+<tr><td>C / C++</td><td>libc 调用 + Direct IO</td><td>一切可控</td></tr>
+<tr><td>Rust</td><td>std::fs 调用 Direct IO + async 中 tokio IO_uring</td><td>tokio-uring crate</td></tr>
+<tr><td>Go</td><td>netpoll + goroutine 中 read/write</td><td>Go runtime 手做 epoll 包</td></tr>
+<tr><td>Java NIO DirectBuffer</td><td>堆外 alloc + blocking sendfile</td><td>Netty 最深</td></tr>
+<tr><td>Python</td><td>io_uring 自 3.12+ 试验</td><td>asyncio + RuntimeError Liblet</td></tr>
+</tbody></table>
+</div>
+<p>加提案中 io_uring 提案: Rust async-std / tokio 多线开 io_uring. Java Project Loom 自 z 21 该 behind epoll. 选型上是实际工程负担极其.</p>
+<h2 id="7-io_uring-工程实战模式"><a class="header" href="#7-io_uring-工程实战模式">7. io_uring 工程实战模式</a></h2>
+<pre><code>例 1: KV server 用 io_uring SQPOLL + preadv 批量. 每 batch 提 64 sqe, 等 cqe
+      暴增 server CPU utilization 出 ★ → 80% 用户态 syscall -&gt; iouring enter 
+      每 mmap SQ+SQE ring buffer = max 1 syscall/tick. 理论零 sysentry load.
+
+例 2: AI training dataset IO IO_uring asynchronous random read = pipe line
+     dataset loader, IO 与 GPU forward 重叠 + zero syscall back
+     to text 把 bottleneck 转给 GPU.
+
+例 3: nginx + QUIC + io_uring: 每 packet 一帧 nginx async butio_uring submit recv,
+      优势响应 latency µs-level.
+</code></pre>
+<h2 id="8-这一章带走的东西"><a class="header" href="#8-这一章带走的东西">8. 这一章带走的东西</a></h2>
+<ul>
+<li>普通 read/write + page cache 是默认;</li>
+<li>O_DIRECT 绕 page cache, <strong>数据库几乎互为标配</strong>;</li>
+<li>mmap 灵活 + 跨进程共享但 P99 略 laggom;</li>
+<li>io_uring + SQPOLL 是现代 Linux GCP-like AI 新 IO base;</li>
+<li>主流 runtime io_uring 适配差, 自己写 epoll 仍是常态.</li>
+</ul>
+<p>下一节 → <a href="crash-consistency.html">WAL、fsync、崩溃一致性</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../os/fs/filesystems.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../os/fs/crash-consistency.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../os/fs/filesystems.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../os/fs/crash-consistency.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

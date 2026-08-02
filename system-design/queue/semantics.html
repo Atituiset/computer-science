@@ -1,0 +1,484 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>At-least-once / exactly-once / at-most-once - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="消息队列语义"><a class="header" href="#消息队列语义">消息队列语义</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p><strong>"Exactly Once Delivery" 是不可能由消息队列</strong> 单独保证 (除非队列做单 consumer 组合 + idempotent 处理)。 三 fantasy:</p>
+<ol>
+<li><strong>At-most-once</strong>: producer 发出而 没收到 ack, message 可能未送达 consumer; consumer 可能没收到; <strong>可能丢失</strong>。</li>
+<li><strong>At-least-once</strong>: producer 必重试 <strong>直到 acked</strong>, consumer 必重认. <strong>可能收多次重复消息</strong>, idempotent processing 必可 bear.</li>
+<li><strong>Exactly-once</strong>: 应用层保证 — consumer 幂等 + dedup, queue 提供单 partition ordering + offset commit.</li>
+</ol>
+<p>工业实际至少 是 <strong>at-least-once + idempotent consumer</strong>. 标语 "exactly-once" 实际是 "exactly-once <em>effects</em>" through client-side deduplication. 本章扫 三种语义的协议细节, Kafka/Pulsar/NATS/SQS 公布的语义, 端到端 idempotency 设计 (idempotency key + dedup table + outbox pattern), 与典型事故 (双 at-least-once linked transfer 双扣款)。</p>
+<hr />
+<h2 id="一形式化三种语义"><a class="header" href="#一形式化三种语义">一、形式化三种语义</a></h2>
+<h3 id="at-most-once-丢消息容忍"><a class="header" href="#at-most-once-丢消息容忍">At-most-once (丢消息容忍)</a></h3>
+<pre><code>producer.send(msg):
+   发出 -&gt; 没 ack (fire-and-forget).
+
+consumer.receive(msg):
+   process(msg); ack;
+   network fail -&gt; 不重试来 → msg lost (MOST- ONCE 上限 receive一次。
+</code></pre>
+<ul>
+<li>用例: telemetry, events log, real weather readings, fire-and-forget 通知 push 通知 (无 critical).</li>
+<li>实现: UDP 或 应用层 no ack. SQS exposes this 不 默认.</li>
+</ul>
+<h3 id="at-least-once-有-duplicates-可能"><a class="header" href="#at-least-once-有-duplicates-可能">At-least-once (有 duplicates 可能)</a></h3>
+<pre><code>producer.send(msg):
+   if no ack in timeout -&gt; retry.
+
+consumer.receive(msg):  
+   process(msg); ack;
+   if crash before ack -&gt; 重新 deliver to consumer/broker。
+</code></pre>
+<ul>
+<li>用例: 大多 工 业 message queues (Kafka, RabbitMQ, Pulsar, NATS).  default.</li>
+<li>duplicate 要求 consumer 端是 <strong>idempotent</strong>.</li>
+</ul>
+<h3 id="exactly-once-效果上"><a class="header" href="#exactly-once-效果上">Exactly-once (效果上)</a></h3>
+<ul>
+<li>Producer side: 不 重 复 (<strong>idempotent producer</strong>) Kafka 0.11+ <code>enable.idempotence=true</code>. 每个 batch 由 producer_id+seq_no 去重.</li>
+<li>Consumer side: <strong>transactional消费 + commit一 offset</strong>, Kafka transactions 进 offset write 与 log append在同一事务. consumer <code>read_committed</code> 后 only see committed.</li>
+<li>Effects: consumer 必 <strong>idempotent</strong> + queue 提 供 idempotence + transactional support.</li>
+</ul>
+<p><strong>This is the practical exactly-once 定义</strong> — actual 1 time delivery 不保证, 但 1 time effects 保证. Network partition can still cause consumer to process twice in failure recovery; idempotency ensure action 一次.</p>
+<h3 id="true-once-vs-effective-once"><a class="header" href="#true-once-vs-effective-once">"True once vs effective once"</a></h3>
+<p>Layer 1 delivers at-least-once + Layer 2 (consumer-side idempotency) ⇒ effective once:</p>
+<ul>
+<li>idempotency key (unique business id)</li>
+<li>dedup store (Redis SETNX with TTL or DB unique key constraint)</li>
+<li>transactional update to multiple systems (projection update)</li>
+</ul>
+<hr />
+<h2 id="二kafka-语义"><a class="header" href="#二kafka-语义">二、Kafka 语义</a></h2>
+<h3 id="producer-配置"><a class="header" href="#producer-配置">Producer 配置</a></h3>
+<ul>
+<li><code>acks=0</code>: at-most-once (fire and forget).</li>
+<li><code>acks=1</code>: leader writes 后 ack; if leader fail before ISR 同步 → msg lost.</li>
+<li><code>acks=-1 / all</code>: leader + 全 ISR 同步 后 ack; RPO ≈ 0 with min.insync.replicas=2 + replication factor=3. <strong>At-least-once</strong> default since Kafka 3.0.</li>
+<li><code>enable.idempotence=true</code> (Kafka 3.0+ default): producer 内分配 <code>producer_id</code> + sequence number per partition, broker side 去重. <strong>Exactly-once send</strong> (无 duplicate).</li>
+</ul>
+<h3 id="consumer"><a class="header" href="#consumer">Consumer</a></h3>
+<p>Kafka consumer 提供 "<strong>at-least-once</strong>" delivery: per-partition offset commit:</p>
+<ul>
+<li><code>enable.auto.commit=true</code> + <code>auto.commit.interval.ms=5000</code>: 自 commit 后 consumer crash 之前 实际 processing 可能 never finish干, 但 commit 已 send → loss.</li>
+<li><code>enable.auto.commit=false</code> + manual-sync  commit After processing: duplicates possible if crash 后 process 后 before commit. ** Idempotent consumer required.**</li>
+</ul>
+<h3 id="transactions-kafka-011"><a class="header" href="#transactions-kafka-011">Transactions (Kafka 0.11+)</a></h3>
+<p>Producer 以 transactional <code>initTransactions()</code> 在 Kafka注册 <code>transactional.id</code>, 与 read-process-write transactional pipeline:</p>
+<pre><code>producer.beginTransaction()
+producer.send(topic_a, msg_out_1)
+producer.send(topic_b, msg_out_2)
+producer.sendOffsetsToTransaction(consumer_offsets)         # commit consumer offsets in same Txn
+producer.commitTransaction()
+</code></pre>
+<p>让 consumer 链路 transaction 与其 read commit offset 都在一个 Kafka事务 中. 两件事原子。下 consumer <code>isolation.level=read_committed</code> 不见未 commit 数据 → 不重复读取。</p>
+<h3 id="kafka-stream--ktable"><a class="header" href="#kafka-stream--ktable">Kafka Stream / kTable</a></h3>
+<p>Kafka Streams 内部用 transactions + 实际流处理 + state stores + offset commit 一事务 atomic → exactly-once processing <strong>guaranteed</strong> by lib. 没 idempotent library (像 plain client apps) 必须 ID 也自行 dedup.</p>
+<hr />
+<h2 id="三pulsar--rabbitmq--sqs--nats-对比"><a class="header" href="#三pulsar--rabbitmq--sqs--nats-对比">三、Pulsar / RabbitMQ / SQS / NATS 对比</a></h2>
+<h3 id="pulsar"><a class="header" href="#pulsar">Pulsar</a></h3>
+<ul>
+<li>BookKeeper ledger 提供 ledger-level ensemble write 投统一, end-to-end shared storage, 加序号, acked message 可recovered.</li>
+<li>"At-least-once" 默认; "exactly-once" 可以 subscribe unique consumer (shared subscription with name) + dedup at 正确.</li>
+<li><strong>Dedup</strong> with <code>producer_name</code> + <code>sequence_id</code> (Vue 系列 ...)  üyes 直接支持</li>
+</ul>
+<h3 id="rabbitmq"><a class="header" href="#rabbitmq">RabbitMQ</a></h3>
+<ul>
+<li>默认 at-least-once, consumer ack manual.</li>
+<li>message TTL, queue-level max size.</li>
+<li><strong>Generally not idempotent</strong> dedup, broker doesn't store 已处理 IDs. Application must dedupe.</li>
+<li>supports dead-letter exchange 来 without retry with TTL delay.</li>
+</ul>
+<h3 id="aws-sqs"><a class="header" href="#aws-sqs">AWS SQS</a></h3>
+<ul>
+<li><strong>At-least-once</strong> default; consumer 处理 + delete API; visibility timeout default 30s 后未 delete → message reap-appears。</li>
+<li><strong>FIFO queue</strong> with deduplication: producer 提供 <code>MessageDeduplicationId</code> → 5 分钟内同 id 抑制 (exactly-once per 5min window). Good for low-volume critical events.</li>
+<li><strong>DLQ (Dead Letter Queue)</strong>: max receive count exceeded → moved to DLQ for later analysis.</li>
+<li>部署 large scale is best practice with FIFO queue + deduplication_id + visibility_timeout 决定.</li>
+</ul>
+<h3 id="nats"><a class="header" href="#nats">NATS</a></h3>
+<ul>
+<li><strong>At-most-once</strong> by default (no ack).</li>
+<li>NATS JetStream (newer) 提供 persistent + acks + at-least-once.</li>
+<li>High throughput + log library.</li>
+</ul>
+<hr />
+<h2 id="四outbox-pattern--outboxmd"><a class="header" href="#四outbox-pattern--outboxmd">四、Outbox Pattern (→ <a href="outbox.html">outbox.md</a>)</a></h2>
+<p>外 trans actor 必须 update DB + send message queue atomic. 若 update DB 之后失败 ∈ queue delivery, 没 send. 若 send queue 之后 crash pre db commit, downstream 看到 event 但 DB 没 reflect, 是 service consistency break.</p>
+<p>Outbox pattern 解法:</p>
+<ul>
+<li>DB transaction 中既 插入 <code>_outbox</code> 表 一个 row = event, 与业务 row 同事务.</li>
+<li>异步 worker poll <code>_outbox</code> 表 → 发到 queue → 标记为 sent.</li>
+<li>queue publish + outbox row delete 必须 idempotent (DB unique constraint <code>event_id</code>, queue dedup <code>event_id</code>).</li>
+</ul>
+<p>也支持 CDC (Debezium 监 听 binlog + emit 到 kafka).</p>
+<hr />
+<h2 id="五幂等-consumer-pattern"><a class="header" href="#五幂等-consumer-pattern">五、幂等 Consumer Pattern</a></h2>
+<p>幂等处理 是 at-least-once 工业基本 assume. Consumer 必记 processed event_ids / dedupe.</p>
+<h3 id="db-unique-constraint"><a class="header" href="#db-unique-constraint">DB Unique Constraint</a></h3>
+<pre><code class="language-sql">CREATE TABLE processed_events (
+    event_id VARCHAR(64) PRIMARY KEY,
+    processed_at TIMESTAMP DEFAULT NOW(),
+    payload JSONB
+);
+
+-- Process:
+INSERT INTO processed_events (event_id, payload)
+VALUES (?, ?)
+ON CONFLICT (event_id) DO NOTHING
+RETURNING (xmax = 0) AS was_inserted;
+</code></pre>
+<p>如果 insert returns <code>was_inserted=true</code>, 是 first processing. 否则, 已处理, <strong>skip</strong> 但允许 commit/consume.</p>
+<h3 id="redis-setnx-with-ttl"><a class="header" href="#redis-setnx-with-ttl">Redis SETNX With TTL</a></h3>
+<pre><code class="language-python">def process_safe(event_id, business_func):
+    if not redis.set(f"processed:{event_id}", "1", nx=True, ex=86400):
+        return "already_processed"
+    return business_func(event_id)
+</code></pre>
+<p>short dedupe window via Redis TTL. 适合 bank transfer events.</p>
+<h3 id="idempotency-key-on-business-object"><a class="header" href="#idempotency-key-on-business-object">Idempotency Key on Business Object</a></h3>
+<p>Use a stable business identifier as idempotency key:</p>
+<pre><code>transfer request: 
+  idempotency_key = "Transfer|alice|bob|transfer_id_42"
+  process:
+    if key seen in records: return prior result
+    else: perform transfer, store result
+</code></pre>
+<hr />
+<h2 id="六典型事故"><a class="header" href="#六典型事故">六、典型事故</a></h2>
+<h3 id="stripe-duplicate-transfer-双扣款"><a class="header" href="#stripe-duplicate-transfer-双扣款">Stripe duplicate transfer (双扣款)</a></h3>
+<p>2018 某 Stripe webhook 失败重试一次 service, customer 写 了 paypal — ID错过了而是 一次性 completed trans del Declared result 充枣 高加! Escape 失败 had 时光. 但 hashing request hash 减少 duplicate check format 等配. Fix:  <code>Idempotency-Key</code> HTTPS required any writing API.</p>
+<h3 id="kafka-exactly-once-向前-duplicate-2016"><a class="header" href="#kafka-exactly-once-向前-duplicate-2016">Kafka exactly-once "向前 duplicate" 2016</a></h3>
+<p>Some Kafka business batches write to next downstream outside Kafka, 该 downstream RECEIVE 更多 program 复制 message. 应用 transform. Fix: process inside Kafka transactional commit.</p>
+<h3 id="twitter-fanout-tail-event-dedupe"><a class="header" href="#twitter-fanout-tail-event-dedupe">Twitter Fanout tail event dedupe</a></h3>
+<p>Each fanout event <code>event_id</code> 逐渐复杂性 同 actual server 引入 Redis SETNX. Hot spot.
+Fix: hash 各 partition agent id 同 by id, partition placement stable.</p>
+<h3 id="event-queue-from-processing-fail-发送邮件-duplicate"><a class="header" href="#event-queue-from-processing-fail-发送邮件-duplicate">Event queue from processing fail 发送邮件 duplicate</a></h3>
+<p>发 user emails 后下 系统 处理回 callAck → consumer failures reassigned to worker duplicate.  Payment providers往往 3 retries in DLQ. Idempotency ID store 邮件 list 总筛 duplicate.</p>
+<hr />
+<h2 id="七易错清单"><a class="header" href="#七易错清单">七、易错清单</a></h2>
+<ol>
+<li><strong>At-least-once 是默认</strong>: 必 定 claim idempotency, 写 client + dedup 是 standard.</li>
+<li><strong>Auto-commit 该 disable</strong>: manual commit after processing 避免丢.</li>
+<li><strong>Kafka producer 的 idempotence + transactional stream</strong> 提供支持 transaction; custom processing 必须应用 idempotency.</li>
+<li><strong>Idempotency key  must be stable</strong>: 不要 hash current time, use 业务级 unique  ID (e.g., order_id).</li>
+<li><strong>Visibility timeout &gt; max processing latency</strong>: else broker re-deliver original message duplicate. SQS visibility deafault 30s often too short.</li>
+<li><strong>DLQ 监控必</strong>: failures 让 message autonomous bypass manual inspection; silent depute Significant old embed.</li>
+<li><strong>Network partition</strong>: 多 send batch deliverCLient 拉 出 ATTEMPT 船  Rector多种 一次 思成功 2次 首项 准备 likelyhood client下次 写 际修复 logical input 干.</li>
+<li><strong>Ordering与delivery 重</strong>: 实部分 ordering not scaling well. 一 个 partition 是强 order 多 partition 全局 sorted impossible guarantees (sync only).</li>
+</ol>
+<hr />
+<h2 id="八这一章带走的东西"><a class="header" href="#八这一章带走的东西">八、这一章带走的东西</a></h2>
+<ol>
+<li>At-most-once (fire-and-forget), At-least-once (retry until acked), Exactly-once (idempotent + transactional).</li>
+<li>现实生产 多 <strong>At-least-once + Idempotency ID dedup</strong>; Exactly-once 通常 应用层自行实现.</li>
+<li>Kafka producer idempotence + transactions + consumer offsets in transaction 提供 end-to-end true exactly-once.</li>
+<li>SQS FIFO with <code>MessageDeduplicationId</code> + Visibility Timeout; RabbitMQ manual ack; NATS JetStream persistent.</li>
+<li><strong>Outbox Pattern</strong> 让 DB + queue 同 事务 并 atomic; CDC替代 outbox table.</li>
+<li>应用层 idempotency: 用户 + Event ID + Redis SETNX + DB unique constraint <code>event_id</code>.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="outbox.html">Outbox Pattern</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../system-design/queue/kafka.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../system-design/queue/outbox.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../system-design/queue/kafka.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../system-design/queue/outbox.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,453 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>SSA / CFG /支配树 / dom tree - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="ssa--cfg--支配树--dom-tree"><a class="header" href="#ssa--cfg--支配树--dom-tree">SSA / CFG / 支配树 / dom tree</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>SSA (Static Single Assignment) 是现代编译器中间表示：每个变量单次赋值。CFG (Control Flow Graph) 是基本块+边，支配树 (dominator tree) 给每基本块"唯一前驱节点"，控制依赖 (post-dominator) 决定循环 / 分支归属。LLVM、Cranelift、V8 Turbofan、 Hotspot C2 全部走 SSA。本节走完为什么 SSA 让优化简单、dom 树算法 (Cooper-Harvey-Kennedy)、SSA 构造、φ 节点、constant folding / DCE / mem-to-reg 等基于 SSA passes。</p>
+<hr />
+<h2 id="一cfg"><a class="header" href="#一cfg">一、CFG</a></h2>
+<p>CFG = (basic blocks, edges)</p>
+<ul>
+<li>basic block: linear sequence of straight-line instructions, single entry single exit</li>
+<li>edges: jump / fall through / branch</li>
+</ul>
+<pre><code>bb1: %a = 1
+     br bb2
+
+bb2: %cond = eq %a, 1
+     cond_br %cond, bb3, bb4
+
+bb3: %b = 2
+     br bb5
+
+bb4: %b = 3
+     br bb5
+
+bb5: %c = %b + 1
+     return %c
+</code></pre>
+<h2 id="二ssa-形式"><a class="header" href="#二ssa-形式">二、SSA 形式</a></h2>
+<p>每变量单次定义。"分支合并" 在汇合点用 φ (phi) function:</p>
+<pre><code>bb1: %a0 = 1
+     br bb2
+
+bb2: %cond0 = eq %a0, 1
+     cond_br %cond0, bb3, bb4
+
+bb3: %b0 = 2
+     br bb5(%b0)
+
+bb4: %b1 = 3
+     br bb5(%b1)
+
+bb5(%bx): %c0 = %bx + 1  ← phi (%b0, %b1) chooses 收 b0 / b1
+          return %c0
+</code></pre>
+<p><code>phi(%b0, %b1)</code> 给 bb5 选择正确祖先版本。</p>
+<h2 id="三为什么-ssa"><a class="header" href="#三为什么-ssa">三、为什么 SSA</a></h2>
+<pre><code>非 SSA:
+  int i = 0;
+  while (i &lt; N) { sum += a[i]; i++; }
+  // i 在 loop 多次赋值，需要 phi 加 join，但代码没明示.
+
+SSA:
+  i0 = 0
+  loop:
+    i_phi = phi(i0, i_succ)      ← merge values
+    cond = i_phi &lt; N
+    if !cond goto end
+    sum_phi = phi(sum0, sum_succ)
+    sum = sum_phi + a[i_phi]
+    i_succ = i_phi + 1
+    goto loop
+end:
+  return sum_phi
+</code></pre>
+<ul>
+<li><strong>def-use chain</strong> 显式 — 一个 SSA 变量只 one def，use 一定能反查 def</li>
+<li><strong>常量传播更直接</strong>：value 数 declines + multiple versions</li>
+<li><strong>DCE (Dead Code Elimination)</strong>: unused variable → entire def 可删</li>
+<li><strong>优化自动处理 alias</strong>: 不同 def/use 易跟踪</li>
+</ul>
+<h2 id="四支配树-dom-tree"><a class="header" href="#四支配树-dom-tree">四、支配树 (dom tree)</a></h2>
+<p>Dominator set dom(b) = { 起点 + all blocks 必经 b }</p>
+<ul>
+<li>idom(b) = immediate dominator (closest strict dominator)</li>
+<li>支配关系 form tree</li>
+</ul>
+<p>Cooper-Harvey-Kennedy 算法 (2001) O(n α(n,n)) — fast:</p>
+<pre><code>for bb in reverse_post_order(cfg):
+    idom[bb] = intersect(processed_preds(bb))
+</code></pre>
+<p>支配边界 (DF(bset)): 应插 φ 的基本块集合。</p>
+<pre><code>bb  has preds p1, p2
+DF(bb) = bb ∪ DF(p1) ∪ DF(p2)   if bb has ≥2 preds
+</code></pre>
+<p>Φ 插入算法 (Cytron 1991)：iter dominance frontier，每个 variable 算 DF ∩ definitions。</p>
+<h2 id="五ssa-构造算法"><a class="header" href="#五ssa-构造算法">五、SSA 构造算法</a></h2>
+<ol>
+<li><strong>Cytron</strong>: 计算 DF, 插 φ, 变 rename (use SSA version).</li>
+<li><strong>PrSSA / SSI</strong>: 边插 φ 在 split edge.</li>
+<li><strong>loop closed SSA (LCSSA)</strong>: 不让 loop value escape — 每变量 在 loop exit 插 φ.</li>
+</ol>
+<h2 id="六ssa-上的优化-passes"><a class="header" href="#六ssa-上的优化-passes">六、SSA 上的优化 passes</a></h2>
+<h3 id="61-constant-folding"><a class="header" href="#61-constant-folding">6.1 Constant folding</a></h3>
+<pre><code>%a = 1 + 2 → %a = 3
+</code></pre>
+<h3 id="62-dce-dead-code-elimination"><a class="header" href="#62-dce-dead-code-elimination">6.2 DCE (Dead Code Elimination)</a></h3>
+<pre><code>%a = 1 + 2   # nobody uses %a   → 删
+</code></pre>
+<h3 id="63-common-subexpression-elimination-cse"><a class="header" href="#63-common-subexpression-elimination-cse">6.3 Common Subexpression Elimination (CSE)</a></h3>
+<pre><code>%x = a + b
+%y = a + b  → %y = %x
+</code></pre>
+<h3 id="64-global-value-numbering-gvn"><a class="header" href="#64-global-value-numbering-gvn">6.4 Global Value Numbering (GVN)</a></h3>
+<p>assign 一 ID 每 equivalence class，make same expr → 同一 SSA value.</p>
+<h3 id="65-loop-invariant-code-motion-licm"><a class="header" href="#65-loop-invariant-code-motion-licm">6.5 Loop Invariant Code Motion (LICM)</a></h3>
+<p>循环不变量出循环.</p>
+<h3 id="66-partial-redundancy-elimination-pre"><a class="header" href="#66-partial-redundancy-elimination-pre">6.6 Partial Redundancy Elimination (PRE)</a></h3>
+<p>用 SSA + dom 树做"工作量保" Partial available 计算, loop-out invariant expr.</p>
+<h3 id="67-mem-to-reg"><a class="header" href="#67-mem-to-reg">6.7 Mem-to-reg</a></h3>
+<p>将 memory location 转 SSA reg (helps scalar replacement)</p>
+<h2 id="七ssa-destruction-out-of-ssa"><a class="header" href="#七ssa-destruction-out-of-ssa">七、SSA destruction (out-of-SSA)</a></h2>
+<p>LLVM IR 是 SSA，但目标机有 register 而非 SSA. 必须移除 phi:</p>
+<pre><code>phi(%x1, %x2):
+  
+ %x1 = ...(estimate predecessor branch)
+Store temp sẵn in each predecessor, e.g:
+pred1: %src1 = %x1
+pred2: %src2 = %x2
+join:  %dst = phi(%src1, %src2)
+→ rewrite as:
+pred1: %x_dst = %x1
+pred2: %x_dst = %x2
+join:  uses %x_dst
+</code></pre>
+<p>Implement: "critical edge splitting" + 虚拟 move 移到 predecessor.</p>
+<h2 id="八产线误用"><a class="header" href="#八产线误用">八、产线误用</a></h2>
+<h3 id="81-phi-node-与-critical-edge"><a class="header" href="#81-phi-node-与-critical-edge">8.1 phi node 与 critical edge</a></h3>
+<p>Critical edge: edge from bb with multiple successors to bb with multiple preds → 必须 split 加新 bb 防 phi 安装.</p>
+<h3 id="82-mem-to-reg-只-scalar"><a class="header" href="#82-mem-to-reg-只-scalar">8.2 mem-to-reg 只 scalar</a></h3>
+<p>array / heap object 不参与 mem-to-reg, must use Scalar Replacement of Aggregates (SROA) 的 pass.</p>
+<h3 id="83-lcssa-在-slt-边界"><a class="header" href="#83-lcssa-在-slt-边界">8.3 LCSSA 在 SLT 边界</a></h3>
+<p>入门 compiler 不实现 LCSSA 也能 work, 但 LICM out-of-loop 假设 LCSSA — 大 compiler (LLVM/GCC) 默认 LCSSA.</p>
+<h2 id="九易错清单"><a class="header" href="#九易错清单">九、易错清单</a></h2>
+<ol>
+<li><strong>phi 节点</strong>：数量要与 predecessor 数匹配</li>
+<li><strong>critical edge split</strong>: must add bogus 中间 bb</li>
+<li>** SSA destruction** 必须正确 set/move 以保 program semantics</li>
+<li><strong>dom tree</strong> 计算必 walk cfg in post-order / post-dominator 反之</li>
+<li><strong>dead phi</strong> variable 不能直接删除，需要 use-def chain verify DCE</li>
+<li><strong>Aliasing</strong> in mem-to-reg: multiple ub result name clash — 实现需要 alias analysis</li>
+</ol>
+<h2 id="十这一章带走的东西"><a class="header" href="#十这一章带走的东西">十、这一章带走的东西</a></h2>
+<ol>
+<li>SSA: 一变量一定义，让 def-use chain 显态； phi 在合并点</li>
+<li>CFG + dom tree 给 control flow 形式分析 / 支配边界 / branch analysis</li>
+<li>Cytron 1991 的 SSA construction algorithm 行业基础</li>
+<li>SSA 让 constant folding / DCE / GVN / LICM / PRE pass 写起来简单</li>
+<li>LLVM IR 是 SSA，cranelift 亦 SSA, V8 Turbofan / Hotspot IR SSA</li>
+<li>Phi 移除必 split critical edge + virtual moves in predecessor</li>
+<li>LCSSA force loop var in exit phi simplifies loop optimizations</li>
+</ol>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../compilers/sema/type-system.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../compilers/opt/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../compilers/sema/type-system.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../compilers/opt/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,889 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>总线与互联：PCIe / CXL / NVLink / RDMA - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="总线与互联pcie--cxl--nvlink--rdma"><a class="header" href="#总线与互联pcie--cxl--nvlink--rdma">总线与互联：PCIe / CXL / NVLink / RDMA</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>2024 年的数据中心里，CPU、GPU、内存、存储、网卡之间的互联，已经取代了处理器核数成为系统性能的第一瓶颈。PCIe 是系统内部的"高速公路"（x16 Gen5 = 64 GB/s），NVLink 是 GPU-to-GPU 的"专用铁路"（H100 900 GB/s/link），InfiniBand/RoCE 是跨机架的"洲际航班"（NDR 400 Gbps），而 CXL 正在把三者编织成一张<strong>可组合的、缓存一致的互联网络</strong>（cache-coherent fabric）。理解它们之间的层次、延迟和拓扑差异，是读懂任何一份 GPU 集群架构文档的前提。</p>
+<pre><code>                  ┌────────────────────────────────────┐
+                  │            CPU Socket              │
+                  │  ┌─────┐  ┌─────┐  UPI/IF ──────┐ │
+                  │  │Core │  │Core │  (CPU-CPU)    │ │
+                  │  └──┬──┘  └──┬──┘               │ │
+                  │     │ PCIe Root Complex          │ │
+                  │     └──────┬─────────────────────┘ │
+                  └────────────┼───────────────────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              │                │                 │
+         ┌────▼────┐     ┌────▼────┐      ┌────▼────┐
+         │  GPU 0  │     │ NVMe    │      │ NIC     │
+         │  PCIe   │     │ SSD     │      │ (IB/RoCE)
+         │  x16    │     │ x4      │      │ x16     │
+         └────┬────┘     └─────────┘      └────┬────┘
+              │                                │
+    NVLink (GPU-GPU)                    InfiniBand/RoCE
+    1-7 links each                       (Cluster network)
+</code></pre>
+<p><strong>四个核心数字：</strong> PCIe 5.0 x16 → 64 GB/s，NVLink 4 (H100) → 900 GB/s bidirectional，InfiniBand NDR → 400 Gbps per port，CXL.mem → ~300ns 延迟比 NUMA 快一倍。</p>
+<hr />
+<h2 id="一pcie系统内部的高速公路"><a class="header" href="#一pcie系统内部的高速公路">一、PCIe：系统内部的"高速公路"</a></h2>
+<h3 id="从并行总线到串行点对点"><a class="header" href="#从并行总线到串行点对点">从并行总线到串行点对点</a></h3>
+<p>PCIe（Peripheral Component Interconnect Express）的名字里带着"buse"这个词是历史遗产——老式 PCI 确实是共享总线（shared bus），所有设备挂在同一根总线上，任何一个设备占用总线时其他设备就得等着。PCIe 彻底抛弃了这个架构，改用<strong>串行点对点（serial point-to-point）</strong>：每一条链路（link）只能连接两个设备，带宽通过增加并行通道（lane）来扩展。</p>
+<pre><code>Shared bus (PCI)              vs.       Point-to-point (PCIe)
+                                        
+ CPU ──┬──┬──┬──┬──┬── BUS            CPU ── Switch ──┬── EP A
+       │  │  │  │  │                                  ├── EP B
+       A  B  C  D  E                                  └── EP C
+       
+ 一次只能一个设备传输              每个设备有独立的带宽
+ bandwidth shared               bandwidth dedicated
+</code></pre>
+<h3 id="lane-与带宽x1-x4-x8-x16"><a class="header" href="#lane-与带宽x1-x4-x8-x16">Lane 与带宽：x1, x4, x8, x16</a></h3>
+<p>PCIe 的带宽单位是 <strong>lane</strong>（通道）。每个 lane 包含 4 根物理线：一对差分信号发送（TX+ / TX-），一对差分信号接收（RX+ / RX-）。一条 lane 可以<strong>同时</strong>收发——全双工。</p>
+<div class="table-wrapper"><table><thead><tr><th>代数</th><th>速率 (GT/s)</th><th>编码</th><th>有效带宽/lane/dir</th><th>x16 总带宽/dir</th></tr></thead><tbody>
+<tr><td>Gen 1 (2003)</td><td>2.5</td><td>8b/10b</td><td>0.25 GB/s</td><td>4 GB/s</td></tr>
+<tr><td>Gen 2 (2007)</td><td>5.0</td><td>8b/10b</td><td>0.50 GB/s</td><td>8 GB/s</td></tr>
+<tr><td>Gen 3 (2010)</td><td>8.0</td><td>128b/130b</td><td>0.985 GB/s ≈ <strong>1 GB/s</strong></td><td>~16 GB/s</td></tr>
+<tr><td>Gen 4 (2017)</td><td>16.0</td><td>128b/130b</td><td>1.969 GB/s ≈ <strong>2 GB/s</strong></td><td>~32 GB/s</td></tr>
+<tr><td>Gen 5 (2019)</td><td>32.0</td><td>128b/130b</td><td>3.938 GB/s ≈ <strong>4 GB/s</strong></td><td><strong>~64 GB/s</strong></td></tr>
+<tr><td>Gen 6 (2022)</td><td>64.0</td><td>PAM4 + FEC</td><td>7.87 GB/s ≈ <strong>8 GB/s</strong></td><td><strong>~128 GB/s</strong></td></tr>
+<tr><td>Gen 7 (spec 2025)</td><td>128.0</td><td>PAM4 + FEC</td><td>~15.75 GB/s</td><td><strong>~256 GB/s</strong></td></tr>
+</tbody></table>
+</div>
+<blockquote>
+<p><strong>GT/s vs GB/s</strong>：GT/s（GigaTransfers per second）是物理层符号速率。从 Gen3 开始使用 128b/130b 编码（每 128 位数据只产生 2 位开销 → 开销 ~1.5%），而 Gen1/2 用的 8b/10b 编码（每 8 位数据产生 2 位开销 → 开销 20%）。所以 Gen3 "标称" 8 GT/s 的有效带宽是 8 × (128/130) / 8 = 0.985 GB/s/lane。</p>
+</blockquote>
+<p><strong>Gen6 的关键变化：PAM4 调制。</strong> Gen5 及以前使用 NRZ（Non-Return-to-Zero），每个符号周期传输 1 bit（0 或 1）。Gen6 升级到 PAM4（Pulse Amplitude Modulation 4-level），每个符号周期传输 2 bit（00, 01, 10, 11）——相当于在同样的 32 GHz 物理信道上翻倍速率。代价是信噪比下降，需要前向纠错（FEC, Forward Error Correction）来保证误码率。</p>
+<pre><code>NRZ (Gen5):                     PAM4 (Gen6):
+  1 bit/symbol                    2 bit/symbol
+
+V ──┐     ┌──  "1"            V ──┐     ┌──  "11" (3)
+    │     │                        │     │
+    └─────┘  "0"                   ├──┐  ├──  "10" (2)
+                                   │  │  │
+                                   │  └──┤  "01" (1)
+                                   │     │
+                                   └─────┘  "00" (0)
+</code></pre>
+<h3 id="常见的链路宽度"><a class="header" href="#常见的链路宽度">常见的链路宽度</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>设备</th><th>典型 lane</th><th>原因</th></tr></thead><tbody>
+<tr><td>NVMe SSD</td><td>x4</td><td>消费级 7 GB/s 够用；企业级也有 x8</td></tr>
+<tr><td>GPU (消费级)</td><td>x16</td><td>需要 64 GB/s（Gen5）加载纹理</td></tr>
+<tr><td>GPU (企业级 A100/H100)</td><td>x16</td><td>Gen5 ×16 = 64 GB/s 成瓶颈，NVLink 补上</td></tr>
+<tr><td>网卡 (100GbE/200GbE)</td><td>x16 (Gen4)</td><td>200 GbE ≈ 25 GB/s，Gen4 x8 = 16 GB/s 不够</td></tr>
+<tr><td>FPGA 加速卡</td><td>x8 或 x16</td><td>视加速任务而定</td></tr>
+</tbody></table>
+</div>
+<h3 id="pcie-协议栈三层模型"><a class="header" href="#pcie-协议栈三层模型">PCIe 协议栈：三层模型</a></h3>
+<p>PCIe 协议像网络协议栈一样分为三层：</p>
+<pre><code>┌──────────────────────────────────────┐
+│       Transaction Layer (TL)         │  ← TLP 包，读/写请求
+│  - TLP (Transaction Layer Packet)    │     Address, Data, Completion
+│  - 内存读/写、IO 读/写、配置读/写   │
+│  - Message (中断、电源管理等)        │
+├──────────────────────────────────────┤
+│       Data Link Layer (DLL)          │  ← DLLP 包，可靠传输
+│  - ACK / NAK 机制                    │     Sequence Number + CRC
+│  - 流控信用 (Flow Control Credits)   │
+│  - DLLP (Data Link Layer Packet)     │
+├──────────────────────────────────────┤
+│       Physical Layer (PHY)           │  ← 电气 + LTSSM 状态机
+│  - 8b/10b 或 128b/130b 编码         │
+│  - LTSSM (Link Training &amp; Status     │
+│    State Machine)                     │
+│  - 链路训练、均衡 (Equalization)     │
+└──────────────────────────────────────┘
+</code></pre>
+<p><strong>Transaction Layer (TL)</strong> 是核心：它产生 TLP（Transaction Layer Packet）。一个 TLP 包含：</p>
+<pre><code>┌───────┬────┬─────────┬──────┬──────┬────────────┬──────┐
+│Header │ Seq#│ Address │Attrib│Length│   Data     │ ECRC │
+│12-16B │    │ 32/64b  │      │ 10b  │ ≤ 4096B    │ 32b  │
+└───────┴────┴─────────┴──────┴──────┴────────────┴──────┘
+</code></pre>
+<p>TLP 穿过 Data Link Layer 时会加上 Sequence Number（用于 ACK/NAK 重传）和 LCRC（Link CRC），到了 Physical Layer 还会加上 Framing 和物理层开销。</p>
+<p><strong>Data Link Layer 的 ACK/NAK 机制</strong>：每个设备为发送的每条 TLP 分配一个 Sequence Number。接收方设备检查 LCRC——如果正确，回复 ACK DLLP（携带 Sequence Number）；如果 CRC 错误，回复 NAK DLLP，发送方重传。这保证了所有 TLP 要么成功投递，要么链路中断（此时 LTSSM 会触发链路恢复）。</p>
+<p><strong>Flow Control（流控）</strong>：发送方不会超过接收方 buffer 容量。接收方定期发布 FC（Flow Control）信用更新 DLLP，告诉对方"我还能再接收 X 个 Posted/Non-Posted/Completion 数据单元"。信用耗尽 → 发送方暂停。</p>
+<p><strong>LTSSM（Link Training &amp; Status State Machine）</strong> 管理物理链路的生命周期：</p>
+<pre><code>                  +-- Link Down (reset) &lt;-+
+                  |                       |
+  Detect ──→ Polling ──→ Configuration ──→ L0 (active data transfer)
+     ↑                                ↓    ↓
+     └── Recovery ←── L1/L2 (low power sleep)
+</code></pre>
+<ul>
+<li><strong>Detect</strong>: 检测对端设备是否插入</li>
+<li><strong>Polling</strong>: 交换 Bit Lock、Symbol Lock，训练 PHY</li>
+<li><strong>Configuration</strong>: 协商链路宽度（x1/x4/x8/x16）和速率（Gen1→Gen5→Gen6）</li>
+<li><strong>L0</strong>: 正常工作，数据可以自由流动</li>
+<li><strong>L1/L2</strong>: 功耗管理状态（增加恢复延迟以换取节能）</li>
+</ul>
+<h3 id="dma-与-bar设备如何读写内存"><a class="header" href="#dma-与-bar设备如何读写内存">DMA 与 BAR：设备如何读写内存</a></h3>
+<p>设备不是"看到"了处理器地址空间——它通过 <strong>BAR（Base Address Register）</strong> 声明自己的地址窗口。</p>
+<pre><code>CPU 侧：Root Complex 管理全局地址映射
+   CPU 物理地址 0x1000_0000 → 可以路由到 PCIe 设备 X 的 BAR 2
+
+设备侧：设备发起 DMA 读/写
+   GPU (PCIe EP) 发送 TLP：Memory Write, Address=0x2000_0000, Data=[...]
+   → Root Complex 查地址映射表 (IOMMU 页表) → 翻译到 DRAM 物理地址
+   → 写 DRAM
+</code></pre>
+<p><strong>BAR 机制详解</strong>：</p>
+<pre><code>BIOS/UEFI 枚举过程:
+1. 扫描 Root Port → Switch → 每个 Endpoint
+2. 对于每个 Endpoint，读取 BAR 配置寄存器
+3. 设备说自己需要 X MB 地址空间（e.g., GPU 256MB BAR）
+4. BIOS 在全局地址空间中分配一段连续范围
+5. 写入 BAR 寄存器，设备知道自己的地址空间
+6. CPU 通过 load/store BAR 范围内的地址 ↔ Root Complex 转为 TLP
+</code></pre>
+<p>现代的 GPU 通常有 3-6 个 BAR：BAR0（256MB，内存映射寄存器）、BAR1（256MB，内存映射寄存器）、BAR2/BAR3（16GB+，芯片上显存映射，支持 Resizable BAR / AMD SAM）。</p>
+<hr />
+<h2 id="二pcie-拓扑树形结构"><a class="header" href="#二pcie-拓扑树形结构">二、PCIe 拓扑：树形结构</a></h2>
+<h3 id="root-complexswitchendpoint"><a class="header" href="#root-complexswitchendpoint">Root Complex、Switch、Endpoint</a></h3>
+<p>PCIe 拓扑是一棵以 <strong>Root Complex</strong> 为根节点的树：</p>
+<pre><code>                    ┌──────────────────────┐
+                    │    CPU Die / SoC     │
+                    │  ┌────────────────┐  │
+                    │  │  Root Complex  │  │
+                    │  │  (多个Root Port) │  │
+                    │  └──┬──┬──┬──┬───┘  │
+                    └─────┼──┼──┼──┼──────┘
+                    ┌─────┘  │  │  └─────┐
+                    │   ┌────┘  └────┐    │
+               ┌────▼─┐ │     ┌────▼──┐ │
+               │PCIe  │ │     │ NVMe  │ │
+               │Switch│ │     │ SSD   │ │
+               └──┬─┬─┘ │     └───────┘ │
+              ┌───┘ └──┐│               │
+         ┌────▼─┐ ┌───▼▼┐         ┌────▼──┐
+         │ GPU0 │ │ GPU1│         │  NIC  │
+         └──────┘ └─────┘         └───────┘
+</code></pre>
+<p><strong>Root Complex（RC）</strong>：连接 CPU 和 PCIe 世界的桥梁。在 x86 系统里，RC 集成在 CPU die 上。每个 Root Port 可以独立配置——带宽分配、错误处理、电源管理都是 per-port 的。</p>
+<p><strong>Switch</strong>：让根端口下挂更多的 Endpoint。Switch 有 1 个 Upstream Port（连向 RC）和多个 Downstream Port（连向各 EP）。它不是路由器——没有地址学习、没有动态路由——TLP 的路由是由 switch 根据 TLP header 里的总线号/设备号/功能号（BDF）来做的。</p>
+<p><strong>Endpoint</strong>：叶子节点——GPU、NVMe SSD、网卡、FPGA。Endpoint 通过 Function（每个设备最多 8 个 Function）来分割功能。例如一张 Mellanox CX-7 网卡，可能 Function 0 = 网卡控制器、Function 1 = RDMA 引擎、Function 2 = NVMe-oF 控制器。</p>
+<h3 id="现代服务器的典型-pcie-布局"><a class="header" href="#现代服务器的典型-pcie-布局">现代服务器的典型 PCIe 布局</a></h3>
+<p>一台配备 2 颗 Intel Xeon Sapphire Rapids（每颗 80 条 PCIe 5.0 lane）的服务器：</p>
+<pre><code>Socket 0 (CPU 0) - 80 PCIe 5.0 lanes
+├── Root Port 0: x16 → GPU 0 (H100)
+├── Root Port 1: x16 → GPU 1 (H100)
+├── Root Port 2: x16 → GPU 2 (H100)
+├── Root Port 3: x16 → GPU 3 (H100)
+├── Root Port 4: x8 → NIC 0 (ConnectX-7)
+├── Root Port 5: x4 → NVMe SSD 0
+├── Root Port 6: x4 → NVMe SSD 1
+└── Root Port 7: UPI → Socket 1
+
+Socket 1 (CPU 1) - 80 PCIe 5.0 lanes
+├── Root Port 0: x16 → GPU 4 (H100)
+├── Root Port 1: x16 → GPU 5 (H100)
+├── Root Port 2: x16 → GPU 6 (H100)
+├── Root Port 3: x16 → GPU 7 (H100)
+├── Root Port 4: x8 → NIC 1 (ConnectX-7)
+├── Root Port 5: x4 → NVMe SSD 2
+├── Root Port 6: x4 → NVMe SSD 3
+└── Root Port 7: UPI → Socket 0
+</code></pre>
+<p><strong>关键观察</strong>：GPU 0-3 直接挂在 Socket 0 下面。GPU 0 要给 GPU 4 传数据 → 必须通过 RDMA（经过 NIC 0 → 交换机 → NIC 1 → GPU 4）或通过 NVLink（如果有 NVSwitch 的话），或者绕过——直接不支持通过 PCIe/UPI 跨 Socket 做 GPU 间 P2P 传输。这就是为什么 DGX 系统把 8 个 GPU 全挂在同一颗 CPU 下，并用 NVSwitch 取代 PCIe 走 GPU 间流量。</p>
+<h3 id="resizable-bar-rebar--amd-sam"><a class="header" href="#resizable-bar-rebar--amd-sam">Resizable BAR (ReBAR) / AMD SAM</a></h3>
+<p>传统 PCIe BAR 只能映射最多 256MB 的显存给 CPU（因为 32-bit BAR 兼容性）。这意味着 CPU 每次只能"看到" GPU 显存的一个小窗口，必须通过地址重映射来翻窗口——翻一次窗口就是一次 PCIe TLP round-trip。</p>
+<p>Resizable BAR 允许协商更大的 BAR 窗口（2GB / 4GB / 16GB），让 CPU 一次性映射 GPU 的全部或大部分显存。这对纹理加载和 DirectStorage 这类技术有巨大帮助——<code>memcpy(vram, ssd_buffer, 16GB)</code> 不再需要翻 64 次 256MB 窗口。</p>
+<hr />
+<h2 id="三cxl基于-pcie-的缓存一致性互联"><a class="header" href="#三cxl基于-pcie-的缓存一致性互联">三、CXL：基于 PCIe 的缓存一致性互联</a></h2>
+<h3 id="cxl-是什么为什么"><a class="header" href="#cxl-是什么为什么">CXL 是什么、为什么</a></h3>
+<p>CXL（Compute Express Link）解决的问题很简单：<strong>PCIe 没有缓存一致性（cache coherency）</strong>。在一台标准的 PCIe 服务器上：</p>
+<ul>
+<li>网卡通过 DMA 写了数据到 DRAM → CPU cache line 可能还是旧的（stale）。你需要"手动"flush cache line 或使用不可缓存的（uncacheable）内存区域。</li>
+<li>GPU 不能缓存（cache）CPU 页表——即使 GPU 和 CPU 共享物理内存，GPU 只能通过 MMIO/ATB 查询 CPU 的页表，延迟巨大。</li>
+</ul>
+<p>CXL 在 PCIe 物理层之上加了三个新协议，把 PCIe 从"你传你的，我存我的"升级为"我们共享同一个缓存一致域"。</p>
+<h3 id="cxl-的三层协议"><a class="header" href="#cxl-的三层协议">CXL 的三层协议</a></h3>
+<pre><code>┌───────────────────────────────────────┐
+│             CXL Transaction           │
+├───────────┬───────────┬───────────────┤
+│  CXL.io   │ CXL.cache │   CXL.mem     │
+├───────────┴───────────┴───────────────┤
+│         CXL Link Layer                │
+├───────────────────────────────────────┤
+│    PCIe 5.0 / 6.0 Physical Layer      │
+└───────────────────────────────────────┘
+</code></pre>
+<p><strong>CXL.io</strong>：功能上和 PCIe 几乎相同——用于设备发现、配置空间、DMA、中断。任何 CXL 设备至少支持 CXL.io。可以理解为"标准 PCIe 的部分直接复用"。</p>
+<p><strong>CXL.cache</strong>：让设备可以<strong>持有主机内存的缓存副本</strong>（coherent cache）。协议使用标准 MESIF 或 MOESI 协议，设备发 Cache MemRd / Cache MemWr 请求，Host 负责响应和 snoop 已有的 cache line。典型场景：GPU 缓存 CPU 的页表和数据结构，访问延迟从 µs 级降到 ns 级。</p>
+<pre><code>没有 CXL.cache（标准 PCIe）:
+  GPU 需要读 CPU 页表
+  → BAR MMIO 读 (uncacheable) → PCIe TLP → RC → DRAM → TLP 返回
+  → 每次 ~500ns
+
+有 CXL.cache:
+  GPU 发 Cache MemRd 请求
+  → RC 查 CPU L3/L2/L1 → hit in L3 → 直接回传 cache line
+  → ~80-150ns（省去了 DRAM 往返）
+  GPU 还把这个页表 line 缓存在自己的 cache 里，后续访问 ~ns 级
+</code></pre>
+<p><strong>CXL.mem</strong>：反向——让<strong>主机 CPU 可以把设备上的内存当系统内存用</strong>。Host 发 MemWr/MemRd TLP 到设备，设备返回数据并维护自己的 cache 状态（如果设备上有 cache 的话）。典型场景：CXL Type-3 内存扩展卡——一个你插进 PCIe 插槽就能让服务器多出 512GB DDR5 内存的设备。</p>
+<p>CPU 看到的物理地址空间：</p>
+<pre><code>[ 0 - 256GB ]      本地 DDR5 (DRAM, ~100ns)
+[ 256 - 768GB ]    CXL Type-3 内存扩展卡 0 (~300ns)
+[ 768 - 1280GB ]   CXL Type-3 内存扩展卡 1 (~320ns)
+</code></pre>
+<p>每个地址范围通过 <strong>Host Physical Address (HPA) decoder</strong> 路由到本地 DRAM 或 CXL 设备。操作系统通过 ACPI SRAT/HMAT 表了解到这些区域的性能和延迟差异，从而做 NUMA-aware 的内存分配。</p>
+<h3 id="cxl-设备类型"><a class="header" href="#cxl-设备类型">CXL 设备类型</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Type</th><th>协议支持</th><th>典型设备</th><th>说明</th></tr></thead><tbody>
+<tr><td><strong>Type 1</strong></td><td>CXL.io + CXL.cache</td><td>智能网卡 (SmartNIC)、DPU</td><td>设备可以缓存主机内存，加速 packet buffer 和数据面处理。不能附加自己的内存</td></tr>
+<tr><td><strong>Type 2</strong></td><td>CXL.io + CXL.cache + CXL.mem</td><td>GPU (如 Intel Ponte Vecchio)、FPGA</td><td>双方互相共享内存。GPU 可以缓存 CPU 页，CPU 可以直接访问 GPU HBM——双方都在同一个 cache coherent 域里</td></tr>
+<tr><td><strong>Type 3</strong></td><td>CXL.io + CXL.mem</td><td>内存扩展卡、持久内存</td><td>纯内存设备。把 DRAM/持久内存挂在 CXL 链路上，主机操作系统看到的就是新的 NUMA node</td></tr>
+</tbody></table>
+</div>
+<h3 id="cxl-内存池化与可组合基础设施"><a class="header" href="#cxl-内存池化与可组合基础设施">CXL 内存池化与可组合基础设施</a></h3>
+<p>CXL 最具颠覆性的用法不是单个设备的连接，而是<strong>把多个主机的内存需求集中到 CXL 交换机后面的共享内存池</strong>。</p>
+<pre><code>        Host 0    Host 1    Host 2       ...    Host 15
+          │         │         │                     │
+          └─────────┼─────────┼─────────────────────┘
+                    │
+            ┌───────▼───────┐
+            │  CXL Switch   │   (multi-host switch)
+            └───┬───┬───┬───┘
+                │   │   │
+        ┌───────┘   │   └───────┐
+        ▼           ▼           ▼
+   ┌─────────┐ ┌─────────┐ ┌─────────┐
+   │ CXL Mem │ │ CXL Mem │ │ CXL Mem │
+   │ 512GB   │ │ 512GB   │ │ 512GB   │
+   └─────────┘ └─────────┘ └─────────┘
+</code></pre>
+<p><strong>动态容量分配</strong>：Host 2 现在只需要 128GB，但 Host 5 需要 1TB——CXL 池化管理器可以热重配置：从 pool 里分配 768GB 给 Host 5，256GB 给 Host 2——<strong>不需要重启、不需要物理插拔</strong>。数据中心的内存利用率从传统的 50-60%（每台服务器有大量闲置但无法转移的 DRAM）跃升到 80-90%。</p>
+<p><strong>Multi-Logical Device (MLD)</strong>：一个物理 CXL 内存设备可以切成多个逻辑分区，每个分区分配给不同的主机。一个 512GB 的 CXL Type-3 设备可以同时被 4 台主机"看到"为各 128GB 的独立内存。</p>
+<hr />
+<h2 id="四nvlinknvidia-的-gpu-互联帝国"><a class="header" href="#四nvlinknvidia-的-gpu-互联帝国">四、NVLink：NVIDIA 的 GPU 互联帝国</a></h2>
+<h3 id="为什么需要-nvlink"><a class="header" href="#为什么需要-nvlink">为什么需要 NVLink</a></h3>
+<p>先把问题摆清楚：一张 H100 GPU 的计算能力是 1979 TFLOPS (FP8)，但 PCIe 5.0 x16 的带宽只有 64 GB/s。一个 LLM 训练梯度的 all-reduce 步骤，如果走 PCIe — 假设每 GPU 要互相传 16GB 梯度 — PCIe 就需要 16 GB / (64 GB/s / 2) ≈ 0.5 秒。NVLink 4 (900 GB/s) 则是 16 GB / (900 / 2) ≈ 35 毫秒。差 14 倍。</p>
+<p>对 NVIDIA 来说这不是"优化"，而是"训练可行与否的物理边界"——任何 8 卡训练 PCIe x16 全互联（full-mesh 需要 7 条双向链路 × 64 GB/s = 448 GB/s，但物理上做不到，因为 PCIe 是树形结构）都不可能达到需求。</p>
+<h3 id="nvlink-代际演化"><a class="header" href="#nvlink-代际演化">NVLink 代际演化</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>代</th><th>产品</th><th>速率/link</th><th>每 GPU links</th><th>总双向带宽</th><th>关键创新</th></tr></thead><tbody>
+<tr><td>NVLink 1</td><td>P100 (2016)</td><td>20 GB/s</td><td>4 links</td><td>160 GB/s</td><td>首次 GPU-GPU 直连</td></tr>
+<tr><td>NVLink 2</td><td>V100 (2017)</td><td>25 GB/s</td><td>6 links</td><td>300 GB/s</td><td>拓扑更密</td></tr>
+<tr><td>NVLink 3</td><td>A100 (2020)</td><td>50 GB/s</td><td>12 links</td><td>600 GB/s</td><td>NVSwitch 支持 all-to-all</td></tr>
+<tr><td>NVLink 4</td><td>H100 (2022)</td><td>50 GB/s</td><td>18 links</td><td>900 GB/s</td><td>NVSwitch 3 (64 ports)</td></tr>
+<tr><td>NVLink 5</td><td>B200 (2024)</td><td>100 GB/s</td><td>18 links</td><td><strong>1.8 TB/s</strong></td><td>更高速率，NVSwitch 4</td></tr>
+<tr><td>NVLink-C2C</td><td>Grace Hopper (2023)</td><td>450 GB/s</td><td>专用</td><td>900 GB/s</td><td>CPU-GPU coherent link</td></tr>
+</tbody></table>
+</div>
+<p><strong>NVLink 不是"总线"</strong>。每条 NVLink 是两个 GPU 之间的<strong>专用点对点链路</strong>（dedicated point-to-point link）。H100 有 18 条 NVLink 4，意味着它可以同时连接多达 18 个不同的对端设备（实际在 DGX 中是连到 8 颗 H100 的互连，每对之间用多条 link）。</p>
+<h3 id="nvswitch突破-all-to-all-瓶颈"><a class="header" href="#nvswitch突破-all-to-all-瓶颈">NVSwitch：突破 All-to-All 瓶颈</a></h3>
+<p>上面的 18 条 NVLink 全部连到 GPU 本身——但如果你想 8 个 GPU 全互联（任意两个 GPU 之间都有对应的 NVLink），需要多少条链路？答案是 7 条 per GPU × 8 = 56 条（双向）。物理上 H100 做不到直接全互联——PCB 布线只是理由之一，真正的瓶颈是芯片上只能放有限数量的 NVLink 单元。</p>
+<p>NVSwitch 解决了这个问题。它像一个 crossbar 交换机：</p>
+<pre><code>                ┌────── NVSwitch 0 ──────┐
+                │  Port 0  Port 1  ...  Port 7  │
+                └───┬───────┬────────────┬─┘
+                    │       │            │
+   GPU0 NVLink─────┘       │            └───── GPU7 NVLink
+   GPU1 NVLink─────────────┘             ...
+</code></pre>
+<p>H100 DGX 系统有 4 个 NVSwitch 3（每个 64 端口），8 个 GPU × 18 条 NVLink ÷ 4 个 NVSwitch = 每个交换机的每个端口连一个 GPU（实际上每个 GPU 通过多条 NVLink 连接到每个 NVSwitch，保证 full bandwidth）。</p>
+<pre><code>H100 DGX 全互联带宽：
+  任何一个 GPU → 另一个 GPU = 7 条 NVLink 4 × 50 GB/s = 450 GB/s
+  8 GPU all-to-all = 8 × 7 / 2 × 50 = 1400 GB/s = 7.2 TB/s 全局双向带宽
+</code></pre>
+<p><strong>NVSwitch 的交换方式</strong>：NVSwitch 内部使用的是 cut-through switching（热土豆交换）——收到数据包头就开始转发，不需要缓存整个报文。这比 store-and-forward 的延迟低不少（&lt;100ns switch latency）。</p>
+<h3 id="grace-hoppercpu-gpu-一致互联"><a class="header" href="#grace-hoppercpu-gpu-一致互联">Grace Hopper：CPU-GPU 一致互联</a></h3>
+<p>2023 年 NVIDIA 发布的 Grace Hopper Superchip 将 ARM CPU（Grace，72 核 Neoverse V2）和 H100 GPU 通过 <strong>NVLink-C2C</strong> 直接连接。</p>
+<pre><code>┌──────────────┐       NVLink-C2C        ┌──────────────┐
+│  ARM Grace   │  ←──450 GB/s ×2──→     │ H100 GPU     │
+│  72-core     │     (双向 900 GB/s)      │ 80 GB HBM3   │
+│ CPU          │                          │              │
+│              │  ┌── Coherent ───────────│──────────┐   │
+│   LPDDR5X    │  │                      │  HBM3    │   │
+│   up to 480GB│  │ Shared address space │ 80GB     │   │
+└──────────────┘  └──────────────────────└──────────┘   │
+                  CPU 和 GPU 共享同一个物理地址空间
+</code></pre>
+<p><strong>这是 CXL.cache + CXL.mem 的 NVIDIA 专属实现</strong>。CPU 和 GPU 使用 MOESI 缓存一致性协议共享地址空间——GPU 可以直接 cache CPU 的 LPDDR5X 页面（不再需要通过 PCIe BAR 做地址映射），CPU 也可以直接访问 GPU 的 HBM。对应用开发者来说，<code>cudaMallocManaged()</code> 变得几乎零成本——底层硬件自动维护一致性，没有 driver 层面的 page fault 和 migration 延迟。</p>
+<p>这与 AMD 的 MI300A 形成了直接竞争：AMD 把 24 个 Zen4 核心和 CDNA3 GPU 放在同一个 Package 上，用 Infinity Fabric 走 in-package 互联——思路一样，但实现完全不同。NVIDIA 选择 Chip-to-Chip（C2C）物理层，AMD 选择 Infinity Fabric 扩展。</p>
+<hr />
+<h2 id="五infiniband-与-rdma跨机架的-dma"><a class="header" href="#五infiniband-与-rdma跨机架的-dma">五、InfiniBand 与 RDMA：跨机架的 DMA</a></h2>
+<h3 id="infiniband-基础"><a class="header" href="#infiniband-基础">InfiniBand 基础</a></h3>
+<p>InfiniBand 是 Mellanox（现 NVIDIA Networking）设计的 HPC/AI 集群专用互联。它是<strong>基于信用流控的、无损的、远程 DMA 的链路层协议</strong>：</p>
+<div class="table-wrapper"><table><thead><tr><th>代</th><th>每 lane 速率</th><th>4x (HDR/NDR 常用)</th><th>12x</th><th>延迟 (switch + PHY)</th></tr></thead><tbody>
+<tr><td>SDR</td><td>2.5 Gbps</td><td>10 Gbps</td><td>30 Gbps</td><td>~5µs</td></tr>
+<tr><td>DDR</td><td>5 Gbps</td><td>20 Gbps</td><td>60 Gbps</td><td>~3µs</td></tr>
+<tr><td>QDR</td><td>10 Gbps</td><td>40 Gbps</td><td>120 Gbps</td><td>~2µs</td></tr>
+<tr><td>FDR</td><td>14 Gbps</td><td>56 Gbps</td><td>168 Gbps</td><td>~1.5µs</td></tr>
+<tr><td>EDR</td><td>25 Gbps</td><td>100 Gbps</td><td>300 Gbps</td><td>~1.2µs</td></tr>
+<tr><td>HDR</td><td>50 Gbps</td><td>200 Gbps</td><td>600 Gbps</td><td>~1µs</td></tr>
+<tr><td>NDR</td><td>100 Gbps</td><td><strong>400 Gbps</strong></td><td>1.2 Tbps</td><td>&lt;1µs</td></tr>
+<tr><td>NDR200</td><td>100 Gbps (SHARP)</td><td>400 Gbps</td><td>—</td><td>&lt;1µs</td></tr>
+<tr><td>XDR</td><td>200 Gbps</td><td><strong>800 Gbps</strong></td><td>—</td><td>&lt;1µs</td></tr>
+</tbody></table>
+</div>
+<p>InfiniBand 使用 <strong>链路层流控（Link-Layer Flow Control）</strong>，而非以太网的 PAUSE 帧或 PFC。发送方在发送每个包之前必须拥有足够的"信用"——这是接收方 buffer 空间的一种保证。这使得 InfiniBand 在满载时保持零丢包，而不需要像 TCP 那样重传。</p>
+<h3 id="rdma-的工作原理"><a class="header" href="#rdma-的工作原理">RDMA 的工作原理</a></h3>
+<p><strong>RDMA（Remote Direct Memory Access）</strong> 是 InfiniBand 最强大的能力：网卡可以<strong>直接读写远程机器的内存，不经过远程 CPU 参与</strong>。</p>
+<pre><code>传统网络 (TCP):
+  Sender App → buffer → kernel TCP stack → NIC → wire
+  → remote NIC → kernel TCP → buffer → App (CPU wake + copy)
+
+RDMA:
+  Sender App → buffer (registered MR) → NIC reads buffer via DMA → wire
+  → remote NIC → DMA writes directly into remote MR → completion
+  → remote App poll CQ → 数据已经在那里了
+  
+  省掉了: 两次 kernel 穿越 + 两次 copy + remote CPU 中断
+</code></pre>
+<p><strong>RDMA 的 Verbs API</strong>：</p>
+<pre><code class="language-c">// 1. 注册内存区域 (Memory Region) — 锁住物理页，不要被 swap
+struct ibv_mr *mr = ibv_reg_mr(pd, buf, size,
+    IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
+    IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_ATOMIC);
+
+// 2. 创建 Queue Pair (QP) — 发送/接收队列对
+struct ibv_qp *qp = ibv_create_qp(pd, &amp;qp_init_attr);
+
+// 3. 发送 RDMA Write (本地 → 远程，不需要远程 CPU 参与)
+struct ibv_sge sge = { .addr = (uintptr_t)local_buf,
+                       .length = size, .lkey = mr-&gt;lkey };
+struct ibv_send_wr wr = { .wr_id = 1, .opcode = IBV_WR_RDMA_WRITE,
+                           .sg_list = &amp;sge, .num_sge = 1,
+                           .wr.rdma.remote_addr = remote_addr,
+                           .wr.rdma.rkey = remote_rkey,
+                           .send_flags = IBV_SEND_SIGNALED };
+
+ibv_post_send(qp, &amp;wr, &amp;bad_wr);
+
+// 4. 轮询 Completion Queue
+struct ibv_wc wc;
+int n = ibv_poll_cq(cq, 1, &amp;wc);
+if (n &gt; 0 &amp;&amp; wc.status == IBV_WC_SUCCESS) {
+    // 发送成功，远程内存已经被写了
+}
+</code></pre>
+<p><strong>RDMA 的核心模式</strong>：</p>
+<div class="table-wrapper"><table><thead><tr><th>操作</th><th>CPU 参与 (发送方)</th><th>CPU 参与 (接收方)</th><th>用途</th></tr></thead><tbody>
+<tr><td><strong>RDMA Write</strong></td><td>是 (post send)</td><td><strong>否</strong></td><td>单向数据传输（gradient push）、存储写入</td></tr>
+<tr><td><strong>RDMA Read</strong></td><td>是</td><td><strong>否</strong></td><td>单向读取远程数据（gradient pull）、存储读取</td></tr>
+<tr><td><strong>RDMA Send/Recv</strong></td><td>是</td><td><strong>是</strong> (pre-post recv)</td><td>双向消息、控制面（metadata exchange）</td></tr>
+<tr><td><strong>RDMA Atomic</strong></td><td>是</td><td><strong>否</strong></td><td>Compare &amp; Swap、Fetch &amp; Add——分布式锁、barrier</td></tr>
+</tbody></table>
+</div>
+<p><strong>GPU Direct RDMA (GDR)</strong>：把 RDMA 的 DMA 引擎直接对接 GPU 显存。</p>
+<pre><code>无 GDR:
+  GPU 0 HBM → (PCIe read by CPU/memcpy) → system DRAM → NIC read (DMA)
+  → IB → remote NIC → DMA to remote DRAM → memcpy → GPU 1 HBM
+
+有 GDR:
+  GPU 0 HBM → NIC read by DMA (直接通过 PCIe 读 GPU BAR)
+  → IB → remote NIC → DMA directly to GPU 1 HBM (通过 PCIe 写 GPU BAR)
+
+  全程 GPU HBM → NIC → IB → remote NIC → GPU HBM
+  CPU 和系统 DRAM 完全 bypass
+</code></pre>
+<p>在 H100 训练集群中，不带 GDR 的 all-reduce 每个 step 要花 200ms，带 GDR 只要 45ms。这对万个 GPU 的千亿参数模型训练是生死线。</p>
+<h3 id="roce以太网上的-rdma"><a class="header" href="#roce以太网上的-rdma">RoCE：以太网上的 RDMA</a></h3>
+<p><strong>RoCEv2 (RDMA over Converged Ethernet version 2)</strong> 把 RDMA 传输层封装在 UDP/IP 报文中，使 RDMA 可以在标准以太网上运行。</p>
+<pre><code>RoCEv2 封装:
+  ┌──────┬──────┬──────┬──────────┬────────┬──────┐
+  │ Eth  │ IP   │ UDP  │ IB Trans.│ IB Payload │ CRC │
+  │ Hdr  │ Hdr  │ Hdr  │ Port Hdr │ (RDMA data)│     │
+  └──────┴──────┴──────┴──────────┴────────┴──────┘
+</code></pre>
+<p><strong>RoCE 和 InfiniBand 的区别</strong>：</p>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>InfiniBand</th><th>RoCEv2</th></tr></thead><tbody>
+<tr><td>物理层</td><td>IB 专用 (HDR/NDR)</td><td>以太网 (100/200/400G)</td></tr>
+<tr><td>交换设备</td><td>IB 交换机 (~$12K per port)</td><td>以太网交换机 ($3-8K per port)</td></tr>
+<tr><td>延迟 (小型消息)</td><td>~1µs</td><td>~5-10µs</td></tr>
+<tr><td>损失</td><td>零丢包 (credit-based)</td><td>需要配置 PFC/ECN (lossless Ethernet)</td></tr>
+<tr><td>可路由</td><td>子网管理器 (SM)</td><td>标准 IP 路由</td></tr>
+<tr><td>生态系统</td><td>NVIDIA/Mellanox 锁定</td><td>多厂商 (Broadcom, Cisco, Arista)</td></tr>
+</tbody></table>
+</div>
+<p><strong>DCQCN (Data Center Quantized Congestion Notification)</strong> 是 RoCEv2 的拥塞控制核心。当交换机 buffer 开始拥塞，交换机会在数据包上标记 ECN 位。接收方收到 ECN 标记的包后，向发送方发送 CNP（Congestion Notification Packet）。发送方根据 CNP 的频率调整发送速率（AIMD 式加性增乘性减）。这使 RoCE 能在以太网上维持"接近无损"的语义。</p>
+<p>但这是有代价的——DCQCN 的收敛时间 ~50-100µs，而 InfiniBand 的 credit-based 流控是即时生效的。所以 RoCE 在拥塞时延迟抖动比 InfiniBand 大得多。</p>
+<hr />
+<h2 id="六ai-训练集群的互联拓扑"><a class="header" href="#六ai-训练集群的互联拓扑">六、AI 训练集群的互联拓扑</a></h2>
+<h3 id="现代-llm-训练集群的网络架构"><a class="header" href="#现代-llm-训练集群的网络架构">现代 LLM 训练集群的网络架构</a></h3>
+<p>以 Meta 的 24K GPU 集群（训练 Llama 3 405B）为例：</p>
+<pre><code>┌────────────────────────────────────────────┐
+│                  Front-End Network          │
+│         Ethernet (数据加载、checkpoint)      │
+│         100 / 200 GbE, RoCEv2              │
+└──────────────────┬─────────────────────────┘
+                   │
+    ┌──────────────┼──────────────┐
+    ▼              ▼              ▼
+┌───────┐     ┌───────┐     ┌───────┐
+│Server │     │Server │     │Server │
+│ GPU0..│ ... │ GPU0..│ ... │ GPU0..│
+│ GPU7  │     │ GPU7  │     │ GPU7  │
+└──┬──┬─┘     └──┬──┬─┘     └──┬──┬─┘
+   │  │          │  │          │  │
+   │  └────── Rail-Optimized Topology ──┘  │
+   │  ┌───────────────────────────────────┘
+   ▼  ▼  ▼  ▼  ▼  ▼  ▼  ▼
+ ┌──────────────────────────────┐
+ │       Back-End Network       │
+ │  InfiniBand / RoCE (scale-out)│
+ │  梯度 all-reduce, 参数同步    │
+ │  三层 Fat-Tree 拓扑           │
+ └──────────────────────────────┘
+</code></pre>
+<p><strong>Front-end vs Back-end 网络分离</strong>：</p>
+<ul>
+<li><strong>Front-end (前端)</strong>：标准以太网。处理的流量是数据加载（从 storage cluster 读取训练数据）、checkpoint 保存（定期 dump 模型权重到持久存储）、日志/监控。</li>
+<li><strong>Back-end (后端)</strong>：高带宽、低延迟的 InfiniBand 或 RoCE。专门负责 <strong>梯度同步（gradient synchronization）</strong>。每次训练 step，所有 GPU 各自计算完梯度后，必须通过 all-reduce 集合通信操作交换并聚合梯度——如果用前端网络做这件事，网络拥塞会直接阻塞所有 GPU 的训练进度。</li>
+</ul>
+<h3 id="rail-optimized-拓扑"><a class="header" href="#rail-optimized-拓扑">Rail-Optimized 拓扑</a></h3>
+<p><strong>Rail 拓扑</strong> 是 Meta 提出的一种降低 all-reduce 网络拥塞的设计。思想是：每台 8 GPU 服务器对 8 个独立交换机（每个交换机一个 "rail"），每个 GPU j 连接到 Rail Switch j：</p>
+<pre><code>Server 0:                 Rail 0       Rail 1  ...  Rail 7
+  GPU0 NIC0 ──────────→  Switch 0
+  GPU1 NIC1 ───────────────→          Switch 1
+  ...                                           ...
+  GPU7 NIC7 ───────────────────────────────→          Switch 7
+
+Server 1:
+  GPU0 NIC0 ──────────→  Switch 0
+  GPU1 NIC1 ───────────────→          Switch 1
+  ...
+
+Server N-1:
+  GPU0 NIC0 ──────────→  Switch 0
+  ...
+</code></pre>
+<p><strong>为什么这样做？</strong> 标准的 all-reduce 算法（如 ring all-reduce）中，每个 GPU 只与相邻 GPU 通信。如果让一个服务器的所有 GPU 都通过同一台交换机通信，交换机内部的 buffer 承受所有 8 个 GPU 的全带宽压力。而 rail 拓扑确保任一交换机的流量都是来自不同服务器的不同 GPU j——把流量均匀地分配到 8 个独立交换机上，消除了交换机级别的拥塞点。</p>
+<h3 id="gpu-间通信层次总结"><a class="header" href="#gpu-间通信层次总结">GPU 间通信层次总结</a></h3>
+<p>在一台 DGX H100 上：</p>
+<pre><code>Level 0: SM 内共享 L1 / Shared Memory (NVLink 无法替代的带宽)
+Level 1: HBM3 内 (GPU internal, 3.35 TB/s)
+Level 2: NVLink 4 (NVSwitch, GPU-to-GPU, 900 GB/s/link)
+Level 3: InfiniBand NDR (跨节点, 400 Gbps/port = 50 GB/s)
+</code></pre>
+<p>每一层带宽跳降约 <strong>10-20 倍</strong>。Tensor Parallelism 通常限制在 <code>Level 0-2</code> 内（同一个节点，NVLink 互联），Pipeline Parallelism 才跨节点（NDR）。这是分布式训练的最基本硬件约束。</p>
+<hr />
+<h2 id="七cpu-cpu-互联upi-与-infinity-fabric"><a class="header" href="#七cpu-cpu-互联upi-与-infinity-fabric">七、CPU-CPU 互联：UPI 与 Infinity Fabric</a></h2>
+<p>多颗 CPU 之间也要互联，不用 PCIe：</p>
+<h3 id="intel-upiultra-path-interconnect"><a class="header" href="#intel-upiultra-path-interconnect">Intel UPI（Ultra Path Interconnect）</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>代</th><th>速率</th><th>每 link 带宽</th><th>条数</th><th>产品</th></tr></thead><tbody>
+<tr><td>QPI 1.1</td><td>6.4 GT/s</td><td>12.8 GB/s</td><td>1-2</td><td>Nehalem ~ Broadwell</td></tr>
+<tr><td>UPI 1.0</td><td>10.4 GT/s</td><td>20.8 GB/s</td><td>2-3</td><td>Skylake-SP ~ Cooper Lake</td></tr>
+<tr><td>UPI 2.0</td><td>10.4 GT/s</td><td>20.8 GB/s</td><td>3-4</td><td>Sapphire Rapids</td></tr>
+<tr><td>UPI 3.0</td><td>16 GT/s</td><td>~32 GB/s</td><td>3-4</td><td>Granite Rapids (传闻)</td></tr>
+</tbody></table>
+</div>
+<p>CPU 间的 UPI 使用 home snoop 或 source snoop 模式维护跨 socket 的缓存一致性。当一个 socket 上的 core 访问另一个 socket 的 DRAM 时 → UPI 请求 → remote Home Agent → remote DRAM → UPI 回传。延迟 ~140-200ns（比本地 DRAM 100ns 高 ~50%）。</p>
+<h3 id="amd-infinity-fabric"><a class="header" href="#amd-infinity-fabric">AMD Infinity Fabric</a></h3>
+<p>AMD 的 Infinity Fabric 是更通用的互联架构——它不只是 CPU-CPU 互联，也用于：</p>
+<ul>
+<li>CPU-CPU 跨 socket 互联（2 路 / 4 路服务器）</li>
+<li>Chiplet 互联：Zen 核心 CCD（Core Complex Die）和 IOD（I/O Die）之间</li>
+<li>GPU-GPU 互联：MI250X 和 MI300X 加速器之间</li>
+<li>CPU-GPU 互联：MI300A APU 内 Zen4 + CDNA3 的协同</li>
+</ul>
+<pre><code>Ryzen 9 7950X (单 Socket，无需 CPU-CPU InF):
+  ┌──────CCD0──────┐  ┌──────CCD1──────┐
+  │ 8× Zen4 Core   │  │ 8× Zen4 Core   │
+  │ 32MB L3        │  │ 32MB L3        │
+  └───Inf. Fabric──┘  └───Inf. Fabric──┘
+              │                │
+         ┌────▼────Inf. Fabric──▼────┐
+         │          IOD             │
+         │  PCIe 5.0 ×28 lanes     │
+         │  DDR5 controllers ×2    │
+         │  USB, SATA, etc.       │
+         └──────────────────────────┘
+</code></pre>
+<p>Infinity Fabric 的带宽通常在 32-64 GB/s/方向（取决于代与链路宽度），延迟极低（in-package 模式 &lt;10ns）。</p>
+<hr />
+<h2 id="八ualinknvidia-互联垄断的公开挑战"><a class="header" href="#八ualinknvidia-互联垄断的公开挑战">八、UALink：NVIDIA 互联垄断的公开挑战</a></h2>
+<p>2024 年 5 月，AMD、Broadcom、Intel、Google、Microsoft 和 Cisco 联合宣布 <strong>UALink（Ultra Accelerator Link）</strong>，目标是为不同厂商的 AI 加速器（GPU、FPGA、ASIC）建立一个开放的、高速互联标准。</p>
+<h3 id="ualink-10-技术参数"><a class="header" href="#ualink-10-技术参数">UALink 1.0 技术参数</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>参数</th><th>值</th></tr></thead><tbody>
+<tr><td>每 lane 速率</td><td>200 Gbps</td></tr>
+<tr><td>通道数</td><td>可聚合多 lane</td></tr>
+<tr><td>拓扑</td><td>支持 all-to-all（类似 NVSwitch 的 crossbar）</td></tr>
+<tr><td>一致性</td><td>支持 cache coherent memory sharing（类似 CXL.cache + CXL.mem）</td></tr>
+<tr><td>目标产品</td><td>AMD MI450, Intel Jaguar Shores, Broadcom AI ASIC (2026+)</td></tr>
+</tbody></table>
+</div>
+<p>UALink 本质上是 CXL 的超集——在 CXL 的缓存一致性基础上加了 NVLink 级别的高带宽 GPU 间直连。如果成功，UALink 将允许 AMD MI450、Jaguar Shores 和自研 ASIC 在同一个服务器内共享缓存一致的内存并高带宽互联——打破 NVIDIA NVLink 和 NVSwitch 的生态锁定。</p>
+<p>但有个残酷的事实：NVIDIA NVLink 已经迭代了 5 代（6 年），UALink 还在规范定义的初期。NVIDIA 每年把 NVLink 带宽翻 1.5-2 倍，而 UALink 的开放标准需要通过多厂商共识——这样的速度差，让 UALink 在短期内永远追不上 NVLink。</p>
+<hr />
+<h2 id="九工程事故与教训"><a class="header" href="#九工程事故与教训">九、工程事故与教训</a></h2>
+<h3 id="cxl-互通性问题-2023"><a class="header" href="#cxl-互通性问题-2023">CXL 互通性问题 (2023)</a></h3>
+<p>Intel 和 AMD 的 CXL 实现在 2023 年初互不兼容。根本原因在于 CXL 规范虽然在物理层复用 PCIe 5.0，但在 timing budget、电压容差和 CXL.cache 的精确事务语义上有足够的 gray area 让实现差异变成不兼容：</p>
+<ul>
+<li><strong>Timing violation</strong>：Intel Sapphire Rapids CXL 控制器的 <code>CXL.io</code> 启动时序比 AMD Genoa 严格 4 个 cycle。一个 CXL Type-3 内存设备被两边的 BIOS 分别训练后，在 Intel 上工作正常，但在 AMD 上 LTSSM 链路训练在 Configuration 阶段超时。</li>
+<li><strong>Cache state transition</strong>：CXL.cache 的 DIRTY → INVALID 状态转换在 Intel 和 AMD 对 forward progress（前进保证）的解读不同。Intel 允许 Home Agent 延迟 invalidation ACK，而 AMD 在 256 cycle 内未收到 ACK 则报 Fatal Error。</li>
+</ul>
+<p>这些问题的最终结果：数据中心不能混插 Intel 和 AMD 的服务器共享一个 CXL 内存池——每条 CXL 链路在部署前必须做厂家兼容性认证。</p>
+<h3 id="nvidia-vs-amd-的互联锁"><a class="header" href="#nvidia-vs-amd-的互联锁">NVIDIA vs AMD 的互联锁</a></h3>
+<pre><code>NVIDIA 生态：
+  CUDNN, CUDA, NCCL, NVLink, NVSwitch, InfiniBand
+  ↑  端到端的纵向整合，每个组件互相依赖
+
+AMD 生态：
+  ROCm, RCCL, PCIe 5.0, Infinity Fabric, 以太网 (RoCE)
+  ↑  依赖开放标准，但生态碎片化
+</code></pre>
+<p>NCCL（NVIDIA Collective Communication Library）迄今只在 NVLink 和 InfiniBand 上经过仔细优化。AMD 的替代品 RCCL 支持 PCIe 和以太网，但 8 GPU 的 all-reduce 带宽只有 NCCL + NVLink 的 40-60%。这不是因为 AMD 代码写得烂——而是因为 PCIe 5.0 的树形拓扑本身不适合做 GPU 间全局通信。NVIDIA 的互联护城河不只是硬件，还有 NCCL 这个一层优化过的软件层。</p>
+<h3 id="roce-拥塞崩溃案例-2022"><a class="header" href="#roce-拥塞崩溃案例-2022">RoCE 拥塞崩溃案例 (2022)</a></h3>
+<p>某 AI 实验室的 1024 GPU 训练集群在从 InfiniBand 迁移到 RoCEv2 后，all-reduce 延迟从 60ms 跳变为 300-600ms（方差极大）。根因分析：</p>
+<ol>
+<li>所有 1024 GPU 在每个 step 同时开始 all-reduce（同步屏障效应）</li>
+<li>RoCE 网络没有配置 PFC headroom buffer（缓冲区太小）</li>
+<li>所有 GPU 同时爆发 RDMA Write → 所有交换机 buffer 同时溢出</li>
+<li>DCQCN 开始降低所有 GPU 的发送速率 → 全局降速</li>
+<li>降速后 all-reduce 完成时间变化 → GPU step 同步变慢 → burst 周期变长 → 恶性循环</li>
+</ol>
+<p>修复方案：在所有交换机上启用 PFC deadlock detection + 增加 200MB headroom buffer，同时引入 GPU step 的随机微抖动 (jitter = ~5ms)，打破同步 burst。</p>
+<hr />
+<h2 id="十易错清单"><a class="header" href="#十易错清单">十、易错清单</a></h2>
+<ol>
+<li>
+<p><strong>"PCIe x16 = 64 GB/s 可用带宽"</strong>：Gen5 x16 标称 64 GB/s 是物理层速率。去掉 128b/130b 编码开销、TLP header overhead（12-16B 每 4KB payload ≈ 0.3%）、Data Link Layer ACK/FC 开销——实际有效 payload 带宽约为 50-55 GB/s。别在链路预算表里做满打满算。</p>
+</li>
+<li>
+<p><strong>"我插了 4 个 GPU 都是 x16，每个都有 64 GB/s"</strong>：如果这 4 个 GPU 全挂在同一个 PCIe Switch 后面（Switch 只有一个 x16 上行端口连 Root Complex），那么 4 × x16 下行端的并发流量受上行端口的 x16 = 64 GB/s 制约——这叫 <strong>oversubscription（超额订阅）</strong>。检查你的主板 PCIe 拓扑：不是所有的 x16 物理插槽都有各自 x16 电气连接。</p>
+</li>
+<li>
+<p><strong>"NVLink 是 bus，我可以随便加 GPU"</strong>：NVLink 是点对点链路，不是多 device 的总线。H100 有 18 条物理 NVLink 接口——这些接口的数量在硅片设计时就固定了。你无法把 10 个 GPU 用 NVLink 直接连接（因为 H100 只有 18 个 NVLink 单元，而且 DGX 的 NVSwitch 拓扑是针对 8 卡优化的）。NVSwitch 帮你在 8 卡内实现了 all-to-all，不等于你可以无限扩展。</p>
+</li>
+<li>
+<p><strong>"RDMA 可以直接读任意远程内存"</strong>：RDMA 只能访问 <strong>预先注册的 Memory Region (MR)</strong>。注册 MR 时，网卡驱动调用 <code>pin_user_pages()</code> 把物理页锁住（防止 swap 或 move），并把物理地址告知 NIC。每注册一个 MR，NIC 的 I/O MMU (IOMMU) 会创建对应的页表映射。没有注册的地址 → IOMMU 拒绝访问 → RDMA 失败。注册本身就花费若干 µs 和数 KB 的页表空间。</p>
+</li>
+<li>
+<p><strong>"CXL = 快一点的 PCIe"</strong>：CXL.cache 和 CXL.mem 是完全不同的传输语义。标准 PCIe 使用 Non-Cacheable MMIO/TLP 访问远端内存，而 CXL.cache 允许设备在 cache 中持有映射，使用 MESI 一致性协议。一台 CXL 设备的 BIOS 支持包含主机方 Home Agent 的配置和 snoop filter 的大小——这些东西如果没有在 BIOS 中正确设置，CXL 设备只会在 CXL.io (即 PCIe) 模式下工作，cache 和 mem 协议不激活。</p>
+</li>
+<li>
+<p><strong>"RoCE 和 InfiniBand 是一回事"</strong>：RoCEv2 在 UDP/IP 上跑 RDMA 语义，但这不代表它有无损保证。InfiniBand 在链路层有 credit-based 流控 → 物理上不存在丢包。RoCEv2 在 IP 层没有流控，需要用 DCQCN + PFC 来避免丢包——而 PFC 会引发 head-of-line blocking 甚至 deadlock。生产部署 RoCE 需要网络工程师精心调整 PFC 阈值、ECN 标记率、DCQCN 参数（<code>rp_timer</code>, <code>g</code>, <code>alpha</code>），否则一个大 burst 就能引发拥塞崩溃。</p>
+</li>
+<li>
+<p><strong>"CXL 内存池化可以让任何服务器用别人的内存"</strong>：CXL multi-host switch 需要 CXL 规范 3.0+ 的支持，并且 switch 本身必须实现 multi-logical device (MLD) 和多域（multi-domain）隔离。2024 年大部分可用的 CXL switch 仅支持单主机模式。Multi-host CXL 池化生产就绪预计在 2025-2026 年。</p>
+</li>
+</ol>
+<hr />
+<h2 id="十一这一章带走的东西"><a class="header" href="#十一这一章带走的东西">十一、这一章带走的东西</a></h2>
+<ol>
+<li>
+<p><strong>互联层次决定了性能天花板</strong>：PCIe（500ns, 64GB/s）→ NVLink（100ns, 900GB/s）→ InfiniBand（1µs, 400Gbps）——每一层 10× 带宽/延迟的跳跃。分布式训练的 TP（Tensor Parallelism）只能在第一二层（NVLink 以内），PP（Pipeline Parallelism）和 DP（Data Parallelism）才跨 InfiniBand。选错了 TP/PP 的分界点，训练会被互联带宽卡死。</p>
+</li>
+<li>
+<p><strong>PCIe 不是一条 lane 的事，是一棵整树</strong>：Root Complex 的分支结构、Switch 的 oversubscription ratio、BAR 空间分配——这些决定了一个 PCIe 设备实际能拿到的可持续带宽。永远不要只看标签上的"x16"。</p>
+</li>
+<li>
+<p><strong>CXL 是 PCIe 上长了"脑子"</strong>：CXL.cache 和 CXL.mem 把 PCIe 从愚蠢的 DMA 管道升级成了缓存一致的共享内存总线。理解 CXL = 理解未来的服务器架构——可组合的、动态的、池化的。</p>
+</li>
+<li>
+<p><strong>NVLink + NVSwitch = NVIDIA 的护城河</strong>：NVIDIA 花了 8 年、5 代硬件来打磨完全的 GPU 互联栈（NVLink + NVSwitch + InfiniBand + NCCL）。任何竞争者不仅要追硬件规格，还要追这个软硬一体化的全部。UALink 走了正确的路（开放标准），但追赶时间会更长。</p>
+</li>
+<li>
+<p><strong>RDMA 节省的不是带宽，是 CPU</strong>：一次 all-reduce 如果没有 RDMA → 远程 CPU 被中断打断、copy 数据、再发 → 这些 CPU cycle 与 GPU 训练竞争 → 训练变慢。RDMA 直接把 DMA 引擎从本地 HBM 连到对端 HBM——CPU 一个 cycle 都不参与。</p>
+</li>
+<li>
+<p><strong>RoCE 的拥塞控制比 InfiniBand 复杂一个数量级</strong>：InfiniBand 是 credit-based 流控（无丢包），RoCE 是 PFC + DCQCN（避免丢包）。前者的行为确定性高得多——如果你在做 HPC 或大规模训练，这笔确定性值得你付 IB 交换机的溢价。</p>
+</li>
+<li>
+<p><strong>AI 集群的物理布局决定了 all-reduce 的性能</strong>：不是所有 GPU 之间的带宽都一样。GPU 0 和 GPU 1（同一节点，NVLink 直达）之间的通信比 GPU 0 和 GPU 500（跨节点，三层 IB switch）快 50-100 倍。Rail 拓扑、oversubscription ratio、PFC buffer 配置——这些硬件的物理现实直接塑造了训练代码中最底层通信原语的耗时。</p>
+</li>
+</ol>
+<hr />
+<p>下一节 → <a href="isa-design.html">指令集架构：x86 / ARM / RISC-V</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../computer-arch/ai-accelerators.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../computer-arch/ssd-storage.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../computer-arch/ai-accelerators.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../computer-arch/ssd-storage.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

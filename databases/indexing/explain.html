@@ -1,0 +1,570 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>执行计划：explain analyze 怎么读 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="执行计划explain-analyze-怎么读"><a class="header" href="#执行计划explain-analyze-怎么读">执行计划：explain analyze 怎么读</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>EXPLAIN 显示 PostgreSQL/MySQL planner 算出来的计划；EXPLAIN ANALYZE 真执行 + 实测；EXPLAIN ANALYZE BUFFERS 显示 IO 与 cache hit。学会读这三件套是数据库调优的关键。本节带你读完 PostgreSQL 与 MySQL EXPLAIN 的所有字段、planner cost 估计模型、loops/time aggregate 含义、Hash Join vs Nested Loop vs Merge Join 触发条件、覆盖索引判断 (Heap Fetches)、并行执行 worker 路径——你能直接诊断生产慢查询的根因。</p>
+<hr />
+<h2 id="一postgresql-explain-字段基础"><a class="header" href="#一postgresql-explain-字段基础">一、PostgreSQL EXPLAIN 字段基础</a></h2>
+<pre><code class="language-sql">EXPLAIN ANALYZE SELECT name, age FROM users WHERE age BETWEEN 18 AND 25;
+
+Seq Scan on users (cost=0.00..95.50 rows=1700 width=12) (actual time=0.025..2.830 rows=1695 loops=1)
+  Filter: ((age &gt; 18) AND (age &lt; 25))
+  Rows Removed by Filter: 8305
+Planning Time: 0.150 ms
+Execution Time: 3.180 ms
+</code></pre>
+<p>字段含义：</p>
+<div class="table-wrapper"><table><thead><tr><th>字段</th><th>含义</th></tr></thead><tbody>
+<tr><td><code>Seq Scan</code></td><td>全表扫描的物理算子</td></tr>
+<tr><td><code>cost=0.00..95.50</code></td><td>planner 估计 (startup..total)；95.50 是 random_page_cost × N 的代价单位</td></tr>
+<tr><td><code>rows=1700</code></td><td>估计行数</td></tr>
+<tr><td><code>width=12</code></td><td>平均行宽 (字节)</td></tr>
+<tr><td><code>actual time=0.025..2.830</code></td><td>实测启动..总耗时 (ms)</td></tr>
+<tr><td><code>loops=1</code></td><td>该节点被调用 1 次</td></tr>
+<tr><td><code>Filter</code></td><td>触发 WHERE 不过滤的谓词</td></tr>
+<tr><td><code>Rows Removed by Filter</code></td><td>seq scan 中被 filter 过滤掉的行</td></tr>
+<tr><td><code>Planning Time</code></td><td>planner 用的时间</td></tr>
+<tr><td><code>Execution Time</code></td><td>总执行时间</td></tr>
+</tbody></table>
+</div>
+<p><code>Buffers</code> 选项看 I/O：</p>
+<pre><code class="language-sql">EXPLAIN (ANALYZE, BUFFERS) SELECT name FROM users WHERE age BETWEEN 18 AND 25;
+Seq Scan on users (cost=0.00..95.50 rows=1700 width=12)
+                (actual time=0.025..2.830 rows=1695 loops=1)
+  Filter: (age BETWEEN 18 AND 25)
+  Rows Removed by Filter: 8305
+  Buffers: shared hit=84 read=2 dirtied=0
+</code></pre>
+<ul>
+<li><code>hit=N</code>：buffer pool cache 命中</li>
+<li><code>read=N</code>：cache miss 落 disk</li>
+<li><code>dirtied=N</code>：本 query 修改页面</li>
+<li><code>written=N</code>：本 query 触发 flush</li>
+</ul>
+<p><code>shared / local / temp</code>：临时表/磁盘 temp 与 ring buffer 分别。</p>
+<hr />
+<h2 id="二postgresql-cost-model"><a class="header" href="#二postgresql-cost-model">二、PostgreSQL cost model</a></h2>
+<p><code>postgresql.conf</code> 中的关键常量：</p>
+<pre><code class="language-bash">seq_page_cost = 1                # 默认；顺序读一页 cost 1
+random_page_cost = 4             # 随机读一页 cost 4
+                                # SSD 改到 1.1 或 1.05
+cpu_tuple_cost = 0.01            # 处理一行 cost
+cpu_index_tuple_cost = 0.005     # 索引里取一条 cost
+cpu_operator_cost = 0.0025       # 单 op 比较 cost
+parallel_setup_cost = 1000       # 起 worker pool 固定 cost
+parallel_tuple_cost = 0.1        # worker 取一行 cost
+default_statistics_target = 100 # column 直方图 buckets
+effective_cache_size = 4GB       # planner 假设的 cache 大小（不分配）
+</code></pre>
+<p>公式：</p>
+<pre><code>seq scan cost = pages × seq_page_cost + rows × cpu_tuple_cost
+index scan cost = pages_hit_estimate × random_page_cost + rows × cpu_index_tuple_cost
+bitmap scan cost = index pages × random_page_cost × 0.5 + heap pages × random_page_cost × 0.5 + recheck cost
+</code></pre>
+<p>调 random_page_cost = 1.1 (SSD) → planner 更偏向 index scan。调小 effective_cache_size → planner 更偏向 seq scan（因估计 cache miss 多）。</p>
+<hr />
+<h2 id="三explain-上常见算子字典"><a class="header" href="#三explain-上常见算子字典">三、EXPLAIN 上常见算子字典</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>算子</th><th>含义</th><th>常见上下问</th></tr></thead><tbody>
+<tr><td><code>Seq Scan</code></td><td>顺序扫整表</td><td>行数大 / 无索引</td></tr>
+<tr><td><code>Index Scan</code></td><td>走索引 + 回表</td><td>索引命中少量结果</td></tr>
+<tr><td><code>Index Only Scan</code></td><td>走索引不回表</td><td>覆盖索引 ok</td></tr>
+<tr><td><code>Bitmap Index Scan + Bitmap Heap Scan</code></td><td>bitmap 标页批量读</td><td>索引命中多页</td></tr>
+<tr><td><code>Index Scan Backward</code></td><td>反向扫索引</td><td>ORDER BY DESC</td></tr>
+<tr><td><code>Nested Loop</code></td><td>笛卡积+过滤</td><td>内表有索引，N1×inner_cost 不太大</td></tr>
+<tr><td><code>Hash Join</code></td><td>hash 内表 + 扫外表</td><td>两组规模大、内存能 fit</td></tr>
+<tr><td><code>Merge Join</code></td><td>排序后双指针合并</td><td>索引已排序，或 commit large sort</td></tr>
+<tr><td><code>Sort</code></td><td>显式排序</td><td>ORDER BY 无索引</td></tr>
+<tr><td><code>HashAggregate</code></td><td>hash bucket 聚合</td><td>GROUP BY 算法</td></tr>
+<tr><td><code>GroupAggregate</code></td><td>排序后顺序聚</td><td>GROUP BY 已 sort</td></tr>
+<tr><td><code>Limit</code></td><td>取 N 行</td><td>LIMIT 子句</td></tr>
+<tr><td><code>WindowAgg</code></td><td>窗口函数执行</td><td>OVER PARTITION BY</td></tr>
+<tr><td><code>Aggregate</code></td><td>总聚合</td><td>count/sum/avg</td></tr>
+<tr><td><code>Subquery Scan</code></td><td>子查询包装</td><td>派生表</td></tr>
+<tr><td><code>Append</code></td><td>表 + UNION</td><td>UNION ALL 或分区表</td></tr>
+<tr><td><code>Merge Append</code></td><td>排序归并</td><td>partitioned + ORDER BY</td></tr>
+<tr><td><code>Gather / Gather Merge</code></td><td>并行执行编排</td><td>parallel worker</td></tr>
+<tr><td><code>Materialize</code></td><td>物化中间</td><td>重复 scan 时</td></tr>
+<tr><td><code>CteScan</code></td><td>老 PG 版 CTE materialize</td><td>PG 11 的 CTE</td></tr>
+<tr><td><code>ProjectSet</code></td><td>set returning function</td><td>unnest / regexp_match global</td></tr>
+<tr><td><code>Unique</code></td><td>去重</td><td>DISTINCT</td></tr>
+<tr><td><code>SetOp</code></td><td>INTERSECT / EXCEPT</td><td>集合运算</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="四loopstimerows-aggregation"><a class="header" href="#四loopstimerows-aggregation">四、loops、time、rows aggregation</a></h2>
+<p>每个 plan node <code>actual time</code> / <code>rows</code> 都是 <strong>per loop</strong>。</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT a.id, count(b.id)
+FROM a JOIN b ON b.aid = a.id
+GROUP BY a.id;
+
+Hash Join (...)
+   Hash Cond: (a.id = b.aid)
+   -&gt; Seq Scan on a (actual time=0.01..5.00 rows=10000 loops=1)
+   -&gt; Hash (...)
+        Buckets: 16384  Batches: 1  Memory Usage: 512kB
+        -&gt; Seq Scan on b (actual time=0.02..12.18 rows=50000 loops=1)
+</code></pre>
+<p>如果节点 <code>loops=10</code>：</p>
+<pre><code>   Nested Loop Left Join (actual time=0.1..15.0 rows=20000 loops=10)
+   → 实际总行数 = 20000 × 10 = 200000
+   实际总时间 = 15.0 × 10 = 150 ms
+</code></pre>
+<p>子节点 inner of Nested Loop 是 loops=N1（外每行扫一次）：</p>
+<pre><code>Nested Loop
+  -&gt; Seq Scan outer (loops=1)
+  -&gt; Index Scan inner (loops=N1_outer_rows)
+</code></pre>
+<p>inner loops 真实数据 → 看 child 时间 × child loops = 总耗时。</p>
+<hr />
+<h2 id="五hash-join-vs-nested-loop-vs-merge-join"><a class="header" href="#五hash-join-vs-nested-loop-vs-merge-join">五、Hash Join vs Nested Loop vs Merge Join</a></h2>
+<h3 id="51-nested-loop"><a class="header" href="#51-nested-loop">5.1 Nested Loop</a></h3>
+<pre><code>for r1 in outer:
+    for r2 in inner where match:
+        emit (r1, r2)
+</code></pre>
+<p>cost = N_outer × N_inner 平均 lookup cost。</p>
+<p>适合：</p>
+<ul>
+<li>outer 小 (e.g. 100 行)</li>
+<li>inner 有 index 一应命中 (&lt; 10 行)</li>
+</ul>
+<p>противопоказания：</p>
+<ul>
+<li>双表都大 (10k+) → X OK 太慢</li>
+<li>没 inner index → 内表每次全 scan</li>
+</ul>
+<h3 id="52-hash-join"><a class="header" href="#52-hash-join">5.2 Hash Join</a></h3>
+<pre><code># phase 1: build hash table on inner (smaller)
+for r2 in inner:
+    htab[hash(r2.joinkey)].append(r2)
+
+# phase 2: probe
+for r1 in outer:
+    bucket = htab[hash(r1.joinkey)]
+    for r2 in bucket:
+        if r1.joinkey == r2.joinkey: emit
+</code></pre>
+<p>适合：</p>
+<ul>
+<li>双表大 (10k+)</li>
+<li>join key 不排序</li>
+<li>内存能含 hash bucket</li>
+</ul>
+<p>work_mem 限制：太大 batch 到磁盘 → 多次 pass → cost 爆炸</p>
+<pre><code class="language-sql">SET work_mem = '64MB';
+</code></pre>
+<h3 id="53-merge-join"><a class="header" href="#53-merge-join">5.3 Merge Join</a></h3>
+<pre><code># 双方已按 joinkey 排序
+for r1 in outer, r2 in inner:
+    if r1.key &lt; r2.key: advance outer
+    elif r1.key &gt; r2.key: advance inner
+    else: emit (r1, r2)
+</code></pre>
+<p>适合：</p>
+<ul>
+<li>双方都有索引（自然 sort），避免显式 sort</li>
+<li>实际大表大、merge 内不需 hash mem</li>
+<li>ORDER BY + JOIN</li>
+</ul>
+<hr />
+<h2 id="六覆盖索引判断"><a class="header" href="#六覆盖索引判断">六、覆盖索引判断</a></h2>
+<pre><code class="language-sql">EXPLAIN (ANALYZE, BUFFERS) SELECT id, name FROM users WHERE name LIKE 'A%';
+   Index Scan using idx_name on users (...)
+       Index Cond: (name ~~ 'A%'::text)
+       Heap Fetches: 0    ← 0 = index-only successful
+       Buffers: shared hit=4 read=0
+</code></pre>
+<p><code>Heap Fetches = 0</code> → index-only scan 成功，全 columns 都在索引中。
+<code>Heap Fetches = N</code> → 索引不覆盖，回表 N 次。</p>
+<p>注意点：PG index-only scan 还要求 <strong>visibility map</strong> 显示 page 全部 commit。autovacuum 后 page VM 才得 set → 又一理由 vacuum 要勤跑。</p>
+<hr />
+<h2 id="七并行执行-parallel-query"><a class="header" href="#七并行执行-parallel-query">七、并行执行 (parallel query)</a></h2>
+<p>PG 9.6+ 并行 query：</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE SELECT count(*) FROM big_table;
+
+Finalize Aggregate (...)
+  -&gt; Gather (...)
+       Workers Planned: 4
+       Workers Launched: 4
+       -&gt; Partial Aggregate (...)
+             -&gt; Parallel Seq Scan on big_table (...)
+</code></pre>
+<p>并行 plan node：</p>
+<ul>
+<li><code>Gather</code>：拉 worker → leader 数据合并</li>
+<li><code>Gather Merge</code>：worker 已 sort，merge sorted stream</li>
+<li><code>Partial Aggregate</code>：每 worker 算部分 sum/count</li>
+<li><code>Parallel Seq Scan</code>：worker 间分 page</li>
+</ul>
+<p>best practices：</p>
+<ul>
+<li><code>max_parallel_workers_per_gather = 4</code>（默认 2 太保守）</li>
+<li><code>max_parallel_workers = 8</code>（CPU 核）</li>
+<li><code>parallel_setup_cost</code> 决定 planner 是否选 parallel</li>
+<li>数据太少 (&lt; 10k 行) 不走并行</li>
+</ul>
+<hr />
+<h2 id="八mysql-explain"><a class="header" href="#八mysql-explain">八、MySQL EXPLAIN</a></h2>
+<pre><code class="language-sql">EXPLAIN FORMAT=JSON SELECT ...;
+</code></pre>
+<p>关键字段：</p>
+<ul>
+<li><code>type</code>：access type (<code>system</code>, <code>const</code>, <code>eq_ref</code>, <code>ref</code>, <code>range</code>, <code>index</code>, <code>ALL</code>)</li>
+<li><code>key</code>：实际使用索引名</li>
+<li><code>key_len</code>：使用的索引长度（字节）</li>
+<li><code>rows</code>：估计行数</li>
+<li><code>filtered</code>：%WHERE 过滤后剩余比例</li>
+<li><code>Extra</code>：<code>Using index</code> (覆盖)、<code>Using filesort</code> (排序)、<code>Using temporary</code> (临时表)</li>
+<li><code>possible_keys</code>：planner 可考虑的索引</li>
+</ul>
+<p><code>EXPLAIN ANALYZE</code> (MySQL 8.0.18+) 类似 PG 实测。</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE SELECT * FROM orders WHERE user_id = 5;
+-&gt; Index lookup on orders using idx_user_id (user_id=5)
+    (cost=12 rows=100) (actual time=0.05..0.5 rows=100 loops=1)
+</code></pre>
+<hr />
+<h2 id="九产线事故"><a class="header" href="#九产线事故">九、产线事故</a></h2>
+<h3 id="91-estimate-与-actual-差太大"><a class="header" href="#91-estimate-与-actual-差太大">9.1 ESTIMATE 与 actual 差太大</a></h3>
+<p>某 query <code>rows=1</code> 估但 actual 1M 行 → hash join chosen，跑爆 work_mem。</p>
+<p><strong>修复</strong>：<code>VACUUM ANALYZE big_table</code> 刷新统计；或加 <code>ANALYZE (col)</code> 显式 raise default_statistics_target。</p>
+<h3 id="92-三表-join-planner-选错算法"><a class="header" href="#92-三表-join-planner-选错算法">9.2 三表 join planner 选错算法</a></h3>
+<p>默认 GEQO <code>geqo_threshold = 12</code> 表。13 表 join 走遗传算法，结果 plan 极坏。</p>
+<p><strong>修复</strong>：调高 <code>geqo_threshold=20</code>；或 SQL 用 <code>SET geqo=off</code>。</p>
+<h3 id="93-parallel-query-不触发"><a class="header" href="#93-parallel-query-不触发">9.3 parallel query 不触发</a></h3>
+<p>大表 seq scan 5 秒耗 leadership 估 cost 小于 parallel_setup_cost。</p>
+<ul>
+<li><code>parallel_setup_cost = 100</code> → 太高</li>
+<li>调 <code>parallel_setup_cost = 50</code>、<code>parallel_tuple_cost = 0.05</code> → 并行触发</li>
+</ul>
+<h3 id="94-index-scan-比-seq-scan-慢"><a class="header" href="#94-index-scan-比-seq-scan-慢">9.4 Index Scan 比 Seq Scan 慢</a></h3>
+<p>random_page_cost 默认 4 → planner 偏 seq scan。SSD 应改 1.1。 indexes 才会被选。</p>
+<h3 id="95-work_mem-不够-hash-join-磁盘-batch"><a class="header" href="#95-work_mem-不够-hash-join-磁盘-batch">9.5 Work_mem 不够 Hash Join 磁盘 batch</a></h3>
+<p>大表 hash join 6 batches → 6 次 disk read 100ms。<code>work_mem=64MB</code> 单次 batch 完成 → 50ms。</p>
+<hr />
+<h2 id="十易错清单"><a class="header" href="#十易错清单">十、易错清单</a></h2>
+<ol>
+<li>cost 단位是 dimensionless 不unit，不能直接说"cost X = 毫秒"；仅可记 startup vs total 比例</li>
+<li>time 是 per loop，必须乘以 loops 比真相</li>
+<li><code>EXPLAIN</code> 不 ANALYZE 仅估计；不能完全反映真实执行（如 cache)</li>
+<li><code>EXPLAIN ANALYZE</code> 真执行 → DML/locks 都生效</li>
+<li>PG random_page_cost 4 仅适合机械盘；SSD/NVMe 调到 1.1</li>
+<li>effective_cache_size 必须与机器 cache 大小匹配；调小规划器更偏 seq scan</li>
+<li>Block nested loop vs hashed nested loop：MySQL 8 之前主要 blocking nested join；MySQL 8 hash join</li>
+<li>EXPLAIN ANALYZE 跑长时间的 query 慢时长;不要跑 AV业 SLA 核心 query。</li>
+</ol>
+<hr />
+<h2 id="十一这一章带走的东西"><a class="header" href="#十一这一章带走的东西">十一、这一章带走的东西</a></h2>
+<ol>
+<li>EXPLAIN ANALYZE BUFFERS 三层看全：算法选择 + 估行行数 + cache hit</li>
+<li>planner cost model 是 seq_page_cost / random_page_cost / cpu_* × pages + rows</li>
+<li>loops × time = 实际总时间；inner loops = outer 行数</li>
+<li>Nested Loop vs Hash Join vs Merge Join：outer 小 + index → NL；双大 + work_mem fit → HASH；表已 sort or idx ordered → MERGE</li>
+<li>覆盖索引 Index Only Scan 仍依赖 visibility map (vacuum)</li>
+<li>SSD 必调 random_page_cost = 1.1、effective_cache_size = 物理内存 75%</li>
+<li>parallel query 大表 4 workers 默认、parallel_setup_cost 太高 → 调小 触发</li>
+</ol>
+<h2 id="下一节-"><a class="header" href="#下一节-">下一节 →</a></h2>
+<p><a href="../recovery/index.html">日志与崩溃恢复</a> — ARIES、fuzzy checkpoint、CLR、Point-in-time 恢复、PITR</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../databases/indexing/inverted-index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../databases/recovery/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../databases/indexing/inverted-index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../databases/recovery/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

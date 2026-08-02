@@ -1,0 +1,526 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>主从 / 多主 / 无主复制 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="主从--多主--无主复制"><a class="header" href="#主从--多主--无主复制">主从 / 多主 / 无主复制</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>复制拓扑分三种:</p>
+<ol>
+<li><strong>单主 (Primary-Backup / Leader-Follower)</strong>: 一个 leader 接 writes, 副本异步 / 同步跟不上, 5-10 ms 同城 P99。 MySQL replication、PostgreSQL streaming、Kafka partition leader、MongoDB replica set。</li>
+<li><strong>多主 (Multi-Master)</strong>: 任一节点 (或各 DC 主节点) 接 writes, 系统用 vector clock / 统一时间戳 / 冲突解决让写入收敛。 CouchDB、DynamoDB Global、Cassandra multi-DC、MySQL gr。</li>
+<li><strong>无主 (Leaderless / Dynamo-style)</strong>: 任一节点可向所有副本协调读/写, 客户端 / coordinator 接 quorum 决策。 Cassandra、Dynamo、Riak、Voldemort。</li>
+</ol>
+<p>本章梳理每类的算法(含 leader election, output lag, write/read path), 协议特性(sync 全 ack vs async ack-after), 同步字符串与延迟权衡, 典型 multi-DC 配置 (master-master conflict / round-robin / latency-based routing), typical 事故 (MySQL splitbrain replication, Cassandra LWW lost write)。</p>
+<hr />
+<h2 id="一单主复制-primary-backup"><a class="header" href="#一单主复制-primary-backup">一、单主复制 (Primary-Backup)</a></h2>
+<h3 id="算法"><a class="header" href="#算法">算法</a></h3>
+<ol>
+<li>一个 leader 节点 serializable 地接所有写。</li>
+<li>leader 把 log (op/WAL) 异步 / 同步 broadcast 到 followers。</li>
+<li>followers apply log 后 ack。</li>
+<li>leader 收 majority (sync 半同步) 或所有 (sync 全同步) follower ack 后向 client 回 ack (or 立即 async ack before follower persist)。</li>
+</ol>
+<pre class="mermaid">flowchart TB
+    C[Client] --&gt;|write| L[&quot;Leader&quot;]
+    L --&gt;|log async| F1[Follower 1]
+    L --&gt;|log async| F2[Follower 2]
+    L --&gt;|log async| F3[Follower 3]
+    F1 -.ack.-&gt; L
+    F2 -.ack.-&gt; L
+    F3 -.ack.-&gt; L
+</pre>
+<h3 id="同步模式"><a class="header" href="#同步模式">同步模式</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>模式</th><th>ack 等待</th><th>一致</th><th>延迟</th></tr></thead><tbody>
+<tr><td>Full Sync</td><td>all N replicas</td><td>Leader 死仍 ack</td><td>最长 (最慢 replica)</td></tr>
+<tr><td>Semi-Sync / Quorum Sync</td><td>majority ack</td><td>leader 死仍有 majority</td><td>中</td></tr>
+<tr><td>Async</td><td>leader 本地 fsync</td><td>leader 死可能 loss</td><td>短</td></tr>
+</tbody></table>
+</div>
+<p><strong>MySQL semi-sync replication</strong>: leader 等 ≥1 follower ack 后 ack client (5.5+); MySQL 半同步 plus 5.7+ 等多数 ack (AFTER_SYNC, rpl_semi_sync_master_wait_for_slave_count)。</p>
+<p><strong>MongoDB replica set 默认 writeConcern=majority</strong>, 等多数 ack, failure loss 仅在 quorum 全 partition/数据盘错下 P99。</p>
+<p><strong>PostgreSQL streaming replica</strong>: async by default (自 9.0 起 synchronous_commit=on; synchronous_standby_names='*'); 不内部 quorum 概念, 多个 sync standby 必须配置 list.</p>
+<h3 id="failover"><a class="header" href="#failover">Failover</a></h3>
+<p>Leader 故障 → 选 follower → 决策是否新 leader (waiting lease timeout 抵御 stale leader):</p>
+<ol>
+<li>Manual failover</li>
+<li>automatic failover (Patroni, Orchestrator, Stolon)黄金标准是 quorum 锁存 leader epoch + lease。</li>
+</ol>
+<p>新 leader 地址广播 (DNS / service registry) + 客户端 SDK 接受过期 retry。</p>
+<h3 id="写性能-vs-rporto"><a class="header" href="#写性能-vs-rporto">写性能 vs RPO/RTO</a></h3>
+<ul>
+<li>async write: RPO = 复制 lag seconds, RTO = leader 切换时间 (~10s)。</li>
+<li>sync quorum: RPO ≈ 0, RTO = follower promote ~5-10s。</li>
+<li>sync all: RPO=0, 但任一 replica 慢就拖垮 leader。</li>
+</ul>
+<p>工程常用 sync quorum + lidered lease 补偿。</p>
+<h3 id="典型事故"><a class="header" href="#典型事故">典型事故</a></h3>
+<ul>
+<li><strong>MySQL async failover lost writes</strong>: Amazon RDS MySQL 主要 (pre-Aurora) 在 failover 时复制 lag(秒级或更多) → 已 ack 的 client writes 在 new leader (更旧) 下被丢弃。Multiplex х 许单 ws lose because of failover, RDS Aurora (storage replication 同步) 接此后。</li>
+</ul>
+<hr />
+<h2 id="二链复制-chain-replication"><a class="header" href="#二链复制-chain-replication">二、链复制 (Chain Replication)</a></h2>
+<p>van Renesse &amp; Schneider 2004, 用作在 primary-backup 与无主之间动态抽象:</p>
+<pre><code>HEAD  →  Middle  →  Tail
+写入  ↓           传出
+       复制链
+</code></pre>
+<ul>
+<li><strong>HEAD</strong> 接受 writes, 转给 downlink</li>
+<li><strong>Tail</strong> 接受 reads, 见 commit only if log has reached tail</li>
+<li>副本中间在amesl head 与 tail 之间 linear flow</li>
+<li>Fail-over: Head died → new head 取最 long ppeeaš. Tail died → middle 取后 tail.</li>
+</ul>
+<p><strong>优点</strong>:</p>
+<ul>
+<li>副本同步设计简单, write latency 是 single-hop ping。</li>
+<li>Read throughput 高 — all reads go to TAIL only, write、redependence 链 groups Optional</li>
+<li>Linearizability guaranteed by appending to log + tail serializing reads.</li>
+</ul>
+<p><strong>Habitat</strong>: Yahoo Object Store (中小学 prototype 生产), Azure Cosmos DB chain replication mode (Strong consistency 内 TB and同 tt), Apache KECulet ARL.</p>
+<p><strong>限制</strong>: 链越长, Tail 节点 throughput 是整体写上限(Tail 是 write 单点).</p>
+<hr />
+<h2 id="三多主复制-multi-master"><a class="header" href="#三多主复制-multi-master">三、多主复制 (Multi-Master)</a></h2>
+<h3 id="动机"><a class="header" href="#动机">动机</a></h3>
+<p>为了 multi-DC 高可用: 各 DC 有自己的 master, local writes 不必跨 DC RTT, total throughput 提升, partition between DC 仍可服务。</p>
+<h3 id="协议"><a class="header" href="#协议">协议</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>协议</th><th>描述</th></tr></thead><tbody>
+<tr><td>Async multi-master</td><td>各 master 独接 write, replication 异步; replicas 用 vector clock 或 timestamp LWW 合并</td></tr>
+<tr><td>Sync multi-master (PostgreSQL BDR 3.x)</td><td>全 quorum 2PC, multi-master cross-replication, 强 serializable 但 latency = cross-DC RTT</td></tr>
+<tr><td>Conflict-free via CRDT</td><td>内部复制 log 是 CRDT (e.g., counters); 8x 的 incr 是 commutative</td></tr>
+<tr><td>Operational transform</td><td>Google Docs / Etherpad 的实时协同 —— 客户端 OT 加 encrypt server</td></tr>
+</tbody></table>
+</div>
+<h3 id="vector-clock-conflict-resolution"><a class="header" href="#vector-clock-conflict-resolution">Vector Clock Conflict Resolution</a></h3>
+<pre><code class="language-python"># client A at node A
+v = {A: 1, B: 0, C: 0}
+write v[A] += 1  # {A: 2, B: 0, C: 0}
+
+# client B at node B updates different key concurrently
+v_b = {A: 0, B: 1, C: 0}
+write v_b[B] += 1  # {A: 0, B: 2, C: 0}
+
+# 复制时 vector clock comparing
+# not &lt;= either ⇒ concurrent conflict ⇒ siblings list
+# merge function decides final value
+</code></pre>
+<h3 id="multi-dc-cassandra"><a class="header" href="#multi-dc-cassandra">Multi-DC Cassandra</a></h3>
+<p>Cassandra 默认 <code>NetworkTopologyStrategy</code> (one replication factor per DC):</p>
+<ul>
+<li><strong>LOCAL_QUORUM</strong>: 写/读 quorum within local DC only (low latency, cross-DC async).</li>
+<li><strong>EACH_QUORUM</strong>: each DC 独立 majority, 跨 DC 强一致 (rare 用, latency 大).</li>
+<li><strong>LOCAL_ONE</strong>: 单本地副本, 极低延迟 + 最终一致.</li>
+</ul>
+<h3 id="mysql-gr-multi-primary"><a class="header" href="#mysql-gr-multi-primary">MySQL gr multi-primary</a></h3>
+<p>MySQL Group Replication (8.0+):</p>
+<ul>
+<li>XCom consensus: 类 Paxos; 任一节点接写, group consensus commit</li>
+<li>multi-primary mode 默认禁: conflict detection by primary key hash "certify_record"; 同时 conflict → write 丢弃, client 收错误</li>
+<li>single-primary mode (默认): 主写函数主, 其他 member standby; 等同标准 replication but with consensus quorum.</li>
+</ul>
+<h3 id="dynamodb-global-table"><a class="header" href="#dynamodb-global-table">DynamoDB Global Table</a></h3>
+<ul>
+<li>任一 region 可写 → cross-region async replication</li>
+<li>每个 replica 有er write 直接 ack client, 复制 async inter-region high write throughput</li>
+<li>write time + region + vector clock — LWW with region clock参与. conflict rare, 但其实 raw globe:
+<pre><code>timestamp = (now_utc_ms, region_id_seed)
+now = max(now, last_seen) + 1
+</code></pre>
+region ids 全序; 后写 region 总成功</li>
+</ul>
+<h3 id="典型事故-1"><a class="header" href="#典型事故-1">典型事故</a></h3>
+<ol>
+<li><strong>CouchDB 跨 DC conflict dedup failure (2014)</strong>: couchdb by old 在 vector clock + LWW modes between datacenters dedup, some edits lost; Manual scan double needs.</li>
+<li><strong>Cassandra Global Counter Clockwise Race</strong>: counters pre-2.1 用 heavyweight transaction, count-down + cluster 跨 dc dynamic numerical data tomb physical same endow write overwritten — fix in 2.1+ use better vector clock meta for counters.</li>
+</ol>
+<hr />
+<h2 id="四无主复制-leaderless--dynamo-style"><a class="header" href="#四无主复制-leaderless--dynamo-style">四、无主复制 (Leaderless / Dynamo-style)</a></h2>
+<h3 id="architecture"><a class="header" href="#architecture">Architecture</a></h3>
+<p>客户端 (或 coordinator) nodirect向多个副本发送 read/write; 每副本独立 ack. Cassandra implementation:</p>
+<pre class="mermaid">flowchart TB
+    C[Client/Coordinator] --&gt;|write| R0[Replica 0]
+    C --&gt;|write| R1[Replica 1]
+    C --&gt;|write| R2[Replica 2]
+    R0 -.ack.-&gt; C
+    R1 -.ack.-&gt; C
+    R2 -.ack.-&gt; C
+    C --&gt;|&quot;ack to client after W acks&quot; --&gt; Resp[Return]
+</pre>
+<h3 id="write-path-cassandra"><a class="header" href="#write-path-cassandra">Write Path (Cassandra)</a></h3>
+<ol>
+<li>Client/coordinator pick N replicas for partition key hash.</li>
+<li>Send write request to all N replicas.</li>
+<li>Wait W acknowledgements (replication consistency level).</li>
+<li>Reply client.</li>
+</ol>
+<p>W = 1 ANY ANY replica: 一副本持久化 (even是 hinted handoff). W = LOCAL_ONE 等 local-DC 一副本. W = LOCAL_QUORUM local DC majority. W = EACH_QUORUM each DC majority. W = ALL all replicas.</p>
+<h3 id="read-path-cassandra"><a class="header" href="#read-path-cassandra">Read Path (Cassandra)</a></h3>
+<ol>
+<li>coordinator pick N replicas.</li>
+<li>Send read to R replicas (default R = consistency level).</li>
+<li>Wait R replies.</li>
+<li>Compare timestamps + read repair in background (发新 version 给落后副本)</li>
+</ol>
+<h3 id="quorum-consistency-level"><a class="header" href="#quorum-consistency-level">Quorum Consistency Level</a></h3>
+<p><code>R + W &gt; N</code> 保证 read 跟 write overlap → linearizable 实际是<strong>强约束</strong> hohen 状态需<strong>read最新</strong>、 conjunct read with sync mutations; 但 Cassandra 一般只允许 read_your_writes with W=Quor R=Quorum.</p>
+<pre><code>N=3:
+- Write_Quorum (W=2) + Read_Quorum (R=2): overlap 1 (with N=3, R+W=4 &gt; 3) → stale-proof (within sync replica)
+- W=1, R=1: 可能 read stale 复本完全
+- W=3, R=1: write 全副本持久化, read-refresh 后马上可见 (但 read-not-efficient; depends)
+</code></pre>
+<h3 id="hinted-handoff"><a class="header" href="#hinted-handoff">Hinted Handoff</a></h3>
+<p>如果某副本 unavailable, coordinator 把 write 暂存 "hint" 本地, replica 回来后转发——保证 W=Quorum 期间 + 写 not lost if down ≤ hinted_handoff_enabled (default 3h) 间歇短.partition-of-snow availability.</p>
+<h3 id="read-repair"><a class="header" href="#read-repair">Read Repair</a></h3>
+<p>Coordinator read 从 R 副本收到 ack, compare bodies不一致, 选 newer 副本, 后台送 new value to older replica。 system 自治中作 anti-entropy 修复过程。</p>
+<h3 id="anti-entropy-merkle-tree"><a class="header" href="#anti-entropy-merkle-tree">Anti-Entropy (Merkle Tree)</a></h3>
+<p>Periodic background comparing 子树 between replicas, snap merkle root diff, transfer changed subtree。 Dynamo / Riak node-node.Streamming SSDler needs 内部 transport.</p>
+<h3 id="last-write-wins-lww"><a class="header" href="#last-write-wins-lww">Last Write Wins (LWW)</a></h3>
+<p>Cassandra 默认 LWW——每 cell 有 写 timestamp (client-supplied, default <code>now()</code> ms 各副本)。 conflict = max timestamp。 <strong>风险</strong>: clock skew 让先到达但 timestamp 大的副本获胜; 写丢。 解决 = client 提供 monotonic timestamp (driver 内部生成) 或 use Lightweight Transactions (Paxos)。</p>
+<h3 id="diverged-counter-cassandra-counter"><a class="header" href="#diverged-counter-cassandra-counter">Diverged Counter: Cassandra Counter</a></h3>
+<p>counter increment 不可简单 LWW——每副本累计 own delta + delta replication: Riak 用 CRDT (PN-Counter) Casual distributed counter, Cassandra 用自 maintain delta 模型 —— <strong>Cassandra 不允许 counter update 嵌入其他 update</strong> (atomic write batch 不允许 counter + 非counter).</p>
+<h3 id="risks"><a class="header" href="#risks">Risks</a></h3>
+<pre><code class="language-cassandra">// client at T=100 writes x=5 with timestamp 100
+insert into foo (id, x) values (1, 5) using timestamp 100;
+// client at T=99 (clock skew) writes x=4 with timestamp 99
+// 复制到 all N 副本, time LWW =&gt; x=5 wins (timestamp 100&gt;99) ✓ (correctly)
+// 但 if reverse skew — t=99 but real-time after t=100 — newer write lost. This is the LWW hazard.
+</code></pre>
+<h3 id="light-weight-transactions-paxos"><a class="header" href="#light-weight-transactions-paxos">Light Weight Transactions (Paxos)</a></h3>
+<p>Cassandra <code>IF</code> clause 用 Compare-and-set via Paxos:</p>
+<pre><code class="language-sql">UPDATE accounts SET balance = balance - 100 WHERE id = 1 
+IF balance &gt;= 100;
+</code></pre>
+<p>实际跑 4 阶段 Paxos (Paxos + serialization + quorum read + commit + ack); latency ~30-100ms (装备 quorum RW). 不在所有事务用—— 性能差 10-100×。</p>
+<hr />
+<h2 id="五决策矩阵"><a class="header" href="#五决策矩阵">五、决策矩阵</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>需求</th><th>推荐 拓扑</th><th>协议例</th></tr></thead><tbody>
+<tr><td>严格金融 linearizable write</td><td>单主 + quorum sync</td><td>CockroachDB, Spanner spans Paxos groups, PostgreSQL + Patroni quorum同步</td></tr>
+<tr><td>高写入, 可附录弱一致</td><td>无主 + LWW</td><td>Cassandra, DynamoDB</td></tr>
+<tr><td>多 DC 写, weak consistency</td><td>多主 async</td><td>DynamoDB Global, CouchDB</td></tr>
+<tr><td>多 DC 高可用 + 强一致</td><td>multi-region CockroachDB / Spanner</td><td>跨 DC quorum, latency 大</td></tr>
+<tr><td>实时协同文档</td><td>OT or CRDT algorithm</td><td>Automerge (CRDT), Yjs (CRDT), Google Docs (OT)</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="六易错清单"><a class="header" href="#六易错清单">六、易错清单</a></h2>
+<ol>
+<li><strong>MySQL async replication 不 ack follower, failover RPO &gt; 0</strong>: RDS 标准 failover when leader dead — replicated 流备可能 lagging, Aurora 重写 shared storage (storage-layer replication).</li>
+<li><strong>MongoDB replica set w=1</strong>: 高写吞吐 + leader failover data loss → use w=majority + journaling default on.</li>
+<li><strong>Cassandra LWW clock skew</strong>: NTP 必同步在 milliseconds。多 client 各地写, locked 区域—use per-row timestamp client-supplied, sync via NTP otherwise output loss.</li>
+<li><strong>MongoDB replica set write concern 不等于 journaling</strong> -elsm delay write ack before fsync: w=majority + j=true; 否则 leader fsync 未完成, crash 后 majority ack 但持久 false lose data.</li>
+<li><strong>多主复制会有 conflict, 写入前必须确定解决函数</strong> - 不写仍解决, chaos. products default conflict生产企业 LRW/LWW: depends. CouchDB provides only some夸 default conflict — Manually decide。</li>
+<li><strong>Quorum R+W&gt;N 不是充分条件 beat staleness</strong>: 当 sync replicas 不一致 (例如 async update over sync with R=2+ W=2) — fail edge case returns stale older data. Backend not linearize on multi-incident synchronous partial sync.</li>
+<li><strong>Leader 唯一带 leaseread</strong>: leader thread存放 native local memory — lease 失效前 client reads local 件。 leader Fail over + client missing logical Easier 地 产生旧 rank 反应 escape local latency。</li>
+</ol>
+<hr />
+<h2 id="七这一章带走的东西"><a class="header" href="#七这一章带走的东西">七、这一章带走的东西</a></h2>
+<ol>
+<li>单主写需求 etcd/Mongo/Patroni's  ack quorum-sync write: trade-off latency vs fault-tolerance。 leader租 + fenced quorum 决定事务安全。</li>
+<li>链复制低同步带宽需求 + linearizable read + 长 Chain copies. cohesion base Plate (Tail)Tail throughput 限制.</li>
+<li>多主复制 seriously conflict resolution by merger functions / 接受 RYW Consistency. multi-region multi-master CouchDB Cross-DC Generic Latency.</li>
+<li>Dynamo/Cassandra ال.无主保留 node IDEoperations types of writes to multiple replicas naturally without leader election; consistency level W + R tunable based constraints.</li>
+<li>LWW clockbased 假设 clock skew &lt; user tolerance; fault 用 client-suppliedMonotonic timestamp (true timestamp below N through samples, version vector—— Cassandra 宜 robust using monotonic tool per replica).</li>
+<li>Hinted Handoff + Read Repair + Merkle Anti-Entropy: "all quick fixes" divide—— partition ino av lost immediate, fiscal Halves 中恢复 MQTTinant.</li>
+<li>CRDTs in next section give 数学上 conflict-free merge (no timestamp race) — representing strong typed operations ON set-grow with counters 创建为精力outsourcing Pure CRDTs 数据.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="crdt.html">CRDT：无冲突数据类型</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../distributed/replication/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../distributed/replication/crdt.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../distributed/replication/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../distributed/replication/crdt.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

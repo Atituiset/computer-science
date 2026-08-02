@@ -1,0 +1,767 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>存储层次：Cache / DRAM / HBM - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="存储层次cache--dram--hbm"><a class="header" href="#存储层次cache--dram--hbm">存储层次：Cache / DRAM / HBM</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>CPU 的 L1 cache 访问 ~1ns（4 cycle @ 4GHz），DRAM 访问 ~100ns（400 cycle），SSD 访问 ~100µs（400,000 cycle）。这个 4 个数量级的延迟鸿沟是计算机体系结构最核心的问题。缓解策略是一场关于**局部性（locality）**的战争——cache 利用指令/数据的时间和空间局部性，把大概率命中的数据放在离计算单元更近、更快、更小的地方。</p>
+<pre class="mermaid">flowchart LR
+    CORE[&quot;CPU Core&lt;br/&gt;3-5 GHz&quot;] --&gt;|&quot;~1ns / ~1TB/s&quot;| L1[&quot;L1 Cache&lt;br/&gt;32-64KB, 1-5 cycle&quot;]
+    L1 --&gt;|&quot;~8ns / ~300GB/s&quot;| L2[&quot;L2 Cache&lt;br/&gt;256KB-1MB, 12-20 cycle&quot;]
+    L2 --&gt;|&quot;~30ns / ~150GB/s&quot;| L3[&quot;L3 Cache&lt;br/&gt;8-96MB, 40-60 cycle&quot;]
+    L3 --&gt;|&quot;~100ns / ~100GB/s&quot;| DRAM[&quot;DRAM&lt;br/&gt;8-64GB, DDR5/HBM&quot;]
+    DRAM --&gt;|&quot;~100µs / ~7GB/s&quot;| SSD[&quot;NVMe SSD&lt;br/&gt;256GB-2TB&quot;]
+</pre>
+<p>软件开发者的三个核心数字：cache miss 成本约 100 条 ALU 指令，L3 miss 成本约 400 条，DRAM 访问成本约顶 1000 条。程序行为——数据布局、访问模式、数据结构选择——直接决定了你在 cache 金字塔里掉落的层数。</p>
+<hr />
+<h2 id="一为什么需要存储层次"><a class="header" href="#一为什么需要存储层次">一、为什么需要存储层次？</a></h2>
+<h3 id="延迟带宽功耗三重鸿沟"><a class="header" href="#延迟带宽功耗三重鸿沟">延迟、带宽、功耗三重鸿沟</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>层级</th><th>延迟</th><th>带宽 (64B block)</th><th>功耗</th><th>等价 CPU cycle (4GHz)</th></tr></thead><tbody>
+<tr><td>L1 cache</td><td>~1ns</td><td>~1 TB/s</td><td>~20 pJ/access</td><td>4</td></tr>
+<tr><td>L2 cache</td><td>~8ns</td><td>~300 GB/s</td><td>~100 pJ/access</td><td>32</td></tr>
+<tr><td>L3 cache</td><td>~30ns</td><td>~150 GB/s</td><td>~500 pJ/access</td><td>120</td></tr>
+<tr><td>DRAM (DDR5)</td><td>~100ns</td><td>~100 GB/s</td><td>~12 nJ/access</td><td>400</td></tr>
+<tr><td>NVMe SSD</td><td>~100µs</td><td>~7 GB/s</td><td>~100 µJ/read</td><td>400,000</td></tr>
+</tbody></table>
+</div>
+<p><strong>关键认知</strong>：DRAM 访问耗能是 L1 cache hit 的 ~600 倍（12 nJ vs 20 pJ）。这不是线性差距，而是指数级。如果你写一段代码把 cache miss 从 10% 降到 1%，节约的不是"9% 的延迟"，而是"9 次 DRAM 访问 × 12 nJ 的能耗"。移动端（Apple M 系列）的核心优势之一就是巨大的 cache 结构让 app 有极高的 cache hit rate，从而节电。</p>
+<pre><code class="language-c">#include &lt;stdint.h&gt;
+#include &lt;stdlib.h&gt;
+
+// 演示：cache miss 的延迟成本
+// int 数组求和：顺序 vs 随机访问
+int64_t sum_sequential(const int *arr, size_t n) {
+    int64_t s = 0;
+    for (size_t i = 0; i &lt; n; i++) s += arr[i];
+    // 每条 cache line (64B) = 16 个 int，miss rate ≈ 1/16 = 6.25%
+    return s;
+}
+
+int64_t sum_random(const int *arr, const size_t *idx, size_t n) {
+    int64_t s = 0;
+    for (size_t i = 0; i &lt; n; i++) s += arr[idx[i]];
+    // idx 随机排列 → 几乎每 16 个 int 就 miss → miss rate ≈ 100%
+    // 这个循环比 sum_sequential 慢 10-50 倍
+    return s;
+}
+</code></pre>
+<hr />
+<h2 id="二sram-与-dram两种存储技术的本质差异"><a class="header" href="#二sram-与-dram两种存储技术的本质差异">二、SRAM 与 DRAM：两种存储技术的本质差异</a></h2>
+<h3 id="sramstatic-ram-用于-cache"><a class="header" href="#sramstatic-ram-用于-cache">SRAM（Static RAM）— 用于 cache</a></h3>
+<pre><code>   SRAM 6T cell (6 个晶体管):
+        Vdd
+         │
+     ┌───M2───M4───┐
+     │             │
+   M1┼─ M3        M5 ─┼ M6
+     │             │
+     └──Q─────Qbar──┘
+</code></pre>
+<p><strong>特点</strong>：交叉耦合的反相器对（M1-M4）产生双稳态锁存。只要有电，数据永久保持——因此叫"Static"。无需刷新、速度极快（1ns 级）、但 6 个晶体管占面积大，每 bit 成本高。</p>
+<h3 id="dramdynamic-ram-用于主内存"><a class="header" href="#dramdynamic-ram-用于主内存">DRAM（Dynamic RAM）— 用于主内存</a></h3>
+<pre><code>   DRAM 1T1C cell (1 个晶体管 + 1 个电容器):
+   
+   字线 (WL) ──┐
+              [T] 晶体管
+   位线 (BL) ──┼── [C] 电容器 (~30 fF) ── GND
+</code></pre>
+<p><strong>特点</strong>：靠电容器储存电荷表示 0/1。读取是破坏性的（破坏性读出）——读完后必须恢复。电容器漏电，必须在 <strong>64ms</strong> 内刷新所有行（JEDEC 标准 tREF = 64ms for Tcase ≤ 85°C）。1T1C 密度极高（1T vs 6T），但速度慢、功耗（刷新开销）大。</p>
+<h3 id="为什么-dram-延迟-100ns"><a class="header" href="#为什么-dram-延迟-100ns">为什么 DRAM 延迟 ~100ns？</a></h3>
+<p>DRAM 不是"读一个地址"——它的内部结构决定了每次访问要走三步：</p>
+<pre><code>地址 = {row_addr, bank, column_addr}
+
+① Row Activate (tRCD ≈ 15ns)
+   把整行 (比如 8Kb = 1024 字节) 从 bitcell array 读到行缓冲区 (row buffer / sense amp)
+
+② Column Read (tCL ≈ 15ns)
+   从行缓冲区选择列地址对应的那些 bit (64 字节)，驱动到 IO 线
+
+③ Precharge (tRP ≈ 15ns)
+   关闭当前行，为下一行 activate 做准备——因为 sense amp 被占用，不能同时 serve 两个行
+
+④ Bus transfer (tBurst ≈ 4ns @ DDR5-5600)
+   64 字节 × 8-bit = 8 次 transfer @ burst length 16 (BL16, DDR5) → ~4ns for 64B
+</code></pre>
+<p>真正读懂这个时序的含义：<strong>DRAM 的瓶颈不是传输速度，是行切换的开销</strong>。顺序访问（同一 row buffer 下）连续读 16 × 64B = 1KB 只需要一次 tRCD + 16 × tBurst ≈ 15 + 64 = 79ns → 整行 1KB 只用 ~79ns。随机访问（每次换个 row）呢？每次都是 tRCD + tCL + tRP = ~45ns <em>额外</em> + ~4ns burst = ~50ns per 64B。随机访问速度是顺序的 1/10。</p>
+<hr />
+<h2 id="三cache-组织"><a class="header" href="#三cache-组织">三、Cache 组织</a></h2>
+<h3 id="核心映射方式从单行到全路"><a class="header" href="#核心映射方式从单行到全路">核心映射方式：从单行到全路</a></h3>
+<p>Cache 的"在哪存放一个 64 位地址"归结为三种映射方式：</p>
+<pre class="mermaid">flowchart TB
+    subgraph DM[&quot;Direct Mapped (直接映射)&quot;]
+        D1[&quot;addr → 唯一 cache line&lt;br/&gt;index = (addr&gt;&gt;6) mod N&quot;]
+        D2[&quot;好：硬件最简单（1 个 comparator）&quot;]
+        D3[&quot;坏：冲突 miss —— 两个经常访问的地址&lt;br/&gt;如果 index 一样就会互相驱逐&quot;]
+    end
+    subgraph SA[&quot;Set-Associative (N-way 组相联)&quot;]
+        S1[&quot;addr → 某个 set&lt;br/&gt;set 内有 N 路可选&quot;]
+        S2[&quot;好：减少冲突 miss&lt;br/&gt;坏：N 越大 comparator 越多&lt;br/&gt;LRU 实现也越贵&quot;]
+    end
+    subgraph FA[&quot;Fully Associative (全相联)&quot;]
+        F1[&quot;addr → 任意位置&quot;]
+        F2[&quot;好：零冲突 miss&lt;br/&gt;坏：每访问要找 tag → N 个 comparator&lt;br/&gt;功耗极高，N 不能大&quot;]
+    end
+</pre>
+<p><strong>地址分解（48-bit 虚拟/物理地址）</strong>：</p>
+<pre><code>|  tag  |  index  |  offset  |
+|  t位   |   s位   |   b=6位  |   (因为 line size = 64B = 2⁶)
+
+s = log₂(num_sets)
+t = 48 - s - 6
+
+例如：32KB, 8-way, 64B line
+  num_lines = 32KB / 64B = 512
+  num_sets  = 512 / 8 = 64
+  s = log₂(64) = 6
+  t = 48 - 6 - 6 = 36
+</code></pre>
+<h3 id="真实例子"><a class="header" href="#真实例子">真实例子</a></h3>
+<pre><code class="language-c">// 用 C 代码模拟直接映射和组相联的 miss 行为
+
+#define LINE_SIZE 64
+#define CACHE_KB 32
+#define NUM_LINES (CACHE_KB * 1024 / LINE_SIZE)  // 512
+
+typedef struct { uint64_t tag; uint8_t valid; } cache_line_t;
+
+// 直接映射: 每个地址只映射到唯一一行
+size_t direct_mapped_index(uint64_t addr) {
+    return (addr / LINE_SIZE) % NUM_LINES;
+}
+
+// 8-way 组相联: 每个地址映射到 set; set 内有 8 路竞争
+size_t set_associative_index(uint64_t addr, int ways) {
+    size_t num_sets = NUM_LINES / ways;
+    return (addr / LINE_SIZE) % num_sets;
+}
+</code></pre>
+<p><strong>冲突 miss 可见化</strong>：假设 32KB D-cache（直接映射），你要同时访问 <code>a[0]</code> 和 <code>a[8192]</code>——这两个元素恰好在相同的 cache line index（因为 8192 × 4B = 32KB，正好一个 cache 大小差）。每次交替读写这两个地址都会互相驱逐，即使用到的数据只有 8 字节，cache 只有不到 1% 的空间被有效使用。</p>
+<hr />
+<h2 id="四cache-line-与写策略"><a class="header" href="#四cache-line-与写策略">四、Cache Line 与写策略</a></h2>
+<h3 id="为什么是-64-字节"><a class="header" href="#为什么是-64-字节">为什么是 64 字节？</a></h3>
+<p><strong>好处</strong>：程序员/编译器有能力证明程序"在一个连续范围内工作"——64B 利用了空间局部性。一个 <code>struct</code>、一小组数组元素、一条代码路径基本都落在 64B 内。</p>
+<p><strong>代价</strong>：false sharing（见后文 易错清单），且 100ns 的 miss penalty 对 64B 和 16B 其实是相同的（因为 DRAM tRCD + tBurst 主导了延迟）。</p>
+<p>从 32B 到 64B 到 128B（IBM POWER），本质是 miss penalty 的固定成本（tRCD + tRP）被更大的 line 摊分。但 128B 的缺点：false sharing 严重、cache 空间碎片化。目前业界共识是 64B。</p>
+<h3 id="写策略"><a class="header" href="#写策略">写策略</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>策略</th><th>命中时</th><th>未命中时</th></tr></thead><tbody>
+<tr><td><strong>Write-through + No-write-allocate</strong></td><td>同时更新 cache + 下一级</td><td>不分配 cache line，直接写下一级</td></tr>
+<tr><td><strong>Write-back + Write-allocate</strong></td><td>只更新 cache（设 dirty bit）</td><td>从下一级调入 line → 修改 → 标记 dirty</td></tr>
+</tbody></table>
+</div>
+<p>所有现代 CPU 的 L1 都用 <strong>Write-back + Write-allocate</strong>。原因：写命中率也高，且写穿（write-through）会让 store 指令的延迟等于 DRAM 延迟（100ns），无法接受。</p>
+<pre><code>dirty bit = 1 bit per cache line
+evict 时如果 dirty=0 → 直接丢弃
+evict 时如果 dirty=1 → 写回下一级（L1→L2 或 L2→L3）
+</code></pre>
+<hr />
+<h2 id="五替换策略"><a class="header" href="#五替换策略">五、替换策略</a></h2>
+<h3 id="lruleast-recently-used"><a class="header" href="#lruleast-recently-used">LRU（Least Recently Used）</a></h3>
+<p><strong>理论最优</strong>（针对传统局部性模式），但实现代价随相联度 N 增长：</p>
+<ul>
+<li>4-way: 6 bits (log₂(4!) = 4.6 → 需 6 bits for exact)</li>
+<li>16-way: ~44 bits → 对于 16-way L2 来说不经济</li>
+</ul>
+<h3 id="真实硬件使用的"><a class="header" href="#真实硬件使用的">真实硬件使用的</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>策略</th><th>原理</th><th>用于</th></tr></thead><tbody>
+<tr><td><strong>Pseudo-LRU (PLRU)</strong></td><td>二叉树的每个节点 1 bit 指向最近使用的子树方向</td><td>ARM/AMD L1, L2</td></tr>
+<tr><td><strong>RRIP (Re-Reference Interval Prediction)</strong></td><td>Intel Sandy Bridge 起，每个 cache line 有一个 2-bit 计数器预测 re-reference 时间</td><td>Intel L1, L2, L3</td></tr>
+<tr><td><strong>Bimodal RRIP (BRRIP)</strong></td><td>RRIP 的扩展：对于扫描模式（scan-heavy），部分避免为扫描行填满 cache</td><td>Intel Haswell+ L3</td></tr>
+<tr><td><strong>Apple Adaptive</strong></td><td>跟踪 recency + frequency，类似软件中的 ARC (Adaptive Replacement Cache)</td><td>Apple M 系列</td></tr>
+</tbody></table>
+</div>
+<pre><code>RRIP 的核心思想：
+  n 位计数器 per cache line
+  新插入 line → RRPV = 2^n - 2 (near-immediate)
+  命中 → RRPV = 0
+  需要淘汰时 → 找 RRPV = 2^n - 1 (max) 的行 → 如果没有，将所有行 RRPV++
+</code></pre>
+<h3 id="暴力演示lru-vs-rrip-在扫描下的差异"><a class="header" href="#暴力演示lru-vs-rrip-在扫描下的差异">暴力演示：LRU vs RRIP 在扫描下的差异</a></h3>
+<pre><code class="language-c">// 演示：遍历一个比 L3 大的数组
+// L3 = 36MB, array = 72MB
+// LRU: 扫描会把之前有用的 cache line 全部赶走 → scan 后 cache 是"垃圾"
+// BRRIP: 扫描行插入时直接给"快过期"的 RRPV → 保护此前有价值的行
+
+void scan_large_array(float *a, size_t n) {
+    for (size_t i = 0; i &lt; n; i++) a[i] *= 2.0f;
+    // 约 18M 个 float × 4B = 72MB, 远超 L3（36MB）
+    // → a[0] 在遍历完前已被 a[9M+] 赶走 → 100% miss
+    //  但 miss 是不可避免的，关键是第二次遍历 a 时的剩 cache → BRRIP 可能保住一些
+}
+</code></pre>
+<hr />
+<h2 id="六cache-一致性协议mesi"><a class="header" href="#六cache-一致性协议mesi">六、Cache 一致性协议（MESI）</a></h2>
+<h3 id="动机"><a class="header" href="#动机">动机</a></h3>
+<p>多核环境下的核心问题：如果 Core 0 的 L1 里有 <code>x=42</code>，Core 1 修改 <code>x=7</code>，怎么让 Core 0 看到 7 而不是 42？</p>
+<h3 id="mesi-四状态"><a class="header" href="#mesi-四状态">MESI 四状态</a></h3>
+<pre class="mermaid">stateDiagram-v2
+    [*] --&gt; Invalid
+
+    Invalid --&gt; Exclusive: Local Read&lt;br/&gt;(no other core has it)
+    Invalid --&gt; Shared: Local Read&lt;br/&gt;(other core responds)
+
+    Exclusive --&gt; Modified: Local Write
+    Exclusive --&gt; Shared: Remote Read snoop → respond
+    Exclusive --&gt; Invalid: Remote Write snoop
+
+    Shared --&gt; Modified: Local Write&lt;br/&gt;(invalidate others via bus)
+    Shared --&gt; Invalid: Remote Write snoop
+
+    Modified --&gt; Invalid: Remote Read snoop&lt;br/&gt;(write back then invalidate)
+    Modified --&gt; Invalid: Remote Write snoop&lt;br/&gt;(write back then invalidate)
+    Modified --&gt; Shared: Remote Read snoop&lt;br/&gt;(write back, keep S copy)
+</pre>
+<p><strong>Modified</strong>：数据已被本 core 修改（dirty），并且只有本 core 有最新副本。当别的 core 想读这个地址时，本 core <strong>必须</strong>把数据写回（或"倒灌"到请求方），不能再靠 DRAM 的过期副本。</p>
+<p><strong>Exclusive</strong>：数据干净，但只有本 core 持有。因为只有一份，写入时直接变成 Modified，<strong>无需</strong> invalidate 别的 core（省了无用广播）。</p>
+<p><strong>Shared</strong>：多个 core 都在读，大家都干净。某个 core 要写时，必须在总线上发 <strong>Read For Ownership (RFO)</strong> 信号把其他 core 的 S copy 全 invalidate 掉。</p>
+<p><strong>Invalid</strong>：cache line 可用 slot，或已被 invalidate。任何 miss 最终落到这里。</p>
+<h3 id="moesiamd与-mesifintel"><a class="header" href="#moesiamd与-mesifintel">MOESI（AMD）与 MESIF（Intel）</a></h3>
+<pre><code>MESI 的基础问题：
+  Core 0: Modified → Remote Read snoop 来了 → 写回 DRAM → Core 3 从 DRAM 读取
+  ❌ 写回 DRAM 这一步是多余的——为什么不直接 copy 到 Core 3？
+</code></pre>
+<p><strong>MOESI (Owned state)</strong>：解决上面这个。Modified 是脏且唯一的，<strong>Owned</strong> 是脏但可能被多个 core 共享的——当远程读时，Owner core（通常是 M 或 O 的 core）直接把脏数据转发给请求方，<strong>不经过 DRAM</strong>。写回推迟到真正的 eviction 时。</p>
+<p><strong>MESIF (Forward state)</strong>：Intel 的解法。增加一个 <strong>Forward</strong> 状态：在多 core 共享某一行时，只有一个 core 被指定为 F（Forwarder）。当别的 core 再次请求该行时，只有 F 回应的 core 可以响应。这样可以避免 N 个 S-state core 同时在总线上回应（信号碰撞/总线仲裁开销）。</p>
+<h3 id="目录协议与-numa"><a class="header" href="#目录协议与-numa">目录协议与 NUMA</a></h3>
+<p>MESI 的"总线上广播（snooping）"做法在规模扩大时崩溃——几十个 core 的总线广播带宽占用、延迟都不可接受。AMD Infinity Fabric 和 Intel UPI 使用<strong>目录协议（Directory-based）</strong>：</p>
+<pre><code>目录协议的基本思想：
+  每个 DRAM controller 有一个"directory"记录它管理的每个 cache line 被哪些 core 持有
+  某个 core 要写时 → 向 HOM（Home Node）发请求
+  HOM 查目录 → 只向持有该 line 的 core 发 invalidate 请求（不广播）
+  
+  注意：invalidation 消息是"精确发送"的，不是"全喊"的 → O(持有者) 而非 O(N)
+</code></pre>
+<hr />
+<h2 id="七多级-cache-层级"><a class="header" href="#七多级-cache-层级">七、多级 Cache 层级</a></h2>
+<h3 id="真实微架构参数对比"><a class="header" href="#真实微架构参数对比">真实微架构参数对比</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>参数</th><th>Apple M3 P-core</th><th>AMD Zen 5</th><th>Intel Golden Cove (Lunar Lake P-core)</th></tr></thead><tbody>
+<tr><td>L1 I-cache</td><td>192 KB, 6-way</td><td>64 KB, 8-way</td><td>64 KB, 8-way</td></tr>
+<tr><td>L1 D-cache</td><td>128 KB, 8-way</td><td>48 KB, 12-way</td><td>48 KB, 12-way</td></tr>
+<tr><td>L1 延迟</td><td>3-4 cycle</td><td>4-5 cycle</td><td>5 cycle</td></tr>
+<tr><td>L2 cache</td><td>16 MB (shared by 4 P-cores)</td><td>1 MB per core, 16-way</td><td>2.5 MB per core, 10-way</td></tr>
+<tr><td>L2 延迟</td><td>~12 cycle</td><td>12-14 cycle</td><td>16 cycle</td></tr>
+<tr><td>L3 cache</td><td>24 MB (shared all cores)</td><td>32 MB per CCD (8 cores)</td><td>12 MB shared per cluster</td></tr>
+<tr><td>L3 延迟</td><td>~40 cycle</td><td>45-50 cycle</td><td>45-52 cycle</td></tr>
+<tr><td>带宽 (L1→L2)</td><td>~200 GB/s per core</td><td>~128 GB/s per core</td><td>~128 GB/s per core</td></tr>
+</tbody></table>
+</div>
+<p><strong>设计差异背后的哲学</strong>：</p>
+<ul>
+<li><strong>Apple M3</strong>：超宽 decode（10-wide）+ 超大指令 cache（192KB）→ 前端必须喂入大量指令，I-cache 需要装更多；P-core 集群共享 16MB L2 提供极低延迟的 inter-core 通信。一切为**每瓦性能（perf/W）**服务。</li>
+<li><strong>Zen 5</strong>：8 核共享一个 CCD（Core Compute Die），每个核心携带自己的 1MB L2，而 32MB L3 以 8 个 slice 分布到各核上方（3D V-Cache 模式下再叠 64MB）。<strong>关键是 L3 的 8-slice 网状拓扑避免瓶颈</strong>。</li>
+<li><strong>Golden Cove (Lunar Lake)</strong>：2.5MB L2 比前代（P-core 1.25MB）翻倍，L3 为 12MB — 适合中小规模的频繁 cache re-use（绝大多数应用的实际 working set 在 10MB 以内）。</li>
+</ul>
+<hr />
+<h2 id="八dram-组织"><a class="header" href="#八dram-组织">八、DRAM 组织</a></h2>
+<h3 id="dimm--rank--chip--bank--row--column"><a class="header" href="#dimm--rank--chip--bank--row--column">DIMM → Rank → Chip → Bank → Row → Column</a></h3>
+<pre><code>一块 DDR5 DIMM (比如 32GB) =
+  2 个 Rank × 每个 Rank 4 个 Chip × 每个 Chip 8 个 Bank Group × 4 个 Bank × 32K Row × 1K Column
+
+ DDR5 关键数字：
+  · 2 个独立的 32-bit channel（DDR4 是 1 个 64-bit channel）
+  · 每个 channel 带宽 = 5600 MT/s × 32-bit / 8 = 22.4 GB/s
+  · 一块 DIMM 总带宽 = 2 × 22.4 = 44.8 GB/s
+</code></pre>
+<h3 id="ddr5-时序参数ddr5-5600-cl46"><a class="header" href="#ddr5-时序参数ddr5-5600-cl46">DDR5 时序参数（DDR5-5600 CL46）</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>参数</th><th>含义</th><th>值</th></tr></thead><tbody>
+<tr><td>tCL</td><td>CAS 延迟 (read cmd → first data)</td><td>46 ticks = 12.8ns</td></tr>
+<tr><td>tRCD</td><td>RAS-to-CAS (activate → read)</td><td>46 ticks</td></tr>
+<tr><td>tRP</td><td>Precharge time (close row)</td><td>46 ticks</td></tr>
+<tr><td>tRAS</td><td>Row active time (minimum)</td><td>52 ns</td></tr>
+<tr><td>tRFC</td><td>Refresh cycle time</td><td>295 ns</td></tr>
+<tr><td>带宽</td><td>Per channel</td><td>5600 × 2 × 32/8 = 44.8 GB/s for one DIMM</td></tr>
+<tr><td>实际延迟</td><td>ACT + RD + PRE</td><td>~12.8 + 12.8 + 12.8 + burst = ~40-45ns</td></tr>
+</tbody></table>
+</div>
+<p><strong>核心洞察</strong>：DDR4 → DDR5 的频率提升（3200 → 5600）让 tCL/tRCD/tRP <strong>tick 数增加</strong>了（14 → 46），real-time 没怎么变。收益在于：① bus 带宽加大（5600 MT/s 传输更快）② Bank 数更多（16 → 32）能同时激活更多 row → 更大的 MLP（memory-level parallelism）。</p>
+<hr />
+<h2 id="九hbmhigh-bandwidth-memory"><a class="header" href="#九hbmhigh-bandwidth-memory">九、HBM（High Bandwidth Memory）</a></h2>
+<h3 id="为什么-hbm-存在"><a class="header" href="#为什么-hbm-存在">为什么 HBM 存在？</a></h3>
+<p>DDR5 DIMM 的物理极限：128-bit bus（一个 DIMM 2 channel × 64-bit），4 DIMM per channel → 最多 256-bit，约 224 GB/s。GPU（H100）需要 3 TB/s。如何实现？</p>
+<p><strong>答案</strong>：不搞"数据串行通过窄总线" → 搞"数据并行通过极宽总线"。</p>
+<pre><code>HBM3 的基本结构：
+
+   Logic Die (控制 + PHY) ── 下层
+     ↑  TSV (Through-Silicon Via) 竖着穿过 8-12 个 DRAM 堆叠层
+     ↑  每层 DRAM die 都有 256-bit 的数据通道
+   [DRAM Die 8] ── 最上
+   [DRAM Die 7]
+   [DRAM Die 6]
+   [DRAM Die 5]
+   [DRAM Die 4]
+   [DRAM Die 3]
+   [DRAM Die 2]
+   [DRAM Die 1] ── 最下
+   ───────────
+   Logic Die ── 硅中介层 (Si Interposer) → GPU/Chiplet
+
+每个 stack 的带宽 = 1024-bit bus × 6.4 Gbps per pin / 8 = 819 GB/s
+NVIDIA H100: 6 个 HBM3e stack × 1.2 TB/s = 3.35 TB/s
+</code></pre>
+<h3 id="hbm-vs-ddr-为什么-hbm-延迟更低"><a class="header" href="#hbm-vs-ddr-为什么-hbm-延迟更低">HBM vs DDR 为什么 HBM 延迟更低？</a></h3>
+<ol>
+<li><strong>物理距离短</strong>：HBM 堆叠紧贴 GPU 计算芯片（~mm 甚至 µm 级），DDR DIMM 走 socket → PCB 走线 → 信号经几厘米距离。</li>
+<li><strong>宽总线</strong>：1024-bit vs 64-bit → 每个 pin 传输压力低，每个 chunk 能更快稳定采样。</li>
+<li><strong>无 DIMM 边界</strong>：DIMM 需要经过 Mem Controller 分配 Rank/Group/Bank → 额外几 ns 的仲裁延迟。</li>
+</ol>
+<h3 id="hbm3--hbm3e-对比"><a class="header" href="#hbm3--hbm3e-对比">HBM3 / HBM3e 对比</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>版本</th><th>带宽 /stack</th><th>每 pin</th><th>容量 /stack</th><th>堆叠层</th><th>代表产品</th></tr></thead><tbody>
+<tr><td>HBM2e</td><td>460 GB/s</td><td>3.6 Gbps</td><td>16 GB</td><td>8</td><td>A100 (1.55 TB/s from 5 stacks)</td></tr>
+<tr><td>HBM3</td><td>819 GB/s</td><td>6.4 Gbps</td><td>24 GB</td><td>12</td><td>MI300X</td></tr>
+<tr><td>HBM3e</td><td>1.2 TB/s</td><td>8.0 Gbps</td><td>36 GB</td><td>12</td><td>H100 (3.35 TB/s from 6 stacks)</td></tr>
+</tbody></table>
+</div>
+<p>HBM 的工程代价：TSV 工艺难度极高，堆叠良率限制产能。HBM3e 堆叠 12 个 DRAM die，需要每个 die 极薄（~100µm），加上 TSV 穿硅孔几何精确对准 → 单 wafer 良率 vs 成本是工业级挑战。这也是为什么 HBM 单价约 $15-20/GB，而 DDR5 约 $3-4/GB。</p>
+<hr />
+<h2 id="十3d-v-cacheamd"><a class="header" href="#十3d-v-cacheamd">十、3D V-Cache（AMD）</a></h2>
+<p>2022 年 AMD 在 Zen 3（5800X3D）上首次加入 3D V-Cache：<strong>把额外的 64MB L3 以 chiplet 形式叠在 CCD 的正上方</strong>，用铜制互联（Hybrid Bonding）连线。</p>
+<pre><code>           ┌──────────────┐
+           │  64MB L3      │  ← 3D V-Cache die (叠加层)
+           │  (附加缓存)    │
+           ├─Hybrid Bond───┤
+           │  CCD           │  ← 8 核 Zen 5 + 32MB L3
+           │  32MB L3 (+I/O)│
+           └──────┬─────────┘
+                  │ Infinity Fabric
+           ┌──────┴─────────┐
+           │   I/O Die      │  ← DDR5 控制器 + PCIe lanes
+           └────────────────┘
+</code></pre>
+<p><strong>效果</strong>：总 L3 = 32MB (CCD 内置) + 64MB (3D V-Cache) = 96MB。游戏、渲染、数据库等大量工作负载在 80MB 到 96MB 区间内可获得接近 L3 延迟的命中率。</p>
+<p><strong>技术关键</strong>：Hybrid Bond 的 TSV 不在 DRAM 堆叠的 HBM 意义上——3D V-Cache 用更精细的铜-铜直接键合（not solder bump），密度高得多（~2-3 µm 间距），带宽远超早期 3D stacking 方案。延迟惩罚仅为 ~4 cycle 的跨越连接时间。</p>
+<p><strong>实战数字</strong>：在 7800X3D 上，模拟器（RPCS3）提升 ~30%，MMO 游戏提升 ~20-40%，部分编译负载提升 ~8-12%。效果取决于工作集大小——如果你的 app 的 working set &gt; 32MB 但 &lt; 96MB，3D V-Cache 是巨大卖点。</p>
+<hr />
+<h2 id="十一memory-level-parallelismmlp"><a class="header" href="#十一memory-level-parallelismmlp">十一、Memory-Level Parallelism（MLP）</a></h2>
+<p>OoO CPU 可以同时有多个未完成的 cache miss——这些未完成的 miss 由 <strong>MSHR（Miss Status Holding Register）</strong> 跟踪。</p>
+<pre><code>MLP 的含义：
+  while (p != NULL) {
+      p = p-&gt;next;  // 链表遍历：每条指令依赖前一条 ld 的结果
+  }
+  → MLP = 1（只有 1 个 miss 在飞行，其余阻在头前）
+  → 时间 = N × 100ns (每次 miss 串行)
+
+  for (int i = 0; i &lt; N; i++) {
+      a[i] = b[i] * c[i];  // 三个独立数组访问，互不依赖
+  }
+  → 硬件 prefetcher 识别 stride + OoO 窗口撑开 ~10-16 个 miss
+  → MLP = 10-16
+  → 时间 = N / 平均 MLP (实际受 DRAM bank 并行度限制)
+</code></pre>
+<p><strong>软件优化原则</strong>：让 cache miss 之间没有依赖关系。编译器可以重排访问顺序，OoO 的 ROB 能容纳 ~200-512 条指令，足够的窗口去并行发出多条 miss。链表、树、图的指针追逐是 MLP 的天敌。</p>
+<p><strong>硬件视角</strong>：Zen 5 有 8 个 fill buffer (L1 miss → L2)，16 个 L2 miss queue。每个 core 最多 16 个未完成的 L2 miss 在并行处理。Golden Cove 类似（12 L1 fill buffer + 32 L2 SQ）。</p>
+<hr />
+<h2 id="十二预取prefetching"><a class="header" href="#十二预取prefetching">十二、预取（Prefetching）</a></h2>
+<h3 id="硬件预取器"><a class="header" href="#硬件预取器">硬件预取器</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>预取器</th><th>识别模式</th><th>常用子</th></tr></thead><tbody>
+<tr><td><strong>Next-line</strong></td><td>总是预取下一条 cache line</td><td>所有现代 CPU</td></tr>
+<tr><td><strong>Stride</strong></td><td>识别地址间距模式 (addr[n+1] = addr[n] + stride)</td><td>所有 CPU, 2-3 个独立的 stride tracker</td></tr>
+<tr><td><strong>AMPM (Access Map Pattern)</strong></td><td>把内存分小块，跟踪过去 N 次访问 → 预测下次</td><td>Intel (SnB+), 用于 L2 → L3/L1</td></tr>
+<tr><td><strong>Feedback Directed</strong></td><td>动态关闭预取（如果预取准确率低）</td><td>Apple M series</td></tr>
+</tbody></table>
+</div>
+<pre><code>例子：
+  for (int i = 0; i &lt; N; i++) a[i]++;
+  → 每次 load a[i] 地址递增 4 (int=4B)
+  → stride prefetcher 检测到 stride=+4
+  → 提前 1-3 个 cache line 启动预取
+  → 程序看到 a[0], a[16], a[32], ... 全部命中（代码没看到 miss）
+</code></pre>
+<h3 id="软件预取"><a class="header" href="#软件预取">软件预取</a></h3>
+<pre><code class="language-c">#include &lt;xmmintrin.h&gt;  // _mm_prefetch on x86
+
+void software_prefetch_example(const float *src, float *dst, int n) {
+    for (int i = 0; i &lt; n; i++) {
+        // 提前告诉 CPU：5 次迭代后将需要 src[i+5] 和 dst[i+5]
+        _mm_prefetch((const char *)&amp;src[i + 5], _MM_HINT_T0);  // 预取到 L1
+        _mm_prefetch((const char *)&amp;dst[i + 5], _MM_HINT_T1);  // 预取到 L2
+        dst[i] = src[i] * 3.14f;
+    }
+    // 手动 prefetch 可用于 stride 过大（超过硬件 tracker 范围）
+    // 或 non-unit stride（硬件 tracker 难以探测）场景
+}
+</code></pre>
+<p><strong>GCC/Clang 内置</strong>：<code>__builtin_prefetch(ptr, rw, locality)</code>，其中 <code>rw=0</code> (read), <code>locality=0-3</code> 决定 prefetch 到 L1/L2/L3。</p>
+<p><strong>底线</strong>：大多数场景下硬件 prefetcher 就够了（甚至 do better），手动 prefetch 仅在以下场景有用：稀疏矩阵乘法、图遍历已知邻接表布局、哈希表探测过程中提前 prefetch 下一个 bucket。</p>
+<hr />
+<h2 id="十三工程事故rowhammer"><a class="header" href="#十三工程事故rowhammer">十三、工程事故：RowHammer</a></h2>
+<h3 id="事件时间线"><a class="header" href="#事件时间线">事件时间线</a></h3>
+<ul>
+<li><strong>2014</strong>：Yoongu Kim 等人在 CMU 发表论文《Flipping Bits in Memory Without Accessing Them》——用"反复激活同一 DRAM row"的手段让相邻行的 bit 随机翻转（0→1 或 1→0）。</li>
+<li><strong>本质</strong>：DRAM 的电容耦合 + 行激活导致的电荷泄露。快速激活（~100K 次/refresh cycle）同一行 → 电场干扰相邻行 → 相邻行的电容器漏电加速 → 数据被"击穿"。</li>
+<li><strong>影响</strong>：Google Project Zero 在 2015 年证明了 RowHammer 可用于权限提升（修改页表 → kernel mode 逃逸）。</li>
+<li><strong>缓解</strong>：JEDEC 增加 TRR (Targeted Row Refresh) 机制——DRAM controller 检测频繁激活的 row，对其相邻 row 做额外刷新。DDR5 做了更彻底的设计：per-row 激活计数 + 自动刷新相邻行，不需要控制器的外部干预。</li>
+</ul>
+<h3 id="为什么这是一个架构层次的问题"><a class="header" href="#为什么这是一个架构层次的问题">为什么这是一个"架构层次"的问题</a></h3>
+<pre><code>RowHammer on DDR4:
+  [ DRAM controller 不知道哪个 row 被 hammer ]
+  → 它看不见 row 激活频率
+  → JEDEC 要求加 TRR（控制器侧检测 hammer → 发额外刷新命令）
+  → 但这又增加了 controller 的复杂度（每个 row 都要 counter）
+
+RowHammer on DDR5:
+  [ DRAM chip 本身有 row activation counter ]
+  → chip 自己能检测 hammer 并触发相邻行刷新（RFM 机制）
+  → controller 不再需要跟踪 hammer 信息
+</code></pre>
+<p>这个问题的本质是：物理层的电荷现象绕过了逻辑层的 access control。这提醒我们——即使在"完美"的逻辑模型下，物理实现中的缺陷仍可以成为攻击面。</p>
+<hr />
+<h2 id="十四易错清单"><a class="header" href="#十四易错清单">十四、易错清单</a></h2>
+<ol>
+<li>
+<p><strong>"缓存这么大，不需要关心 memory layout"</strong>：32KB L1 只能装 512 条 cache line。一个满的 hash table、二叉树、linked-list traversal 轻松突破 L1 → L2 → L3，让本来 1ns 的访问变成 100ns。<strong>Data-oriented design 永远有意义</strong>。</p>
+</li>
+<li>
+<p><strong>False sharing</strong>：两个 core 各写一个不同的 <code>int</code>（各 4B），但它们落在同一条 64B cache line 上 → 每次写入都在 MESI 里引起 RFO + invalidate → 双方的 cache line 在两个 core 之间像乒乓球一样飞来飞去（ping-pong effect）。</p>
+<pre><code class="language-c">// 修复前：两个 int 挨着（同一条 cache line）
+struct bad { int a; int b; };  // a 和 b 在一条 64B cache line 上
+
+// 修复后：cache line 对齐
+struct good {
+    alignas(64) int a;
+    alignas(64) int b;
+};
+// 现在 a 和 b 在不同的 cache line → 写 a 不会 invalidate b
+</code></pre>
+</li>
+<li>
+<p><strong>"大 cache 就没 miss"</strong>：你给 8MB L3 做了直接映射，但 8 个地址恰好都有相同 index → 8 个地址互斥驱逐 → cache 实际只用了 1 条 line 的 64B。组相联是为了让冲突 miss 少一点，但无法消除。</p>
+</li>
+<li>
+<p><strong>"DRAM 带宽 = 我能拿到的速度"</strong>：DDR5 标称 44.8 GB/s，但这是"信道传输带宽"。真实内存访问的吞吐量受 <code>TD</code>（data rate）vs <code>ACT + tRCD</code> 的比值限制。对于随机访问（每 64B 需要 ACT + RD + PRE ~ 45ns），maximum throughput ≈ 64B / 45ns ≈ 1.4 GB/s per channel——连标称带宽的 3% 都不到。<strong>DRAM 带宽和延迟不是同一回事</strong>。</p>
+</li>
+<li>
+<p><strong>"MESI 自动保证我看的是最新数据"</strong>：对，但你要付 coherence 税。频繁写共享变量 → RFO 广播 → invalidate → 再取 → 100ns 每次。在高竞争的多线程程序中，这个税是性能杀手。</p>
+</li>
+<li>
+<p><strong>"3D V-Cache 就是再叠一层 cache"</strong>：对，但只有 working set 在 32-96MB 区间内才有效果。如果程序的工作集是 4KB（太小）或 2GB（太大），3D V-Cache 几乎没有加成。</p>
+</li>
+<li>
+<p><strong>"DDR5 延迟比 DDR4 高"</strong>：tCL tick counts 从 14 → 46，但因为时钟快了 75%（3200 → 5600），absolute latency 大致相同（~12-15ns）。DDR5 真正的改进在于更大带宽、更多 bank 带来的更高 MLP——延迟本身没有下降。</p>
+</li>
+</ol>
+<hr />
+<h2 id="十五这一章带走的东西"><a class="header" href="#十五这一章带走的东西">十五、这一章带走的东西</a></h2>
+<ol>
+<li>
+<p><strong>Cache 是局部性的加速器</strong>：时间局部性（刚用过的还再用）+ 空间局部性（挨着刚用过的也再用）→ cache 把 1% 的访问概率放大为 &gt;95% 的命中率。写代码时要思考"数据在这个 cache level 命中的概率是多少"——不是"cache 会救你的"。</p>
+</li>
+<li>
+<p><strong>DRAM 是分层组织</strong>：bank / row / column 的物理结构直接决定了顺序访问和随机访问的性能差 10-50 倍。</p>
+</li>
+<li>
+<p><strong>HBM 不是快 DRAM，是宽 DRAM</strong>：1024-bit 通道的 8-12 层堆叠，专为 GPU/AI 芯片设计——3.35 TB/s 的带宽没有一个 DDR5 DIMM 能接近。</p>
+</li>
+<li>
+<p><strong>MESI 是分布式一致性的一笔"硬件预演"</strong>：Modified/Exclusive/Shared/Invalid 四个状态的处理与 Quorum / 一致性协议惊人地相似——软件中的分布式一致性（e.g., Raft, Paxos）就是在更大的尺度上复现了 MESI 的逻辑。</p>
+</li>
+<li>
+<p><strong>False sharing 是写多线程代码的第一陷阱</strong>：两个不同变量的 cache line 冲突足以把程序性能打回 10 年前的水平。</p>
+</li>
+<li>
+<p><strong>3D V-Cache 证明了"cache &gt; 频率"的策略有效</strong>：AMD 用额外的 64MB L3 打赢了频率更高的 Intel 芯片（尤其在游戏领域）→ 局部性好的程序在更大的 cache 上获得非线性加速。</p>
+</li>
+<li>
+<p><strong>RowHammer 是物理层攻破逻辑层的警示</strong>：设计系统时，"不<strong>允许</strong>访问"（逻辑限制）不等于"不<strong>能</strong>访问"（物理绕过）。硬件信任边界之外的每一个物理参数都可能被攻击者利用。</p>
+</li>
+</ol>
+<hr />
+<p>下一节 → <a href="mmu-dma.html">MMU / TLB / DMA / IOMMU</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../computer-arch/cpu-superscalar.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../computer-arch/mmu-dma.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../computer-arch/cpu-superscalar.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../computer-arch/mmu-dma.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

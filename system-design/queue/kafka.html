@@ -1,0 +1,575 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Kafka / Pulsar / RocketMQ 设计 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="kafka-内部与生产实践"><a class="header" href="#kafka-内部与生产实践">Kafka 内部与生产实践</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>Apache Kafka (LinkedIn 2011 → Apache) 是 streaming "log-based"message broker, 不是传统 queue。 核心数据结构是 <strong>append-only partitioned log</strong>, 与 RabbitMQ / ActiveMQ 等 message-queue 不同。 Kafka throughput 100MB/s/partition scale 1M messages/sec, 7 年 SLA durability, 跨 DC mirrors, transactions 0.11+ exactly-once 的话 提供。</p>
+<p>本章扫 Kafka core API 与 topology:</p>
+<ul>
+<li>Producer (idempotent, transactions)</li>
+<li>Consumer (group coordinator, offset commit)</li>
+<li>Broker (log segment, ISR, replication factor)</li>
+<li>ZooKeeper / KRaft (controller metadata)</li>
+<li>Topics / partitions / offsets</li>
+</ul>
+<ul>
+<li>生产最佳 practices 配置, 典型事故 (consumer lag, hot partition, KRaft metadata loss)。</li>
+</ul>
+<hr />
+<h2 id="一数据模型"><a class="header" href="#一数据模型">一、数据模型</a></h2>
+<h3 id="topic--partition--log-segment"><a class="header" href="#topic--partition--log-segment">Topic + Partition + Log Segment</a></h3>
+<pre><code>Topic "OrderCreated":
+  Partition 0: log segment 1 → segment 2 → segment 3 → ...
+                  offset 0-N         offset N-2M    offset 2M-...
+
+  Partition 1: log segment 1 → ...
+  ...
+</code></pre>
+<p>每 partition 是 append-only sorted log. message 在 partition 中有 monotonically increasing <strong>offset</strong>, consumer 流动组 consumer group offset committed.</p>
+<h3 id="replication"><a class="header" href="#replication">Replication</a></h3>
+<p>每 partition 有 <strong>N replication factor</strong> (default 3). One 是 leader + N-1 followers. ISR (In-Sync Replicas) 是同步中的 followers. producer 默认 acks=all 等全部 ISR 收到. <code>min.insync.replicas=2</code> 强制 majority write.</p>
+<h3 id="segment"><a class="header" href="#segment">Segment</a></h3>
+<ul>
+<li>每 segment size 默认 1GB (configurable). rollover based on segment.bytes / segment.ms.</li>
+<li>写 append, 不可改 (append-only).</li>
+<li>删除 delete 是 log retention policy by time/size.</li>
+</ul>
+<h3 id="offset"><a class="header" href="#offset">Offset</a></h3>
+<ul>
+<li>Producer side: record send 一个 in-partition offset.</li>
+<li>Consumer 根据 group coordinator <code>offset commit</code> 在 broker 持久.</li>
+<li>old data retention 期限 cleanup 后 offset rebase 受 compression.</li>
+</ul>
+<hr />
+<h2 id="二核心-api"><a class="header" href="#二核心-api">二、核心 API</a></h2>
+<h3 id="producer"><a class="header" href="#producer">Producer</a></h3>
+<pre><code class="language-java">Properties p = new Properties();
+p.put("bootstrap.servers", "kafka-1:9092,kafka-2:9092");
+p.put("acks", "all");
+p.put("enable.idempotence", "true");          // Kafka 3.0+ default
+p.put("compression.type", "lz4");
+p.put("linger.ms", "5");                       // micro-batch 延迟 batch
+p.put("batch.size", "32768");                 // per partition batch 32KB
+p.put("max.in.flight.requests.per.connection", "5");        // idempotent producer 必 ≤5
+
+KafkaProducer&lt;String, String&gt; kp = new KafkaProducer&lt;&gt;(p);
+kp.send(new ProducerRecord&lt;&gt;("OrderCreated", "order_123", "{\"id\":123}"));
+</code></pre>
+<p>关键参数:</p>
+<ul>
+<li><code>acks=all</code>: leader + ISR 全 都写→ acked. <strong>生产 default best practice</strong>.</li>
+<li><code>enable.idempotence=true</code>: 用 PID + sequence number 防重复 (Kafka 3.0+ default)</li>
+<li><code>linger.ms=5</code> + <code>compression.type=lz4</code>: 把 latency 可接受 5ms 用 batching 提升 throughput</li>
+<li><code>batch.size=32KB</code>: per partition batch buffer, 让 micro batching 际 throughput  3-10×</li>
+<li><code>max.in.flight.requests.per.connection</code> ≤5: idempotent producer 限制</li>
+</ul>
+<h3 id="consumer"><a class="header" href="#consumer">Consumer</a></h3>
+<pre><code class="language-java">Properties p = new Properties();
+p.put("bootstrap.servers", "kafka-1:9092");
+p.put("group.id", "ShippingService");
+p.put("enable.auto.commit", "false");                  // 手动 commit 必须的
+p.put("auto.offset.reset", "earliest");                // first start 从 head 读
+p.put("isolation.level", "read_committed");            // 只看 commit 数据
+p.put("max.poll.records", "500");                      // 每批 max 500
+
+KafkaConsumer&lt;String, String&gt; kc = new KafkaConsumer&lt;&gt;(p);
+kc.subscribe(Arrays.asList("OrderCreated"));
+while (running) {
+    ConsumerRecords&lt;String, String&gt; records = kc.poll(Duration.ofMillis(100));
+    for (ConsumerRecord&lt;String, String&gt; r : records) {
+        process(r);                                            // 必 idempotent
+    }
+    kc.commitSync();                                  // manual commit after processing
+}
+</code></pre>
+<h3 id="consumer-group--partition-rebalance"><a class="header" href="#consumer-group--partition-rebalance">Consumer Group + Partition Rebalance</a></h3>
+<ul>
+<li>同 group.id 的 consumers 共享 partitions (every 一 partition 分 配给 一 consumer in group).</li>
+<li>添加 / 删除 consumer 时 consumer group rebalance. 由 group coordinator 在 broker 上 推 redistribution.</li>
+<li>Consumers 从 old partition commit 持 停止, 新分配 后,to fetched new partition last commit offset.</li>
+</ul>
+<h3 id="caching-problem-ethereal_and-pollinglatency"><a class="header" href="#caching-problem-ethereal_and-pollinglatency">Caching problem: ethereal_and PollingLatency</a></h3>
+<p>Kafka 0.10.2+ 引入 <code>poll(Duration)</code> 流式 client 非 `poll(long). 大版本 0.x ↔ 2.x 兼容掉加的 consumer.";</p>
+<hr />
+<h2 id="三架构"><a class="header" href="#三架构">三、架构</a></h2>
+<pre class="mermaid">flowchart TB
+    ZK[&quot;ZooKeeper (或 KRaft mode Kafka 3.x+)&quot;]
+    B1[Broker 1]
+    B2[Broker 2]
+    B3[Broker 3]
+    ZK -.controller metadata.-&gt; B1
+    ZK -.controller metadata.-&gt; B2
+    ZK -.controller metadata.-&gt; B3
+    B1 -- ISR replication -- B2
+    B1 -- ISR replication -- B3
+    P[Producer] --&gt; B1
+    B1 --&gt; C1[Consumer 1&lt;br/&gt;group A]
+    B1 --&gt; C2[Consumer 2&lt;br/&gt;group A]
+    B1 --&gt; C3[Consumer 3&lt;br/&gt;group B]
+</pre>
+<h3 id="broker"><a class="header" href="#broker">Broker</a></h3>
+<ul>
+<li>每 broker 是 java/kafka process. cluster 3-100 brokers 常见.</li>
+<li>broker 持 local log partition files (segment 1GB each).</li>
+<li>follower broker replicate from leader partition.</li>
+</ul>
+<h3 id="zookeeper-传统-vs-kraft-modern"><a class="header" href="#zookeeper-传统-vs-kraft-modern">ZooKeeper (传统) vs KRaft (modern)</a></h3>
+<p>Pre-Kafka 2.8: ZooKeeper cluster (3 / 5 nodes) 持 broker 注册 + controller elect + meta data.
+Kafka 2.8+ KRaft mode 让 Kafka 内部 Raft 接管 metadata, 免 ZooKeeper dep.
+Default 3.3+ production ready; 弃 ZooKeeper 推 adoption.</p>
+<p>KRaft: 一个 controller quorum (3 / 5 brokers) 包 Raft leader replicate metadata. Other broker 不持 metadata state, 只读写 controller leader.</p>
+<hr />
+<h2 id="四core-谢"><a class="header" href="#四core-谢">四、Core 谢</a></h2>
+<h3 id="isr--in-sync-replicas"><a class="header" href="#isr--in-sync-replicas">ISR = In-Sync Replicas</a></h3>
+<p>Leader maintain ISR (within同步 followers). Configurable 延迟 ceiling <code>replica.lag.time.max.ms</code> (default 30s).</p>
+<p>If ISR size &lt; min.insync.replicas, producer acks=all request fail with <code>NotEnoughReplicasException</code>.</p>
+<h3 id="log-segment-compaction"><a class="header" href="#log-segment-compaction">Log Segment Compaction</a></h3>
+<p>Kafka 支持 log compaction (besides time retention). Topic级别 <code>cleanup.policy=compact</code>:</p>
+<ul>
+<li>For every key, latest value retained; old version 前提 publisher data removed.</li>
+<li>Compaction runs in background.</li>
+</ul>
+<p>实用  <code>cleanup.policy=compact,delete</code>: time-based cleanup + compact latest-key.</p>
+<h3 id="kafka-write-path"><a class="header" href="#kafka-write-path">Kafka Write Path</a></h3>
+<ol>
+<li>Producer send batch → leader broker.</li>
+<li>Leader append to local segment log.</li>
+<li>Leader send responses parallel to ISR followers (each follower 写到自己的 local log 后 ack).</li>
+<li>Leader 收齐 ISR ack → commit, reply producer acked offset.</li>
+</ol>
+<h3 id="kafka-read-path"><a class="header" href="#kafka-read-path">Kafka Read Path</a></h3>
+<ol>
+<li>Consumer <code>poll()</code> to leader broker.</li>
+<li>Leader fetch from local log by committed offset.</li>
+<li>Consumer process + manual commit offset metadata internal Kafka topic <code>__consumer_offsets</code>.</li>
+</ol>
+<hr />
+<h2 id="五性能数字"><a class="header" href="#五性能数字">五、性能数字</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>Performance</th></tr></thead><tbody>
+<tr><td>单 partition throughput</td><td>100MB/sec = 200K msg/sec (1KB avg)</td></tr>
+<tr><td>100 partition cluster</td><td>10GB/sec</td></tr>
+<tr><td>生产 P99 latency (acks=all replication factor 3 with same-DC)</td><td>5-15 ms</td></tr>
+<tr><td>持久 storage</td><td>unlimited disk capacity ($/GB NVMe driven)</td></tr>
+<tr><td>metadata 状态</td><td>ZooKeeper: 5K partitions max; KRaft: more</td></tr>
+</tbody></table>
+</div>
+<h3 id="tuning-suggestions"><a class="header" href="#tuning-suggestions">Tuning Suggestions</a></h3>
+<ul>
+<li>partitions per broker ~ 4000 max each (moreнаб detrimental metadata overhead)</li>
+<li>replication factor = 3 cross-rack</li>
+<li>min.insync.replicas = 2 (3 cluster leader + 2 followers 写入)</li>
+<li>producer batch size + linger latency for throughput</li>
+<li>consumer fetch.min.bytes / fetch.max.bytes 大小 batch prioritize throughput</li>
+</ul>
+<hr />
+<h2 id="六典型使用"><a class="header" href="#六典型使用">六、典型使用</a></h2>
+<h3 id="click-stream-ingest"><a class="header" href="#click-stream-ingest">Click Stream Ingest</a></h3>
+<ul>
+<li>网页events 通过 lib / SDK producer batched at client → kafka topic <code>clickstream</code></li>
+<li>batched microsecs second-by-second system</li>
+</ul>
+<h3 id="logging-aggregation"><a class="header" href="#logging-aggregation">Logging Aggregation</a></h3>
+<ul>
+<li>客户 services log via fluentd / vector → kafka topic <code>logs</code></li>
+<li>consumers like ELK / Loki aggregate 提取 + 索引 + store</li>
+</ul>
+<h3 id="stream-processing"><a class="header" href="#stream-processing">Stream Processing</a></h3>
+<ul>
+<li>Kafka Streams (lib) 微服务 直接 stream application</li>
+<li>Apache Flink / Spark Streaming 从 Kafka topic consume + 写回 Kafka (exactly-once through transactions)</li>
+</ul>
+<h3 id="cdc-replication"><a class="header" href="#cdc-replication">CDC Replication</a></h3>
+<ul>
+<li>Debezium capture PostgreSQL binlog → Kafka topic <code>pg.dl.orders</code></li>
+<li>multiple downstream services subscribes 同 topic for read models / cache invalidation / search indexing.</li>
+</ul>
+<h3 id="async-email-queue"><a class="header" href="#async-email-queue">Async Email Queue</a></h3>
+<ul>
+<li>user service enqueue events 这里 → 队群 heterogeneous哮 events + content here</li>
+</ul>
+<h3 id="changestream--cache-invalidation"><a class="header" href="#changestream--cache-invalidation">ChangeStream / Cache Invalidation</a></h3>
+<ul>
+<li>Orders service outbox events → Kafka topic <code>cache_invalidation</code> → cache services subscribe → invalidate cache layer.</li>
+</ul>
+<hr />
+<h2 id="七典型事故"><a class="header" href="#七典型事故">七、典型事故</a></h2>
+<h3 id="consumer-lag-storm"><a class="header" href="#consumer-lag-storm">Consumer Lag Storm</a></h3>
+<p><em>Kafka 论区</em>某 consumer 处理慢前事 (slow component); partition 0 lag &gt;100k → backpressure automated scaling. Fix: HPA on kafka_consumer_lag alertmenus + workers scaled out.</p>
+<h3 id="kraft-metadata-loss"><a class="header" href="#kraft-metadata-loss">KRaft Metadata Loss</a></h3>
+<p>KRaft 3.3 升 级. fix acknowledge moments before nodes 在 initial 不不为 metadata 似出 失去数据. 升级 3.3 3.4 3.7 late fix in KIP-866.</p>
+<h3 id="producer-idempotence-011-not--late-specific-was-30"><a class="header" href="#producer-idempotence-011-not--late-specific-was-30">Producer idempotence 0.11 not # late (specific was 3.0+)</a></h3>
+<p>Many systems produce 1.1+ transaction. productid supplier detection. <code>k.committed_batches.limit </code> issue Retri with local. Fix: require idempotence; default 3.0+.</p>
+<h3 id="kafka-performance-degrade-after--abnormal-partitions"><a class="header" href="#kafka-performance-degrade-after--abnormal-partitions">Kafka performance degrade after # abnormal partitions</a></h3>
+<p>某系统 200+ partitions per topic, metadata overhead slowed job corelogv lag spike. Fix: partition count = 12, batches per minute improved.</p>
+<h3 id="kafka-connect-overflow-deadlock-handoff"><a class="header" href="#kafka-connect-overflow-deadlock-handoff">Kafka Connect overflow deadlock handoff</a></h3>
+<p>Kafka Connect 产生 high throughput + worker restarts → connector pause to 略 failover. Fix: connect_task_shutdown_graceful_shutdown_ms 增 + DLQ monitor persisted.</p>
+<hr />
+<h2 id="八生产-best-practice-关键参数"><a class="header" href="#八生产-best-practice-关键参数">八、生产 best practice 关键参数</a></h2>
+<h3 id="producer-优先级-throughput--durability"><a class="header" href="#producer-优先级-throughput--durability">Producer 优先级 (throughput + durability)</a></h3>
+<pre><code class="language-properties">acks=all                      # production default
+enable.idempotence=true       # 防 duplicate send
+compression.type=lz4          # 节约 BW
+linger.ms=5                   # 微 batch
+batch.size=65536              # 64KB per partition batch
+buffer.memory=16777216        # 16MB producer buffer
+retries=2147483647            # 无限重试 with idempotence
+delivery.timeout.ms=120000    # 2 min total timeout
+max.in.flight.requests.per.connection=5     # 必须 idempotent producer limit
+</code></pre>
+<h3 id="consumer-优先级"><a class="header" href="#consumer-优先级">Consumer 优先级</a></h3>
+<pre><code class="language-properties">enable.auto.commit=false      # 手动 沙拉 commit 后 commit
+auto.offset.reset=earliest
+isolation.level=read_committed   # 只看 commit
+max.poll.records=500
+max.poll.interval.ms=300000       # 5min processing budget err重磅 避免 rebalance kick
+session.timeout.ms=10000         # heartbeat net time
+heartbeat.interval.ms=3000       # rageheartbeat
+</code></pre>
+<h3 id="broker-优先级"><a class="header" href="#broker-优先级">Broker 优先级</a></h3>
+<pre><code class="language-properties">log.retention.hours=168          # 7 days retention
+log.segment.bytes=1073741824     # 1GB segments
+num.network.threads=3            # network threads (CPU/-count)
+num.io.threads=8                 # IO threads
+socket.send.buffer.bytes=102400
+socket.receive.buffer.bytes=102400
+queued.max.requests=500
+replica.lag.time.max.ms=30000   # 30s ISR lag tolerance
+</code></pre>
+<hr />
+<h2 id="九partition-sizing"><a class="header" href="#九partition-sizing">九、Partition Sizing</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Use case</th><th>Topic partitions</th><th>单 partition throughput</th></tr></thead><tbody>
+<tr><td>Clickstream</td><td>100 per topic</td><td>200K msg/sec</td></tr>
+<tr><td>Transaction log</td><td>N = N consumers (parallelism)</td><td>1 MB/sec each</td></tr>
+<tr><td>Slow stream</td><td>6-12</td><td>low throughput</td></tr>
+</tbody></table>
+</div>
+<ul>
+<li>partitions &gt; 1000 可 heavy metadata load. partition-per-topic default 1000 ceiling.</li>
+<li>partition count &gt; broker count × 4 → metadata replication overhead in producer.</li>
+</ul>
+<hr />
+<h2 id="十易错清单"><a class="header" href="#十易错清单">十、易错清单</a></h2>
+<ol>
+<li><strong>enable.auto.commit=false manual commit before 不错 ACK</strong>: 否则 missed processing 多 client.</li>
+<li><strong>max.poll.interval.ms 必 &gt; 业务 longest batch processing time</strong>: 否则 Kafka rebalance kick consumer active mid-processing.</li>
+<li><strong>enable.idempotence=true since 3.0 default</strong>: 但 Kafka 0.11 legacy producer 必须手动 enable - check clients.</li>
+<li><strong>acks=all + min.insync.replicas=2</strong>: 一 副本失 后 acks=all 失败 with NotEnoughReplicas. cluster leadership.</li>
+<li><strong>partition count减少 不行</strong> (一旦 create 减 partitions 不能再): 一旦 partition 0 to N exists, reduce N除 problems broker compatibility only manual + recursion non-trivial.</li>
+<li><strong><code>num.network.threads</code> &lt; network-concurrency problems</strong>: traffic spike can broker unresponsive.</li>
+<li><strong>out-of-range offset</strong>: broker 不再有 old offset but consumer commit old offset → reset auto.offset.reset=earliest 先后 看.</li>
+<li><strong>transaction.allocation</strong>: <code>transactional.id</code> 是 per producer session uid, <strong>after restart 继续 idempotency evidence</strong>. 不 changing violations transactions.</li>
+</ol>
+<hr />
+<h2 id="十一这一章带走的东西"><a class="header" href="#十一这一章带走的东西">十一、这一章带走的东西</a></h2>
+<ol>
+<li>Kafka = log-based broker, partitions + log segment + ISR replication + consumer group + offset commit.</li>
+<li>Producer idempotence + acks=all 是 default production; max throughput via <code>linger.ms + batch.size + compression</code>.</li>
+<li>Consumer <code>enable.auto.commit=false</code>, <code>max.poll.interval.ms</code> (avoid rebalance kick), <code>isolation.level=read_committed</code> 是最佳实践。</li>
+<li>ISR + replication_factor=3 + min.insync.replicas=2 提供 HA + durability + serialization.</li>
+<li>KRaft (3.x+) 替代 ZooKeeper metadata serving metadata, 减少外部 dependencies.</li>
+<li>Log compaction 让 "key-as-current tail" 优 = e.g. "shopping-cart state" topic 仅保留每 user 最新 shopping cart data.</li>
+<li>典型使用 + 异构 system ingestion: CDC ingest / logging / stream processing / cache invalidation / outbox delivery.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="../monitor/index.html">可观测性</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../system-design/queue/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../system-design/queue/semantics.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../system-design/queue/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../system-design/queue/semantics.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

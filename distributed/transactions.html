@@ -1,0 +1,473 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>分布式事务: 2PC / Saga / TCC / Outbox / Spanner - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="分布式事务-2pc--saga--tcc--outbox--spanner"><a class="header" href="#分布式事务-2pc--saga--tcc--outbox--spanner">分布式事务: 2PC / Saga / TCC / Outbox / Spanner</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>单机事务靠 WAL + 锁把"多行修改"原子化；一旦数据分到多台机器（微服务拆分、分库分表），<strong>"跨库转账"这类操作需要跨机器原子性</strong>。这一章讲四条技术路线的数学本质与工程取舍：<strong>2PC</strong>（强一致，但协调者故障会阻塞）、<strong>Saga</strong>（无原子性，靠补偿最终一致）、<strong>TCC</strong>（业务把"预留/确认/取消"三阶段暴露出来）、<strong>Outbox/事务消息</strong>（把 DB 事务和消息投递绑成一个原子操作）。最后看 Google Spanner 怎么用 <strong>2PC + TrueTime</strong> 同时拿到强一致和可用性。工程上 90% 的"分布式事务"问题，正确答案是<strong>换一个不用跨库事务的数据模型</strong>，而不是引入 2PC。</p>
+<p>读完应能：</p>
+<ol>
+<li>复述 2PC 的两阶段流程，指出协调者/参与者各自故障时的阻塞点与可恢复性。</li>
+<li>说出 3PC 比 2PC 好在哪、为什么没解决根本问题。</li>
+<li>设计一个 Saga（含补偿顺序）和一个 TCC 接口（Try/Confirm/Cancel + 幂等 + 空回滚）。</li>
+<li>说清 Outbox 为什么能保证"DB 写入与消息投递至少一次一致"，以及消费侧怎么幂等。</li>
+<li>判断一个业务场景到底该用 2PC / Saga / TCC / 还是重构避免。</li>
+</ol>
+<hr />
+<h2 id="一问题定义-分布式原子提交"><a class="header" href="#一问题定义-分布式原子提交">一、问题定义: 分布式原子提交</a></h2>
+<p>把转账拆成"扣 A 账户"（库 1）+"加 B 账户"（库 2）。两边各自有本地事务，但<strong>没有一个共同的锁/WAL 能同时覆盖两库</strong>。需要协议保证：要么两边都提交，要么两边都回滚，且任何进程崩溃后仍能收敛。</p>
+<p>这就是 <strong>分布式原子提交（Distributed Atomic Commit）</strong> 问题。注意它和共识（consensus）的区别：</p>
+<div class="table-wrapper"><table><thead><tr><th></th><th>共识 (Paxos/Raft)</th><th>原子提交 (2PC)</th></tr></thead><tbody>
+<tr><td>问什么</td><td>多节点对一个<strong>值</strong>达成一致</td><td>多节点对<strong>是否提交</strong>各自的事务达成一致</td></tr>
+<tr><td>失败模型</td><td>容忍故障，总能推进</td><td>协调者故障时可能<strong>阻塞</strong></td></tr>
+<tr><td>典型产物</td><td>复制状态机、选主</td><td>XA、数据库两阶段</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>2PC 每轮都要多数派之外的全部参与者点头，且协调者是单点——它解决的是"原子性"而不是"可用性"。把 2PC 当共识用是常见误解。</p>
+</div>
+<h2 id="二2pc-准备--提交"><a class="header" href="#二2pc-准备--提交">二、2PC: 准备 → 提交</a></h2>
+<pre><code>协调者(Coordinator)               参与者(Participants)
+   │  prepare(tx) ───────────────────►│ ① 写 undo/redo 日志, 加锁
+   │◄───────────  yes / no ───────────│ ② 进入 prepared 状态, 可恢复
+   │  如果全部 yes:                     │
+   │  commit ────────────────────────►│ ③ 释放锁, 提交
+   │  (任一 no: 发 abort)
+</code></pre>
+<p>两个阶段的关键性质：</p>
+<ol>
+<li><strong>准备阶段</strong>：参与者把事务做成"可提交但未提交"（写日志 + 持锁）。此时承诺：只要收到 commit 就一定提交；</li>
+<li><strong>提交阶段</strong>：协调者已决定，全体执行。<strong>决策一旦做出，协议不允许反悔</strong>。</li>
+</ol>
+<p>故障分析（这是面试/设计题核心）：</p>
+<div class="table-wrapper"><table><thead><tr><th>故障</th><th>后果</th><th>恢复方式</th></tr></thead><tbody>
+<tr><td>参与者 prepare 后崩溃</td><td>持有锁，事务悬挂</td><td>重启后查日志，等协调者补发 commit/abort</td></tr>
+<tr><td>协调者在 prepare 后、commit 前崩溃</td><td><strong>所有参与者阻塞</strong>，资源被锁死</td><td>需要新协调者读日志恢复决策；否则只能人工介入</td></tr>
+<tr><td>参与者收 commit 后崩溃</td><td>事务已提交，但副本可能未同步</td><td>重放日志 + 对下游补偿</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>2PC 的"不可用"不是概率事件：协调者故障 + 网络分区时，参与者既不能提交也不敢回滚（怕违背承诺），只能干等。这就是"阻塞问题"，也是 2PC 不适合长事务/跨公网的原因。</p>
+</div>
+<h3 id="3pc-的有限改进"><a class="header" href="#3pc-的有限改进">3PC 的有限改进</a></h3>
+<p>3PC 在 2PC 前加一轮 <strong>can-commit</strong>（投票），并把提交阶段拆成 <strong>pre-commit → do-commit</strong>，让参与者之间可以"互相恢复"（任何一个知道超时都可以去问别人）。它解决了协调者单点崩溃导致的无限阻塞，但：</p>
+<ul>
+<li>网络分区 + 新主视图不一致时仍可能<strong>脑裂</strong>（有人提交有人回滚）；</li>
+<li>工程上几乎没人用纯 3PC，因为引入的复杂度大于收益。</li>
+</ul>
+<h2 id="三xa-2pc-的工业实现"><a class="header" href="#三xa-2pc-的工业实现">三、XA: 2PC 的工业实现</a></h2>
+<p>Java 世界用 XA 接口把数据库/消息中间件接进 2PC：<code>xa_start / xa_end / xa_prepare / xa_commit / xa_rollback</code>。MySQL/PostgreSQL/Oracle 都支持。</p>
+<p>现实中的 XA 代价：</p>
+<ul>
+<li>每个参与者在 prepare 后<strong>锁资源直到全局决策</strong>——两库场景下并发和吞吐暴跌；</li>
+<li>协调者（如应用进程）是单点且必须持久化事务表，否则重启即失忆；</li>
+<li>跨库性能问题、运维事故频发，业界（尤其互联网公司）<strong>用 XA 的比例很低</strong>。</li>
+</ul>
+<blockquote>
+<p>结论：XA/2PC 适合"少量短事务 + 强一致 + 内部低延迟网络"的场景（典型：银行核心、数据中心内两库联动），不适合跨公网、长事务、高并发互联网业务。</p>
+</blockquote>
+<h2 id="四saga-没有原子性用补偿"><a class="header" href="#四saga-没有原子性用补偿">四、Saga: 没有原子性，用补偿</a></h2>
+<p>Saga 把一个大事务拆成 N 个<strong>本地事务</strong> + 每个本地事务配一个<strong>补偿事务</strong>：</p>
+<pre><code>下单(库存扣减) → 生成订单 → 支付扣款
+失败则反向补偿:  支付失败 → 取消订单 → 库存回补
+</code></pre>
+<p>两种编排：</p>
+<div class="table-wrapper"><table><thead><tr><th>编排方式</th><th>控制流</th><th>优缺点</th></tr></thead><tbody>
+<tr><td><strong>Choreography（事件驱动）</strong></td><td>每个服务完成后发事件，下一个服务订阅</td><td>无中心点、演进灵活；但流程不可见、难调试</td></tr>
+<tr><td><strong>Orchestration（编排器）</strong></td><td>中央 Saga 编排器依次调用</td><td>流程集中可见、易做重试/超时；编排器本身要高可用</td></tr>
+</tbody></table>
+</div>
+<p>正确性三要素：</p>
+<ol>
+<li><strong>补偿必须能成功</strong>：补偿里不能依赖"对方也失败"等假设，要设计成幂等、可重试；</li>
+<li><strong>补偿顺序 = 正序逆序</strong>：<code>t1, t2, t3</code> 失败于 t3 → 补偿 <code>c3, c2, c1</code>（c3 通常是被动补偿，t3 自己的回滚）；</li>
+<li><strong>无隔离保证</strong>：Saga 中间状态对外可见——需要额外手段（如订单状态机 + 对账）控制。</li>
+</ol>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>面试/设计高频答案：<strong>Saga 适用于"最终一致可接受、链路长、跨多个独立服务"</strong>。先画状态机，再定补偿，最后用幂等键 + 对账脚本兜底。</p>
+</div>
+<h2 id="五tcc-把三阶段暴露给业务"><a class="header" href="#五tcc-把三阶段暴露给业务">五、TCC: 把三阶段暴露给业务</a></h2>
+<p>TCC（Try-Confirm-Cancel）把 2PC 的 prepare/commit 翻译成业务操作：</p>
+<div class="table-wrapper"><table><thead><tr><th>阶段</th><th>做什么</th><th>例子（库存扣减）</th></tr></thead><tbody>
+<tr><td><strong>Try</strong></td><td>预留资源，不真正生效</td><td>冻结库存 10 件</td></tr>
+<tr><td><strong>Confirm</strong></td><td>确认生效（幂等）</td><td>把冻结转成实际扣减</td></tr>
+<tr><td><strong>Cancel</strong></td><td>释放预留（幂等）</td><td>解冻 10 件</td></tr>
+</tbody></table>
+</div>
+<p>必须处理的三个边界：</p>
+<ol>
+<li><strong>幂等</strong>：Confirm/Cancel 可能因网络重试被调多次，业务侧要用事务 ID 去重；</li>
+<li><strong>空回滚</strong>：Try 因超时没真正执行，但 Cancel 到了——Cancel 必须能安全执行（通常查无此预留就返回成功）；</li>
+<li><strong>悬挂</strong>：Cancel 先到、Try 后到——要拒绝迟到的 Try（记录已 Cancel）。</li>
+</ol>
+<p>主流实现：Seata AT/TCC 模式、DTM。TCC 的代价是把业务逻辑改造成"预留/确认/取消"三段——<strong>侵入性强，适合余额、库存、优惠券这类天然可分阶段操作的资源</strong>。</p>
+<h2 id="六outbox--事务消息-最容易落地的半分布式事务"><a class="header" href="#六outbox--事务消息-最容易落地的半分布式事务">六、Outbox / 事务消息: 最容易落地的"半分布式事务"</a></h2>
+<p>最常用的需求其实是："<strong>DB 写成功 + 发消息/事件成功</strong>"（比如下单后发 Kafka 事件给下游）。两个操作跨系统，朴素做法是"先写库再发消息"，但二者之间崩溃就丢事件。</p>
+<p><strong>Transactional Outbox</strong>：</p>
+<pre><code>业务事务:  INSERT 订单;  INSERT outbox(事件)   ← 同一个本地事务
+后台任务:  扫 outbox → 发 Kafka → 标记已发送
+</code></pre>
+<p>关键性质：<strong>事件和业务数据在同一个本地事务里落库</strong>，要么都成要么都败；投递用 at-least-once，消费侧<strong>幂等去重</strong>。</p>
+<p>工程要点：</p>
+<ul>
+<li>outbox 表要<strong>批次扫描 + 索引</strong>（未发送状态 + 创建时间），避免拖慢业务写；</li>
+<li>发送后<strong>删除或标记</strong>（标记更稳，可审计）；</li>
+<li>对 Kafka 的"事务消息"（producer transaction）做跨系统原子，本质上仍是 outbox 的变体，且要求 Kafka 与 DB 之间有协调者——多数团队直接选 outbox；</li>
+<li>高吞吐替代：**CDC（Debezium 监听 binlog）**把 outbox 变成事件流，避免轮询。</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>Outbox 解决了"原子性"（写库和发事件二选一），但没有解决"两个系统都强一致提交"——如果下游必须和上游同时可见（如分布式账本），它不够；如果只是"通知/异步解耦"，它就是最佳工程答案。</p>
+</div>
+<h2 id="七spanner-2pc--truetime-的强一致组合拳"><a class="header" href="#七spanner-2pc--truetime-的强一致组合拳">七、Spanner: 2PC + TrueTime 的强一致组合拳</a></h2>
+<p>Google Spanner 并没有发明新共识，而是<strong>把 2PC 放进 Paxos 组</strong>：</p>
+<ol>
+<li>每个分片是一个 Paxos 复制组（leader 在多数派中）；</li>
+<li>跨分片事务仍走 <strong>2PC</strong>，但协调者/参与者故障由 Paxos 复制接管；</li>
+<li>commit wait 用 <strong>TrueTime 时间戳</strong>（GPS + 原子钟）保证 external consistency：提交时间戳晚于所有并发事务，从而让读在任意节点都能看到"截至某时间点的全部已提交事务"。</li>
+</ol>
+<p>工程启示：<strong>2PC 的可用性短板可以用共识层补</strong>（协调者高可用 + 状态复制），但代价是每个分片都要跑 Paxos——这不是"免费强一致"，而是把成本摊到基础设施。</p>
+<h2 id="八选型决策树"><a class="header" href="#八选型决策树">八、选型决策树</a></h2>
+<pre><code>真的需要跨系统原子提交吗?
+├─ 不需要 → 拆分/重设计 (把两写变成一写 + 异步)  ← 默认答案
+├─ 需要强一致, 且网络可控、事务短
+│    └─ XA/2PC (数据中心内, 少参与者)
+├─ 需要强一致, 且要容错高可用
+│    └─ Spanner 式: 2PC + Paxos + TrueTime
+├─ 最终一致可接受, 长链路业务
+│    └─ Saga (编排器 + 补偿 + 幂等)
+├─ 资源型操作 (库存/余额/优惠券)
+│    └─ TCC (Try/Confirm/Cancel + 空回滚 + 悬挂处理)
+└─ 只要"写库+发消息"原子
+     └─ Transactional Outbox / CDC
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>最常见的架构错误：为了"两个表跨库强一致"引入 XA，结果 3 个月后因为锁阻塞把系统拖死。先量化真实需求——<strong>允许 1 秒延迟的一致</strong>和"绝对不能不一致"是两个量级完全不同的工程。</p>
+</div>
+<h2 id="九一页速查"><a class="header" href="#九一页速查">九、一页速查</a></h2>
+<pre><code>2PC:  prepare 全票 → commit; 协调者故障 = 阻塞; 适合数据中心内短事务
+3PC:  多一轮投票 + pre-commit, 减少阻塞但可能脑裂, 工程少见
+Saga: 本地事务 + 补偿, 无原子性, 编排器/事件驱动, 幂等 + 对账
+TCC:  Try 预留 / Confirm 生效 / Cancel 回滚, 幂等 + 空回滚 + 防悬挂
+Outbox: 业务写 + 事件写同一个本地事务, at-least-once + 消费幂等
+Spanner: 2PC 每分片跑 Paxos + TrueTime commit wait = external consistency
+选型: 默认重构避免; 强一致短事务=2PC; 最终一致长链路=Saga; 资源型=TCC
+</code></pre>
+<p>下一篇: <a href="fault/index.html">分布式存储与容错</a>。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../distributed/replication/repair.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../distributed/clock/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../distributed/replication/repair.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../distributed/clock/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

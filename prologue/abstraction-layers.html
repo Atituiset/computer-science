@@ -1,0 +1,573 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>2. 抽象层级: 从晶体管到 AI 模型的十层金字塔 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="2-抽象层级-从晶体管到-ai-模型的十层金字塔"><a class="header" href="#2-抽象层级-从晶体管到-ai-模型的十层金字塔">2. 抽象层级: 从晶体管到 AI 模型的十层金字塔</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>计算机科学的本质 = <strong>分层抽象</strong>: 每一层<strong>为上层提供契约</strong> (一组语法 + 语义 + 不变式), 上层<strong>不知道也不需要知道</strong>下层如何实现. <strong>但抽象会泄漏</strong> — 当下层契约被打破时, 上层必须有人理解并修复.</p>
+<p>这条"十层金字塔"从前一天最熟悉的程序语言脚本一路下钻到晶体管电压, 再上钻到 AI 模型. 一共 10 层, 每层一句话:</p>
+<pre><code>┌──────────────────────────────────────┐
+│ 10. AI 模型 / 智能体层 (Agent)         │   GPT / Claude / Agent
+│  9. 应用与框架层                       │   web / db / 分布式 / 编程框架
+│  8. 高级语言运行时层                   │   Java JVM / Python / V8
+│  7. 系统调用接口层                     │   POSIX / Win32
+│  6. 操作系统内核层                     │   Linux / NT
+│  5. 指令集架构 (ISA) 层               │   x86-64 / ARM / RISC-V
+│  4. 微架构 (microarch) 层              │   流水线 / 超标量 / cache / OoO
+│  3. 数字逻辑层                         │   RTL / 门 / 触发器 / FSM
+│  2. 模拟电路层                         │   放大器 / ADC / DAC
+│  1. 半导体器件物理层                   │   MOSFET / 晶体管 / PN 结
+└──────────────────────────────────────┘
+</code></pre>
+<p>读完应能: 任意给一份技术资料能立刻说出它在哪一层 / 它依赖下层哪契约 / 它向上提供什么. 看到现象 ("Redis 抖动"或 "Hyper-threading 引起 30% slowdown") 能沿层级定位泄漏源.</p>
+<hr />
+<h2 id="一为什么抽象分层"><a class="header" href="#一为什么抽象分层">一、为什么抽象分层</a></h2>
+<h3 id="11-复杂度-vs-单脑容量"><a class="header" href="#11-复杂度-vs-单脑容量">1.1 复杂度 vs 单脑容量</a></h3>
+<ul>
+<li>现代数据中心有 $\sim 10^{18}$ 晶体管, $\sim 10^9$ 行代码, 个人脑容量 $\sim 10^{11}$ neurons. 显然不可能"自上而下" 一气讲清.</li>
+<li>抽象分层 = <strong>把능力分工</strong>: 一层专家可以专心设计下一层 + 履行契约, 上层专家可以<strong>假定契约不变</strong>.</li>
+</ul>
+<h3 id="12-每层的契约"><a class="header" href="#12-每层的契约">1.2 每层的契约</a></h3>
+<ul>
+<li><strong>语法</strong>: 什么样的输入合法.</li>
+<li><strong>语义</strong>: 输入对应什么输出 / 系统行为.</li>
+<li><strong>不变式</strong>: 上层可以依靠的"始终为真"的保证 (e.g. "malloc 返回 non-NULL 不意味分配成功, 还要 free"; "TCP 是 reliable" 不变式 vs 链路层"按位丢失" 等等).</li>
+</ul>
+<h3 id="13-抽象会泄漏"><a class="header" href="#13-抽象会泄漏">1.3 抽象会泄漏</a></h3>
+<blockquote>
+<p>"All non-trivial abstractions, to some degree, are leaky." —— Joel Spolsky, 2002.</p>
+</blockquote>
+<p>抽象整层错误不存, 至少六个典型泄漏手段:</p>
+<ul>
+<li><strong>性能泄漏</strong>: 上层假设"免费", 实际 cache miss / page fault / GC pause.</li>
+<li><strong>正确性泄漏</strong>: 上层定义 OK, 下层在并发 / 故障下会违反契约 (e.g. fsync 在某些 fs / drive 上不保证 crash safe).</li>
+<li><strong>资源泄漏</strong>: 上层 closure / lambda 引用底层 file descriptor 不释放; OOM.</li>
+<li><strong>延迟泄漏</strong>: 上层 RPC, 下层跨网 RTT 50ms, 上层调 1000 次 = 50s.</li>
+<li><strong>资源粒度泄漏</strong>: 上层"加 1 字节" 在下层是"加 1 page" (4KB).</li>
+<li><strong>失败模型泄漏</strong>: 物理断电 → 网络 quiet → 上层 app 假死.</li>
+</ul>
+<p>→ <strong>本书每一部分都是某一层专家视角</strong>, 第十三部分元抽象专门谈同级跨层共同点.</p>
+<hr />
+<h2 id="二底层向上-第-1-4-层"><a class="header" href="#二底层向上-第-1-4-层">二、底层向上: 第 1-4 层</a></h2>
+<h3 id="21-第-1-层-半导体器件物理"><a class="header" href="#21-第-1-层-半导体器件物理">2.1 第 1 层: 半导体器件物理</a></h3>
+<p><strong>契约</strong>: 把外部电压 / 电流转换为可预测的"开关"行为.</p>
+<ul>
+<li>MOSFET (Metal-Oxide-Semiconductor Field-Effect Transistor): 三端 Gate/Source/Drain, Gate 电压控 Source↔Drain 通道.</li>
+<li>工艺节点 (5nm / 3nm / 2nm) 是 marketing 词; 真晶体管密度与 pitch 跟名字关系不严格对应.</li>
+<li>关键变数: $V_{th}$ (阈值), $I_{on}/I_{off}$ 比, 漏流 (static power), 短沟道效应, 量子隧穿.</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>2005 后 Dennard scaling 退场: 同面积功耗不再随节点下降 → 主频不能无限升 → 多核化 → 2010+ 加速器化. 这是后面所有 XPU 故事的根.</p>
+</div>
+<h3 id="22-第-2-层-模拟电路"><a class="header" href="#22-第-2-层-模拟电路">2.2 第 2 层: 模拟电路</a></h3>
+<p><strong>契约</strong>: 把 MOSFET、电阻、电容组成放大器、ADC/DAC、PLL、SRAM cell.</p>
+<ul>
+<li>SRAM 单元 = 6T, 6 个晶体管组成双稳态寄存器.</li>
+<li>DRAM 1T1C: 1 MOSFET + 1 电容; 容量高但需周期刷新 (64ms 内必须读回写一次).</li>
+<li>PLL 用作时钟倍频, ADC 把"模拟信号" 数化为 ADC 输出.</li>
+</ul>
+<p>→ 这一层给硬件上一个"稳定态 + 离散数字"契约; 上层第 3 层 RTL 不再关心电压.</p>
+<h3 id="23-第-3-层-数字逻辑-rtl--verilog"><a class="header" href="#23-第-3-层-数字逻辑-rtl--verilog">2.3 第 3 层: 数字逻辑 (RTL / Verilog)</a></h3>
+<p><strong>契约</strong>: 把布尔函数 (组合) 与时序逻辑 (状态) 组成可综合电路; 时钟无穷假设下, 输出由输入决定.</p>
+<ul>
+<li>RTL (Register-Transfer Level): Verilog / VHDL 描述数据在寄存器之间流动 + 触发时序.</li>
+<li>自动综合 + 布局布线 (PD).</li>
+<li>关键抽象: 时钟域同步 (CDC), 亚稳态 (metastability), 关键路径 (timing closure).</li>
+<li>组合电路: 逻辑门, 多路选择, 算术单元 (一位加法基本是 28T 半加器 + 9T 全加).</li>
+<li>时序电路: 触发器 + 状态机 + counter.</li>
+</ul>
+<h3 id="24-第-4-层-微架构-microarch"><a class="header" href="#24-第-4-层-微架构-microarch">2.4 第 4 层: 微架构 (microarch)</a></h3>
+<p><strong>契约</strong>: 把 RTL 实现成"对上一层 ISA 提供指令的时间抽象" — 一条指令在多少周期做完、是否可乱序、是否可预测.</p>
+<ul>
+<li>流水线 (5 级 / 16 级), 超标量 + OoO (Tomasulo), 分支预测 (Tage / Perceptron).</li>
+<li>Cache 层次 L1 / L2 / L3 / DRAM → 见 <a href="../computer-arch/memory-hierarchy.html">第八部分 memory hierarchy</a>.</li>
+<li>Memory consistency &amp; reorder buffer (ROB), memory ordering.</li>
+<li>TLB + huge page + page walk.</li>
+<li>GPU SM / warp scheduler; Tensor Core 矩阵乘张量核心.</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p><strong>Spectre (2018) 的本质</strong>: 微架构的 OoO + 分支预测打破了"用户态 / 内核态"在 ISA 上的契约 — 在 speculatively executed 失败路径上的 cache 副作用被攻击者读出 → 侧信道泄漏. 例子是" 第 4 层的 speculative 行为泄漏给第 7 层的程序".</p>
+</div>
+<hr />
+<h2 id="三中层-第-5-7-层"><a class="header" href="#三中层-第-5-7-层">三、中层: 第 5-7 层</a></h2>
+<h3 id="31-第-5-层-isa-instruction-set-architecture"><a class="header" href="#31-第-5-层-isa-instruction-set-architecture">3.1 第 5 层: ISA (Instruction Set Architecture)</a></h3>
+<p><strong>契约</strong>: 一份"机器指令 + 寄存器 + 寻址模式 + 系统态"的精确规范, 上层编译器目标即它, 下层微架构实现即它.</p>
+<ul>
+<li><strong>CISC</strong>: x86-64 / zArch. 变长指令, 复杂寻址, 长历史兼容.</li>
+<li><strong>RISC</strong>: ARM (v8/v9), RISC-V, MIPS. 固定 32 位指令, load-store 抽象, 解码简单.</li>
+<li>子系统: 向量扩展 (AVX-512 / SVE2 / RISC-V V), AMX (Intel Advanced Matrix Extensions), Apple Silicon Matrix Coprocessor.</li>
+</ul>
+<p>→ 第 8 部分 <a href="../computer-arch/isa-design.html">指令集架构</a> 详解.</p>
+<h3 id="32-第-6-层-操作系统内核"><a class="header" href="#32-第-6-层-操作系统内核">3.2 第 6 层: 操作系统内核</a></h3>
+<p><strong>契约</strong>: 通过系统调用接口, 对上层隐藏硬件细节: 进程调度、虚拟内存 / 页表、文件系统、套接字、设备驱动.</p>
+<ul>
+<li>Unix: 进程 fork/exec, 文件 = 字节流, 设备 = /dev 下 file-like, socket = file descriptor.</li>
+<li>Linux: monolithic + module; CFS 调度, cgroup v2 隔离, eBPF 动态扩展.</li>
+<li>Windows NT: 微内核思想实用化, micro-kernel-ish + Executive.</li>
+</ul>
+<p>→ 第二部分 <a href="../os/index.html">OS</a> 全部讲这一层.</p>
+<h3 id="33-第-7-层-系统调用-posix"><a class="header" href="#33-第-7-层-系统调用-posix">3.3 第 7 层: 系统调用 POSIX</a></h3>
+<p><strong>契约</strong>: 上层应用看到的标准 API: <code>read/write/open/close/fork/exec/mmap/epoll/...</code>.</p>
+<ul>
+<li>POSIX (IEEE 1003.1) 让软件跨 Unix 兼容.</li>
+<li>Windows Win32 等价.</li>
+<li>这一层一旦定下来, 70 年的 C 代码都能在 2024 Linux 跑 (<code>grep old codebase</code>).</li>
+<li><strong>典型泄漏</strong>: <code>fork + exec</code> 在 fork 后 fd 复制仍占用 → 父子进程都需 <code>close</code>. Threads 不是"轻量 fork" → 用 <code>pthread_create</code> 而且内存共享 (信号 mask, thread-local, errno 要小心).</li>
+</ul>
+<hr />
+<h2 id="四上层-第-8-10-层"><a class="header" href="#四上层-第-8-10-层">四、上层: 第 8-10 层</a></h2>
+<h3 id="41-第-8-层-高级语言运行时"><a class="header" href="#41-第-8-层-高级语言运行时">4.1 第 8 层: 高级语言运行时</a></h3>
+<p><strong>契约</strong>: 提供更高级抽象 (GC / 闭包 / 模块 / 异步) 对编译后的字节码 / 解释后的 AST 解释运行, 调系统调用完成 IO.</p>
+<ul>
+<li><strong>JVM / HotSpot</strong>: 字节码 + JIT (tiered compilation 把热点方法机编本地 code).</li>
+<li><strong>CPython</strong>: 解释 + 字节码; GIL (global interpreter lock) 限制纯 Python 多线程; PyPy JIT.</li>
+<li><strong>V8 / JS 引擎</strong>: tiered JIT (Ignition + TurboFan + Maglev + Sparkplug).</li>
+<li><strong>Go runtime</strong>: goroutine + GMP + runtime 调度 + channel, binary 自带.</li>
+<li><strong>Erlang BEAM</strong>: actor 模型 + 极轻量进程 + 热升级.</li>
+<li><strong>C/Rust</strong>: 无运行时 (Rust 用 minimal runtime), 编译到机器码直接跑.</li>
+</ul>
+<p>→ 第五部分编译原理的 <a href="../compilers/codegen/jit.html">JIT</a> 与 _meta <a href="../_meta/runtime-semantics.html">runtime-semantics</a> 详解各派不同.</p>
+<h3 id="42-第-9-层-应用与框架层"><a class="header" href="#42-第-9-层-应用与框架层">4.2 第 9 层: 应用与框架层</a></h3>
+<p><strong>契约</strong>: 业务语义 + 编程框架的库抽象 + DevOps 链路.</p>
+<ul>
+<li>Web: React / Vue / Spring / Gin / Django; BFF; 后端服务 (RPC / GraphQL).</li>
+<li>数据库客户端: ORM (Hibernate / SQLAlchemy / GORM); 迁移工具 (Flyway).</li>
+<li>分布式: Kafka / Pulsar; gRPC / Thrift; Etcd / ZooKeeper; K8s operator / Helm / Argo CD.</li>
+<li>数据 / ML: Spark / Flink / Dask / Ray / Airflow; experiment tracking (MLflow / W&amp;B).</li>
+</ul>
+<p>→ 第七部分 <a href="../system-design/index.html">系统设计</a> 与第六部分 <a href="../distributed/index.html">分布式</a> 都在这一层操作.</p>
+<h3 id="43-第-10-层-ai-模型--agent"><a class="header" href="#43-第-10-层-ai-模型--agent">4.3 第 10 层: AI 模型 / Agent</a></h3>
+<p><strong>契约</strong>: 输入 prompt / multimodal content, 输出 tool call + text; 训练时还要有 reward 信号或对比信号.</p>
+<ul>
+<li>现状: 2024-2026 是"模型即应用" 范式年; LLM 不止续写, 还有 tool use (MCP), 长 context memory, multi-agent orchestration.</li>
+<li>形态: 在线服务 (OpenAI / Anthropic API) vs 自托管开源模型 (LLaMA / Qwen / DeepSeek) vs 端侧模型 (Apple Intelligence / Phi-3) vs 嵌入式 (NPU on phone).</li>
+<li>关键不变式破坏: 训练数据分布 ✗ 推理分布 (covariate shift) / 测试时思考预算 ≠ 训练分布 / 多模态对齐困难.</li>
+</ul>
+<p>→ 第十二部分 <a href="../ai-ml/index.html">AI/ML</a> 与未来可能的 RL/Agent 章节.</p>
+<hr />
+<h2 id="五横向跨层的几个关键事实"><a class="header" href="#五横向跨层的几个关键事实">五、横向跨层的几个关键事实</a></h2>
+<h3 id="51-一条虚拟--物理--一条逻辑--概率-主干"><a class="header" href="#51-一条虚拟--物理--一条逻辑--概率-主干">5.1 一条"虚拟 → 物理" + 一条"逻辑 → 概率" 主干</a></h3>
+<pre><code>10. 语义 / 行为        Agent 语义 / 训练目标
+9.  应用 / 业务         组件 + 数据流
+8.  运行时             类型 + 函数 + GC
+7.  POSIX              fd / file / socket
+6.  内核               进程 / 虚拟内存 / inode
+5.  ISA                寄存器 + 指令
+4.  microarch          ROB / cache / TLB / branch pred
+3.  RTL                寄存器 + 组合逻辑
+2.  模拟               SRAM / DRAM cell / PLL
+1.  物理               MOSFET / 掺杂 / PN 结
+─────────────────────────────────────────
+对调 → 一条"从概率到行为"主干 (AI 层的来源)
+</code></pre>
+<p>向下"从可计算到物理可造", 向上"从工程到语义可表达". 这个对称是抽象的根本.</p>
+<h3 id="52-每条层对调-走-1ms-都要多少层"><a class="header" href="#52-每条层对调-走-1ms-都要多少层">5.2 每条层对调, 走 1ms 都要多少层?</a></h3>
+<pre><code>你点按钮 (10 Layer)
+  → React handler -&gt; 服务后端路由 (9)
+    → Python 调 OS write (8→7)
+      → kernel epoll (6)
+        → NIC 驱动 (5→6 跨)
+          → NIC 物理 PHY (4→3→2→1)
+            → 光纤传输
+              → 远端 反向
+                → ...→ DB cache hit
+                  → 返回
+                    → 经历同样 10 层回你屏幕
+ total ~ 50ms 到 10s 视复杂度
+</code></pre>
+<p>→ 这就是"为什么优化 latency 要看哪一层泄漏". 跨 1ms 不是一层优化的事.</p>
+<h3 id="53-抽象的成本与边界"><a class="header" href="#53-抽象的成本与边界">5.3 抽象的成本与边界</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>抽象</th><th>提供的便利</th><th>限制 / 失效</th></tr></thead><tbody>
+<tr><td>虚拟内存</td><td>独立地址空间</td><td>page fault / swap / NUMA</td></tr>
+<tr><td>进程</td><td>隔离建执行单位</td><td>context switch / fork copy-on-write</td></tr>
+<tr><td>文件</td><td>字节流 / 不可变语义</td><td>SSD trim 与 GC、fsync 协议</td></tr>
+<tr><td>套接字</td><td>reliable TCP 上 byte stream</td><td>跨网 RTT / TCP 拥塞 / head-of-line</td></tr>
+<tr><td>容器</td><td>进程级环境一致</td><td>内核共享 → Spectre / Meltdown 风险</td></tr>
+<tr><td>VM</td><td>完整 OS 级隔离</td><td>hypervisor 损失</td></tr>
+<tr><td>浏览器 DOM</td><td>HTML + JS DOM API</td><td>XSS / reflow layout thrashing</td></tr>
+<tr><td>数据类型</td><td>静态保证</td><td>运行时 Cast / 不安全语言</td></tr>
+<tr><td>GC</td><td>让你忘 free</td><td>STW / heap pressure</td></tr>
+<tr><td>ML 模型</td><td>自然语言接口</td><td>"幻觉" / 训练分布外</td></tr>
+</tbody></table>
+</div>
+<p>每条左侧给了便利, 它依赖右侧的实现细节往往在压力下泄漏.</p>
+<hr />
+<h2 id="六抽象怎么被打破5-个真实历史事件"><a class="header" href="#六抽象怎么被打破5-个真实历史事件">六、抽象怎么"被打破"——5 个真实历史事件</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>事件</th><th>年份</th><th>层级泄漏</th><th>关键人物 / 论文</th></tr></thead><tbody>
+<tr><td><strong>Pentium FDIV bug</strong></td><td>1994</td><td>第 4 层 ALU 查表错误 → 第 5 层 ISA 契约错 (除法精度)</td><td>Intel 损失 4.75 亿美元召回</td></tr>
+<tr><td><strong>Meltdown / Spectre</strong></td><td>2018</td><td>第 4 层 speculative exec 副作用 → 第 7 层 跨进程读 kernel</td><td>Google Project Zero, Graz Univ.</td></tr>
+<tr><td><strong>Rowhammer</strong></td><td>2014</td><td>第 2 层 DRAM cell 电磁耦合 → 第 6 层 跨进程 priv 升 (Flip)</td><td>CMU + 等论文</td></tr>
+<tr><td><strong>Redis 主从延迟</strong></td><td>2016 众</td><td>第 6 层 vm page cache 与 fork → 第 9 层 RTT 抖动</td><td>Latency 99 实践</td></tr>
+<tr><td><strong>GPT-4 数算 7+7=14</strong></td><td>2023+</td><td>第 10 层统计模型对"算术"等离散变换推不上 → 上 audit fail</td><td>多家推理模型 + verifier 都在补</td></tr>
+</tbody></table>
+</div>
+<p>每个都是"下一层物理 / 微架构行为把上层契约撕掉一块"; 一旦撕掉, 修法常常是要在<strong>多层</strong>同时打补丁.</p>
+<hr />
+<h2 id="七抽象层级的工程用法"><a class="header" href="#七抽象层级的工程用法">七、抽象层级的工程用法</a></h2>
+<h3 id="71-调试定位-把症状挂到某层"><a class="header" href="#71-调试定位-把症状挂到某层">7.1 调试定位: "把症状挂到某层"</a></h3>
+<pre><code>现象: 服务 P99 抖动
+9 (业务): 流量突增 / 队列爆 → 容量问题
+8 (运行时): GC pause / go runtime block
+7 (POSIX): epoll 漏 wake / TCP ack 慢
+6 (内核): 调度延迟 / softirq starvation
+5 (ISA): - (上层几乎不报)
+4 (microarch): branch mispred / cache miss
+3 (RTL): (几乎无)
+2 (模拟): (硬件故障)
+1 (物理): bit flip
+</code></pre>
+<p>→ <strong>能力定位</strong>: 一旦你能把现象对应到大概一层, 你就知道该看哪个工具 (perf / strace / py-spy / vtune / ipfc / sledf).</p>
+<h3 id="72-系统设计-新抽象必须问泄漏怎么办"><a class="header" href="#72-系统设计-新抽象必须问泄漏怎么办">7.2 系统设计: "新抽象必须问'泄漏怎么办'"</a></h3>
+<p>设计 cache / scheduler / scheduler / predictor 时, <strong>先回答</strong>:</p>
+<ul>
+<li>"失败时契约怎么退化?"</li>
+<li>"性能泄漏到什么粒度?"</li>
+<li>"并发 / 故障模型下不变式是什么?"</li>
+<li>"依赖下层什么不变式? 下层失败呢?"</li>
+</ul>
+<p>→ 见 <a href="../_meta/hardware-shapes-software.html">第十三部分 _meta/brhardware-shapes-software</a> 与 <a href="../os/sched/index.html">第八部分 / OS 第 2 章</a>.</p>
+<h3 id="73-学习路径-沿层上下走"><a class="header" href="#73-学习路径-沿层上下走">7.3 学习路径: "沿层上下走"</a></h3>
+<ul>
+<li><strong>从程序员角度看</strong>, 学完高级语言 (8) 应该往上 ((9) 框架与 (10) AI 应用) 与往下 (指 7 POSIX 与 6 内核与 5 ISA) 各推一些.</li>
+<li><strong>从硬件工程师角度看</strong>, 学完数字逻辑 (3) 应该往物理 (1-2) 与微型架构 (4) 与 ISA (5) 与内核 (6) 推.</li>
+<li><strong>从 AI 工程师角度看</strong>, 应该至少熟悉 (10) 与 (9) + (8) + (5) (手算 attention FLOPs 都要 ISA 层系统) + (4) (Tensor Core / SM).</li>
+</ul>
+<hr />
+<h2 id="八与第零部分--各部分的接口"><a class="header" href="#八与第零部分--各部分的接口">八、与第零部分 + 各部分的接口</a></h2>
+<ul>
+<li>抽象 ↑层(10-9) 主线依靠第十二部分 AI/ML 与第七部分系统设计.</li>
+<li>抽象 ↓层(1-4) 主线依靠第八部分组成原理.</li>
+<li>第 5 ISA 直接对应第八部分 <a href="../computer-arch/isa-design.html">isa-design</a>.</li>
+<li>第 6 内核对应第二部分 <a href="../os/index.html">OS</a>.</li>
+<li>第 7-8 之间——语言运行时 vs 系统调用——与第五部分 <a href="../compilers/index.html">compiler</a> + <a href="../_meta/runtime-semantics.html">_meta runtime-semantics</a> 直接相关.</li>
+<li>第 4 层泄漏洞的 <a href="../crypto/sidechannel.html">crypto/sidechannel</a> 讲 Spectre/Meltdown 的密码学攻击面.</li>
+<li>数学 (第零部分) 跨层使用: 第零部分线代对应 (4) 微架构张量核心; 概率对应 (10) AI 模型; 微积分/优化对应 (10).</li>
+</ul>
+<hr />
+<h2 id="九结束--速查表"><a class="header" href="#九结束--速查表">九、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回:</p>
+<ul>
+<li><strong>十层金字塔</strong>: 物理→模拟→RTL→microarch→ISA→kernel→POSIX→运行时→应用→AI.</li>
+<li><strong>契约</strong>: 每层给上层一组语法 + 语义 + 不变式.</li>
+<li><strong>泄漏是法则</strong>: 性能 / 正确性 / 资源 / 延迟 / 粒度 / 失败模型 — 6 种典型泄漏.</li>
+<li><strong>历史教训</strong>: Pentium FDIV, Meltdown/Spectre, Rowhammer, Cloud futex, LLM 算错.</li>
+<li><strong>调试法</strong>: 把症状先挑到恰当层, 再选工具.</li>
+<li><strong>设计法</strong>: 抽象新发明, 预先回答"4 个问题" (回退/性能/并发/失败).</li>
+<li><strong>学习法</strong>: 沿层上下交替推 — 程序员往上下各, 硬件工往上下各, AI 工按需.</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="mainframe-xpu.html">3. 形态演进: 大型机 → PC → 单片机/ARM → 云 → Web → AI → XPU</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../prologue/history.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../prologue/mainframe-xpu.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../prologue/history.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../prologue/mainframe-xpu.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

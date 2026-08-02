@@ -1,0 +1,493 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>9. ZKP 入门: zk-SNARKs / zk-STARKs / Bulletproofs - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="9-zkp-入门-zk-snarks--zk-starks--bulletproofs"><a class="header" href="#9-zkp-入门-zk-snarks--zk-starks--bulletproofs">9. ZKP 入门: zk-SNARKs / zk-STARKs / Bulletproofs</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p><strong>Zero-Knowledge Proof (ZKP)</strong>: 证明者 P 向 验证者 V 证明"我持有某型证据 w 使 statement X(w) 为 true"而不泄漏 w.</p>
+<p>形式化三性质:</p>
+<ul>
+<li><strong>Completeness</strong>: 若 statement 真, V 接受.</li>
+<li><strong>Soundness</strong>: 若 假, 任何 cheating P 让 V 接受概率 negligible (&lt; 1/2^λ).</li>
+<li><strong>Zero-knowledge</strong>: V 学不到任何 w 信息 (除了 statement 真假).</li>
+</ul>
+<p>主流 4 类:</p>
+<ul>
+<li><strong>zk-SNARK</strong> (succinct non-interactive arguments of knowledge): trusted setup, ~200 bytes proof, ms-verify, ms-prove. typical: Groth16, PLONK, Marlin.</li>
+<li><strong>zk-STARK</strong> (scalable transparent ARguments of knowledge): no trusted setup (transparent random public); O(log n) verifier; O(n poly-log n) prover; post-quantum.</li>
+<li><strong>Bulletproofs</strong>: no trusted setup; short proof (log n); but <strong>linear</strong> verifier runtime (slow for huge statements).</li>
+<li><strong>Σ-protocols</strong> (interactive): simple template performances.</li>
+</ul>
+<p>应用 jump:</p>
+<ul>
+<li>Crypto-rollups (zk-Rollup on Ethereum) 上 100× cheaper transactions 通过 compressing all state transitions into 1 proof.</li>
+<li>Privacy coins (Zcash): shielded transactions.</li>
+<li>Identity: VCs (Idemix, AnonCred) 零泄露 age 属性.</li>
+<li>Bridge-less cross-chain proof transfer.</li>
+</ul>
+<hr />
+<h2 id="一zk-proof-范式"><a class="header" href="#一zk-proof-范式">一、ZK proof 范式</a></h2>
+<h3 id="11-interactive-proof"><a class="header" href="#11-interactive-proof">1.1 Interactive Proof</a></h3>
+<p>P &amp; V 多轮交互. 输入 statement x:</p>
+<pre><code>For i in rounds:
+    V sends challenge c_i, P returns response r_i.
+</code></pre>
+<p>V 最后 accept/reject.</p>
+<h3 id="12-non-interactive-via-fiat-shamir-trick"><a class="header" href="#12-non-interactive-via-fiat-shamir-trick">1.2 Non-interactive via Fiat-Shamir trick</a></h3>
+<pre><code>c_i = Hash(transcript-so-far).   // deterministic random oracle
+</code></pre>
+<p>把 interactive 转 NIZK (non-interactive zero-knowledge) by replacing random challenge with hash function assumed as random oracle.</p>
+<h3 id="13-第三的形式-zk-snark--succinct-witness-indistinguishable-argument-of-knowledge-with-logarithmic-verifier"><a class="header" href="#13-第三的形式-zk-snark--succinct-witness-indistinguishable-argument-of-knowledge-with-logarithmic-verifier">1.3 第三的形式: zk-SNARK = succinct witness-indistinguishable argument of knowledge with logarithmic verifier.</a></h3>
+<ul>
+<li>succinct: proof size small (200-1000 bytes), verifier time logarithmic in statement size.</li>
+<li>ARgument (not Proof): soundness 仅对 computational-bounded prover (not information-theoretic); NP 困难 assumption.</li>
+</ul>
+<hr />
+<h2 id="二Σ-protocol-example-schnorr-identification"><a class="header" href="#二Σ-protocol-example-schnorr-identification">二、Σ-protocol example: Schnorr identification</a></h2>
+<p>P knows secret $x$ s.t. public $y = g^x$.</p>
+<ol>
+<li>P ephemeral $r$; sends commitment $R = g^r$.</li>
+<li>V sends random challenge $c$.</li>
+<li>P sends $z = r + c x$.</li>
+<li>V verifies $g^z \stackrel{?}{=} R y^c$.</li>
+</ol>
+<p>正确性 follows from $g^{r+cx} = g^r \cdot (g^x)^c = R y^c$.</p>
+<p><strong>Zero-knowledge</strong>: V learns $z, R, c$ but not $x$ (since many combinations produce same z; simulator can re-run with random $z'$ for any c and pull $R' = g^{z'} y^{-c}$).</p>
+<p><strong>Fiat-Shamir</strong>: replace V's $c$ by $H(R, y)$:</p>
+<pre><code>c = H(R || y)
+proof = (R, z)
+verify: c = H(R || y) and g^z = R y^c
+</code></pre>
+<p>This is in fact the EdDSA signature equivalent! EdDSA = Schnorr = non-interactive identification <strong>in non-interactive style</strong>.</p>
+<hr />
+<h2 id="三zk-snarks"><a class="header" href="#三zk-snarks">三、zk-SNARKs</a></h2>
+<h3 id="31-algebraic-setting"><a class="header" href="#31-algebraic-setting">3.1 Algebraic setting</a></h3>
+<p>Computation 是 <strong>arithmetic circuit</strong>: arithmetic gate (add, mul) over 有 field $\mathbb{F}_p$. 转化 high-level 语言 (Circom / leo / zinc / halo2-circuit) to R1CS (rank-1 constraint system).</p>
+<h4 id="r1cs-definition"><a class="header" href="#r1cs-definition">R1CS definition</a></h4>
+<p>A statement written as constraint vector:</p>
+<ul>
+<li>Each gate computes: $A_i \cdot B_i = C_i$ for linear forms A_i, B_i, C_i functions of witness vector $w$.</li>
+<li>Public statement $x$ and witness $w$ satisfy all constraints; show this in ZK to listener.</li>
+</ul>
+<h3 id="32-工匠-trusted-setup-ceremony"><a class="header" href="#32-工匠-trusted-setup-ceremony">3.2 工匠 trusted setup ceremony</a></h3>
+<p>Groth16 / Pinocchio-style SNARK uses SRS (Structured Reference String):</p>
+<pre><code>Random $\tau$, $\alpha$, $\beta$, $\gamma$, $\delta$:
+  proving key = [τ^i G ...], [α · τ^i G ... etc.]
+  verifying key = [α G, β G, γ G, δ G, β/γ G ...]
+</code></pre>
+<p>Such random must be destroyed; else forger 失猜 SRS know how to forge a false proof. Power of Tau's MPC ceremony (2018, 200+ participants, threshold 1 honest kills 宣 r) used such offline setup.</p>
+<h3 id="33-pairing-curve"><a class="header" href="#33-pairing-curve">3.3 Pairing curve</a></h3>
+<p>Groth16 uses bilinear pairing friendly curves: BN254, BLS12-381. Pairings give $e: \mathbb{G}_1 \times \mathbb{G}_2 \to \mathbb{G}_T$, quadratic equation check verified in 1 multi-exponentiation.</p>
+<p>Verification:
+$$ e(A_1, B_2) \stackrel{?}{=} e(\alpha G_1, \beta G_2) \cdot e!\left(\frac{\sum_i C_{public,i} \cdot G_1^i}{\gamma G_1}, \gamma G_2\right) \cdot e(\alpha G, r G_2) \cdot e(s G_1, \delta G_2) \cdot e(A G, B G)$$
+Where $\alpha, \beta, \gamma, \delta$ are sub-SRS components and (A_1, B_2, C_1) are the proof.</p>
+<p>Verifying time ~1ms computationally.</p>
+<h3 id="34-groth16-plonk-marlin"><a class="header" href="#34-groth16-plonk-marlin">3.4 Groth16, PLONK, Marlin</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>System</th><th>Setup</th><th>Proof Size</th><th>Verify</th><th>Prover</th></tr></thead><tbody>
+<tr><td>Groth16</td><td>Per-circuit</td><td>192 B</td><td>~3 pairings</td><td>O(N)</td></tr>
+<tr><td>PLONK</td><td>Universal updatable</td><td>400 B</td><td>1 pairing + 1 FFT</td><td>O(N log N)</td></tr>
+<tr><td>Marlin</td><td>Universal</td><td>800 B</td><td>O(log N)</td><td>O(N log N)</td></tr>
+</tbody></table>
+</div>
+<p>PLONK <strong>Universal setup</strong> = once ever, any circuit uses derived setup does not need re-launch ceremony.</p>
+<h3 id="35-工程库"><a class="header" href="#35-工程库">3.5 工程库</a></h3>
+<ul>
+<li><strong>Snarkjs</strong> (JS Library, Groth16 / PLONK).</li>
+<li><strong>arkworks</strong> (Rust library, supports various proof systems).</li>
+<li><strong>halo2 (Zcash)</strong>: based on PLONK + recursion, no trusted setup needed per-ZK cash.</li>
+<li><strong>gnark</strong> (Go).</li>
+</ul>
+<h3 id="36-use-case-zcash-shielded-txs"><a class="header" href="#36-use-case-zcash-shielded-txs">3.6 Use case: Zcash shielded txs</a></h3>
+<p>To send shielded zk-tx:</p>
+<ul>
+<li>User creates a note commitment $C_i = H(\text{value}_i | \text{vk}_i | \text{rcm}_i)$.</li>
+<li>Next user pays amount by proving "I know (rcm, value, vk) of NULLIFIER N_i previously on-chain; commitment not spent yet by nullifier = H(rcm, nullifier_seed); new output commitment C_j is valid".</li>
+</ul>
+<p>Zcash uses Halo2 2023 onwards, deprecated Groth16 prover.</p>
+<h3 id="37-use-case-zkrollup"><a class="header" href="#37-use-case-zkrollup">3.7 Use case: zkRollup</a></h3>
+<p>Ethereum L2 (zkSync Era, Polygon zkEVM, Scroll):</p>
+<ul>
+<li>L2 sequencer combs thousands of L2 txs into batches.</li>
+<li>Prove statement: batch update root of state Merkle tree from root pre to root post correctly applying all tx logic.</li>
+<li>L1 verifies zk proof on-chain (single pairing call charges gas much smaller than re-executing L2 txs).</li>
+<li>Cost ratio: 1× L2 prover cost vs N× L1 verification → 100× cheaper.</li>
+</ul>
+<hr />
+<h2 id="四zk-starks"><a class="header" href="#四zk-starks">四、zk-STARKs</a></h2>
+<h3 id="41-设计不同"><a class="header" href="#41-设计不同">4.1 设计不同</a></h3>
+<ul>
+<li>Hash-based, using <strong>Reed-Solomon codes + FRI protocol</strong> to prove low-degree of polynomial commitments. <strong>No elliptic curves / pairings</strong>.</li>
+<li>Transparent setup (no trusted).</li>
+<li>Post-quantum (hash-based security).</li>
+<li>BUT proof size larger (~50-200 KB) and verifier does O(log² N) work.</li>
+</ul>
+<h3 id="42-air-algebraic-intermediate-representation"><a class="header" href="#42-air-algebraic-intermediate-representation">4.2 AIR (Algebraic Intermediate Representation)</a></h3>
+<p>STARK 写程序 RISC machine (Brainfuck-like or Cairo / Cairo VM) and prove algebraic execution trace satisfies transition constraints.</p>
+<h3 id="43-lde--fri"><a class="header" href="#43-lde--fri">4.3 LDE + FRI</a></h3>
+<p>Prover produces a low-degree extension (LDE) of execution trace, then polynomial constraints. Prove via FRI protocol (Fast Reed-Solomon Interactive Oracle Proof of proximity):</p>
+<ol>
+<li>Decommit to oracle queries at random locations.</li>
+<li>Recursive folding halves degree.</li>
+<li>Stop at small final degree.</li>
+</ol>
+<p>Verifier sees only low-degree check probability from random queries; 共 O(log N) rounds + queries.</p>
+<h3 id="44-library"><a class="header" href="#44-library">4.4 Library</a></h3>
+<ul>
+<li><strong>StarkWare's Stwo / Stone provers</strong>, Rust open-source.</li>
+<li><strong>Winterfell</strong> (Rust, StarkWare 友 street Ferinitialblock prover community release).</li>
+<li><strong>OpenZeppelin Cairo contracts</strong> integration.</li>
+</ul>
+<h3 id="45-用例"><a class="header" href="#45-用例">4.5 用例</a></h3>
+<ul>
+<li>StarkNet (zkRollup on Ethereum): STARK proof</li>
+<li>delegation of L1 → L2 transaction trace.</li>
+<li>200k tx/batch handled in practice.</li>
+</ul>
+<hr />
+<h2 id="五bulletproofs"><a class="header" href="#五bulletproofs">五、Bulletproofs</a></h2>
+<h3 id="51-range-proofs-on-commitment"><a class="header" href="#51-range-proofs-on-commitment">5.1 Range proofs on commitment</a></h3>
+<p>Built by Bünz-Boutin-Campanelli-et 2018: efficient range proofs for <strong>Pedersen commitments</strong>: prove "value v in [0, 2^n]" without revealing v.</p>
+<p>Final proof size O(log n); verifier O(n). No trusted setup, no pairings (regular curve 区).</p>
+<h3 id="52-use-case"><a class="header" href="#52-use-case">5.2 Use case</a></h3>
+<ul>
+<li><strong>Monero</strong>: ringCT battery, per tx generates bulletproof range proof. Predictable ~1.4KB on-chain.</li>
+<li><strong>MimbleWimble</strong>: Grin / Beam 用 bulletproof 范围证明 for homomorphic commitment privacy.</li>
+<li><strong>zkBounty</strong>: ANNUAL-script institutional hash supplementary overstuck.</li>
+</ul>
+<h3 id="53-limitations"><a class="header" href="#53-limitations">5.3 Limitations</a></h3>
+<p>Verifier linear-time → fail large stacking (e.g., higher counts reach seconds verifier runtime).</p>
+<hr />
+<h2 id="六防-zkp-elusive-case-i-am-over-18-zero-knowledge-age-verification"><a class="header" href="#六防-zkp-elusive-case-i-am-over-18-zero-knowledge-age-verification">六、防 ZKP elusive case "I am over 18" zero-knowledge age verification</a></h2>
+<pre><code>Statement: I know private_age such that signature on (private_age) by trusted authority, and currentDate - private_age &gt; 18*365 days.
+Witness: age, signature.
+</code></pre>
+<p>P proves in ZK; verifier learns ✓/✗ only.</p>
+<p>Idemix, AnonCreds, W3C VC use cases.</p>
+<hr />
+<h2 id="七zk-proof-of-solvency-proof-of-reserves"><a class="header" href="#七zk-proof-of-solvency-proof-of-reserves">七、ZK proof of Solvency (proof of reserves)</a></h2>
+<p>Exchange proves "I hold liabilities L for each user, and reserve R ≥ L" without revealing R. Binance / Kraken have published proof of reserves using Merkle sum tree proofs.</p>
+<pre><code>For user u, hash commitment h_u = H(balance_u).
+Exchange commits root of Merkle sum tree:
+  Merkle root + users verify inclusion: each leaf sum + inclusion path equals root.
+</code></pre>
+<p>This is not even ZK, just "verifiable sum". 延展 ZK if needed for client privacy.</p>
+<hr />
+<h2 id="八limitations-and-pitfalls"><a class="header" href="#八limitations-and-pitfalls">八、Limitations and pitfalls</a></h2>
+<ul>
+<li>Trusted setup panic: any party who possesses toxic waste from setup can forge proofs forever. Mitigate via universal-and-updatable setup (PLONK, Marlin, Halo2) where random accumulates over multiple parties.</li>
+<li>Quantum threat: pairing-based zk-SNARKs break under quantum (Shor). STARKs and FRI 量子 resilient.</li>
+<li>Implementation bugs not formal proof: Halo2 had bug in 2021 allowing proof forge on a specific circuit; later fixed.</li>
+<li>Bit homomorphic commitments of input must enforce input range (otherwise overflows!), often missed in production.</li>
+<li>finance &amp; privacy mixing: Zcash once revealed 192 secret encryption keys by random source protocol bug.</li>
+</ul>
+<hr />
+<h2 id="九桥梁"><a class="header" href="#九桥梁">九、桥梁</a></h2>
+<ul>
+<li><strong>complexity.md</strong>: 测复杂度归约与 NP (NPC R1CS reduce from any NP language) statement specification.</li>
+<li><strong>distributed/clock/dag</strong>: blockchain block hash acts as proof of work-VDF tie-out.</li>
+<li><strong>hashes.md</strong>: Zero-knowledge proofs rely on cryptographic hash with H security; validity of proof depends on hash-as-random-oracle assumption.</li>
+<li><strong>tls13.md</strong>: future handshake may ZK-attestations for client identity (e.g., Domain Validation ZK).</li>
+<li><strong>system-design/case/k8s-control-plane</strong>: server auth by SPIFFE certificate and could extend to ZK identity for k8s node attestation.</li>
+</ul>
+<hr />
+<p>下一节 → <a href="sidechannel.html">侧信道攻击</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../crypto/pki.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../crypto/sidechannel.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../crypto/pki.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../crypto/sidechannel.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

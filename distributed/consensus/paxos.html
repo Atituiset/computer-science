@@ -1,0 +1,457 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Paxos / Multi-Paxos - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="paxos--multi-paxos"><a class="header" href="#paxos--multi-paxos">Paxos / Multi-Paxos</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p><strong>Paxos</strong> (Lamport 1989/1998) 是分布式共识的数学基础——让 N=2f+1 节点在异步网络 + crash-recovery 假设下, 对某 proposed value decision 一致。算法分两阶段: <strong>Prepare/Promise (Phase 1)</strong> 让 proposer 拿到 majority quorum 对 proposal number <code>n</code> 的"承诺"; <strong>Accept/Accepted (Phase 2)</strong> 把 chosen value 投给 quorum 通过。两 quorum 必 overlap 保证后续 proposer 不能 reverse 已 accept 的 value。<strong>Multi-Paxos</strong> 用 stable leader 跳过每 entry 的 Phase 1 把它降成 1-RPC commit, 这是 Google Chubby/Megastore/Spanner 的内核算法。本章梳理算法证明, 工程细节 (proposal number 持久化、log fsync、leader lease), typical bugs 以及跟 Raft 的关系。</p>
+<hr />
+<h2 id="一consensus-形式化"><a class="header" href="#一consensus-形式化">一、Consensus 形式化</a></h2>
+<h3 id="safety-永远满足的三-invariant"><a class="header" href="#safety-永远满足的三-invariant">Safety (永远满足的三 invariant)</a></h3>
+<ol>
+<li><strong>Agreement (Consistency)</strong>: 不同 process 不能 decide 不同 value.</li>
+<li><strong>Validity (Non-triviality)</strong>: decision 必须曾被 propose——不能凭空 invent。</li>
+<li><strong>Integrity</strong>: 每 process 至多 decide 一次 (no flip)。</li>
+</ol>
+<h3 id="liveness"><a class="header" href="#liveness">Liveness</a></h3>
+<p><strong>Termination</strong>: 在不违 partial-synchrony 假设下 (≥N−f 节点 eventual recover, 消息 eventual deliver) eventually所有 correct process decide。</p>
+<p><strong>FLP 1995</strong> 已证: 纯 async 网络 + 1 node 可能 crash → deterministic consensus 不可解终止. Paxos 用 eventual partial-synchrony 弱假设 + random backoff 绕开 FLP。</p>
+<h3 id="quorum-2f1-怎么来的"><a class="header" href="#quorum-2f1-怎么来的">Quorum 2f+1 怎么来的</a></h3>
+<p>设 N=2f+1 节点, 容忍 f crashes. Quorum size = f+1 (majority). 任意两 majority <strong>必</strong> overlap ( 因 (f+1)+(f+1) = 2f+2 &gt; N )。 已 accepted 的 value 通过 overlap 节点传播给下一 proposer——Paxos 安全性核心。</p>
+<hr />
+<h2 id="二basic-paxos-算法"><a class="header" href="#二basic-paxos-算法">二、Basic Paxos 算法</a></h2>
+<h3 id="角色"><a class="header" href="#角色">角色</a></h3>
+<ul>
+<li><strong>Proposer</strong>: 提出 proposal (n, v), n 是单调增 proposal number。</li>
+<li><strong>Acceptor</strong>: 投票, 保持 (promised_n, accepted_n, accepted_v) per instance。</li>
+<li><strong>Learner</strong>: 收 quorum ACCEPTED -&gt; decide, 通知 clients。</li>
+</ul>
+<p>工程实现: 三 role 同 process, 每个节点同时充当。</p>
+<h3 id="phase-1-prepare--promise"><a class="header" href="#phase-1-prepare--promise">Phase 1: Prepare / Promise</a></h3>
+<pre><code>Proposer P:
+  n = bump_and_persist_proposal_number()
+  send PREPARE(n) to a majority of acceptors
+
+Acceptor A:
+  if n &gt; promised_n:
+    promised_n = n        // fsync to WAL
+    reply PROMISE(n, accepted_n, accepted_v)    // (null if never accepted)
+  else:
+    reply REJECT(n)
+</code></pre>
+<p>Acceptor 承诺不再 accept 比 n 低的 proposal; 同时曝光自己之前 accept 过的 (n', v') (if any)。</p>
+<h3 id="phase-2-accept--accepted"><a class="header" href="#phase-2-accept--accepted">Phase 2: Accept / Accepted</a></h3>
+<pre><code>Proposer P:
+ wait majority PROMISE.
+ let (n_max, v_max) = max accepted_n across replies (or none)
+ if v_max exists:  v = v_max      // 强制采用先前 quorum accepted 的 value
+ else:             v = my_originally_proposed_value
+ send ACCEPT(n, v) to majority of acceptors
+
+Acceptor A:
+  if n &gt;= promised_n:
+    accepted_n = n
+    accepted_v = v          // fsync to WAL
+    reply ACCEPTED(n, v) to learners
+  else:
+    reply REJECT
+</code></pre>
+<h3 id="learner"><a class="header" href="#learner">Learner</a></h3>
+<p>收集 majority ACCEPTED → decide value → broadcast。</p>
+<h3 id="agreement-证明"><a class="header" href="#agreement-证明">Agreement 证明</a></h3>
+<p>设两个 different values vA, vB 通过不同 quorum QA, QB (大小 N−f) chosen. Let acceptance instance:</p>
+<p>vA 通过 (nA, vA) 被 QA accept; vB 通过 (nB, vB) 被 QB accept. 不妨 nA &lt; nB.
+QA 与 QB 大小均为 ≥f+1, 总和 2f+2 &gt; 2f+1 = N → 至少一个 acceptor ∈ QA ∩ QB.
+设其为 A. 那当 vB 的 proposer 跑 Phase 1 时, 拿到 majority PROMISE 必含 A 的 PROMISE with accepted_n=nA, accepted_v=vA. vB 的 proposer 在 Phase 2 必须用 v_max中 ≥ vA.
+⇒ vB = vA. ✓</p>
+<h3 id="validity-证明"><a class="header" href="#validity-证明">Validity 证明</a></h3>
+<p>任 accepted value v 来自 Proposer's choice: Phase 2 "若没看到 prior accepted, v=originally proposed; 否则 v=prior accepted value"，递归到达一定来自某 initially proposed value, 不能凭空织造. ✓</p>
+<hr />
+<h2 id="三multi-paxos"><a class="header" href="#三multi-paxos">三、Multi-Paxos</a></h2>
+<h3 id="为什么要-stable-leader"><a class="header" href="#为什么要-stable-leader">为什么要 stable leader</a></h3>
+<p>Basic Paxos for single value 需要 2 个 RPC round trip per decide. 与 commit 后还要返回 client 又一轮 → 客户端单个 cmd 三个 RTT, 高延迟。</p>
+<p>Multi-Paxos 优化:</p>
+<ol>
+<li>Proposer 跑一普遍 Phase 1 在 leadership begin, 获得承诺 majority acceptors <strong>不再 accept proposal from anyone else</strong>。</li>
+<li>同 leader 任期内, 每 log entry 只跑 Phase 2 ACCEPT, 单 RTT。</li>
+</ol>
+<p>工程上 leader 任期 = lease (e.g., 60s), lease 内 leader 独享 Phase 1 guarantee; lease 过期需 renew。</p>
+<h3 id="log-replication"><a class="header" href="#log-replication">Log Replication</a></h3>
+<p>State machine model: 一系列 commands c1, c2, ... 多 instance Paxos 每 instance 对应一个 log entry, 各 instance 独立 decide。</p>
+<p>leader 工作流 (稳态):</p>
+<ol>
+<li>client 发 cmd → leader append to log at entry i.</li>
+<li>leader 并行 send ACCEPT(i, n, v) to followers.</li>
+<li>等待 majority ACCEPTED → commit entry i → reply to client.</li>
+<li>leader 串行 apply committed commands to state machine (FIFO order)。</li>
+</ol>
+<p>Pipelining: 在 commit i 时可 RUNNING PERPARE DONE accept for i+1, i+2 同时—— leader WAL 持久化 提速.</p>
+<hr />
+<h2 id="四工程细节"><a class="header" href="#四工程细节">四、工程细节</a></h2>
+<h3 id="proposal-number"><a class="header" href="#proposal-number">Proposal Number</a></h3>
+<p>每个 proposer 维护 (round, node_id) tuple 作为 proposal_n, lex-sort 保证全序:</p>
+<ul>
+<li>round 单调增整数; 持久化 disk 保 crash-recovery 后 round ≥ restarted value。</li>
+<li>不持久化 → 重启 round 回退 → while active leader 已 accept 的 entry resettings 不做. round==m monarch 落 trike 协调 化.</li>
+</ul>
+<p><strong>Bug</strong>: Google Chubby 用 proposer_id + monotonic counter, fsync 至少每 lease (30s) — 实测 crash 后未 recovered round 发现 validity disgust 姓  lock drop 处理 加 cluded fsync on round_need++ 持 train gap.</p>
+<h3 id="disk-fsync-顺序"><a class="header" href="#disk-fsync-顺序">Disk fsync 顺序</a></h3>
+<p>每个 acceptor 必先 fsync log, 后 reply ack。 顺序错可丢 safety:</p>
+<ul>
+<li>Acceptor A 落地后, proposer 收 majority ACK → commit → reply client. 如果 A 没 fsync, client 收 success ack 后 A crash → A 重启不认 entry。 client 错认为 commit◈fine promised BA sending Ash. 本质 commit wait-顺序。</li>
+<li><strong>写 ordering</strong>: <code>write WAL -&gt; fsync -&gt; reply ACCEPTED/PROMISE</code></li>
+</ul>
+<p><code>fsync</code> 在 Linux 机械盘 ~10ms, NVMe ~few µs, 即使 NVMe 也 boud。</p>
+<h3 id="lease-leader"><a class="header" href="#lease-leader">Lease Leader</a></h3>
+<p>Leader lease 保证 leader 在 lease 期内<strong>不被挑战</strong> —— 避免 Phase 1 重做。</p>
+<pre><code>lease_grant (t_start, t_end)
+n (round, leader_id) stable
+on lease not expired: skip Phase 1, ACCEPT-only per entry
+on expiry: leader renew (Phase 1) or new leader elect
+</code></pre>
+<p><strong>时钟误差处理</strong>: lease expiry time + clock-skew grace period +=2s buffer 是保险。 Chubby 是接口 lease (60s) 与 client (12s default) 同步 over lease gossip 假 同 NTP ≤20s. 单层 lease 长 (lease 1s) + clock skew 100ms synch time 会 be safe if skew-Trim Leader 处理.</p>
+<h3 id="membership-change"><a class="header" href="#membership-change">Membership Change</a></h3>
+<p>工程里用 <strong>joint consensus</strong>: 集群 config C→C' 转换走 entry 包含 simultaneously <strong>C+ C'</strong>, 各 phase quorum = <code>majority(C) ∩ majority(C')</code> 联合, 保永远 run 在 multiple quorum. 下一 phase 完全 C' (commit 持续 Quorum only C'bene). Raft 同样 aCPU 单 retry 节点变化是 Wi-Di.</p>
+<h3 id="read-path"><a class="header" href="#read-path">Read Path</a></h3>
+<p>Linearizable read <strong>不</strong> Paxos decision (只是读 statemachine) — 但是 leader 必须 prove 仍是 leader 不会 stale:</p>
+<ol>
+<li><strong>Lease-held read</strong>: leader lease 内能回复不需要 quorum read. 风险 lease timeout+clock skew 同 daemon leader 起按 回 飞成功的 lelapse replace more Leaders, race store over stle.</li>
+<li><strong>Quorum read (read index)</strong>: leader ping majority acceptors 确认自己仍 leader, 然后 reply—— 1-moment rtt 에 extra.</li>
+<li><strong>Read from learner + historical snapshot</strong>: therapeutic through snapshot cpWalk implementation.</li>
+</ol>
+<p>Apache RocketMQ–Kafka–ETCd–e_txn–</p>
+<hr />
+<h2 id="五典型事故"><a class="header" href="#五典型事故">五、典型事故</a></h2>
+<h3 id="google-chubby-2006--lease-skew"><a class="header" href="#google-chubby-2006--lease-skew">Google Chubby 2006 — Lease Skew</a></h3>
+<p>Chubby 用 60s lease + client session 12s multiples, 某次长 GC pause + 时钟 drift 导致 client 纪事 lease epoch 也中 主 controller 伟误 cachaun. 修复: epoch numbers in lease + length quorum heatter.</p>
+<h3 id="zookeeper-33--hbase-regossession"><a class="header" href="#zookeeper-33--hbase-regossession">ZooKeeper 3.3 — HBase Regossession</a></h3>
+<p>ZK follower network partition 与 leader 发 stale messages 违反 ZAB++; fix at ZooKeeper 3.4. 重链德 transaction state quorum follower partition increase client election. Zab at commit early in stand 品 mark memory lible over quietlines clone 1987理会 quorum messul sync leader-&gt; RSS 域 价cribd autobroken inters failsafe rengo 入 elections oftime 抗 时间会 Up 教 central mark fail. <strong>Fixed</strong>: strict 种 verify term/commit index with Ack faileadditive boz.</p>
+<h3 id="spanner-paxos-group-commit-wait"><a class="header" href="#spanner-paxos-group-commit-wait">Spanner Paxos Group Commit Wait</a></h3>
+<p>每次 commit group delta ciwt took 7-14ms TrueTime uncertainty commit Preset commit client wait post 不损 设 看继承 Tom Paxos.isDefined学习, gebraucht quorum commit longed finalize at trust OS external healthy links."Jisi Remote deep single-Megaston multi-tablet reordering Commit Paxos: always –5 Postgres efficiently UCM Sigcomm 2017</p>
+<hr />
+<h2 id="六易错清单"><a class="header" href="#六易错清单">六、易错清单</a></h2>
+<ol>
+<li><strong>promised_n must fsync BEFORE reply PROMISE</strong>: 没持久化 crash 后回退, 下次 PROMISE 违反 previous safety, 两 leader 已 accepted 不同 value → split-brain.</li>
+<li><strong>Majority = strictly greater than N/2, not equal</strong>: N=2f+1, quorum=f+1. 若 N=4 (偶), quorum 必须 =3, 否则两 不重叠 quorum 但 (2+2=4) 没有 严格 overlap.</li>
+<li><strong>Multi-Paxos 不 = "Paxos 跑很多次"</strong>: stable leader 是 critical optimization; 没 leader 每 entry 重 Phase1.</li>
+<li><strong>Lease 期间 leader 实际不需 fsync each entry</strong>: 但,<strong>要 fsync leader_id + lease epoch</strong> refreshment. It is 否则 leader_id 字 Persistence  undo 字节 lease re 电.</li>
+<li><strong>Read Path 不是 tralling empty</strong>:
+<ul>
+<li>没经 chengNet quorum 高度 不 split guarantee 直接load单读快私有 stale value off 视 read going outside read_quorum.</li>
+</ul>
+</li>
+<li><strong>Byzantine Paxos</strong>: 普通 Paxos 不能 byzantine. PBFT (Castro-Liskov 1999) 是 byzantine variant 的 P鹿 rebuild. quorum 要 2f+1 with f Byzantine, so N ≥ 3f+1。</li>
+<li><strong>leader falslycrash suspected leader</strong>: 异 Zab nat De F.</li>
+</ol>
+<hr />
+<h2 id="七这一章带走的东西"><a class="header" href="#七这一章带走的东西">七、这一章带走的东西</a></h2>
+<ol>
+<li>Paxos core 安全源于 quorum overlap 传播 prior accepted value (next proposer <strong>obliged adopt 它</strong>), 保 Agreement。</li>
+<li>Multi-Paxos = stable leader + lease + log replication → 每 decision 只需 ACCEPT round (1 RTT)。</li>
+<li>Disk fsync 顺序 (WAL→fsync→ack) 是 crash-recovery 模型下 safety 的前提。</li>
+<li>Leader lease 让 read 不 quorum 可行——但是 lease 必须 sync fsync leader_epoch 防 split-brain。</li>
+<li>Membership change via joint consensus, 不是 atomically swap config。</li>
+<li>Raft 是 Multi-Paxos + log replication 简化版; ZAB 是 Paxos atomically broadcast 变种。</li>
+</ol>
+<hr />
+<p>下一节 → <a href="raft.html">Raft 详解</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../distributed/consensus/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../distributed/consensus/raft.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../distributed/consensus/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../distributed/consensus/raft.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

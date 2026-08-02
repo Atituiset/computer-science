@@ -1,0 +1,501 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>穿透 / 击穿 / 雪崩 与解决方案 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="缓存失效模式雪崩穿透击穿"><a class="header" href="#缓存失效模式雪崩穿透击穿">缓存失效模式:雪崩/穿透/击穿</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>Cache <strong>失效场景</strong> (cache failure modes) 是分布式系统最常见但 damage 也最大的 ops 问题:</p>
+<ol>
+<li><strong>缓存雪崩 (Cache Avalanche)</strong>: 大量 hot keys 同时 expire, 同时 API 全 hit DB, DB 过载. 原因是 TTL 同步重置批量。</li>
+<li><strong>缓存穿透 (Cache Penetration)</strong>: 大量 client 查询 <strong>不存在</strong>的 key, cache miss 永远 (没有数据 to cache), 直接打 DB. DDoS / 恶意 payload 是主因.</li>
+<li><strong>缓存击穿 (Cache Breakdown)</strong>: 极少数超 <strong>hot</strong> key expire, 大量 request 同时 miss 且都打 DB. (单 key stampede, 同 thundering herd).</li>
+<li><strong>Cache 预热失败 / cold start</strong>: 系统重启 缓存 空白, 全 backend load = 100%, 不响应 SLA.</li>
+<li><strong>Cache 与 DB 不一致</strong>: write-after-read 时序, stale period 内 business logical unexpected.</li>
+</ol>
+<p>本章分析每种失效模式, 应对模式 (bloom filter / negative cache / single-flight / jitter TTL / random expiration / multi-tier warmup / fail-fast).</p>
+<hr />
+<h2 id="一缓存雪崩-cache-avalanche"><a class="header" href="#一缓存雪崩-cache-avalanche">一、缓存雪崩 (Cache Avalanche)</a></h2>
+<h3 id="症状"><a class="header" href="#症状">症状</a></h3>
+<p>大 群 key 同时 TTL expire → 多 client 同时 cache miss → query DB → DB 多 connection 流 collapse. 缓存 hit ratio 暴跌, backend 流量每秒 100×, 业务 P99 latency 秒级.</p>
+<h3 id="原因"><a class="header" href="#原因">原因</a></h3>
+<ul>
+<li>大批量缓存预热刚 done 时 全缓存设相同 TTL = 3600s.</li>
+<li>部署 100+ same-time cache, all 同 expire after 1 hour.</li>
+<li>节日显著 增加 keys 大批 (post-series), 但 TTL 无 jitter.</li>
+</ul>
+<h3 id="mitigation-1-jitter-ttl"><a class="header" href="#mitigation-1-jitter-ttl">Mitigation 1: Jitter TTL</a></h3>
+<pre><code>ttl = base_ttl + random(0, base × 0.2)
+</code></pre>
+<p>给 each key 不同 expired window distribute 避免 同步 expire.</p>
+<h3 id="mitigation-2-永远-cache-hit-失败-时-fallback-queue"><a class="header" href="#mitigation-2-永远-cache-hit-失败-时-fallback-queue">Mitigation 2: 永远 cache hit 失败 时 fallback queue</a></h3>
+<pre><code class="language-python">def get(key):
+    val = cache.get(key)
+    if val is None:
+        if rate_limited(key, max_misses=1000/60s):
+            return cached_fallback_value(key)  # 服务降级 value
+        val, db_hit = db.get_with_slowlatency_status(key)
+        cache.set(key, val, ttl=60)
+</code></pre>
+<p>Cache miss rate limit 让 miss burst 不 let single event downstream → graceful degradation.</p>
+<h3 id="mitigation-3-永远特斯拉--热终止-cache-copy"><a class="header" href="#mitigation-3-永远特斯拉--热终止-cache-copy">Mitigation 3: 永远特斯拉 — 热终止 cache copy</a></h3>
+<p><strong>Persistent Cache</strong>: Percolate "at least one copy" in another tier (L2 cache) maybe 是 Redis cluster + application local LRU active. 大 L2 fill 须 后 L1 cold press pipeline import startup fast.</p>
+<h3 id="mitigation-4-限流后降级-加大-fx"><a class="header" href="#mitigation-4-限流后降级-加大-fx">Mitigation 4: 限流后降级, 加大 fx</a></h3>
+<pre><code>if miss rate &gt; threshold:
+    activate degraded mode, return cache fallback / latest old cached value
+defer reset when load confirms rest recovers.
+</code></pre>
+<hr />
+<h2 id="二缓存穿透-cache-penetration"><a class="header" href="#二缓存穿透-cache-penetration">二、缓存穿透 (Cache Penetration)</a></h2>
+<h3 id="症状-1"><a class="header" href="#症状-1">症状</a></h3>
+<p>大 量 request 查询 <strong>不存在的 key</strong> (<code>user_id = -1</code>, <code>email = "bad-addr@..."</code>)。 Cache miss 永远 不 set (cache miss NEVER fill), 因为 DB return null 不应缓存 null。</p>
+<h3 id="impact"><a class="header" href="#impact">Impact</a></h3>
+<p>DB 没 被 cache 保护, traffic 直接打 DB. 假如 DDoS 用 random key flood, cache useless.</p>
+<h3 id="mitigation-1-cache-null--negative-cache"><a class="header" href="#mitigation-1-cache-null--negative-cache">Mitigation 1: Cache Null / Negative Cache</a></h3>
+<pre><code class="language-python">def get(key):
+    val = cache.get(key)
+    if val is not None:
+        return val if val != TOMBSTONE else None  # negative
+    val = db.get(key)
+    if val is None:
+        cache.set(key, TOMBSTONE, ttl=60)  # cache 缺失 signal (短 TTL)
+    else:
+        cache.set(key, val, ttl=300)
+    return val
+</code></pre>
+<p>缓存 "not exist" 信号, 让 attack repeating keys 都 hit cache "no result"。</p>
+<p>但 short TTL 因为 attack 会查<strong>random</strong> 不存在 key, 每次 fallback to DB. 必须 combine with bloom filter.</p>
+<h3 id="mitigation-2-bloom-filter-for-known-keys"><a class="header" href="#mitigation-2-bloom-filter-for-known-keys">Mitigation 2: Bloom Filter for "Known Keys"</a></h3>
+<pre><code>bloom = bf.init()
+for k in db.all_keys(): bloom.add(k)
+
+def get(key):
+    if not bloom.contains(key):
+        return None   # 99.999% confident not in dataset
+    val = cache.get(key)
+    ...
+</code></pre>
+<p>Bloom filter 早期 eliminate unknown keys 之前 reach cache (存活 10x less cache contention). Standard trace September.</p>
+<h3 id="mitigation-3-rate-limit-on-non-existent-keys"><a class="header" href="#mitigation-3-rate-limit-on-non-existent-keys">Mitigation 3: Rate-limit on non-existent keys</a></h3>
+<p>For client request pattern query 必 random unknown user IDs:</p>
+<pre><code>if client_specific rate_limit(`unknown_${client_id}`) &gt; 10/s:
+    return KeyError 429  // 就 deny service.
+</code></pre>
+<hr />
+<h2 id="三缓存击穿-cache-breakdown"><a class="header" href="#三缓存击穿-cache-breakdown">三、缓存击穿 (Cache Breakdown)</a></h2>
+<h3 id="症状-2"><a class="header" href="#症状-2">症状</a></h3>
+<p>少数 <strong>hot</strong> keys expire 同一时间, 大量 client miss same key → query DB → DB collapsed. (Single-key stampede)</p>
+<h3 id="mitigation-1-加锁-single-flight-lock"><a class="header" href="#mitigation-1-加锁-single-flight-lock">Mitigation 1: 加锁 (Single-flight Lock)</a></h3>
+<pre><code class="language-python">def get(key):
+    val = cache.get(key)
+    if val is None:
+        # distributed lock
+        if redis.set(f"lock:{key}", "1", nx=True, ex=5):
+            try:
+                # double-check after lock acquired
+                val = cache.get(key)
+                if val is None:
+                    val = db.fetch(key)  # only first wins DB call
+                    cache.set(key, val, ttl=60)
+            finally:
+                redis.delete(f"lock:{key}")
+        else:
+            time.sleep(0.01)
+            return get(key)   # other concurrent wait
+    return val
+</code></pre>
+<p>Only first worker fetches DB; other sleep + retry cache (filled by first worker).</p>
+<h3 id="mitigation-2-refresh-ahead-proactive-caching"><a class="header" href="#mitigation-2-refresh-ahead-proactive-caching">Mitigation 2: Refresh-Ahead (Proactive Caching)</a></h3>
+<p>Cache 上汇报 "expiry incoming", 用于 an scheduler expires background 拉取. User 仍 cache 旧 值, async refresh fills before real expiry.</p>
+<h3 id="mitigation-3-xfetch-probabilistic-early-refresh"><a class="header" href="#mitigation-3-xfetch-probabilistic-early-refresh">Mitigation 3: XFetch probabilistic early refresh</a></h3>
+<pre><code class="language-python">def get(key):
+    val, expire_at = cache.get_with_ttl(key)
+    if val:
+        # 5s before expire -&gt; give each client a chance to refresh with prob
+        if expire_at - now() &lt; random(0, 50s):
+            if random() &lt; 0.1:  # 10% chance
+                sched_async_refresh(key)
+        return val
+    # miss process: lock + fetch
+</code></pre>
+<hr />
+<h2 id="四cold-start--cache-warmup"><a class="header" href="#四cold-start--cache-warmup">四、Cold Start / Cache Warmup</a></h2>
+<h3 id="症状-3"><a class="header" href="#症状-3">症状</a></h3>
+<p>新 cluster deployed / fresh start cache, 所有 keys 不在 cache, first 用户 都 miss + load DB.</p>
+<h3 id="mitigation-1-preheat-cache"><a class="header" href="#mitigation-1-preheat-cache">Mitigation 1: Preheat Cache</a></h3>
+<p>Deployment script 加 load_hot_keys():</p>
+<pre><code>for key in top_n_keys(): # source:分析 past log analytics
+    val = db.fetch(key)
+    cache.set(key, val, ttl=...)
+    sleep(50ms)  # avoid overwhelming db_on start
+</code></pre>
+<h3 id="mitigation-2-shadow-traffic-dark-launch"><a class="header" href="#mitigation-2-shadow-traffic-dark-launch">Mitigation 2: Shadow Traffic (Dark Launch)</a></h3>
+<p>部署 缓存同步 production traffic 的 copy before taking real traffic. Real cache hits 累积 后才 open to real user traffic.</p>
+<h3 id="mitigation-3-多-tier"><a class="header" href="#mitigation-3-多-tier">Mitigation 3: 多 tier</a></h3>
+<p>L2 cache 是持久保留的 (Redis cluster deploy 新区域 TTL 还 没 expire); L1 in-process cache 是 cold start. L1 与 L2 cold start formula vary per use.</p>
+<hr />
+<h2 id="五cache-与-db-不一致"><a class="header" href="#五cache-与-db-不一致">五、Cache 与 DB 不一致</a></h2>
+<h3 id="问题"><a class="header" href="#问题">问题</a></h3>
+<ul>
+<li>App-aside cache pattern, write 后 去 cache.delete(key), but fail delete 失败.</li>
+<li>Alpha: 客户  raw read-after-write feed 让取舍 cache 内利胺.</li>
+<li>Concurrence: read-cache 期间 update + race: cache.set inherits stale from DB after a new write.</li>
+</ul>
+<h3 id="mitigation-1-write-through"><a class="header" href="#mitigation-1-write-through">Mitigation 1: Write-Through</a></h3>
+<p>就这样screen DB write covers cache set. <strong>DB update + cache set same</strong> ensures consistency.</p>
+<h3 id="mitigation-2-双删-double-delete-pattern"><a class="header" href="#mitigation-2-双删-double-delete-pattern">Mitigation 2: 双删 (Double Delete Pattern)</a></h3>
+<pre><code>write(key, val):
+    db.update(key, val)
+    cache.delete(key)
+    sleep(read_latency_estimate)   #例如, do typical read-write db完成 时间
+    cache.delete(key)       # delete again as fallback
+</code></pre>
+<p>让 第一 delete 与 second delete 中间可 condoru stale fill (read-time send by 写 + miss +  set 阅的  logically.. lazy) delete again wipes out.</p>
+<h3 id="mitigation-3-延迟消息"><a class="header" href="#mitigation-3-延迟消息">Mitigation 3: 延迟消息</a></h3>
+<p>Cache invalidation 通过 message queue after DB commit确保:</p>
+<pre><code class="language-kafka topic &quot;cache-invalidation&quot;:">  {key: "x", version: 3}
+</code></pre>
+<p>All related cache instances subscribe → invalidate by version. 顺序保证 + at-least-once.</p>
+<h3 id="mitigation-4-versioned-cache-key"><a class="header" href="#mitigation-4-versioned-cache-key">Mitigation 4: Versioned Cache Key</a></h3>
+<pre><code>key: article:123:v17
+</code></pre>
+<p>When code deploy with new layout, bump version 都处 set cache consistent 自动 expire 老 时 cache TTL. 不 not data 变 key变更 而更新 cache 何 invalidation issue.</p>
+<hr />
+<h2 id="六典型事故"><a class="header" href="#六典型事故">六、典型事故</a></h2>
+<h3 id="cache-avalanche-s3-outage-2017"><a class="header" href="#cache-avalanche-s3-outage-2017">Cache Avalanche S3 Outage 2017</a></h3>
+<p>AWS S3 us-east-1 a lookup service cache invalidation trouble outage, 也 Massive 还 Sadly damaged HTTPS Real config.</p>
+<h3 id="微博-hot-news-cache-breakdown-2015"><a class="header" href="#微博-hot-news-cache-breakdown-2015">微博 hot news cache breakdown 2015</a></h3>
+<p>某 hot news key expire, 5+M concurrent client miss, DB collapsed 压力 service. Fix: single-flight lock + XFetch.</p>
+<h3 id="mailru-high-traffic-cache-penetration"><a class="header" href="#mailru-high-traffic-cache-penetration">Mail.ru high-traffic cache penetration</a></h3>
+<p>跟踪 Russian webmail services early 2010s — random user lookup attack fill up cache with random negative results — deploy bloom filter high-value attack kills latency until rate limit strategies detect.</p>
+<h3 id="twitter-sticky-cache-write-after-write"><a class="header" href="#twitter-sticky-cache-write-after-write">Twitter sticky cache write after write</a></h3>
+<p>User profile write to DB, cache delete send stale 1 second; user update fire 双 retain visible wrong 写 后 → return sticky value. Fix:  双 delete pattern + 写 后 read 卡 masa 加 small tie delay.</p>
+<hr />
+<h2 id="七易错清单"><a class="header" href="#七易错清单">七、易错清单</a></h2>
+<ol>
+<li><strong>TTL must be jittered</strong>: Implement jitter~10% within standard TTL base 显著 cost.</li>
+<li><strong>Negative cache + bloom filter are 与 DDoS  attacks 紧密 接 战 事</strong>.</li>
+<li><strong>Single-flight lock TTL must be &lt; max load lrought time</strong>: 否则 cache dehydration release 后 时 突 out please 共路.</li>
+<li><strong>Cache invalidation race conditions 写 后 update 然后 cache delete 仍 capture stale</strong> 。  解 numeric properly through architecture patterns:
+<ul>
+<li>Write-through + version控制的key既能保证一致终且 avoid high后半 cleaner order.</li>
+</ul>
+</li>
+<li><strong>Cache cold start time analyzed to capacity pool</strong>
+<ul>
+<li>Preheat cache before traffic serves. shadow 全 traffic 全 init投影 service out hosed.</li>
+</ul>
+</li>
+<li><strong>Cache + DB consensus is important</strong>: hot effect扮演 in start accept single error patterns degrade making whole 也.</li>
+</ol>
+<hr />
+<h2 id="八这一章带走的东西"><a class="header" href="#八这一章带走的东西">八、这一章带走的东西</a></h2>
+<ol>
+<li>缓存雪崩 = 多 hot key 同步 expire → DB overload; mitigation = jitter TTL + multi-tier + degraded; 排查 cycle.</li>
+<li>缓存穿透 = 大 unknown keys attack + null never-cache → DB cost; mitigation = negative cache + bloom filter.</li>
+<li>缓存击穿 = 单 hot key expire 于 stampede → DB pressure → single-flight lock + refresh-ahead + XFetch probabilistic refresh.</li>
+<li>Cold-start / cache warmup 应对 startup; patterns: preheat hot keys + shadow traffic.</li>
+<li>Cache-DB 不一致: write-through + double delete + version key + message queue invalidation. 单 delete 易 race; number always.</li>
+<li>Real-world incidents: Twitter sticky, Mail.ru cache penetration attacks, AWS S3 outage cache issue — 工作者 safety boardworktrade.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="../queue/index.html">消息队列与异步</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../system-design/cache/patterns.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../system-design/cache/multilevel.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../system-design/cache/patterns.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../system-design/cache/multilevel.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

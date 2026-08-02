@@ -1,0 +1,571 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>10. 表示学习与对比学习: SimCLR / CLIP / InfoNCE - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="10-表示学习与对比学习-simclr--clip--infonce"><a class="header" href="#10-表示学习与对比学习-simclr--clip--infonce">10. 表示学习与对比学习: SimCLR / CLIP / InfoNCE</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>有监督学习需要大量标注；**表示学习（Representation Learning）**目标是无标注或弱标注地学到"有用的特征向量"——让相似内容距离近、不相似内容距离远。**对比学习（Contrastive Learning）**是其中最强的方法：不学"这是什么"，而学"这两个是不是同一个东西"。这一章把 InfoNCE 损失、SimCLR、CLIP 讲透——它们是自监督（SSL）、多模态（图文）、向量检索（embedding 搜索）的基础。</p>
+<p>读完应能：</p>
+<ol>
+<li>理解对比学习的三要素（锚点 / 正样本 / 负样本）和 InfoNCE 损失。</li>
+<li>讲清 SimCLR 的流程（增广 → 编码 → 投影 → InfoNCE），知道它为什么有效。</li>
+<li>讲清 CLIP 怎么把文本和图像拉进同一个空间，以及怎么用它做 zero-shot。</li>
+<li>说清对比学习和生成式/判别式的区别，以及各自局限。</li>
+<li>在代码里实现一个最简 SimCLR / InfoNCE。</li>
+</ol>
+<hr />
+<h2 id="一从识别到表示"><a class="header" href="#一从识别到表示">一、从"识别"到"表示"</a></h2>
+<h3 id="11-问题"><a class="header" href="#11-问题">1.1 问题</a></h3>
+<ul>
+<li>分类学"狗"需要大量"狗"标签。</li>
+<li>现实数据大多无标签（海量图片/文本/视频）。人工标注贵。</li>
+</ul>
+<h3 id="12-核心想法"><a class="header" href="#12-核心想法">1.2 核心想法</a></h3>
+<blockquote>
+<p><strong>不学"这是狗"，而学"这两张图是同一只狗 / 不同物体"。</strong> 拉近正样本对、推开负样本对，让网络学会"什么内容相似"——得到的 embedding 可以直接迁移到下游（分类/检索/检测）。</p>
+</blockquote>
+<h3 id="13-三要素"><a class="header" href="#13-三要素">1.3 三要素</a></h3>
+<pre><code>Anchor  (锚点):   一张图 x
+Positive (正):    x 的另一个增广/同语义样本 x+
+Negative (负):    随机其他样本 x-
+目标: anchor 与 positive 距离近, 与 negative 距离远
+</code></pre>
+<ul>
+<li>对比学习 = <strong>在 embedding 空间里做"聚同斥异"</strong>。</li>
+<li>数学上是一个<strong>度量学习</strong>（metric learning）问题。</li>
+</ul>
+<hr />
+<h2 id="二infonce-损失对比学习的心脏"><a class="header" href="#二infonce-损失对比学习的心脏">二、InfoNCE 损失（对比学习的心脏）</a></h2>
+<h3 id="21-公式"><a class="header" href="#21-公式">2.1 公式</a></h3>
+<p>$$ \mathcal{L}<em>{\text{InfoNCE}} = -\log \frac{\exp(\mathrm{sim}(z_a, z</em>+)/\tau)}{\sum_{i} \exp(\mathrm{sim}(z_a, z_i)/\tau)} $$</p>
+<p>其中：</p>
+<ul>
+<li>$z_a, z_+, z_i$：anchor / 正样本 / 负样本（含正）的 embedding。</li>
+<li>$\mathrm{sim}(u,v) = \frac{u^\top v}{|u||v|}$：余弦相似度。</li>
+<li>$\tau$：温度（temperature），控制分布的"锐度"。</li>
+</ul>
+<h3 id="22-直觉"><a class="header" href="#22-直觉">2.2 直觉</a></h3>
+<ul>
+<li>分子：anchor 与正的相似度（要越大越好）。</li>
+<li>分母：anchor 与"正 + 所有负"的相似度总和。</li>
+<li>最小化损失 = <strong>让正的相对相似度最大</strong> → 等价于一个多分类 softmax，"正样本"是一类，负样本是其他类。</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>InfoNCE 本质是** softmax 分类**：给定 anchor，从"1 个正 + N 个负"里挑出正样本。它和 §1 逻辑回归 / softmax 分类是同一族——只是"类别"被定义为"样本对的正负"。</p>
+</div>
+<h3 id="23-温度-τ-的作用"><a class="header" href="#23-温度-τ-的作用">2.3 温度 τ 的作用</a></h3>
+<ul>
+<li>$\tau$ 小 → softmax 更尖（只认最相似的）→ 对难负样本敏感，但容易过拟合。</li>
+<li>$\tau$ 大 → 更平滑 → 允许更多样本有贡献。</li>
+<li>经典值：0.07 ~ 0.1。</li>
+</ul>
+<h3 id="24-为什么叫-nce"><a class="header" href="#24-为什么叫-nce">2.4 为什么叫 NCE</a></h3>
+<ul>
+<li><strong>NCE</strong>（Noise Contrastive Estimation，Gutmann &amp; Hyvärinen 2010）：把"估计密度"转化为"区分真实样本和噪声样本"的二分类。</li>
+<li><strong>InfoNCE</strong>（Oord 2018，CPC）是 NCE 在表示学习里的应用：用互信息下界作为目标。</li>
+</ul>
+<hr />
+<h2 id="三simclr2020视觉自监督代表作"><a class="header" href="#三simclr2020视觉自监督代表作">三、SimCLR（2020，视觉自监督代表作）</a></h2>
+<h3 id="31-流程"><a class="header" href="#31-流程">3.1 流程</a></h3>
+<pre><code>原始图 x
+  ├─ 增广 t1 → x1
+  └─ 增广 t2 → x2        (同一个 x 的两种视角)
+
+编码器 f: x → h          (ResNet, 提取特征)
+投影头 g: h → z          (小 MLP, 映射到对比空间)
+
+InfoNCE 在 batch 内:
+  对每个样本 i: anchor=z_i¹, 正=z_i², 负=其他所有样本的 z (2N-2 个)
+   → 一个 batch 天然提供 2N 个"视图", 组内互为负样本
+</code></pre>
+<h3 id="32-关键设计决策"><a class="header" href="#32-关键设计决策">3.2 关键设计决策</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>组件</th><th>为什么</th></tr></thead><tbody>
+<tr><td><strong>随机增广</strong>（裁剪/翻转/颜色扰动/模糊）</td><td>提供"同一物体不同视角"，是正样本的来源</td></tr>
+<tr><td><strong>投影头 g（非线性 MLP）</strong></td><td>去掉它性能大降——投影空间里做对比，特征空间保持表达力</td></tr>
+<tr><td><strong>batch 内负样本</strong></td><td>免负样本挖掘；batch 越大效果越好</td></tr>
+<tr><td><strong>温度 τ</strong></td><td>控制难负样本权重</td></tr>
+</tbody></table>
+</div>
+<h3 id="33-为什么有效直觉"><a class="header" href="#33-为什么有效直觉">3.3 为什么有效（直觉）</a></h3>
+<ul>
+<li>增广制造"必须忽略表面变化、保留语义"的任务：模型被迫学"不变特征"。</li>
+<li>InfoNCE 让表示在"同一物体 → 近，不同物体 → 远"上对齐。</li>
+<li>学到的表示<strong>迁移性好</strong>：拿去分类只需少量标注即可微调出高性能。</li>
+</ul>
+<h3 id="34-局限"><a class="header" href="#34-局限">3.4 局限</a></h3>
+<ul>
+<li>依赖<strong>强增广</strong>（视觉成立，语言/图结构难做）。</li>
+<li><strong>负样本质量</strong>关键：batch 太小负样本不够 → 效果差；需要大 batch（SimCLR 用 4096）。</li>
+<li>对比学习的"捷径"：模型可能靠"颜色/背景"区分正负，不学语义。</li>
+</ul>
+<hr />
+<h2 id="四clip2021图文多模态"><a class="header" href="#四clip2021图文多模态">四、CLIP（2021，图文多模态）</a></h2>
+<h3 id="41-核心想法"><a class="header" href="#41-核心想法">4.1 核心想法</a></h3>
+<p>把<strong>文本和图像拉进同一个 embedding 空间</strong>，用配对数据（图像-描述文本）做对比学习。</p>
+<pre><code>图像 x   → 图像编码器 → z_i
+文本 t   → 文本编码器 → z_t
+目标: 配对的 (x, t) 距离近, 非配对距离远 (InfoNCE, 对称)
+</code></pre>
+<h3 id="42-流程对比图文对"><a class="header" href="#42-流程对比图文对">4.2 流程（对比图文对）</a></h3>
+<pre><code>一个 batch 有 N 对 (图像, 文本)
+图像编码: z_img = f_img(x)      (ViT / ResNet)
+文本编码: z_text = f_text(t)    (Transformer)
+对比: 对称 InfoNCE
+  L_img = -log exp(sim(z_i, t_i)/τ) / Σ exp(sim(z_i, t_j)/τ)
+  L_text = 同理(以文本为 anchor)
+  L = (L_img + L_text) / 2
+</code></pre>
+<ul>
+<li>配对（diagonal）是正样本，batch 内其他都是负样本。</li>
+<li>用大规模网络爬虫图文对（4 亿对）训练。</li>
+</ul>
+<h3 id="43-zero-shot-分类clip-的杀手锏"><a class="header" href="#43-zero-shot-分类clip-的杀手锏">4.3 Zero-shot 分类（CLIP 的杀手锏）</a></h3>
+<pre><code>要分类"猫/狗/鸟":
+1. 造文本模板: "a photo of a cat", "a photo of a dog", "a photo of a bird"
+2. 图像编码: z_img
+3. 文本编码: z_cat, z_dog, z_bird
+4. 预测 = argmax sim(z_img, z_class)
+</code></pre>
+<p><strong>不需要任何训练样本</strong>——因为文本描述和图像被拉进了同一空间，图像和"正确的类名文本"自然最接近。</p>
+<h3 id="44-价值与应用"><a class="header" href="#44-价值与应用">4.4 价值与应用</a></h3>
+<ul>
+<li><strong>多模态对齐</strong>：图像检索文本 / 文本检索图像。</li>
+<li><strong>zero-shot 分类 / 检测 / 分割</strong>（CLIP 做 backbone）。</li>
+<li><strong>生成模型对齐</strong>：Stable Diffusion 的文本编码器用的就是 CLIP 文本分支。</li>
+<li>缺点：对抽象/罕见概念弱；对增广不鲁棒；训练要海量图文对。</li>
+</ul>
+<hr />
+<h2 id="五与其他范式的对比"><a class="header" href="#五与其他范式的对比">五、与其他范式的对比</a></h2>
+<h3 id="51-三种学习范式"><a class="header" href="#51-三种学习范式">5.1 三种学习范式</a></h3>
+<div class="table-wrapper"><table><thead><tr><th></th><th>判别式（分类）</th><th>生成式（VAE/扩散/AR）</th><th>对比式（InfoNCE）</th></tr></thead><tbody>
+<tr><td>目标</td><td>P(y</td><td>x)</td><td>P(x)</td></tr>
+<tr><td>需要标签</td><td>需要</td><td>不需要</td><td>不需要（自监督）</td></tr>
+<tr><td>学到什么</td><td>分类边界</td><td>数据分布</td><td>相似性表示</td></tr>
+<tr><td>代表</td><td>ResNet 分类</td><td>DDPM / GPT</td><td>SimCLR / CLIP</td></tr>
+<tr><td>优点</td><td>简单</td><td>能生成</td><td>表示迁移性好</td></tr>
+<tr><td>局限</td><td>标签贵</td><td>训练贵、难控制</td><td>依赖增广/负样本</td></tr>
+</tbody></table>
+</div>
+<h3 id="52-与自监督的关系"><a class="header" href="#52-与自监督的关系">5.2 与自监督的关系</a></h3>
+<pre><code>自监督 (Self-Supervised Learning): 无标签，用数据自身构造监督
+  ├─ 对比式: InfoNCE (SimCLR / CLIP)     ← 本章
+  ├─ 生成式: MAE (mask 重建) / 扩散
+  └─ 预训练式: 自回归 (GPT 的 next-token)
+</code></pre>
+<hr />
+<h2 id="六代码实现最简-simclr--infonce"><a class="header" href="#六代码实现最简-simclr--infonce">六、代码实现（最简 SimCLR / InfoNCE）</a></h2>
+<pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+def info_nce_loss(z1, z2, temperature=0.1):
+    """z1, z2: [N, D] 同 batch 的两组增广 embedding"""
+    z1 = F.normalize(z1, dim=-1)
+    z2 = F.normalize(z2, dim=-1)
+    N = z1.size(0)
+
+    # 拼接: [2N, D], 每对 (i, i+N) 是同一图像的两个视图
+    z = torch.cat([z1, z2], dim=0)                 # [2N, D]
+    sim = z @ z.T / temperature                    # [2N, 2N] 相似度矩阵
+    mask = torch.eye(2 * N, dtype=torch.bool)      # 自己 vs 自己
+
+    # 对每个 i: 正样本是它的另一个视图
+    labels = torch.cat([torch.arange(N, 2*N), torch.arange(0, N)])  # i 的正 = i+N
+    sim[..., mask] = -float("inf")                 # 排除自身
+    return F.cross_entropy(sim, labels)
+</code></pre>
+<pre><code class="language-python"># 应用示例: 简单图像编码器 + 投影头 (PyTorch)
+class SimCLRHead(nn.Module):
+    def __init__(self, d_in=512, d_proj=128):
+        super().__init__()
+        self.proj = nn.Sequential(
+            nn.Linear(d_in, d_proj),
+            nn.ReLU(),
+            nn.Linear(d_proj, d_proj),
+        )
+    def forward(self, h):          # h: [N, d_in]
+        return self.proj(h)        # [N, d_proj] 投影后做对比
+</code></pre>
+<pre><code class="language-typescript">// 教学版 InfoNCE (TypeScript, 数值近似)
+export function infoNCE(
+  z1: number[][], z2: number[][], temperature = 0.1,
+): number {
+  // 归一化 + 算余弦相似度 → cross-entropy
+  const norm = (v: number[]) =&gt; {
+    const n = Math.sqrt(v.reduce((s, x) =&gt; s + x * x, 0)) || 1;
+    return v.map(x =&gt; x / n);
+  };
+  const A = z1.map(norm), B = z2.map(norm);
+  const sim = (u: number[], v: number[]) =&gt;
+    u.reduce((s, x, i) =&gt; s + x * v[i], 0);
+  let loss = 0;
+  for (let i = 0; i &lt; A.length; i++) {
+    const positives = [sim(A[i], B[i]) / temperature];
+    const negatives = [];
+    for (let j = 0; j &lt; A.length; j++) {
+      if (j !== i) {
+        negatives.push(sim(A[i], A[j]) / temperature);
+        negatives.push(sim(A[i], B[j]) / temperature);
+      }
+    }
+    const all = positives.concat(negatives);
+    const max = Math.max(...all);
+    const exps = all.map(x =&gt; Math.exp(x - max));
+    const denom = exps.reduce((a, b) =&gt; a + b, 0);
+    loss += -(exps[0] / denom) * Math.log(exps[0] / denom) ? -Math.log(exps[0] / denom) : 0;
+    loss += -Math.log(exps[0] / denom);   // NLL of positive
+  }
+  return loss / A.length;
+}
+</code></pre>
+<hr />
+<h2 id="七进阶与前沿概览"><a class="header" href="#七进阶与前沿概览">七、进阶与前沿（概览）</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>方向</th><th>代表</th><th>思路</th></tr></thead><tbody>
+<tr><td>负样本 free</td><td>BYOL (2020) / SimSiam (2021)</td><td>去掉负样本，只对齐正对，靠 stop-gradient 防崩溃</td></tr>
+<tr><td>弱正样本</td><td>MoCo (2019)</td><td>动量编码器 + 队列维护大量负样本</td></tr>
+<tr><td>多模态</td><td>CLIP / ALIGN / SigLIP</td><td>图文对对比，zero-shot 强</td></tr>
+<tr><td>语言对比</td><td>Sentence-BERT / SimCSE</td><td>句子 embedding 对比（dropout 作增广）</td></tr>
+<tr><td>图对比</td><td>GraphCL / GCC</td><td>图增广（删边/掩码）</td></tr>
+<tr><td>音频/时序</td><td>CPC / wav2vec</td><td>预测未来/掩码段的对比</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>BYOL / SimSiam 证明"对比"甚至可以没有负样本——关键是<strong>正对的对齐 + 防表示坍缩</strong>（stop-gradient）。这说明 InfoNCE 的"推开负样本"是充分非必要，对齐本身更重要。</p>
+</div>
+<hr />
+<h2 id="八与第零部分--前章的接口"><a class="header" href="#八与第零部分--前章的接口">八、与第零部分 + 前章的接口</a></h2>
+<ul>
+<li>InfoNCE = softmax 多分类 → 概率 §3（multinomial）+ foundations §2（softmax CE）。</li>
+<li>温度 τ / 相似度 → 线代 §1（余弦/内积）。</li>
+<li>embedding 空间 → 线代 §1（向量空间）+ tokenizer §5（embedding 表）。</li>
+<li>与自监督/GPT next-token → generative §2（AR）。</li>
+<li>与对比损失在推荐/检索 → 可用在 RAG 向量检索（DB vector）。</li>
+</ul>
+<hr />
+<h2 id="九结束--速查表"><a class="header" href="#九结束--速查表">九、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回：</p>
+<ul>
+<li><strong>表示学习</strong>：学"什么相似"而非"这是什么"；embedding 迁移到下游。</li>
+<li><strong>InfoNCE</strong> = 1 正 N 负的 softmax；<code>-log exp(sim(a,+)/τ) / Σexp(sim(a,i)/τ)</code>。</li>
+<li><strong>三要素</strong>：anchor / 正 / 负；负样本质量 + 数量关键。</li>
+<li><strong>SimCLR</strong>：增广 → 编码 → 投影头 → batch 内 InfoNCE；投影头必不可少。</li>
+<li><strong>CLIP</strong>：图像+文本进同一空间；配对对对比；zero-shot 分类 = 文本模板对比。</li>
+<li><strong>温度 τ</strong>：小更锐（难负敏感），经典 0.07-0.1。</li>
+<li><strong>无负样本</strong>：BYOL/SimSiam 靠 stop-gradient 防坍缩。</li>
+<li><strong>对比 vs 生成</strong>：对比学相似性（好迁移）、生成学分布（能生成）。</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="../formal/index.html">形式化方法卷 README</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../ai-ml/training-at-scale.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../ai-ml/agents.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../ai-ml/training-at-scale.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../ai-ml/agents.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

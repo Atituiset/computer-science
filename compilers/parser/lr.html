@@ -1,0 +1,412 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>LR/LALR/SLR/yacc/bison - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="lr--lalr--slr--yacc--bison"><a class="header" href="#lr--lalr--slr--yacc--bison">LR / LALR / SLR / yacc / bison</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>LR 系列是 table-driven bottom-up parser：从左扫描（L）右推导（R），使用下推栈 + GOTO/SHIFT/REDUCE 状态表。LR(0) / SLR(1) / LALR(1) / LR(1) 区别在 lookahead 和状态合并策略。yacc/bison 是 LALR(1) 工具典; PostgreSQL / Oracle PL/SQL / GCC 早期均 bison 生成。本节走完 LR 算法、DFA、SLR/LALR/LR 区别适合 conflict、bison precedence/associativity、glr fallback 策略。</p>
+<hr />
+<h2 id="一lr-算法"><a class="header" href="#一lr-算法">一、LR 算法</a></h2>
+<p>LR parser：自下而上移进 (shift) 与归约 (reduce)：</p>
+<pre><code>stack: states s_0, s_1, ..., s_k   多 symbols
+input + lookahead
+action(state_top, lookahead):
+   shift(next_state)    # 入栈filetates
+   reduce(N, A-&gt;α)     # 出 |α| 个 state, 推 A
+   accept()
+
+goto(state, nonterm)    # shift 后 transition
+</code></pre>
+<p>shift-reduce 自底向上"重放"着上下文无关推 式。</p>
+<h2 id="二lr0-项目集"><a class="header" href="#二lr0-项目集">二、LR(0) 项目集</a></h2>
+<p>每产生式加 <code>·</code> 标进度：<code>A -&gt; α · β</code>。</p>
+<p>START 项目集开始 <code>S -&gt; · E</code>，closure 后含 all follow items；GOTO 形成状态有限（最高 p）。</p>
+<p>LR(0) 表只看栈顶状态；SLR 增加 FOLLOW 集（当前 lookahead ∈ FOLLOW(A) 时 reduce → 解决 LR(0) shift-reduce conflict）；LALR(1) 将每状态加 lookahead → 数据量小 LR(0) 状态数但 conflict 处理强于 SLR；LR(1) full lookahead Each item 携 lookahead 集 → state 数 exponential。</p>
+<h2 id="三冲突-conflict"><a class="header" href="#三冲突-conflict">三、冲突 (conflict)</a></h2>
+<ul>
+<li><strong>shift-reduce conflict</strong>: 同一 (state, lookahead) 既 shift 又 reduce。</li>
+<li><strong>reduce-reduce conflict</strong>: 同一 (state, lookahead) 有两 rule 可 reduce（语法错错）。</li>
+</ul>
+<p>LR(0) conflict 多 natural；SLR 减少；LALR(1) 通常 works；LR(1) state explosion。</p>
+<p>yacc/bison 走 LALR(1)；小 grammar &gt; 100 rule 通常 OK，conflict 人工 eliminate。</p>
+<h2 id="四弱-vs-强-parser"><a class="header" href="#四弱-vs-强-parser">四、弱 vs 强 parser</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Parser</th><th>lookahead</th><th>状态数</th><th>conflict 易出？</th><th>工程用例</th></tr></thead><tbody>
+<tr><td>LR(0)</td><td>0</td><td>small</td><td>频繁</td><td>教学性</td></tr>
+<tr><td>SLR(1)</td><td>1</td><td>LR(0) 大小</td><td>中等</td><td>极少用</td></tr>
+<tr><td>LALR(1)</td><td>1</td><td>LR(0) 状态数</td><td>口语时少</td><td>yacc/bison OCaml 期</td></tr>
+<tr><td>LR(1)</td><td>1</td><td>exponential large</td><td>极少</td><td>tomita 等</td></tr>
+<tr><td>IELR(1)</td><td>1</td><td>medium</td><td>极少</td><td>bison <code>%define lr.type ielr</code></td></tr>
+</tbody></table>
+</div>
+<h2 id="五bison--yacc"><a class="header" href="#五bison--yacc">五、bison / yacc</a></h2>
+<p>bison 生成 LALR(1) parser 的入口：</p>
+<pre><code>%{
+#include &lt;stdio.h&gt;
+%}
+
+%union {
+    int ival;
+    char *sval;
+}
+
+%token &lt;ival&gt; NUMBER
+%token &lt;sval&gt; IDENT
+
+%type &lt;ival&gt; expr
+
+%left '+' '-'
+%left '*' '/'
+%right UMINUS
+
+%%
+
+expr: expr '+' expr   { $$ = $1 + $3; }
+    | expr '-' expr   { $$ = $1 - $3; }
+    | expr '*' expr   { $$ = $1 * $3; }
+    | expr '/' expr   { $$ = $1 / $3; }
+    | '-' expr %prec UMINUS { $$ = -$2; }
+    | NUMBER          { $$ = $1; }
+    | '(' expr ')'    { $$ = $2; }
+    ;
+</code></pre>
+<p>要点:</p>
+<ul>
+<li><code>%union</code> 定义 AST + token 类型 discriminant</li>
+<li><code>%left %right</code> precedence 解决 shift-reduce</li>
+<li><code>%prec UMINUS</code> 把 token 优先级赋受规则 (用于 UMINUS 虚拟 token)</li>
+<li><code>$$ $1 $3</code> 直接访问语义值</li>
+</ul>
+<h2 id="六glr-fallback"><a class="header" href="#六glr-fallback">六、glr fallback</a></h2>
+<p>LALR(1) 仍 conflict (e.g. C 语言 <code>x * y</code> ambiguity 的 是 declaration 还是 multiplication) → bison <code>%glr</code> 模式生成 GLR parser (增生成 parser，所有 conflict 路径同时保存 — until error Tampa) 接出 facts on symbols。</p>
+<h2 id="七gcc--llvmgrammar"><a class="header" href="#七gcc--llvmgrammar">七、gcc / LLVMgrammar</a></h2>
+<ul>
+<li>GCC 历史 with bison</li>
+<li>现在 C++11 ambiguity 让 bison GLR</li>
+<li>rustc 完全 手写</li>
+</ul>
+<h2 id="八产线观察"><a class="header" href="#八产线观察">八、产线观察</a></h2>
+<h3 id="81-postgresql-sql-parser-用-yaccbison"><a class="header" href="#81-postgresql-sql-parser-用-yaccbison">8.1 PostgreSQL SQL parser 用 yacc/bison</a></h3>
+<p>PG SQL parser 文 <code>gram.y</code> 配 <code>scan.l</code>，确实是 bison 生成。会restrict少 conflict by 极强 grammar shampoo (precision/associativity 行 100 行)。</p>
+<h3 id="82-sqlite-全手写-lemon-parser"><a class="header" href="#82-sqlite-全手写-lemon-parser">8.2 SQLite 全手写 Lemon parser</a></h3>
+<p>SQLite 不用 bison（LALR(1)），但自定义 Lemon parser：LALR(1) 但 generate C 创使用 surplus fine level of error report.</p>
+<h3 id="83-postgresql-自定义-lexer-re2c"><a class="header" href="#83-postgresql-自定义-lexer-re2c">8.3 PostgreSQL 自定义 lexer re2c</a></h3>
+<p>PG 9.6+ lexer 用 re2c 替代 flex。 re2c table-less 直接 de la More touch species 从-币性能 + 提中风 source.</p>
+<h2 id="九易错清单"><a class="header" href="#九易错清单">九、易错清单</a></h2>
+<ol>
+<li><strong>shift-reduce conflict</strong> 优先 shift 但不唯一 op 性:precedence 解决</li>
+<li><strong>reduce-reduce conflict</strong> grammar 本身有问题</li>
+<li><strong>left recursion</strong> 适配 bottom-up parser (不是 issue)</li>
+<li><strong>right recursion</strong> 落入但 stack space 大</li>
+<li><strong>grammar ambiguity</strong> vs conflict LALR(1) 也能 GLR 模式访问</li>
+<li><strong>AST 构造</strong> <code>$$= Sem_($1 + $3);</code>  simple but <code>style $1-&gt;attach_span(...)</code> tp declaration <code>s</code> width errors at upgrade</li>
+</ol>
+<h2 id="十这一章带走的东西"><a class="header" href="#十这一章带走的东西">十、这一章带走的东西</a></h2>
+<ol>
+<li>LR parser 自下而上 shift-reduce</li>
+<li>LR(0) → SLR → LALR(1) → LR(1) → IELR(1) 渐进后 lookahead</li>
+<li>bison: LALR(1) + %left %right %prec 解决二意</li>
+<li>GLR mode conflict path 先 parallel、最后 scope decide</li>
+<li>PostgreSQL、SQLite、PG 等历史项目 bison/Lemon LALR(1) 使用精心 grammar 设计</li>
+<li>现代 compiler (rustc/go) 倾向手写 recursive descent 实 fine-grained 错误报告 IDE 友好</li>
+<li>precedence 注  in 文 七 tervals 而非 文检查 坚实性</li>
+</ol>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../compilers/parser/recursive-descent.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../compilers/parser/glr-peg.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../compilers/parser/recursive-descent.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../compilers/parser/glr-peg.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

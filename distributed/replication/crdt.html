@@ -1,0 +1,470 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>CRDT：无冲突数据类型 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="crdt无冲突数据类型"><a class="header" href="#crdt无冲突数据类型">CRDT：无冲突数据类型</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p><strong>CRDT (Conflict-Free Replicated Data Type)</strong> 是 Marc Shapiro et al. 2011 (INRIA) 提出的"分布式数据结构数学统一理论"——在最终一致性系统里, 只要每个操作具备<strong>commutativity (可交换)</strong> + <strong>associativity (可结合)</strong> + <strong>idempotency (幂等)</strong>, 多节点任意顺序应用 op 最终都收敛到同一状态, 不需要协调或共识。CRDT 让无主/多主复制免 vector clock sibling 选择, 让 collaborative editing 不走 OT 的复杂 transformation matrix。 例: Riak DataType (counters/sets/maps), Redis CRDT, Automerge, Yjs, SoundCloud Roshi, Figma 的多人编辑都靠 CRDT。 本章梳理 state-based vs op-based CRDT, 加入常见类型 (G-Counter / PN-Counter / G-Set / 2P-Set / OR-Set / LWW-Register / LWW-Map / RGA / Text), 收敛证明与"为什么需要 tombstones 而非简单 delete", typical 生产事故 + 协同编辑器对比 (Automerge vs Yjs vs Google Docs OT)。</p>
+<hr />
+<h2 id="一问题conflict-resolution-without-central-coordinator"><a class="header" href="#一问题conflict-resolution-without-central-coordinator">一、问题:Conflict Resolution Without Central Coordinator</a></h2>
+<h3 id="vector-clock-sibling-的问题"><a class="header" href="#vector-clock-sibling-的问题">Vector Clock Sibling 的问题</a></h3>
+<p>Dynamo / Riak default vector clock 让 user / application resolve conflict: 看到 <code>siblings = [VC1: A=1,B=0 ; VC2: A=0,B=1]</code>, application 必须给出 merge function. 写 application-level merge 复杂且易错:</p>
+<pre><code class="language-js">// shopping cart 复制抖镖 – 用户加 不同 — difference in conflict resolve
+cart_NY = {apple, banana}
+cart_SF = {apple, cherry}
+merge_elems = cart_NY ∪ cart_SF = {apple, banana, cherry}  // OK!
+</code></pre>
+<p>但若 <code>delete</code> 也需要支持, 简单 union 不能反"deleted"——计数 set deletion 需要 tombstone.</p>
+<p>CRDT 解决这个: 让 data structure 本身的 merge function 是数学上 associative + commutative + idempotent, 则 replicas 任顺序收敛。</p>
+<hr />
+<h2 id="二state-based-vs-op-based-crdt"><a class="header" href="#二state-based-vs-op-based-crdt">二、State-based vs Op-based CRDT</a></h2>
+<p>Shapiro et al. 定义两种 CRDT:</p>
+<h3 id="state-based-cvrdt-convergent-replicated-data-type"><a class="header" href="#state-based-cvrdt-convergent-replicated-data-type">State-based (CvRDT: Convergent Replicated Data Type)</a></h3>
+<ul>
+<li>每节点独立持本地 state。</li>
+<li>节点不发送 op, 只发送整个<strong>state</strong> (或 delta-state) 给其他 replica。</li>
+<li>merges: <code>join(s1, s2) = s1 ⊔ s2</code>必须 <strong>commutative, associative, idempotent</strong>。</li>
+</ul>
+<p>最终收敛条件 (bounded semilattice): join 算子构成 partial-order semilattice (有 least upper bound), 所有 join 都单调 = 收敛后状态。</p>
+<h3 id="op-based-cmrdt-commutative-replicated-data-type"><a class="header" href="#op-based-cmrdt-commutative-replicated-data-type">Op-based (CmRDT: Commutative Replicated Data Type)</a></h3>
+<ul>
+<li>节点不传整个 state, 直接传 op。</li>
+<li>每个 op 必须是 commutative + idempotent (因为 message may re-arrive or arrive more than once)。</li>
+<li><strong>!) requirement</strong>: Casual broadcast——若 op a 因果先 op b, a 必须先到达所有 replica。</li>
+</ul>
+<p>Op-based 节省带宽、时延, 但需 underlying casual broadcast (vector clock)。 Riak DT 与 Yjs/Automerge mixed state-based 优点 + delta-state 优化。</p>
+<p>工业一般用 state-based + delta-state, 因为 op-based 需要 casual 顺序保障开销。</p>
+<hr />
+<h2 id="三常见-crdt-类型"><a class="header" href="#三常见-crdt-类型">三、常见 CRDT 类型</a></h2>
+<h3 id="1-g-counter-grow-only-counter-单调不减"><a class="header" href="#1-g-counter-grow-only-counter-单调不减">1. G-Counter (Grow-only Counter, 单调不减)</a></h3>
+<p>State: 每节点 i 维护独立 counter <code>c_i</code>, 初始 0.
+Op <code>inc()</code>: <code>c_i++</code> at local node i.
+Query <code>value()</code>: <code>Σ c_i</code> over all i.
+Merge: <code>c_i = max(c_i_a, c_i_b) for each i</code>.</p>
+<pre><code>node A: c_A=5, c_B=0  value=5
+node B: c_A=0, c_B=3  value=3
+after merge on A: c_A=5, c_B=3, value=8
+</code></pre>
+<p><code>max</code> + idempotent ⇒ CRDT。</p>
+<h3 id="2-pn-counter-positive-negative-counter"><a class="header" href="#2-pn-counter-positive-negative-counter">2. PN-Counter (Positive-Negative Counter)</a></h3>
+<p>不能直接复用 G-Counter 因为 counter decrements 是非 commutative matching monotonic increases. 解决方法:</p>
+<p>State: 两 G-Counter, <code>P</code> (positive) + <code>N</code> (negative).
+Op <code>inc()</code>: <code>P_i++</code>;  Op <code>dec()</code>: <code>N_i++</code>.
+Query <code>value()</code>: <code>Σ P_i - Σ N_i</code>.
+Merge: per-node max on each of P and N.</p>
+<h3 id="riak-counters"><a class="header" href="#riak-counters">Riak Counters</a></h3>
+<p>Riak DT Counter = PN-Counter。 性能警告: 内部 vector clock chain 增 large, ops 100k+ 之后 operation tensor 膨胀 + potential 性能下降 — Riak pin 自动"GC + archive"措施.</p>
+<h3 id="3-g-set-grow-only-set-加入只"><a class="header" href="#3-g-set-grow-only-set-加入只">3. G-Set (Grow-only Set, 加入只)</a></h3>
+<p>只支持 <code>add(e)</code>, 不允许 remove.
+State: Set S.
+Op <code>add(e)</code>: <code>S = S ∪ {e}</code>.
+Merge: <code>S = S_a ∪ S_b</code>.</p>
+<h3 id="4-2p-set-two-phase-set-加追删"><a class="header" href="#4-2p-set-two-phase-set-加追删">4. 2P-Set (Two-Phase Set, 加追删)</a></h3>
+<p>支持 add 与 remove, 但每 element 最多 add 一次 + remove 一次。</p>
+<p>State: 两个 G-Set, <code>A</code> (added), <code>R</code> (removed).
+Op <code>add(e)</code>: <code>A = A ∪ {e}</code>.
+Op <code>remove(e)</code>: 必须先 add, <code>R = R ∪ {e}</code> (但 transient add-remove-proof: tombstone)。
+Query <code>contains(e)</code>: <code>e ∈ A ∧ e ∉ R</code>.</p>
+<p>风险: 添加 remove 后无法 re-add——同 e 再 add 仍 contains=false (因 R 已有 e). 适合 "tag collective" 使用, 不适合 dynamic add/remove 反复 use case.</p>
+<h3 id="5-or-set-observed-remove-set--工业常用"><a class="header" href="#5-or-set-observed-remove-set--工业常用">5. OR-Set (Observed-Remove Set) — 工业常用</a></h3>
+<p>状态稳定 (与2P-Set 对比): 每次添加生成 <strong>唯一 tag</strong> (uuid), 删除只删 add 中见过的 tag.</p>
+<pre><code>add(e): generate new tag t, A = A ∪ {(e, t)}
+remove(e): collect all (e, t) seen locally, R = R ∪ observed_tags
+contains(e): ∃ t such that (e, t) ∈ A ∧ (e, t) ∉ R
+merge: A_merged = A_a ∪ A_b ; R_merged = R_a ∪ R_b
+</code></pre>
+<p>加后再删可再 add — 新 tag 条件唯一 (** remove only affects observed tags**.</p>
+<p>工业 use case: Riak DT Set, Figma multi-collaboration shared states.</p>
+<h3 id="6-lww-register-last-writer-wins-register"><a class="header" href="#6-lww-register-last-writer-wins-register">6. LWW-Register (Last-Writer-Wins Register)</a></h3>
+<p>State: value v + timestamp t.
+Op <code>set(v_new, t)</code>: if t &gt; t_current → set local v to v_new.
+Merge: choose side with larger t.</p>
+<p>** 注意**: timestamp 比较 wall clock 不安全 (clock skew) — 必须用 monotonic + hybrid clock (HLC)。</p>
+<h3 id="7-lww-map"><a class="header" href="#7-lww-map">7. LWW-Map</a></h3>
+<p>LWW-Map 不 commute on per-key bases in general. var <code>m[k] = LWW-Register</code> for each k. 各 key 之间可并行 update, 同 key 内以 LWW-Register 内部 timestamp 比较——但是 Map.remove + Map.add 同对应 key 时钟对间 race 复杂. Yjs 与 Automerge 都不直接使用 LWW-Map, 而是 nested OR-Set + OR-Map 的变种.</p>
+<h3 id="8-rga-replicated-growable-array--协同编辑"><a class="header" href="#8-rga-replicated-growable-array--协同编辑">8. RGA (Replicated Growable Array) — 协同编辑</a></h3>
+<p>RGA 是文字/列表顺序的核心 CRDT, 用 unique ID per element + <code>after</code> reference:</p>
+<pre><code>char id = (timestamp, replica_id), parent_id (前一个 char 的 id)
+insert((content, id, parent_id)):
+  if parent_id 已在 list:
+     insert new entry 在 parent_id 之后, 维护 tie-breaker desc 顺序 by id
+remove(id):
+  mark tombstone
+</code></pre>
+<p>merge: 同时维护所有 insertions + tombstones, 各 replica 收敛 by ID lexicographic compare for siblings.</p>
+<h3 id="yjs-优化"><a class="header" href="#yjs-优化">Yjs 优化</a></h3>
+<p>Yjs 的 YText/RGA 实现 internal “block” skip-list。 每用户写时记录 origin id 但 leaf reading 延 through skip-list 子 BLOCK = O(1) lookup instead of O(N) treewalk. Yjs 是 2017 Kevin Jahns built; Figma 之类 collaborate 编辑器常见路径. 比 Google Docs OT 更 distributed.</p>
+<hr />
+<h2 id="四crdt-收敛性证明"><a class="header" href="#四crdt-收敛性证明">四、CRDT 收敛性证明</a></h2>
+<h3 id="semilattice"><a class="header" href="#semilattice">Semilattice</a></h3>
+<p>定义: 部分序关系 <code>≤</code> 且 任何两元素有 least upper bound (lub) <code>a ⊔ b</code>.</p>
+<p>CRDT 状态空间 S 上, <code>join : S × S → S</code> 取 lub. <code>join</code> 满足:</p>
+<ol>
+<li>Commutativity: <code>a ⊔ b = b ⊔ a</code></li>
+<li>Associativity: <code>a ⊔ (b ⊔ c) = (a ⊔ b) ⊔ c</code></li>
+<li>Idempotency: <code>a ⊔ a = a</code></li>
+</ol>
+<h3 id="收敛定理"><a class="header" href="#收敛定理">收敛定理</a></h3>
+<p>若 op 满足 <strong>commutativity + idempotency</strong> (state-based 中 via join), 则无论 op 顺序, 最终所有 replica 收敛到 <code>lub(initial_state, all_ops)</code>。</p>
+<p>证明: 每节点最终都 join 所有 ops. 因 join 单调增 + 上界存在 + lub 唯一 ⇒ 各 replica 终态一致。</p>
+<p><strong>关键</strong>: remove ops 如何收敛——simple remove 不 commute (<code>add a; remove a; merge</code> ≠ same as <code>remove a; merge; add a</code>)。 tombstones 与 OR-Set 都是这个 limitation 的解法。</p>
+<hr />
+<h2 id="五应用例"><a class="header" href="#五应用例">五、应用例</a></h2>
+<h3 id="riak-dt"><a class="header" href="#riak-dt">Riak DT</a></h3>
+<p>Basho Riak 2.0+ 提供 built-in types:</p>
+<ul>
+<li><code>counter</code>: PN-Counter</li>
+<li><code>set</code>: OR-Set</li>
+<li><code>map</code>: nested CRDT map (counter, set, register, flag per key)</li>
+<li><code>register</code>: LWW-Register</li>
+<li><code>flag</code>: boolean CRDT</li>
+</ul>
+<p>bucket API:</p>
+<pre><code>riak.update_bucket_type("counters", ...)
+riak.bucket("counts").update("likes", increment=1)
+</code></pre>
+<p>避免了 application 自己组织 sibling merge。</p>
+<h3 id="automerge"><a class="header" href="#automerge">Automerge</a></h3>
+<p>Automerge (2017, Ink &amp; Switch) 是纯 JS library CRDT + JSON documents. JavaScript 的 <code>automerge.from(initial)</code> 创 doc, <code>.change(doc, m =&gt; m.todos.push({...}))</code> 修改. 内部是 OR-Set + RGA + LWW-Map nested.</p>
+<p>Atrium, Habit, rtags —— family collaborative paper tool。 Notion-like data stores. 生产环境 slow broadcast presence ensured 跨 DC collaborative editing.</p>
+<h3 id="yjs"><a class="header" href="#yjs">Yjs</a></h3>
+<p>Yjs 是 Kevin Jahns 写 (2017), 体积小 (60KB JS) + 性能 peak (100+ users simultaneously). 应用: Notion Quip-like collab editor, Atlassian Trello-like product collaborative viewer.</p>
+<h3 id="redis-crdts-redis-enterprise-active-active"><a class="header" href="#redis-crdts-redis-enterprise-active-active">Redis CRDTs (Redis Enterprise Active-Active)</a></h3>
+<p>Redis Enterprise 提供 server-side CRDTs: counters, sets, hashes, strings all sync replicate across 多个 region (active-active). Counter for inventory increments monotone tests no lost update.</p>
+<h3 id="figma"><a class="header" href="#figma">Figma</a></h3>
+<p>Figma 是协同 GUI 设计工具, 用 incremental JSON ops + CRDT-lite (custom) for multiplayer editing——差异化 是 Figma多用 CDN-delayed broadcast + own tree CRDT (over-all-attribute-pair LWW-Set). Pure CRDT 不适用 nested graphics tree——Figma 自定义deletion + insert hybrid.</p>
+<hr />
+<h2 id="六典型问题"><a class="header" href="#六典型问题">六、典型问题</a></h2>
+<h3 id="crdt-tombstone-膨胀"><a class="header" href="#crdt-tombstone-膨胀">CRDT Tombstone 膨胀</a></h3>
+<p>G-/OR-Set delete operation 不真删——保 tombstones for concurrent merge. 长时间 set 加入 + 删除, 数 MB 内存占用. 解决 = GC: 只在所有 replica 都知道 tombstone 存在这之后删—— causal tracking 要 vector-clock GC.</p>
+<h3 id="or-set-tag-exponential"><a class="header" href="#or-set-tag-exponential">OR-Set Tag Exponential</a></h3>
+<p>Each <code>add(e)</code> 生成 new tag. Repetitive add/remove 写 ~100k ops/set 之后, A 与 R set 元素 count baptized millions.</p>
+<p>Figma 修复:  used delta-state CRDTs (delta-CRDTs, Almeida et al. 2018) 只广播增量状态.</p>
+<h3 id="lww-with-clock-skew"><a class="header" href="#lww-with-clock-skew">LWW with Clock Skew</a></h3>
+<p>NTP skew 10ms: client A <code>set x=A</code> at T100, client B <code>set x=B</code> at T100— inconsistent order ⟹ B not always wins on all replicas.</p>
+<p>Fix: HLC + monotonic local count. Riak default uses vclock + wall_ms.</p>
+<h3 id="concurrent-modes-drops"><a class="header" href="#concurrent-modes-drops">Concurrent Modes Drops</a></h3>
+<p>CRDT Map 的 <code>remove(k)</code> + 并发 <code>set(k, v)</code>: 一个想 remove k + 但下次 add 想被合并—— 定义文档 differ 不总可predict. Riak DT Map 用 OR-Map "element context" tracking 解决: remove 只 mark "remove removed at observed states", 后加 v 在不同 OR-Set tag, 决战必然附加. 但同时复现 users 见 "k 存在" + "k 不存在" 是 widely ambiguous. 文档 mention this in <a href="../concepts/ordering.html">ordering</a>.</p>
+<hr />
+<h2 id="七易错清单"><a class="header" href="#七易错清单">七、易错清单</a></h2>
+<ol>
+<li><strong>CRDT ≠ 任意 sequence 状态兼容</strong>: op 必须 commutative + idempotent, 写 sequence ops (list.append; list.reverse + append; ...)</li>
+<li><strong>LWW-Register timestamp mismatch</strong>: 必须 hybrid clock (HLC) + monotonic counter per-node — wall clock alone 不可。</li>
+<li><strong>CRDT Map.remove + concurrent Map.set(k, v)</strong> → if not using OR-Set with causal state tracking, 设置 (v) 可能 silently dropped.</li>
+<li><strong>Tombstones 必 GC</strong>: OR-Set remove 写 tombstones add up; 必须 GC 与 vector clock 因果跟踪同步.</li>
+<li><strong>CRDT 序列化膨胀</strong>: 远远多于 update state after上百 bytes data; 大 apps 需要 delta-CRDTs include 编码驱动的 delta-state ship优化.</li>
+<li><strong>协同编辑器要 Carefully handle "anchor"</strong> — 共同 characteristic seed 根 character 0 anchor records to insert下一个 char的位置—— if all char removed, top is not 0 anchor, 而是 deleted anchor with tombstones on the root.</li>
+<li><strong>CRDT ≠ Strong consistency</strong>: CRDT 保证 eventual converge + 不会丢更新但 promise 不是 Stale-Snap "see client writes own writes for business" — 保 防epoch: branch sessions need combine with sessionconfig to ensure RYW.</li>
+</ol>
+<hr />
+<h2 id="八这一章带走的东西"><a class="header" href="#八这一章带走的东西">八、这一章带走的东西</a></h2>
+<ol>
+<li>CRDT 用 join-semilattice 让免 merge function conflict-free; commutativity + idempotency 是设计原点.</li>
+<li>工业常用 CRDT 类型: G-Counter, PN-Counter, G-Set, 2P-Set, OR-Set, LWW-Register, OR-Map, RGA (Text).</li>
+<li>OR-Set 用 unique tag per add 是正确处理 add-after-remove 的关键, 避开 2P-Set "remove forever" 处理.</li>
+<li>RGA (Replicated Growable Array) 是协同编辑器的基础 CRDT (Figma Yjs Notion-like).</li>
+<li>CRDT 的代价: tombstone accumulation + GC complexity; delta-state broadcast 是性能修案.</li>
+<li>CRDT ≠ strong consistency. only eventual. 与 linearizability (Spanner) 与 RYW (Dynamo) 不同, 财务线 transaction 推荐仍 Paxos + serial.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="repair.html">读修复 / 反熵 / hinted handoff</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../distributed/replication/topologies.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../distributed/replication/repair.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../distributed/replication/topologies.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../distributed/replication/repair.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,638 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>9. 云原生发布与 GitOps: K8s 应用 / Helm / ArgoCD / Flux / 服务网格 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="9-云原生发布与-gitops-k8s-应用--helm--argocd--flux--服务网格"><a class="header" href="#9-云原生发布与-gitops-k8s-应用--helm--argocd--flux--服务网格">9. 云原生发布与 GitOps: K8s 应用 / Helm / ArgoCD / Flux / 服务网格</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>上一章讲了 GitHub Actions 把代码变成镜像；这一章讲<strong>镜像怎么进 K8s、怎么可靠发布、怎么用 GitOps 管理</strong>。核心是把"部署"也变成<strong>声明式 + 可 review + 可回滚</strong>的代码。</p>
+<p>读完应能：</p>
+<ol>
+<li>看懂 K8s 的 Deployment / Service / ConfigMap / Secret，知道发布流程。</li>
+<li>用 Helm 打包/升级应用，理解 values 与 chart 结构。</li>
+<li>理解 GitOps（ArgoCD/Flux）：git 是唯一真相，集群自动收敛。</li>
+<li>了解 service mesh（Istio/Linkerd）解决的发布问题。</li>
+<li>设计"镜像构建 → git 更新 → GitOps 自动发布 → 观察 → 回滚"的闭环。</li>
+</ol>
+<hr />
+<h2 id="一k8s-应用发布基础"><a class="header" href="#一k8s-应用发布基础">一、K8s 应用发布基础</a></h2>
+<h3 id="11-核心对象"><a class="header" href="#11-核心对象">1.1 核心对象</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>对象</th><th>作用</th></tr></thead><tbody>
+<tr><td><strong>Deployment</strong></td><td>无状态应用：副本数 / 滚动更新 / 回滚</td></tr>
+<tr><td><strong>Service</strong></td><td>稳定访问入口（ClusterIP / NodePort / LB）</td></tr>
+<tr><td><strong>ConfigMap</strong></td><td>非敏感配置</td></tr>
+<tr><td><strong>Secret</strong></td><td>敏感配置（base64，最好用外部密钥管理）</td></tr>
+<tr><td><strong>Ingress</strong></td><td>域名 → Service 的路由</td></tr>
+<tr><td><strong>HPA</strong></td><td>自动扩缩容</td></tr>
+</tbody></table>
+</div>
+<h3 id="12-deployment-发布模型滚动"><a class="header" href="#12-deployment-发布模型滚动">1.2 Deployment 发布模型（滚动）</a></h3>
+<pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%    # 最多 25% 不可用
+      maxSurge: 25%          # 最多多 25% 新副本
+  selector:
+    matchLabels: { app: app }
+  template:
+    metadata:
+      labels: { app: app }
+    spec:
+      containers:
+        - name: app
+          image: registry/app:v1.2.3     # ← 更新 image = 发布
+          ports: [{ containerPort: 8080 }]
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            periodSeconds: 10
+</code></pre>
+<p><strong>发布 = 改 <code>image:</code> 字段</strong>。K8s 自动滚动：起新副本 → 就绪后删旧副本。</p>
+<h3 id="13-探针probe"><a class="header" href="#13-探针probe">1.3 探针（Probe）</a></h3>
+<ul>
+<li><strong>readinessProbe</strong>：就绪才进 Service 流量（没它就"流量打向没准备好的 pod"）。</li>
+<li><strong>livenessProbe</strong>：活着的才留，否则重启（防止死锁僵尸）。</li>
+<li>一定要区分二者：就绪失败 ≠ 重启，存活失败 = 重启。</li>
+</ul>
+<h3 id="14-回滚"><a class="header" href="#14-回滚">1.4 回滚</a></h3>
+<pre><code class="language-bash">kubectl rollout undo deployment/app            # 回滚到上一个版本
+kubectl rollout history deployment/app         # 看历史
+kubectl rollout status deployment/app          # 看发布状态
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p><strong>image 用不可变 tag</strong>（<code>v1.2.3</code> / <code>git-sha</code>），不要用 <code>latest</code>。<code>latest</code> 会让 <code>kubectl rollout</code> 分不清"改没改"，且不可追溯。</p>
+</div>
+<hr />
+<h2 id="二configmap-与-secret"><a class="header" href="#二configmap-与-secret">二、ConfigMap 与 Secret</a></h2>
+<h3 id="21-configmap非敏感配置"><a class="header" href="#21-configmap非敏感配置">2.1 ConfigMap（非敏感配置）</a></h3>
+<pre><code class="language-yaml">apiVersion: v1
+kind: ConfigMap
+metadata: { name: app-config }
+data:
+  LOG_LEVEL: info
+  MAX_CONNECTIONS: "100"
+</code></pre>
+<pre><code class="language-yaml"># Deployment 里注入
+envFrom:
+  - configMapRef: { name: app-config }
+</code></pre>
+<h3 id="22-secret敏感配置"><a class="header" href="#22-secret敏感配置">2.2 Secret（敏感配置）</a></h3>
+<pre><code class="language-yaml">apiVersion: v1
+kind: Secret
+metadata: { name: app-secret }
+type: Opaque
+stringData:        # 用 stringData, K8s 自动 base64 存储
+  DB_PASSWORD: "s3cr3t"
+</code></pre>
+<pre><code class="language-yaml">env:
+  - name: DB_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: app-secret, key: DB_PASSWORD }
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>K8s Secret 只是 base64，不是真加密。<strong>生产用 External Secrets Operator / Sealed Secrets / Vault</strong>，把真密钥放外部管理，K8s 里只放引用。Secret 进 git 前必须加密。</p>
+</div>
+<hr />
+<h2 id="三helmk8s-的包管理"><a class="header" href="#三helmk8s-的包管理">三、Helm：K8s 的包管理</a></h2>
+<h3 id="31-为什么-helm"><a class="header" href="#31-为什么-helm">3.1 为什么 Helm</a></h3>
+<p>裸 YAML 管理问题：</p>
+<ul>
+<li>环境差异（dev/staging/prod 配置不同）没法复用。</li>
+<li>升级/回滚要手工 kubectl。</li>
+<li>一个应用 20 个 YAML 难维护。</li>
+</ul>
+<p>Helm = <strong>模板化 + 版本化 + 升级/回滚</strong>。</p>
+<h3 id="32-chart-结构"><a class="header" href="#32-chart-结构">3.2 Chart 结构</a></h3>
+<pre><code>mychart/
+  Chart.yaml          # 元数据 (name/version)
+  values.yaml         # 默认配置（用户覆盖）
+  templates/          # Go template 渲染的 YAML
+    deployment.yaml
+    service.yaml
+    _helpers.tpl      # 公共模板
+  .helmignore
+</code></pre>
+<h3 id="33-使用"><a class="header" href="#33-使用">3.3 使用</a></h3>
+<pre><code class="language-bash">helm create myapp
+helm install myapp ./mychart              # 安装
+helm upgrade myapp ./mychart -f prod-values.yaml   # 升级
+helm rollback myapp 1                     # 回滚
+helm list
+</code></pre>
+<h3 id="34-values-覆盖"><a class="header" href="#34-values-覆盖">3.4 values 覆盖</a></h3>
+<p><code>values.yaml</code>（默认）：</p>
+<pre><code class="language-yaml">replicaCount: 3
+image:
+  repository: nginx
+  tag: stable
+resources:
+  limits: { cpu: 500m, memory: 512Mi }
+</code></pre>
+<p><code>prod-values.yaml</code>（覆盖）：</p>
+<pre><code class="language-yaml">replicaCount: 10
+image:
+  tag: v1.2.3
+resources:
+  limits: { cpu: 4, memory: 8Gi }
+</code></pre>
+<pre><code class="language-bash">helm upgrade myapp ./mychart -f prod-values.yaml
+</code></pre>
+<h3 id="35-模板示例"><a class="header" href="#35-模板示例">3.5 模板示例</a></h3>
+<pre><code class="language-yaml"># templates/deployment.yaml (片段)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    spec:
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          resources:
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+</code></pre>
+<h3 id="36-安全与版本"><a class="header" href="#36-安全与版本">3.6 安全与版本</a></h3>
+<ul>
+<li>Chart 版本与 App 版本分开（<code>version</code> vs <code>appVersion</code>）。</li>
+<li>用 <code>--atomic</code>：升级失败自动回滚。</li>
+<li>Helm 仓库（OCI Registry / ChartMuseum）统一管理 chart。</li>
+</ul>
+<hr />
+<h2 id="四gitopsgit-是唯一真相"><a class="header" href="#四gitopsgit-是唯一真相">四、GitOps：git 是唯一真相</a></h2>
+<h3 id="41-核心思想"><a class="header" href="#41-核心思想">4.1 核心思想</a></h3>
+<blockquote>
+<p><strong>git 仓库里的声明 = 集群的期望状态。有 agent 持续把集群收敛到 git 状态。</strong></p>
+</blockquote>
+<pre><code>开发者: 改 git (YAML/image tag)
+  ↓
+ArgoCD/Flux 检测到 git 变化
+  ↓
+比较集群当前状态 vs git 期望状态 (diff)
+  ↓
+不一致 → 应用/回滚到期望状态
+  ↓
+报告状态 (Healthy / OutOfSync / Degraded)
+</code></pre>
+<h3 id="42-为什么比ci-直接-kubectl好"><a class="header" href="#42-为什么比ci-直接-kubectl好">4.2 为什么比"CI 直接 kubectl"好</a></h3>
+<div class="table-wrapper"><table><thead><tr><th></th><th>CI 直接部署</th><th>GitOps</th></tr></thead><tbody>
+<tr><td>真相源</td><td>CI 脚本 + 手动操作</td><td><strong>git</strong></td></tr>
+<tr><td>可 review</td><td>难</td><td>部署即 PR 可审</td></tr>
+<tr><td>回滚</td><td>手工</td><td>git revert</td></tr>
+<tr><td>审计</td><td>差</td><td>git log 即审计</td></tr>
+<tr><td>漂移处理</td><td>无</td><td>agent 自动收敛/告警</td></tr>
+</tbody></table>
+</div>
+<h3 id="43-argocd"><a class="header" href="#43-argocd">4.3 ArgoCD</a></h3>
+<ul>
+<li><strong>声明式</strong>：一个 Application 指向 git repo 里的路径。</li>
+<li><strong>App of Apps</strong>：用一个 App 管理所有 App。</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: myapp
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  source:
+    repoURL: https://github.com/org/app-config.git
+    path: prod
+    targetRevision: main
+  syncPolicy:
+    automated:
+      selfHeal: true      # 集群被手动改 → 自动纠正回 git 状态
+      prune: true         # git 里删了 → 集群里也删
+</code></pre>
+<pre><code class="language-bash">argocd app sync myapp          # 手动同步
+argocd app rollback myapp 2    # 回滚
+</code></pre>
+<h3 id="44-flux另一个主流"><a class="header" href="#44-flux另一个主流">4.4 Flux（另一个主流）</a></h3>
+<ul>
+<li>与 ArgoCD 同思路，更偏"GitOps Toolkit"（Kustomize 优先）。</li>
+<li><code>ImageAutomation</code> 可自动更新 image tag → 全自动发布流水线。</li>
+</ul>
+<h3 id="45-发布闭环gitops--ci"><a class="header" href="#45-发布闭环gitops--ci">4.5 发布闭环（GitOps + CI）</a></h3>
+<pre><code>CI (GitHub Actions): 构建镜像 → push → 更新 app-config repo 的 image tag (PR)
+        ↓
+GitOps agent (ArgoCD): 检测 app-config 变化 → 应用 → 健康检查
+        ↓
+生产就绪; 失败 → 自动回滚/告警
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p><strong>镜像仓库和配置仓库分开</strong>是常见最佳实践：代码 repo 构建镜像，<code>app-config</code> repo 只声明"这个 tag 部署到哪"。这样"代码变了"和"部署了"是两个可独立回滚的决策。</p>
+</div>
+<hr />
+<h2 id="五kustomize另一个配置管理"><a class="header" href="#五kustomize另一个配置管理">五、Kustomize：另一个配置管理</a></h2>
+<p>Helm（模板 + 逻辑）vs Kustomize（纯覆盖，无逻辑）：</p>
+<pre><code class="language-bash"># Kustomize: base + overlay
+base/
+  deployment.yaml
+overlays/
+  prod/
+    kustomization.yaml    # 覆盖 image/replicas
+</code></pre>
+<pre><code class="language-yaml"># overlays/prod/kustomization.yaml
+resources:
+  - ../../base
+patches:
+  - path: patch.yaml
+images:
+  - name: nginx
+    newTag: v1.2.3
+</code></pre>
+<pre><code class="language-bash">kubectl apply -k overlays/prod
+</code></pre>
+<p><strong>对比</strong>：Helm 强在模板复用；Kustomize 强在无学习成本、无逻辑、纯声明。ArgoCD/Flux 两者都支持。</p>
+<hr />
+<h2 id="六服务网格service-mesh"><a class="header" href="#六服务网格service-mesh">六、服务网格（Service Mesh）</a></h2>
+<h3 id="61-解决什么"><a class="header" href="#61-解决什么">6.1 解决什么</a></h3>
+<p>微服务间通信的可观测性 / 流量控制 / 安全（mTLS）横切每个服务——不想每个服务都写重试/超时/追踪代码 → 用 sidecar 代理统一注入。</p>
+<h3 id="62-核心能力"><a class="header" href="#62-核心能力">6.2 核心能力</a></h3>
+<ul>
+<li><strong>流量管理</strong>：灰度/金丝雀（按 header/百分比路由到 v2）。</li>
+<li><strong>可观测</strong>：自动指标/追踪（无需改业务代码）。</li>
+<li><strong>安全</strong>：服务间 mTLS 自动加密。</li>
+<li><strong>可靠性</strong>：超时/重试/熔断/限流注入。</li>
+</ul>
+<h3 id="63-istio-示意"><a class="header" href="#63-istio-示意">6.3 Istio 示意</a></h3>
+<pre><code class="language-yaml">apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata: { name: myapp }
+spec:
+  hosts: [myapp]
+  http:
+    - match:
+        - headers:
+            x-canary: { exact: "true" }
+      route: [{ destination: { host: myapp, subset: v2 } }]   # 按 header 走 v2
+    - route:
+        - destination: { host: myapp, subset: v1 }
+          weight: 95        # 95% v1
+        - destination: { host: myapp, subset: v2 }
+          weight: 5         # 5% v2  (金丝雀)
+</code></pre>
+<h3 id="64-什么时候用不用"><a class="header" href="#64-什么时候用不用">6.4 什么时候用/不用</a></h3>
+<ul>
+<li><strong>用</strong>：微服务规模大、跨服务流量控制/安全/可观测需求强。</li>
+<li><strong>不用</strong>：服务少（&lt; 10）、单体、控制面复杂度不值得（每个 pod 多一个 sidecar）。</li>
+</ul>
+<hr />
+<h2 id="七发布安全与生产就绪清单"><a class="header" href="#七发布安全与生产就绪清单">七、发布安全与生产就绪清单</a></h2>
+<pre><code>[ ] image 用不可变 tag (git-sha), 不用 latest
+[ ] readiness + liveness 探针配置正确
+[ ] resources.limits/requests 设置 (防止吃垮节点)
+[ ] Secret 用外部管理 (Vault/External Secrets)
+[ ] GitOps: 部署变更走 git PR (可 review 可回滚)
+[ ] 滚动更新策略 (maxUnavailable/maxSurge) 合理
+[ ] 金丝雀: 先 5% 再全量, 指标驱动
+[ ] 数据库迁移与发布解耦 (先兼容后破坏)
+[ ] 回滚演练过 (kubectl rollout undo / argocd rollback)
+[ ] HPA 配置 (弹性)
+[ ] 网络策略/命名空间隔离
+</code></pre>
+<hr />
+<h2 id="八结束--速查表"><a class="header" href="#八结束--速查表">八、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回：</p>
+<ul>
+<li><strong>发布 = 改 image tag</strong>；用不可变 tag；<code>kubectl rollout undo</code> 回滚。</li>
+<li><strong>探针</strong>：readiness（就绪才进流量）/ liveness（存活才留）；一定分开。</li>
+<li><strong>ConfigMap</strong>（非敏感）/ <strong>Secret</strong>（敏感，K8s 里只是 base64，生产用 Vault）。</li>
+<li><strong>Helm</strong> = 模板 + 版本 + 回滚；<code>values.yaml</code> 覆盖环境差异；<code>--atomic</code> 防失败留半。</li>
+<li><strong>GitOps</strong>：git 是唯一真相，ArgoCD/Flux 自动收敛；自愈 + prune。</li>
+<li><strong>CI vs GitOps</strong>：CI 建镜像，GitOps 管部署（镜像 repo 与配置 repo 分离）。</li>
+<li><strong>Kustomize</strong>：纯覆盖无逻辑；Helm 有模板有逻辑。</li>
+<li><strong>Service Mesh</strong>：sidecar 注入做灰度/mTLS/重试；服务少别用。</li>
+<li><strong>生产就绪</strong>：探针 + 资源限制 + 不可变 tag + Secret 外部化 + 金丝雀。</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="sre-engineering.html">10. SRE 工程: 错误预算 / 容量 / 变更 / 事件响应 / 生产就绪</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../engineering/gh-actions-deepdive.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../engineering/sre-engineering.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../engineering/gh-actions-deepdive.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../engineering/sre-engineering.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,456 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>内存模型与 memory barrier - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="内存模型与-memory-barrier"><a class="header" href="#内存模型与-memory-barrier">内存模型与 memory barrier</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>你以为下面这段代码"不可重排" —— <strong>它真的可被重排</strong>：</p>
+<pre><code class="language-c">a = 1;
+b = 2;
+</code></pre>
+<p><strong>CPU、编译器、SSD 控制器都有权把它们写成 <code>b = 2; a = 1;</code></strong>，只要在<strong>单线程视角下</strong>看起来一致。这就是语言内存模型："单线程可观察的行为"。要约束它，必须插 memory barrier。这一章把 x86 弱/强内存模型、ARM 弱内存模型、C11 atomic order、Java volatile、Go sync/atomic 的语义都对齐到同一抽象，让你不再把 memory barrier 当玄学。</p>
+<h2 id="1-三种-memory-重排来源"><a class="header" href="#1-三种-memory-重排来源">1. 三种 memory 重排来源</a></h2>
+<pre><code>源码:
+    a = 1; b = 2;
+编译器:
+   - register allocation: 让 a 走 stack 不优先;
+   - 优化重组: 看上去单线程行为相同的指令可以乱序.
+CPU:
+   - store buffer: 写发出 CPU 顺序不一定 = 实际到 cache 顺序;
+   - invalidate queue: CPU 收到的 invalidate 可能 wait 一个忙指令才被处理;
+cache/NUMA 互连:
+   - 多 socket 的 cache 一致性 message 顺序不可控.
+</code></pre>
+<p>每跨一层都可能是"reordering source"。所以<strong>多线程下 instruction order 在所有 CPU 上的全局序是不可观察的、不可假设的、不可依赖的</strong>。除非用 memory barrier。</p>
+<h2 id="2-经典反例-petersons-lock-失效"><a class="header" href="#2-经典反例-petersons-lock-失效">2. 经典反例： Peterson's lock 失效</a></h2>
+<pre><code class="language-c">flag[0] = true;  turn = 1;
+while (flag[1] &amp;&amp; turn == 1) ;
+// critical section
+flag[0] = false;
+</code></pre>
+<pre><code class="language-c">flag[1] = true;  turn = 0;
+while (flag[0] &amp;&amp; turn == 0) ;
+// critical section
+flag[1] = false;
+</code></pre>
+<p>单线程看对；多核 CPU 没有逻辑屏障的话，因为 flag[0]=true; turn=1 可能被重排到 turn=1 先 → turn=0 写入了；两个都看到对方 flag=true 但 turn 是自己 → 双双进 critical section，peterson 失败。</p>
+<p><strong>修复</strong>：flag/turn 的写必须配 store-store barrier，turn 的读必须配 load-load barrier。</p>
+<h2 id="3-x86-内存模型-tso"><a class="header" href="#3-x86-内存模型-tso">3. x86 内存模型: TSO</a></h2>
+<p>TSO = Total Store Order. x86 相对不算太弱：</p>
+<ul>
+<li>Load-Load 不重排 (但 load 可看到 older store);</li>
+<li>Load-Store 不重排；</li>
+<li>Store-Store 不重排 (但是发出 store buffer 可能延迟);</li>
+<li><strong>Store-Load 可重排</strong> ⇒ 这就是 x86 唯一需要的 barrier。</li>
+</ul>
+<p><code>mfence</code> 指令强制 store-load barrier。<code>lock cmpxchg</code> 等原子指令本身也强 带 fence 等价的语义。所以 x86 上写 lock-free 算法比 ARM 友好得多。</p>
+<p>x86 弱点例子:</p>
+<pre><code class="language-c">a = 1;     // store
+r = b;     // load
+// 在 x86 上, 可能 r 看到 b 的旧值，但 a 的 store 也可能在 r 完成后才发 cache。
+// 因为 store buffer。
+</code></pre>
+<h2 id="4-arm-内存模型-weak--rmo"><a class="header" href="#4-arm-内存模型-weak--rmo">4. ARM 内存模型: weak / RMO</a></h2>
+<p>ARM 是弱内存模型——<strong>所有 4 种 reorder 都被允许</strong>：</p>
+<ul>
+<li>Load-Load；</li>
+<li>Load-Store；</li>
+<li>Store-Store；</li>
+<li>Store-Load。</li>
+</ul>
+<p>ARM 处理器为了一致性，需要显式 <code>dmb sy / dmb ish / dmb nsh</code> (DSB/DMB/ISB) 等屏障。这就是为什么 ARM code 的 lock-free 代码充斥 barrier, 而 x86 几乎不需要.</p>
+<p>弱内存模型给硬件设计师更多自由（指令级并行 + cache pipeline 更深），但给软件工程师更难调 - C++ std::atomic 在 ARM 上比 x86 多了几条 <code>dmb</code> 指令。</p>
+<h2 id="5-c11-memory-order"><a class="header" href="#5-c11-memory-order">5. C11 memory order</a></h2>
+<p>C11 atomic 提供一组细粒度语义：</p>
+<pre><code>memory_order_relaxed    不要求 ordering, 只有 atomic
+memory_order_consume    像 acquire 但 dependency chain only (实用不被建议, 一般 compiler downgrades 到 relaxed)
+memory_order_acquire    前续 read/write 必须在 load 完后
+memory_order_release    后续 read/write 必须在 store 完前
+memory_order_acq_rel    acquire + release (compare_exchange 同时)
+memory_order_seq_cst    顺序一致, 默认最强
+</code></pre>
+<p>常见用法：</p>
+<pre><code class="language-c">// 单生产者单消费者
+atomic_store_explicit(&amp;ready, 1, memory_order_release);
+while (!atomic_load_explicit(&amp;ready, memory_order_acquire)) ;
+// acquire 之后看到的旧 store 都已可见
+</code></pre>
+<p>x86 上 release = 普通 store；acquire = 普通 load 加上 compiler barrier (因为 TSO 不重排)；ARM 上 release = <code>dmb ish st</code> / acquire = <code>dmb ish ld</code>。</p>
+<h2 id="6-java-volatile--go-syncatomic"><a class="header" href="#6-java-volatile--go-syncatomic">6. Java volatile / Go sync/atomic</a></h2>
+<p>Java volatile 等价 <code>seq_cst</code>：写后读可见且跨线程同步顺序一致。JMM 用 happens-before 关系建模。</p>
+<pre><code class="language-java">volatile boolean ready = false;
+// thread 1: a = 1; ready = true;
+// thread 2: while (!ready); int r = a;  // r 必为 1
+</code></pre>
+<p>Go sync/atomic 提供 C11 风格 API：</p>
+<pre><code class="language-go">atomic.StoreInt64(&amp;ready, 1)  // seq_cst 默认
+atomic.LoadInt64(&amp;ready)
+</code></pre>
+<p>Go 内存模型用 happens-before 关系，channel send / sync.Mutex.Unlock / atomic 都建立 happens-before 边。</p>
+<h2 id="7-实战模式-单生产者单消费者-spsc-queue"><a class="header" href="#7-实战模式-单生产者单消费者-spsc-queue">7. 实战模式: 单生产者单消费者 SPSC queue</a></h2>
+<p>SPSC 是 lock-free 最经典模式:</p>
+<pre><code class="language-c">struct SPSC {
+    atomic&lt;size_t&gt; head;  // producer writes
+    atomic&lt;size_t&gt; tail;  // consumer writes
+    T buf[N];
+};
+
+void push(T x) {
+    size_t h = head.load(memory_order_relaxed);
+    size_t t = tail.load(memory_order_acquire);    // 同步 consumer 已消费
+    if (h - t == N) return;                         // full
+    buf[h % N] = x;
+    head.store(h + 1, memory_order_release);        // 同步 consumer 看见 data
+}
+
+T pop() {
+    size_t t = tail.load(memory_order_relaxed);
+    size_t h = head.load(memory_order_acquire);    // 同步 producer 已生产
+    if (t == h) return {};                          // empty
+    T x = buf[t % N];
+    tail.store(t + 1, memory_order_release);        // 同步 producer 看见 data
+    return x;
+}
+</code></pre>
+<p>acquire / release 是"消息传递"的关键:</p>
+<ul>
+<li>producer 用 release store: "我已写好数据 + 你能读";</li>
+<li>consumer 用 acquire load: 我读完你的 head 才能读 buf 中数据.</li>
+</ul>
+<p>否则: consumer 看到 head 推进了, 但 buf[i] 仍是旧数据 — 经典 bug.</p>
+<h2 id="8-arm-上的实测代价"><a class="header" href="#8-arm-上的实测代价">8. ARM 上的实测代价</a></h2>
+<pre><code class="language-c">// ARM Cortex-A76 @2.4 GHz
+ acquire load：~ 3 ns (dmb-ish ld)
+ release store：~ 5 ns (dmb-ish st)
+ seq_cst store + load：~ 10 ns
+ 没 barrier 包: 1 ns 提议
+</code></pre>
+<p>x86 类似 ~ 1-2 ns. ARM 弱内存模型 + cache 让 atomic 操作比 x86 配置更深.</p>
+<h2 id="9-调试重排-bug"><a class="header" href="#9-调试重排-bug">9. 调试重排 bug</a></h2>
+<p>memory reorder bug 特征:</p>
+<ul>
+<li>偶尔出现, 不稳定;
+-v 单线程 debug 不复现;</li>
+<li>valgrind / helgrind 不一定能抓 (但 tsan 抓 more then);</li>
+<li>改成 <code>_acq/order_seq_cst</code> 后 OK ⇒ 大概率是 reorder.</li>
+</ul>
+<p>Google ThreadSanitizer 处理这个, 它 modeling happens-before 关系并报 race. <strong>谛走 lock-free 必备 tsan</strong>.</p>
+<h2 id="10-多语言同一操作"><a class="header" href="#10-多语言同一操作">10. 多语言同一操作</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>语言</th><th>acquire / release 表达</th></tr></thead><tbody>
+<tr><td>C/C++11</td><td>atomic_load/store_explicit</td></tr>
+<tr><td>Rust</td><td>Ordering::Acquire / Release / SeqCst</td></tr>
+<tr><td>Go</td><td>atomic.Load/Store + sync</td></tr>
+<tr><td>Java</td><td>volatile, final, synchronized</td></tr>
+<tr><td>Python</td><td>(单线程, 无意义)</td></tr>
+</tbody></table>
+</div>
+<p>抽象一致: <strong>同一组 happens-before 概念在不同语言里换名字重物化</strong>.</p>
+<h2 id="11-这章带走的东西"><a class="header" href="#11-这章带走的东西">11. 这章带走的东西</a></h2>
+<ul>
+<li>内存重排来源: 编译器优化 + CPU store buffer + invalidate queue;</li>
+<li>x86 TSO 仅允许 store-load 重排, ARM 全部允许;</li>
+<li>C11 memory_order_acquire/release 是 SPSC "消息传递"基本;</li>
+<li>ARM dmb 加 2-5 ns, x86 1-2 ns 默认 seq_cst 默认;</li>
+<li>tsan 必须: lock-free + 缺 barrier bug 几乎肯定测不到的 silent.</li>
+</ul>
+<p>下一节 → <a href="lockfree.html">lock-free/wait-free 数据结构</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../os/lock/rcu.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../os/lock/lockfree.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../os/lock/rcu.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../os/lock/lockfree.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

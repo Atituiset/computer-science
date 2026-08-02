@@ -1,0 +1,449 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>TrueTime / HLC / attestation - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="truetime--hlc--attestation"><a class="header" href="#truetime--hlc--attestation">TrueTime / HLC / attestation</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>Google Spanner (2012 OSDI) 是全球第一个跨数据中心实现 <strong>External Consistency</strong> (linearizability + serializable + real-time 顺序) 的数据库——靠 <strong>TrueTime API</strong> <code>TT.now() returns [earliest, latest]</code> 区间, 配合 <strong>commit-wait</strong> (等至 latest &gt; commit_ts 才 reply client) 避免 stale read。 TrueTime 通过 <strong>GPS + Atomic Reference Clock</strong> 在数据中心每几 ms 同步物理时间, 给 [earliest, latest] 区间不确定性 ~7ms。 CockroachDB / YugaByte 用 HLC 替代 TrueTime, NTP-bound skew 250ms。本章梳理 TrueTime API 形式, commit-wait 算法, Spanner Paxos group + 2PC 的分布事务流程, TrueTime 的硬件 attestation (GPS/原子钟故障检测), 与 HLC 的对比。</p>
+<hr />
+<h2 id="一物理时钟的-distributed-problem"><a class="header" href="#一物理时钟的-distributed-problem">一、物理时钟的 distributed problem</a></h2>
+<h3 id="wall-clock-skew"><a class="header" href="#wall-clock-skew">Wall clock skew</a></h3>
+<p>NTP 同步精度跨数据中心 ~50-100ms (粗), PTP 同步 ~1ms (严谨), GPS ~100us-1ms (条件好), 原子钟 ~微秒-nanosecond。任何方式都会<strong>引入 skew</strong>, 必须 bounded 才能用 commit-wait algorithm。</p>
+<h3 id="同步为什么不可能-perfect"><a class="header" href="#同步为什么不可能-perfect">同步为什么不可能 perfect</a></h3>
+<p>特殊相对论 + 信号传播 (光速 30 cm/ns) + 量子 noise 让 oracle clock 实现困难。 Google Spanner 用 GPS + 原子钟两种 independent source, 不信任单一源 (任一可失败)。 TrueTime 实际 skew bound ~1-7ms。</p>
+<h3 id="hlc-软-bound"><a class="header" href="#hlc-软-bound">HLC 软 bound</a></h3>
+<p>HLC 假设 NTP skew bounded by <code>max_offset</code> (CockroachDB 默认 250ms)。 Tolerate 较大 skew 但 commits 是 predictable bounded skew 而非 hard guarantee, 用 HLC + monotonic counter 维 happens-before。</p>
+<hr />
+<h2 id="二truetime-api"><a class="header" href="#二truetime-api">二、TrueTime API</a></h2>
+<h3 id="函数签名"><a class="header" href="#函数签名">函数签名</a></h3>
+<pre><code class="language-go">type TrueTime struct {
+    earliest, latest time.Time
+}
+
+func TT.now() TrueTime         // {earliest, latest}
+func TT.after(t) bool          // t &lt; earliest
+func TT.before(t) bool         // latest &lt; t
+</code></pre>
+<p><code>now()</code> 返回一个区间, 真实 wall clock 在 <code>[earliest, latest]</code> 内。<code>after(t)</code> 表示 t 已绝对过去 (<code>t &lt; earliest</code>), <code>before(t)</code> 表示 t 已绝对未到 (<code>latest &lt; t</code>)。</p>
+<h3 id="commit-wait-算法"><a class="header" href="#commit-wait-算法">Commit-Wait 算法</a></h3>
+<p>Spanner 写事务 commit:</p>
+<pre><code>1. coordinator picks commit_ts = latest of TT.now()
+2. Paxos group replicate log entry with commit_ts
+3. coordinator waits until TT.after(commit_ts) returns true
+   (即 earliest &gt; commit_ts, 真实时间已过 commit_ts)
+4. reply client "commit ok"
+</code></pre>
+<p>这 wait window 称 <strong>commit-wait</strong>: 大约等于 <code>latest - earliest</code> (~7ms)。等待期间保证任何 future transaction (real-time 在 commit-wait 完成后开始) 都看到 commit_ts strictly smaller than own ts → external consistency。</p>
+<h3 id="external-consistency-形式化"><a class="header" href="#external-consistency-形式化">External Consistency 形式化</a></h3>
+<p>若事务 T1 commit 在 T2 begin 之前 (按 real wall clock), 则 T1 commit_ts 必 &lt; T2 begin_ts。 这让 Spanner snapshot isolation 提供 "stale read with explicit timestamp" 始终正确:</p>
+<ul>
+<li>read at ts=t 看到所有 commit_ts ≤ t 的事务修改, 不会看到 commit 在 t 之后的修改。</li>
+</ul>
+<hr />
+<h2 id="三spanner-架构"><a class="header" href="#三spanner-架构">三、Spanner 架构</a></h2>
+<h3 id="paxos-groups"><a class="header" href="#paxos-groups">Paxos Groups</a></h3>
+<p>Spanner 把数据 sharded 到 tablets, 每 tablet 由一个 <strong>Paxos group</strong> (5 副本跨 DC) 复制。 每 group 自有 leader 与 log。</p>
+<p>跨 tablet 事务用 <strong>2PC</strong>:</p>
+<ul>
+<li>Coordinator = 写锁持的 tablet group leader.</li>
+<li>Participants = 所有被 update 的 tablet groups.</li>
+<li>Coordinator prepare → all participants prepare → coordinator commit → all participants commit.</li>
+</ul>
+<p>2PC 在 Paxos group 内部 acquires Paxos commit per participant, 保证 per-tablet durability.</p>
+<h3 id="写流程"><a class="header" href="#写流程">写流程</a></h3>
+<pre><code>T1: BEGIN
+  read_lock a (tablet A_paxos_group)
+  read_lock b (tablet B_paxos_group)
+  write a, write b
+T1 commit:
+  commit_ts = s = TT.now().latest
+  prepare on A, B (Paxos group log entries with ts s)
+  prepare ack on A, B (majority each)
+  wait commit-wait (TT.after(s))
+  commit ack to participants
+  return client OK
+</code></pre>
+<p><strong>关键点</strong>: commit-wait 不阻塞 lock (因为 prepare 已 hold locks), 仅阻塞 ack-to-client。在下 epoch 开始时, prepare 已 pile in Paxos log, 其他事务的 prepare 已 release pending locks with commit-ready state.</p>
+<h3 id="读流程"><a class="header" href="#读流程">读流程</a></h3>
+<pre><code>T2 read at ts t:
+   find tablet group(s) holding data
+   select replica (any with t-applied log) — leader or sufficiently-replicated follower
+   wait until that replica's log has applyed up to ts t  (Paxos group leader 告知)
+   return state at ts t
+</code></pre>
+<p>读不需要 2PC, 单 RTT (or local from follower if log applied). 牺牲略 latency/cross-DC = read throughput 高。</p>
+<h3 id="lock-table"><a class="header" href="#lock-table">Lock Table</a></h3>
+<p>Spanner 用 <strong>2PL</strong> (two-phase locking) per transaction: read locks + write locks by row。 Deadlock 检测实际至 abort 其中一个事务 (wound-wait 算法)。</p>
+<hr />
+<h2 id="四truetime-硬件-attestation"><a class="header" href="#四truetime-硬件-attestation">四、TrueTime 硬件 Attestation</a></h2>
+<h3 id="时间源"><a class="header" href="#时间源">时间源</a></h3>
+<p>每 DC 一组时间 reference (GPS 接收器 + 原子钟), multiple sources redundant. 若 GPS 信号短暂失, 原子钟提供 tick; 若原子钟失 (rare), GPS 提供同步; 若两都失, machine 上报 "unsynchronized" → fail-shut.</p>
+<h3 id="attestation"><a class="header" href="#attestation">Attestation</a></h3>
+<p>TrueTime API 不仅给你时间, 还伴随 <strong>trust signal</strong>: every <code>now()</code> call 米conly "Trusted" 时 cache time, 否则 reporting fail-shut. Shielded hardware 验证流程: GPS signal → machine encryption log → 安全 monitor 验 GPS signal 来源可信 → publish trusted node info.</p>
+<h3 id="故障-scenarios"><a class="header" href="#故障-scenarios">故障 Scenarios</a></h3>
+<ul>
+<li><strong>GPS signal loss</strong>: 原子钟持相对正确时间, skew drift 累 -&gt; 30 minutes 后 fail-shut cluster. 故áo 重 human operator catch alarm.</li>
+<li><strong>Atomic clock failure</strong>: GPS 出 stand-alone, 实际 never happens (因为 GPS 触校正 over time). Carring.....</li>
+<li><strong>All timing failures</strong>: cluster 主动 shutdown, reject transactions. Paxos election 暂停, 防 stale time stamp commit.</li>
+</ul>
+<h3 id="与-hlc-attestation-比较"><a class="header" href="#与-hlc-attestation-比较">与 HLC attestation 比较</a></h3>
+<p>HLC 没硬件 attestation, 仅 NTP 提供, 软件 monitor 必须主动检测 skew, 节点 fail exit. Spanner is strict in this sense — admin-level hardware redundancy necessary.</p>
+<hr />
+<h2 id="五hlc-vs-truetime-对比矩阵"><a class="header" href="#五hlc-vs-truetime-对比矩阵">五、HLC vs TrueTime 对比矩阵</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>TrueTime (Spanner)</th><th>HLC (CockroachDB)</th><th>HLC (YugaByte)</th></tr></thead><tbody>
+<tr><td>时间源</td><td>GPS + atomic clock</td><td>NTP</td><td>NTP</td></tr>
+<tr><td>同步精度</td><td>≤ 7ms</td><td>≤ 250ms (max_offset)</td><td>≤ 250ms</td></tr>
+<tr><td>Commit-wait cost</td><td>~7ms (wait latest &gt; commit_ts)</td><td>不需 commit wait</td><td>不需 wait</td></tr>
+<tr><td>External consistency</td><td>yes</td><td>no, but bounded staleness</td><td>no</td></tr>
+<tr><td>硬件依赖</td><td>GPS 接收器 + atomic clock per DC</td><td>NTP only</td><td>NTP only</td></tr>
+<tr><td>部署成本</td><td>高</td><td>低</td><td>低</td></tr>
+<tr><td>适用场景</td><td>大型 cloud vendors</td><td>中型企业</td><td>中型企业</td></tr>
+<tr><td>Stale read 防御</td><td>TrueTime API 自然防御</td><td>HLC ts invariant + read-at-ts filter</td><td>同 CockroachDB</td></tr>
+</tbody></table>
+</div>
+<h3 id="hlc-commit-wait-不必要原因"><a class="header" href="#hlc-commit-wait-不必要原因">HLC commit-wait 不必要原因</a></h3>
+<p>HLC ts 已经是 monotonic (lt counter monotonic) + bounded pt skew, prepare 在 bgot commit time ts; 不需 commit-wait。但 HLC 让 Spanner external consistency missing — 客户端可能看到 future ts commit (newer than read at ts).</p>
+<h3 id="cockroachdb-与-yugabyte-区别"><a class="header" href="#cockroachdb-与-yugabyte-区别">CockroachDB 与 YugaByte 区别</a></h3>
+<p>CockroachDB: HLC + MVCC 在 Postgres SQL 架构。
+YugaByte: PostgreSQL frontend, 但 storage 是 doc-store + Raft group, HLC 提供 Mohamed API bounds.</p>
+<hr />
+<h2 id="六other-systems-与时间"><a class="header" href="#六other-systems-与时间">六、Other Systems 与时间</a></h2>
+<h3 id="calvin-yale-2012"><a class="header" href="#calvin-yale-2012">Calvin (Yale 2012)</a></h3>
+<p>Calvin 离线 batch transactions, 总铁 ordering before 执行. 测 toschematically boolean balls; Kalvin时间 user-side TD-error tolerance 我 wait no, 我oracle actually per write 暂.
+Calvin pseudo offline 通过 batch locked a start_commit presumably use so this is awkward SAS postman now direct 性union mechan general application pins strict on 完 全 static data snapshot real-time gone 是 trans it.</p>
+<h3 id="foundationdb"><a class="header" href="#foundationdb">FoundationDB</a></h3>
+<p>FoundationDB resolve clock issues by <strong>sequencer</strong>: 一个全局 sequencer 接收 transaction 提交 timestamp monotonic. 各 client direct API 是 <code>transaction.commit()</code>: callee 拿序号顺序, 不依赖 wall clock. Linearizability 单 serializalman泽. 但是 clock-free 用 集中 bottleneck.</p>
+<h3 id="hbase-与-accumulo"><a class="header" href="#hbase-与-accumulo">HBase 与 Accumulo</a></h3>
+<p>HBase timestamp 默认 wall clock. 已知潜在 out-of-order commit if skew; 应避免 depends on. Accumulo 同样。</p>
+<h3 id="mongodb-clusterclock"><a class="header" href="#mongodb-clusterclock">MongoDB ClusterClock</a></h3>
+<p>MongoDB coordination node iterates' logs all dependent uncommitted used 完.sequencer 含 logical 时间 integrating with physical timestamp in mingshi.</p>
+<hr />
+<h2 id="七典型事故"><a class="header" href="#七典型事故">七、典型事故</a></h2>
+<h3 id="spanner-gps-loss"><a class="header" href="#spanner-gps-loss">Spanner GPS Loss</a></h3>
+<p>2015 Google 曾 talk 提到某 DC 一 GPS天线短暂失联 (暴风雨). 原子钟 hold 时间正确, 但 skew 渐累. Spanner 5 minutes 后上inia 类 fail-fast alert, operator 处理恢复 GPS.</p>
+<h3 id="cockroachdb-ntp-skew-storm"><a class="header" href="#cockroachdb-ntp-skew-storm">CockroachDB NTP Skew Storm</a></h3>
+<p>2018 用户报告 CockroachDB cluster slow queries 因为 3 节点 NTP skew 超过 max_offset (250ms), cluster nodes 拒⚭ 异 relation offset rejected; team修改 cron ntpdate to keep drift &lt; 50ms.</p>
+<h3 id="mongodb-clock-skew-写丢失"><a class="header" href="#mongodb-clock-skew-写丢失">MongoDB Clock Skew 写丢失</a></h3>
+<p>MongoDB replica set wall-clock-based timestamp 排序 commit, 某 node skew 后写 后 损 ye叙述 丢失现象. 多个 issue reported in MongoDB Jira (2016); fix: use logical timestamp in replication log。</p>
+<hr />
+<h2 id="八易错清单"><a class="header" href="#八易错清单">八、易错清单</a></h2>
+<ol>
+<li><strong>TrueTime 不是 oracle</strong>: 你必须 commit-wait 第三方 before reply。 没 commit-wait, external consistency违反。</li>
+<li><strong>Spanner 不只 TrueTime</strong>: 还有 Paxos + 2PC + Lock table + 4PL, TrueTime 给时间戳正确性.</li>
+<li><strong>HLC commit-wait 是 optional</strong>: HLC upper bound 不 wait, 但 staleness bounded by max_offset。 业务可接受 weak consistency 才用 HLC。</li>
+<li><strong>CockroachDB 写入突然不再 单一 well ordered</strong>: HLC across region 可能违反 real-time order, 仅 per transaction opertion的关系保 happens-before.</li>
+<li><strong>GPS 必须 multi-source</strong>: 单 GPS source 故障 → cluster unsynced, 多源故障 fail-shut. Spanner 至少 2 GPS + 2 原子钟 per DC。</li>
+<li><strong>Clock 政府 aware NTP 与ictschronous 数据 Illegal</strong>: NTP 可以 使 节点 clock backward. HLC 算法若 都 没 caught backward clock navigate 上 partial 可能 导致 Haremix ts broken; cockroach supports NTP sane 版本 with proper monotonous rate.</li>
+</ol>
+<hr />
+<h2 id="九这一章带走的东西"><a class="header" href="#九这一章带走的东西">九、这一章带走的东西</a></h2>
+<ol>
+<li>TrueTime 给 [earliest, latest] uncertainty API, commit-wait 让 commit_ts guarantee strictly 小于 future begin_ts ⇒ external consistency。</li>
+<li>Google Spanner 是 industrial 实现的 Paxos group + 2PC + commit-wait + TrueTime。</li>
+<li>HLC 是 software-only fallback, NTP skew bounded; 但 external consistency 仅近似, 真正实时保证仍硬件 sync 需要.</li>
+<li>Clock attestation (GPS + atomic) 让硬件 fail-shut 安全; 没建 monotonic hardware 就 not safe.</li>
+<li>CockroachDB / YugaByte 用 HLC 取代 TrueTime, 同十字低部署成本 不保 external consistency strict 2PL-fence  only serializable + bounded staleness.</li>
+<li>FoundationDB 用 sequencer 节约 wall clock 量 importance; 中央 sequencer serializing 是车另 第四百 srullt. 用 distributed 省ariesle clock alternative.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="dag.html">DAG、git、blockchain 的序</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../distributed/clock/logical.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../distributed/clock/dag.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../distributed/clock/logical.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../distributed/clock/dag.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

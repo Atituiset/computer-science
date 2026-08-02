@@ -1,0 +1,494 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Metrics / Logs / Traces 三位一体 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="three-pillars-metrics--logs--traces"><a class="header" href="#three-pillars-metrics--logs--traces">Three Pillars (Metrics / Logs / Traces)</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>可观测性"三大支柱" 是工业界共识的三种信号类型:</p>
+<ol>
+<li><strong>Metrics</strong>: 二进制 numeric time-series data (CPU util, RPS, error rate, latency).prometheus exposition format, aggregation makes efficient (无 per-event record)。</li>
+<li><strong>Logs</strong>: 事件级 records (annotated text/JSON)用于 deep-diagnose. 所有微小事件可查 (debug log) → 节省开销 batch.</li>
+<li><strong>Traces</strong>: 跨 service call path + span timing — 让你看到 request 从 user 到 DB + many microservices 的传递链.</li>
+</ol>
+<p>每类信号有 purpose:</p>
+<ul>
+<li>Metrics: 大尺度状态、告警</li>
+<li>Logs: 单事件诊断</li>
+<li>Traces: 端到端 latency breakdown</li>
+</ul>
+<p>现代 stack: <strong>OpenTelemetry</strong> 统一收集的 formats. 数据 pipeline. 与 alerting via Prometheus/Grafana / Loki / Tempo / Jaeger 组合.</p>
+<p>本章扫每类信号特点 + Trade-offs (cardinality cost), Performance implication (不惜 log per request for 高 throughput), 与防护舆 typical.</p>
+<hr />
+<h2 id="一metrics"><a class="header" href="#一metrics">一、Metrics</a></h2>
+<h3 id="形式"><a class="header" href="#形式">形式</a></h3>
+<p>Metrics 是 "聚合数值时间序列数据" — 每 series 由一组label set 维 identify (e.g., <code>http_requests_total{method=POST, status=200}</code>) 。 Prometheus exposition format 典型:</p>
+<pre><code># HELP http_requests_total Number of HTTP requests
+# TYPE http_requests_total counter
+http_requests_total{method="GET",status="200"} 124851
+http_requests_total{method="POST",status="500"} 12
+</code></pre>
+<h3 id="4-种-metric-type"><a class="header" href="#4-种-metric-type">4 种 metric type</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>类型</th><th>用途</th></tr></thead><tbody>
+<tr><td><strong>Counter</strong> (单调增): 累计计算 e.g. <code>requests_total</code></td><td></td></tr>
+<tr><td><strong>Gauge</strong> (可增减): 瞬时数 e.g. <code>current_connections</code></td><td></td></tr>
+<tr><td><strong>Histogram</strong> (bucket): latency distribution (P50/P90/P99 大量计算 bucket with retention金: <code>_bucket</code>, <code>_sum</code>, <code>_count</code>)</td><td></td></tr>
+<tr><td><strong>Summary</strong> (客户端 quantile): 客户端 实时 P50/P99 但 unsuited aggregation across instances</td><td></td></tr>
+</tbody></table>
+</div>
+<h3 id="cardinality-风险"><a class="header" href="#cardinality-风险">Cardinality 风险</a></h3>
+<p>Metrics 的 label cardinality — number unique combinations like →  memory. Prometheus storage cost near-linear in cardinality over time;</p>
+<ul>
+<li>Label <code>user_id</code> (1M users): 1M 系 Featolder</li>
+<li>Label <code>URL</code> (含<code>:id</code>): 100K URL lines per second → 跨 kill storage</li>
+<li>Label <code>trace_id</code></li>
+</ul>
+<p>Rule of thumb: any label with cardinality &gt; 1000 应 simplif or rollup INCLUDING to avoid explosion.</p>
+<h3 id="prometheus-metric-exposition"><a class="header" href="#prometheus-metric-exposition">Prometheus metric exposition</a></h3>
+<p>每 service ishould expose <code>/metrics</code> endpoint with Prometheus exposition format. Prometheus <strong>scrape</strong> (default 15s). 存储 点向 metrics backends: M3DB, VictoriaMetrics, Cortex, Thanos for scale.</p>
+<hr />
+<h2 id="二logs"><a class="header" href="#二logs">二、Logs</a></h2>
+<h3 id="levels"><a class="header" href="#levels">Levels</a></h3>
+<pre><code>TRACE | DEBUG | INFO | WARN | ERROR | FATAL
+</code></pre>
+<p>Production 通常 INFO+; DEBUG log 仅在故障时启用 (cross debug 调查). Tools: loom long-term retention + 结构化 logging for searchability.</p>
+<h3 id="structured-vs-unstructured"><a class="header" href="#structured-vs-unstructured">Structured vs Unstructured</a></h3>
+<p><strong>Unstructured</strong>: <code>printf("Error at file ... ")</code> — 可 grep 但 not machine-parseable.</p>
+<p><strong>Structured</strong> (JSON for tools): <code>{"level":"error","ts":"...","msg":"checkout","user_id":42, "cart_id":"abc"}</code> — ELK 加 indexing on fields.</p>
+<h3 id="高-throughput-logging-cost"><a class="header" href="#高-throughput-logging-cost">高 throughput logging cost</a></h3>
+<ul>
+<li>企业应单机 1 GB/day log limit easily 2500 USD/month. 推荐sampling.</li>
+<li>"all access logs kept 7 years合法 不首通用 optimizations keep origin proj纳入 access log snapshot + sample tail info 「 金 network cost 持 abog".</li>
+</ul>
+<h3 id="典型-stack"><a class="header" href="#典型-stack">典型 stack</a></h3>
+<pre><code>Application
+  ↓ structured log (JSON / logfmt)
+Filebeat / Vector / Fluent Bit
+  ↓ agent obtains
+Kafka log streams
+  ↓ async producer backend
+Loki / Elasticsearch / OpenSearch / ClickHouse / S3
+  ↓ query
+Kibana / Grafana
+</code></pre>
+<h3 id="性能开销"><a class="header" href="#性能开销">性能开销</a></h3>
+<ul>
+<li>单 INFO log 每 5KB → agent 服务 / 后端 indexing 加序列化 json extra 50-100us.</li>
+<li>高吞吐 log load 会 server process thread pool + disk IO. consider async logger (e.g. log4j 2.x async logger 或 source klog V8 flush).</li>
+</ul>
+<hr />
+<h2 id="三traces"><a class="header" href="#三traces">三、Traces</a></h2>
+<h3 id="opentracing--opentelemetry"><a class="header" href="#opentracing--opentelemetry">OpenTracing / OpenTelemetry</a></h3>
+<p>OpenTracing 与 OpenCensus 2019 合并 → OpenTelemetry (OTel)。 提供 language-agnostic API for traces context propagation。 HTTP/gRPC header injection让 trace_id 跨medration services传递.</p>
+<h3 id="span--trace"><a class="header" href="#span--trace">Span / Trace</a></h3>
+<ul>
+<li><strong>Trace</strong>: 完整 end-to-end path lifecycle 的 unique trace_id.</li>
+<li><strong>Span</strong>: 一个服务 node的 single sub-process timing + tags.</li>
+<li>父 span → child span; siblings → concurrent calls.</li>
+</ul>
+<pre><code>Trace: trace_id=abc, total 800ms
+  Span1: HTTP /api/checkout, 800ms [parent]
+    Span2: db.query SELECT order, 50ms [child]
+    Span3: call shipping service, 200ms [child]
+       Span4: shipping DB query, 150ms [child]
+    Span5: redis cache get user, 5ms [child]
+    Span6: payment service call, 500ms [child]
+</code></pre>
+<h3 id="distributed-context-propagation"><a class="header" href="#distributed-context-propagation">Distributed context propagation</a></h3>
+<ul>
+<li>HTTP <code>traceparent</code> header W3C standard format: <code>00-{trace_id}-{span_id}-{flags}</code>.</li>
+<li>OTel auto-instrumentation: agents attach to popular libraries (e.g. JDBC, gRPC, Spring) 自动 emit spans.</li>
+</ul>
+<h3 id="distributed-trace-storage"><a class="header" href="#distributed-trace-storage">Distributed Trace Storage</a></h3>
+<ul>
+<li>Backend: Jaeger / Tempo / OpenSearch / Datadog / Honeycomb / New Relic.</li>
+<li>Sampling 控制 retention cost (e.g., 100% sampling at low流量, 1% at high RPS).</li>
+</ul>
+<h3 id="sampling"><a class="header" href="#sampling">Sampling</a></h3>
+<ul>
+<li>Head sampling: collector 概率性 drop traces before processing. e.g. 1% records.</li>
+<li>Tail sampling: collector 全采集; lifestream 完成后决定保留 (e.g., keep &gt;= P99 latency or error status). resource-limited.</li>
+</ul>
+<hr />
+<h2 id="四三者关系"><a class="header" href="#四三者关系">四、三者关系</a></h2>
+<pre class="mermaid">flowchart LR
+    A[Application&lt;br/&gt;signals] --&gt; M[Metrics: aggregate]
+    A --&gt; L[Logs: per-event records]
+    A --&gt; T[Traces: span breakdown]
+    M --&gt; P[Prometheus]&lt;br/&gt;/ alerting
+    L --&gt; E[Loki / Elasticsearch]
+    T --&gt; J[Jaeger / Tempo]
+    P --&gt; G[Grafana dashboards]
+    E --&gt; G
+    J --&gt; G
+</pre>
+<ul>
+<li>alerting migrations look for 用 Metrics.
+-incident 调试从 Logs + Traces = # behavior回到 stack-grained origin.
+-Traces 给 spans 转 Metrics events, logs 引记录 trace_id扰动 curation 快 lookup.</li>
+</ul>
+<h3 id="exemplars-prometheus-226"><a class="header" href="#exemplars-prometheus-226">Exemplars (Prometheus 2.26+)</a></h3>
+<p><strong>Exemplar</strong> = "Metric point + trace_id 引用 ". 让 Grafana 中点 P99 latency 节点 → click → 引言含 trace_id → jump to Jaeger/Tempo看具体 trace. 桥接 metrics与 traces.</p>
+<hr />
+<h2 id="五典型-architectural-patterns"><a class="header" href="#五典型-architectural-patterns">五、典型 Architectural Patterns</a></h2>
+<h3 id="pattern-1-service-stack-with-opentelemetry"><a class="header" href="#pattern-1-service-stack-with-opentelemetry">Pattern 1: Service Stack with OpenTelemetry</a></h3>
+<pre><code>App code (OpenTelemetry SDK)
+  ↓ OTLP / Prometheus
+[OpenTelemetry Collector] (dep role-forwarding/log累积/data aggregation/sampling)
+  ↓ forked
+Prometheus (metrics) | Loki (logs) | Tempo (traces)
+  ↓
+Grafana (unified view)
+</code></pre>
+<h3 id="pattern-2-cloud-native-observability-datadog--honeycomb--new-relic"><a class="header" href="#pattern-2-cloud-native-observability-datadog--honeycomb--new-relic">Pattern 2: Cloud Native Observability (Datadog / Honeycomb / New Relic)</a></h3>
+<p>提供 hosted solution, 多 SDKs (e.g. dd-agent on each pod), agent forwards. Trade-off: high volume cost-per-GB. Vendor lock 注意.</p>
+<h3 id="pattern-3-elk-stack-logs--prometheus-metrics--jaeger-traces"><a class="header" href="#pattern-3-elk-stack-logs--prometheus-metrics--jaeger-traces">Pattern 3: ELK Stack Logs + Prometheus Metrics + Jaeger Traces</a></h3>
+<p>Self-hosted stack 经典 选择. ELK (现在 "OpenSearch"—fork of ElasticSearch 2021) Logs + Prom Metrics + Jaeger Traces.</p>
+<hr />
+<h2 id="六典型-use-cases"><a class="header" href="#六典型-use-cases">六、典型 Use Cases</a></h2>
+<p>###triggerance 1: Diagnose High Latency Report</p>
+<ol>
+<li>Alert: "checkout API P99 latency 5s" 触发 from metrics</li>
+<li>Grafana dashboard 看 P99 derivation of recent checkout success rate</li>
+<li>Exemplar link to specific trace / 导致 Trace ID range.</li>
+<li>Jaeger 看 trace: "shipping service 500ms" + "db query  300ms".</li>
+<li>Span detail: sql query atement + SQL timings + Service specific span ID.</li>
+<li>logs by trace_id = （SQL plan + Postgres query log）</li>
+<li>resolve query.</li>
+</ol>
+<h3 id="triggerance-2-error-spike-diagnostic"><a class="header" href="#triggerance-2-error-spike-diagnostic">Triggerance 2: Error Spike Diagnostic</a></h3>
+<p>-alerts 监测 error rate metric 是 spike.
+-Watch战 back dashboard, failed request spans 找;</p>
+<ul>
+<li>Look at logs filtered by <code>status=500</code>;
+-Restart跑 server app 看行 exception.</li>
+</ul>
+<hr />
+<h2 id="七典型事故"><a class="header" href="#七典型事故">七、典型事故</a></h2>
+<h3 id="elasticsearch-cluster-oom-大量-object-high-cardinality"><a class="header" href="#elasticsearch-cluster-oom-大量-object-high-cardinality">Elasticsearch Cluster OOM 大量 Object High Cardinality</a></h3>
+<p>某公司 ES logstorage 组 tagged with <code>user_id</code> as a field. multi-CO者 ES hop heap 充 ~100GB/天 overwhelmed cluster. Fix: user_id 在 long-term retention 跳 low index + aggregated per user_id 游 实际 lookup.</p>
+<h3 id="datadog-cold-card-trick"><a class="header" href="#datadog-cold-card-trick">Datadog Cold-Card Trick</a></h3>
+<p>某 team通过 trace "every" 学校 DNS error: named 只 100 RPS, but  e.g Develop 拒tring  count all latency loader data incurred over-time $买 100MB month + DEMos rule 权. Fix:</p>
+<h3 id="loki-cards-decrease-storage-cost"><a class="header" href="#loki-cards-decrease-storage-cost">Loki cards Decrease storage cost</a></h3>
+<p>某公司 Loki query (~10×less cost than ES) for logs,  substitution  / success.</p>
+<hr />
+<h2 id="八易错清单"><a class="header" href="#八易错清单">八、易错清单</a></h2>
+<ol>
+<li><strong>Don't use <code>user_id</code>, <code>session_id</code>, <code>trace_id</code> as metric label</strong> — cardinality爆炸 storage cost。</li>
+<li><strong>Trace sampling must include all errors</strong>: tail sampling keeps 100% errors + 1% success, 重要性数据采集.</li>
+<li><strong>OpenTelemetry MUST support all service tiers</strong> (HTTP/gRPC/db/cache)</li>
+<li><strong>Set alerting on user-facing metrics, not behind infrastructure-only</strong></li>
+<li><strong>High-cardinality log fields</strong>: avoid to give ś user_id as part of indexed log key.</li>
+<li><strong>Trace 爆炸 over service mesh 重在 hist 纕 keep sample-server-side samples by path.</strong></li>
+</ol>
+<hr />
+<h2 id="九这一章带走的东西"><a class="header" href="#九这一章带走的东西">九、这一章带走的东西</a></h2>
+<ol>
+<li>三大支柱 Metrics + Logs + Traces 是观测分布式系统的 entry point.</li>
+<li>Metrics aggregate- numeric格式上 cost-aware labelsetdecount的 cardinality problematic.</li>
+<li>Logs structured JSON 让 query/filter 不过 cost-per-event 的处理; sampling retains large. febyterianik.</li>
+<li>Traces span breakdown 让 latency decoupled visible; OpenTelemetry sets of standards.</li>
+<li>Exemplars 锵 metrics 与 traces bridges Grafana links point.
+6.用 Prometheus + Graphana; Loki or ES for logs; 真Jaeger/Tempo 您 traces distribution. Currently "slotel collector" emerging best 埋持 alternative.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="slo.html">SLO/SLI/Error Budget</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../system-design/monitor/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../system-design/monitor/stack.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../system-design/monitor/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../system-design/monitor/stack.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>哈希表：从原理到工程 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="哈希表从原理到工程"><a class="header" href="#哈希表从原理到工程">哈希表：从原理到工程</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>"哈希表 = O(1)" 是 DSA 里<strong>最危险的过度简化</strong>。一张哈希表的工程性能由冲突率、装载因子、rehash、cache 局部性、hash 函数抗碰撞性、并发同步、DoS 抗性共同决定，<strong>复杂度只是其中一个分量</strong>。这一章把它从理论拓到工业：从 SipHash 的内核抗 DoS、到 SwissTable 的 SIMD 单 SIMD 比较、再到裸 SIMD hash map 写到 FPGA.</p>
+<h2 id="核心三件套"><a class="header" href="#核心三件套">核心三件套</a></h2>
+<pre><code>key → (hasher) → hash → (indexing) → slot → (compare) entry
+       ↑               ↑             ↑
+       依赖 key         依赖容量      依赖 key 相等
+</code></pre>
+<ul>
+<li><code>hasher</code> 把任意长 key 压成定长 bit；</li>
+<li><code>indexing</code> 通常 <code>hash % bucket</code> 或更稳的 <code>hash &amp; (cap - 1)</code>（要求 cap 是 2 的幂）；</li>
+<li><code>compare</code> 必须实现稳定相等；</li>
+<li>别忘了符号位：<code>hash &amp; MASK</code> 直接用位与，需要 cap 是 2 的幂。</li>
+</ul>
+<h2 id="冲突处理两条主路线"><a class="header" href="#冲突处理两条主路线">冲突处理：两条主路线</a></h2>
+<h3 id="1-链地址chaining"><a class="header" href="#1-链地址chaining">1. 链地址（chaining）</a></h3>
+<ul>
+<li>每 bucket 一条链表；</li>
+<li>插入 O(1)，最坏 O(n)（全 key 同 hash）；</li>
+<li>删除 O(1)，自然；</li>
+<li>装载因子任意。</li>
+</ul>
+<p><strong>Java HashMap、Go map 走这条路</strong>.</p>
+<h3 id="2-开放寻址open-addressing"><a class="header" href="#2-开放寻址open-addressing">2. 开放寻址（open addressing）</a></h3>
+<ul>
+<li>所有元素在数组里；冲突就探下一个 slot；</li>
+<li>三种探测序列：
+<ul>
+<li>线性 <code>i + k</code>：cache 极友好但聚集严重；</li>
+<li>二次 <code>i + k²</code>：抗主聚集；</li>
+<li>双哈希 <code>i + k·h2(key)</code>：抗所有聚集；</li>
+</ul>
+</li>
+<li>删除难：tombstone 替代物理删除，否则断链；</li>
+<li>装载因子必须 &lt; 0.75（线性）；</li>
+<li>现代 SIMD 探测变种：<strong>SwissTable / F14</strong>.</li>
+</ul>
+<p><strong>Python dict、Rust HashMap、absl flat_hash_map 走这条路</strong>.</p>
+<h3 id="工程取舍"><a class="header" href="#工程取舍">工程取舍</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>链地址</th><th>开放寻址</th></tr></thead><tbody>
+<tr><td>Cache locality</td><td>差</td><td>好</td></tr>
+<tr><td>删除</td><td>O(1) 自然</td><td>需 tombstone</td></tr>
+<tr><td>装填因子上限</td><td>任意</td><td>&lt; 0.75</td></tr>
+<tr><td>DoS 抗性</td><td>同串桶弱</td><td>一般</td></tr>
+<tr><td>实现</td><td>低</td><td>中</td></tr>
+<tr><td>内存底线</td><td>必须 8B/key 指针</td><td>紧排，少开销</td></tr>
+</tbody></table>
+</div>
+<p>Java 8 给链地址加了一条 sweetener：单桶链长度 ≥ 8 时<strong>转红黑树</strong>，把"用力构造同 hash 的攻击"挡掉。</p>
+<h2 id="rehash-与扩容"><a class="header" href="#rehash-与扩容">Rehash 与扩容</a></h2>
+<p>触发阈值由 <code>load_factor</code> 决定，链地址通常 LF=1.0，开放寻址 0.5-0.75.</p>
+<p>扩容步骤：</p>
+<ol>
+<li>分配新数组（通常 cap×2 或更大）；</li>
+<li>重新 hash 所有 key (<code>hash &amp; new_cap_mask</code>)；</li>
+<li>释放旧数组.</li>
+</ol>
+<p>如果<strong>第一和第三步在同一次 op 里完成</strong>：</p>
+<ul>
+<li>短期代价 O(n)；</li>
+<li>单次 op 延迟尖刺，几 ms.</li>
+</ul>
+<p>生产服务下 99.99% 长尾读 HBase / Redis 必有此尖刺.</p>
+<p><strong>渐进式 rehash</strong>（dictugador 风格）：把步骤 2 分摊到每次 op，每次搬 1-2 个 bucket. 这是 Redis 4.0+、Java 8 HashMap 一起做的事.</p>
+<h2 id="哈希函数从-fnv-到-siphash"><a class="header" href="#哈希函数从-fnv-到-siphash">哈希函数：从 FNV 到 SipHash</a></h2>
+<p>理想哈希：<strong>分布均匀 + 雪崩效应 + 不可预测（抗 DoS）</strong>.</p>
+<div class="table-wrapper"><table><thead><tr><th>哈希</th><th>速度</th><th>抗 DoS</th><th>备注</th></tr></thead><tbody>
+<tr><td>FNV-1a</td><td>极快</td><td>❌</td><td>教学用</td></tr>
+<tr><td>MurmurHash3</td><td>快</td><td>❌</td><td>入门实战</td></tr>
+<tr><td>xxHash / xxhash3</td><td>最快</td><td>❌</td><td>现代标准</td></tr>
+<tr><td>SipHash</td><td>中等</td><td>✅</td><td>Rust/Python 默认，抗 hash flooding</td></tr>
+<tr><td>CityHash</td><td>快</td><td>部分</td><td>Google</td></tr>
+<tr><td>wyhash</td><td>快</td><td>较好</td><td>absl flat_hash_map</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>写公开服务时，<strong>必须用 SipHash 或带随机 seed 的哈希</strong>. 否则三行代码就能用"同 hash 桶" 把你 QPS 打挂.</p>
+</div>
+<h3 id="siphash-的特别之处"><a class="header" href="#siphash-的特别之处">SipHash 的特别之处</a></h3>
+<p>SipHash 是 <strong>密码学风格 PRF</strong> —— 输入 key 和 一个 secret (per-process random key)，输出 64-bit. 它不可预测，所以客户端构造"全 hash 到 0" 的输入集需要破解 random seed，相当于一次 PRF 攻击，现实中是不可能的. 这就是为什么 Python 3.4+ dict / Rust HashMap / Java <code>String.hashCode</code> 都引入了<strong>进程级隨机 seed</strong>.</p>
+<h3 id="simd-加速的现代哈希查表"><a class="header" href="#simd-加速的现代哈希查表">SIMD 加速的现代哈希查表</a></h3>
+<p><strong>SwissTable 的精髓</strong>：</p>
+<ul>
+<li>8 个桶一组，组内<strong>保留 7-bit 元数据</strong>（取 hash 高 7 位作为控制字节）；</li>
+<li>一次 SIMD load 8 字节 = 控制 64-bit 寄存器；</li>
+<li>用 <code>_mm_cmpeq_epi8</code> 一次比 8 个 control byte，看哪几桶是"匹配候选"；</li>
+<li>没匹配就跨过整组，cache-friendly 且常数小.</li>
+</ul>
+<p>abseil flat_hash_map / Rust hashbrown / Google 内部 dense_hash_map 都用这种思路. <strong>吞吐量比 STL <code>unordered_map</code> 高 5-15 倍</strong>.</p>
+<h3 id="cpu-视角的-hash-probe"><a class="header" href="#cpu-视角的-hash-probe">CPU 视角的 hash probe</a></h3>
+<pre><code class="language-c">// 简化 SwissTable probe 模式
+__m64 ctrl = load_8c(ac + i);                    // 64-bit 8 个 control
+__m64 match = _mm_cmpeq_pi8(ctrl, target);       // == target?
+uint32_t mask = _mm_movemask_pi8(match);         // 8-bit bitmap
+while (mask) {
+    int slot = __builtin_ctz(mask);
+    if (keyMatches(ac+i*8+slot, key, ...)) return slot;
+    mask &amp;= mask - 1;
+}
+</code></pre>
+<p>SIMD 把常数因子塌下来 8 倍。这就是为什么 Rust hashmap 比 Java HashMap Performance 在 large N 上领先的原因之一.</p>
+<h2 id="go-map-内部实现阅读笔记"><a class="header" href="#go-map-内部实现阅读笔记">Go map 内部实现阅读笔记</a></h2>
+<p>阅读 <code>runtime/map.go</code>:</p>
+<ul>
+<li>内部 <code>hmap</code> + <code>[]bmap</code>： 每个 <code>bmap</code> 持有 8 个 (tophash, key, value)，溢出用链.</li>
+<li>tophash 8-bit 加速 bucket 内顺序比对，减少 cache miss.</li>
+<li>LF 触发扩容时，新数组 cap ×2；渐進式：每次 op 搬 2 个旧 bucket.</li>
+<li>还有"same size grow"：清理墓碑.</li>
+<li><strong>Go 不 export 内部 hmap，但反射可以看到</strong>.</li>
+</ul>
+<pre><code class="language-go">m := make(map[string]int, 1000)             // 提示大致容量
+m["a"] = 1
+v, ok := m["a"]
+delete(m, "a")
+</code></pre>
+<p><code>make(map, ., .)</code> 第二个参数是 hint，预分配 bucket 数避免早期 rehash.</p>
+<h2 id="多语言对齐四种语言运行时哈希表对比"><a class="header" href="#多语言对齐四种语言运行时哈希表对比">多语言对齐：四种语言运行时哈希表对比</a></h2>
+<pre><code class="language-go">// Go map — 链地址，渐进式 rehash 出自 runtime
+m := make(map[string]int, 1000)
+m["a"] = 1
+delete(m, "a")
+</code></pre>
+<pre><code class="language-ts">// JS Map — insertion order preserved，开放地址? 实际上是
+// "ordered hash map" — V8 内部用 chained buckets + insertion order linked list
+const m = new Map&lt;string, number&gt;();
+m.set("a", 1);
+m.delete("a");
+// 有 iteration guarantee：按插入顺序遍历
+</code></pre>
+<pre><code class="language-python"># Python dict — 开放地址、Hi-Lo SIMD probe sequence、紧凑存值（3.6+）
+m = {"a": 1}
+m["b"] = 2
+del m["a"]
+# 自 3.7 起保证插入序遍历
+# 内部数据布局：entries 可 dense + index array；3.11 之后是 compact layout
+</code></pre>
+<pre><code class="language-cpp">// std::unordered_map — 链地址、节点是堆上的
+std::unordered_map&lt;std::string, int&gt; m;
+m["a"] = 1;
+// std::hash&lt;std::string&gt; 实际上不是 SipHash，是平台相关
+// 用 absl::flat_hash_map 通常快 5-10 倍
+</code></pre>
+<p>横向看，你会注意到"开放地址 + SIMD 探测 + 紧排 entry = 性能最优组合"——这是各语言运行时都在向 SwissTable 靠拢的原因。<strong>唯一例外是 Java</strong>: 因为 <code>HashMap</code> 要 iterator stability，无法 tear down 所有链、要求 key-value 引用稳定，链地址是必须的.</p>
+<p>这就是为什么我希望你建立"跨语言看抽象"的能力：<strong>表面看四种语言的 dict 各自不一样，背后其实是同一个工程抽象 + 运行时取舍集合</strong>.</p>
+<h2 id="易错清单这是个长清单"><a class="header" href="#易错清单这是个长清单">易错清单（这是个长清单）</a></h2>
+<ol>
+<li><strong>依赖遍历顺序</strong>：Go map 随机序；Python 3.7+ / Java LinkedHashMap 保证插入序；C++ unordered_map 无序。</li>
+<li><strong>遍历中改 map</strong>：删本元素或加新元素，迭代器可能失效。</li>
+<li><strong>float key 与 NaN</strong>：IEEE754 下 <code>NaN != NaN</code>，结果两个 NaN 都能入同一个 map. Python 用 <code>__hash__(inf)</code> 解决了一部分但 NaN 仍是雷区。</li>
+<li><strong><code>vector&lt;bool&gt;</code> key</strong> or <code>BitSet</code> key: 这些类型的 hash 实现不对，必须手写 hash function.</li>
+<li><strong>Java <code>==</code> vs .equals()</strong>：boxed key 必须 <code>.equals</code>.</li>
+<li><strong>hash mod n != hash &amp; (n-1)</strong>：前者对任何 n 工作；后者要求 n 是 2 的幂. 一般都看 mask 形式.</li>
+</ol>
+<h2 id="dos-attack-视角"><a class="header" href="#dos-attack-视角">DoS attack 视角</a></h2>
+<p>2003-12 制造攻击"Hash DoS" (Crosby &amp; Wallach):</p>
+<pre><code>准备 K 个字符串 hash 都算到 X；
+HTTP POST 提交 1MB 数据，2^24 个键；
+解析的 hash map 退化为 O(n²).
+服务端 CPU 满载，请求挂起.
+</code></pre>
+<p>防御手段：</p>
+<ol>
+<li>用 SipHash + random seed (per-process) — Python / Rust / 现代 Java 都做了;</li>
+<li>限 map 大小 (1MB 表单);</li>
+<li>长链 → 树化 (Java 8 之后做法);</li>
+<li>DoS-aware hash 函数 (QuickHash-ghash).</li>
+</ol>
+<h2 id="fpga--simd-视角"><a class="header" href="#fpga--simd-视角">FPGA / SIMD 视角</a></h2>
+<p>FPGA 上实现 hash table 是 HFT 与 packet processing 的常用块：</p>
+<ul>
+<li>用 BRAM 存桶，每 bucket 一个寄存器保存最近 hit；</li>
+<li>probe 顺序按 hash 低位走，cache 实际是 SRAM；</li>
+<li>通常 per-cycle 一碰/一品，超 Gpps 量级.</li>
+</ul>
+<p>这就是 FPGA 加速网络/雷达常见技术.</p>
+<p>软件 SIMD、CPU cache + lock-free、FPGA banked BRAM 其实是同一抽象本身的多种物化.</p>
+<h2 id="经典题"><a class="header" href="#经典题">经典题</a></h2>
+<ul>
+<li>LC 1 Two Sum：哈希一次 O(n);</li>
+<li>LC 49 Group Anagrams：哈希变换成规约 key;</li>
+<li>LC 128 Longest Consecutive Sequence：O(n) 用 set, 不排序;</li>
+<li>LC 706 Design HashMap：裸写冲突处理;</li>
+<li>LC 460 LFU Cache: 组合 hash + 双链 + 频度组.</li>
+</ul>
+<h2 id="这一章带走的东西"><a class="header" href="#这一章带走的东西">这一章带走的东西</a></h2>
+<ul>
+<li>开放地址 (SIMD) &gt; 链地址 (除了 Java 例外);</li>
+<li>SwissTable 的 7-bit control + SIMD cmpeq 创造 5-15× 吞吐差;</li>
+<li><strong>渐进式 rehash</strong> = 长尾敏感的救星;</li>
+<li>SipHash = 抗 Hash DoS 的最低要求;</li>
+<li>一种"hash + probe" 抽象在 SIMD CPU、lock-free、FPGA 桥间同构.</li>
+</ul>
+<p>下一节 → <a href="../structures/trees/index.html">树</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../dsa/structures/stack-queue.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../dsa/structures/trees/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../dsa/structures/stack-queue.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../dsa/structures/trees/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

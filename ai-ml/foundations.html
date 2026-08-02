@@ -1,0 +1,600 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>1. Foundations: 线性回归 → 逻辑回归 → MLP → 损失函数谱 → 泛化与正则 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="1-foundations-线性回归--逻辑回归--mlp--损失函数谱--泛化与正则"><a class="header" href="#1-foundations-线性回归--逻辑回归--mlp--损失函数谱--泛化与正则">1. Foundations: 线性回归 → 逻辑回归 → MLP → 损失函数谱 → 泛化与正则</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>机器学习的入口几乎都是<strong>最小二乘线性回归</strong>的某种变体: 从把输出层加个 sigmoid 就成二分类, 把单层 perceptron 堆成多层 → 多层感知机 (MLP), 把损失从 MSE 换成 CE / contrastive / ELBO 就成各种生成模型. 这一章把这个家族谱铺好:</p>
+<ol>
+<li><strong>线性回归</strong> — 最小二乘的闭式解; 几何 = 投影; 概率 = Gaussian MLE.</li>
+<li><strong>逻辑回归</strong> — sigmoid + 交叉熵 = Bernoulli MLE; 凸.</li>
+<li><strong>MLP</strong> — 加一层非线性就够表达任意函数; 迭代优化替代闭式解.</li>
+<li><strong>损失函数谱</strong> — 回归 / 分类 / 排序 / 对比 / 生成 各家损失都是 MLE 的不同形式.</li>
+<li><strong>泛化与正则</strong> — 经验风险 vs 真实风险, 偏差-方差, L1/L2/dropout.</li>
+</ol>
+<p>读完应能: 给一个任务 (分类 / 回归 / 排序 / 生成) 立刻报出对应的输出激活、损失家族、对应概率假设, 并知道该不该上正则、上哪种.</p>
+<hr />
+<h2 id="一线性回归-一切的起点"><a class="header" href="#一线性回归-一切的起点">一、线性回归: 一切的起点</a></h2>
+<h3 id="11-问题与最小二乘"><a class="header" href="#11-问题与最小二乘">1.1 问题与最小二乘</a></h3>
+<p>给定训练集 ${(x_i, y_i)}_{i=1}^n$, $x_i \in \mathbb{R}^d, y_i \in \mathbb{R}$. 模型 $\hat y_i = \boldsymbol \beta^\top x_i$. 损失为残差平方和:</p>
+<p>$$ \mathcal{L}(\boldsymbol \beta) = \sum_i (y_i - \boldsymbol\beta^\top x_i)^2 = |\boldsymbol y - X \boldsymbol\beta|_2^2 $$</p>
+<p>其中 $X \in \mathbb{R}^{n \times d}$ 行为样本. 令梯度为 0:</p>
+<p>$$ \nabla_\beta \mathcal{L} = -2 X^\top (\boldsymbol y - X \boldsymbol\beta) \overset{!}{=} 0 ;\Rightarrow; X^\top X ,\boldsymbol\beta = X^\top \boldsymbol y $$</p>
+<p><strong>正则方程</strong>: $\boldsymbol\beta^* = (X^\top X)^{-1} X^\top \boldsymbol y$ (列满秩时).</p>
+<pre><code class="language-python">import numpy as np
+
+def ols(X, y):
+    # 闭式最小二乘 (注意数值稳定性: 推荐 lstsq 而不是直接求逆)
+    return np.linalg.lstsq(X, y, rcond=None)[0]
+
+# 等价的几何视角: 残差正交于 X 的列空间
+X = np.random.randn(100, 3); beta_true = np.array([1.0, -2.0, 0.5])
+y = X @ beta_true + 0.1 * np.random.randn(100)
+beta_hat = ols(X, y)
+residual = y - X @ beta_hat
+assert np.allclose(X.T @ residual, 0, atol=1e-10)  # 残差 ⊥ 列空间
+</code></pre>
+<h3 id="12-三种等价视角"><a class="header" href="#12-三种等价视角">1.2 三种等价视角</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>视角</th><th>内容</th></tr></thead><tbody>
+<tr><td><strong>几何</strong></td><td>$\hat{\boldsymbol y} = X \boldsymbol\beta^* = P_X \boldsymbol y$, $P_X = X(X^\top X)^{-1}X^\top$ 是列空间正交投影; 残差 $\perp$ 列空间</td></tr>
+<tr><td><strong>概率 (MLE)</strong></td><td>假设 $y_i = \boldsymbol\beta^\top x_i + \epsilon_i$, $\epsilon_i \sim \mathcal{N}(0, \sigma^2)$. 似然 $\prod \mathcal{N}(y_i; \boldsymbol\beta^\top x_i, \sigma^2)$; 取 log 最大化 ⇔ 最小化残差平方和</td></tr>
+<tr><td><strong>贝叶斯</strong></td><td>加先验 $\boldsymbol\beta \sim \mathcal{N}(0, \tau^2 I)$ ⇒ MAP = ridge 回归 $\arg\min |\boldsymbol y - X\boldsymbol\beta|^2 + \frac{\sigma^2}{\tau^2}|\boldsymbol\beta|^2$</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>"为什么不直接 $X^{-1} y$?" 因为 $X$ 几乎从不是方阵; $X^\top X$ 在列满秩时才是 $d \times d$ 可逆. 这条公式把"$n \neq d$"的方程组变成正则方程, 也是投影矩阵的根基. 回顾线代 §1.3 四个子空间: 残差必须落在 $X$ 的<strong>左零空间</strong>中.</p>
+</div>
+<h3 id="13-概率视角的延伸"><a class="header" href="#13-概率视角的延伸">1.3 概率视角的延伸</a></h3>
+<p>如果残差不服从 Gaussian 而服从 Laplace $\frac{1}{2b}\exp(-|e|/b)$, MLE 推出的是<strong>绝对值损失</strong> (LAD):</p>
+<p>$$ \mathcal{L}_{\text{LAD}}(\boldsymbol\beta) = \sum_i |y_i - \boldsymbol\beta^\top x_i| $$</p>
+<p>这就是"为什么 LAD 比 OLS 鲁棒": Laplace 先验有更长尾, 拟合时不太被异常点拉走.</p>
+<div class="table-wrapper"><table><thead><tr><th>残差分布</th><th>MLE 损失</th><th>鲁棒性</th></tr></thead><tbody>
+<tr><td>$\mathcal{N}(0, \sigma^2)$</td><td>平方 $|\cdot|^2$</td><td>对离群敏感</td></tr>
+<tr><td>Laplace</td><td>绝对 $</td><td>\cdot</td></tr>
+<tr><td>混合 (Huber)</td><td>$\rho_c(r) = \begin{cases} \frac12 r^2, &amp;</td><td>r</td></tr>
+</tbody></table>
+</div>
+<h3 id="14-正则化-ridge--lasso--elastic-net"><a class="header" href="#14-正则化-ridge--lasso--elastic-net">1.4 正则化: ridge / lasso / elastic net</a></h3>
+<p>加先验等价正则:</p>
+<ul>
+<li><strong>Ridge</strong> ($L_2$): $\mathcal{L} = |y - X\boldsymbol\beta|^2 + \lambda |\boldsymbol\beta|_2^2$ ⇒ Gaussian 先验; 解 $\boldsymbol\beta^* = (X^\top X + \lambda I)^{-1} X^\top y$ 永远存在 (即使 $X^\top X$ 奇异).</li>
+<li><strong>LASSO</strong> ($L_1$): $\mathcal{L} = |y - X\boldsymbol\beta|^2 + \lambda |\boldsymbol\beta|_1$ ⇒ Laplacian 先验; 产生稀疏解 (许多 $\beta_i = 0$).</li>
+<li><strong>Elastic net</strong>: $L_2 + L_1$ 加权混合, 高度相关特征群组选择.</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>$L_1$ 比 $L_2$ 更稀疏的几何直觉: 在等高线接触约束区域时, $L_1$ 球的"尖角" (坐标轴) 比光滑 $L_2$ 球更易触到. 严格的凸优化解读见第零部分 §4.2 凸函数与 KKT.</p>
+</div>
+<hr />
+<h2 id="二逻辑回归-从回归到分类"><a class="header" href="#二逻辑回归-从回归到分类">二、逻辑回归: 从回归到分类</a></h2>
+<h3 id="21-二分类的-mle"><a class="header" href="#21-二分类的-mle">2.1 二分类的 MLE</a></h3>
+<p>设 $\Pr(y=1 | x) = \sigma(\boldsymbol\beta^\top x)$, $\sigma(a) = \frac{1}{1+e^{-a}}$. 数据似然:</p>
+<p>$$ \prod_i \sigma(\boldsymbol\beta^\top x_i)^{y_i} (1 - \sigma(\boldsymbol\beta^\top x_i))^{1-y_i} $$</p>
+<p>取 $-\log$ 得<strong>二元交叉熵</strong>:</p>
+<p>$$ \mathcal{L}_{\text{logistic}}(\boldsymbol\beta) = -\sum_i \big[ y_i \log \hat p_i + (1 - y_i) \log(1 - \hat p_i) \big], \quad \hat p_i = \sigma(\boldsymbol\beta^\top x_i) $$</p>
+<h3 id="22-关键性质"><a class="header" href="#22-关键性质">2.2 关键性质</a></h3>
+<ul>
+<li>$\sigma'(a) = \sigma(a)(1 - \sigma(a))$ → 反向传播极简: $\partial \mathcal{L}/\partial a_i = \hat p_i - y_i$.</li>
+<li>凸函数 (Hessian 半正定), 但<strong>非强凸</strong> (当数据完全可分时 $|\boldsymbol\beta| \to \infty$ 收敛), 这时需要正则.</li>
+<li>极大熵角度: 在 $\mathbb{E}[y | x] = \sigma(\boldsymbol\beta^\top x)$ 约束下, Bernoulli 极大熵分布 = logistic; 见第零部分 §4.7.</li>
+</ul>
+<h3 id="23-多分类-softmax--交叉熵"><a class="header" href="#23-多分类-softmax--交叉熵">2.3 多分类: softmax + 交叉熵</a></h3>
+<p>$K$ 类: $\Pr(y = k | x) = \mathrm{softmax}(W^\top x)_k = \frac{e^{w_k^\top x}}{\sum_l e^{w_l^\top x}}$.</p>
+<p>$$ \mathcal{L}<em>{\text{CE}}(W) = -\sum_i \log \frac{e^{w</em>{y_i}^\top x_i}}{\sum_l e^{w_l^\top x_i}} $$</p>
+<p>反向梯度 (回顾第零部分 §2.3 softmax 雅可比): $\partial \mathcal{L} / \partial a_l = \mathrm{softmax}(a)_l - \mathbb{1}[y = l]$. 一行公式就是 logistic 二元版, 也是 Transformer LM head 的损失.</p>
+<h3 id="24-multinomial-与共轭先验"><a class="header" href="#24-multinomial-与共轭先验">2.4 multinomial 与共轭先验</a></h3>
+<ul>
+<li>似然 multinomial + 共轭先验 Dirichlet ⇒ 后验仍是 Dirichlet. 这就是 LDA 主题模型与 transformer 词频建模的根基. 见第零部分概率 §4.4 共轭先验速查.</li>
+</ul>
+<hr />
+<h2 id="三mlp-单层到多层"><a class="header" href="#三mlp-单层到多层">三、MLP: 单层到多层</a></h2>
+<h3 id="31-xor-问题-单层-perceptron-学不动"><a class="header" href="#31-xor-问题-单层-perceptron-学不动">3.1 XOR 问题: 单层 perceptron 学不动</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>$x_1$</th><th>$x_2$</th><th>$y$</th></tr></thead><tbody>
+<tr><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>0</td><td>1</td><td>1</td></tr>
+<tr><td>1</td><td>0</td><td>1</td></tr>
+<tr><td>1</td><td>1</td><td>0</td></tr>
+</tbody></table>
+</div>
+<p>直线 $\boldsymbol\beta^\top x + b = 0$ 无法分对角点; 1969 Minsky-Papert 一书指出, 推动感知机第一次寒冬.</p>
+<h3 id="32-多层感知机-mlp"><a class="header" href="#32-多层感知机-mlp">3.2 多层感知机 (MLP)</a></h3>
+<p>两层 + 非线性激活:</p>
+<p>$$ f(x) = W_2 ,\sigma(W_1 x + \boldsymbol b_1) + \boldsymbol b_2 $$</p>
+<ul>
+<li>$W_1 \in \mathbb{R}^{h \times d}$, $\sigma$ 逐元素非线性, $W_2 \in \mathbb{R}^{k \times h}$.</li>
+<li>$h$ 充分大 ⇒ 万能近似器 (Cybenko 1989 for sigmoid, Hornik 1991 一般化).</li>
+<li>但<strong>训练需要反向传播</strong>, 这是下一章主题.</li>
+</ul>
+<h3 id="33-激活函数谱"><a class="header" href="#33-激活函数谱">3.3 激活函数谱</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>激活</th><th>公式</th><th>反传导数</th><th>特点</th></tr></thead><tbody>
+<tr><td><strong>Sigmoid</strong></td><td>$\frac{1}{1+e^{-x}}$</td><td>$\sigma(1-\sigma)$</td><td>输出 [0,1]; 饱和时梯度消失, 早期流行, 现主要用作门 / 输出</td></tr>
+<tr><td><strong>Tanh</strong></td><td>$\tanh x$</td><td>$1 - \tanh^2 x$</td><td>输出 [-1, 1]; 仍饱和, RNN 经典</td></tr>
+<tr><td><strong>ReLU</strong> (2010 Nair-Hinton)</td><td>$\max(0, x)$</td><td>$\mathbb{1}_{x &gt; 0}$</td><td>不饱和, 计算快; 但负输入"死神经元"</td></tr>
+<tr><td><strong>Leaky ReLU / PReLU</strong></td><td>$\max(\alpha x, x)$</td><td>$\alpha$ or $1$</td><td>防 dead neuron</td></tr>
+<tr><td><strong>GELU</strong> (2016)</td><td>$x \cdot \Phi(x)$</td><td>$\Phi(x) + x \phi(x)$</td><td>Transformer 默认; 平滑近 ReLU</td></tr>
+<tr><td><strong>SwiGLU</strong> (2022)</td><td>$\mathrm{SwiGLU}(a, b) = \mathrm{Swish}(a) \odot b$</td><td>—</td><td>LLaMA / PaLM 用, FFN 替代品</td></tr>
+<tr><td><strong>SiLU / Swish</strong></td><td>$x \sigma(x)$</td><td>$\sigma(x)(1 + x(1 - \sigma(x)))$</td><td>自门控; 在深处稳定</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>为什么不用 $\sigma$ / $\tanh$ 当 MLP 的激活, 但 Transformer 输出层却常用 $\sigma$ / $\softmax$?
+激活层堆多了梯度会消失 (反向连乘 $\sigma'(a_i) \leq 0.25$); 输出层只有一层, 且需要可解释的概率, 故保留 sigmoid/softmax. 内部一律用 ReLU/GELU/SwiGLU 防止 vanishing gradient.</p>
+</div>
+<h3 id="34-逼近定理的工程含义"><a class="header" href="#34-逼近定理的工程含义">3.4 逼近定理的工程含义</a></h3>
+<p>通用近似定理只是"存在性", 不教你"怎么找到那个权重". 深网比浅网<strong>指数级更省参数</strong>表达某些函数 (Telgarsky 2016): 把 $\mathcal{O}(2^k)$ 个 oscillation 拟合, 深度 $k$ 网用 $\mathcal{O}(k)$ 个参数, 浅网用 $\mathcal{O}(2^k)$. → "为什么深而不是宽"的数学根.</p>
+<hr />
+<h2 id="四损失函数谱-一张总表"><a class="header" href="#四损失函数谱-一张总表">四、损失函数谱: 一张总表</a></h2>
+<p>绝大多数损失都是"输出激活 + 类似然负对数"的二元组合:</p>
+<div class="table-wrapper"><table><thead><tr><th>任务</th><th>输出激活</th><th>损失</th><th>概率假设</th><th>备注</th></tr></thead><tbody>
+<tr><td>回归</td><td>identity</td><td>MSE $|y - \hat y|^2$</td><td>Gaussian</td><td>工程默认</td></tr>
+<tr><td>鲁棒回归</td><td>identity</td><td>Huber / L1</td><td>Laplace / Huber</td><td>异常值</td></tr>
+<tr><td>二分类</td><td>sigmoid</td><td>BCE $-[y\log\hat p + (1-y)\log(1-\hat p)]$</td><td>Bernoulli</td><td>LR / 二元分类</td></tr>
+<tr><td>多分类</td><td>softmax</td><td>CE $-\log\hat p_y$</td><td>Multinomial</td><td>NLP / 图像分类</td></tr>
+<tr><td>多标签</td><td>sigmoid 每维</td><td>BCE sum</td><td>多 Bernoulli</td><td>标签独立</td></tr>
+<tr><td>排序</td><td>(隐) pairwise</td><td>BPR / hinge / LambdaRank</td><td>各种</td><td>推荐 / 检索</td></tr>
+<tr><td>对比学习</td><td>L2 norm + 内积</td><td>InfoNCE $-\log\frac{e^{s^+/\tau}}{\sum e^{s_i/\tau}}$</td><td>softmax over negatives</td><td>SimCLR / CLIP</td></tr>
+<tr><td>生成 (AR)</td><td>softmax</td><td>next-token CE</td><td>Multinomial 自回归</td><td>GPT 系列</td></tr>
+<tr><td>生成 (VAE)</td><td>decoder 输出 + reparam.</td><td>$-\mathbb{E}_q[\log p(x|z)] + \mathrm{KL}(q|p)$</td><td>ELBO 最大化</td><td>见 §5</td></tr>
+<tr><td>生成 (diffusion)</td><td>预测噪声 $\epsilon$</td><td>$|\epsilon - \epsilon_\theta(x_t, t)|^2$</td><td>Gaussian ELBO 简化</td><td>见 §5</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>所有这些损失都是<strong>MLE 在不同假设上的负对数似然</strong>. 训练 = 最小化 NLL = 最大化数据似然. 第零部分概率 §5 框架解释了为什么.</p>
+</div>
+<h3 id="41-对比损失详解-simclr--clip"><a class="header" href="#41-对比损失详解-simclr--clip">4.1 对比损失详解 (SimCLR / CLIP)</a></h3>
+<p>$$ \mathcal{L} = -\log \frac{\exp(\mathrm{sim}(z_i, z_i^+)/\tau)}{\sum_{j} \exp(\mathrm{sim}(z_i, z_j)/\tau)} $$</p>
+<p>其中 $z_i^+$ 是 anchor 正样本, $z_j$ 是 batch 内其它 (负) 样本, $\mathrm{sim} = \cos$. 这本质就是 softmax+CE, "类" = "正样本对 vs 负样本对".</p>
+<p>→ 一行话打通 representation learning &amp; classification.</p>
+<h3 id="42-排序损失-bpr-与-lambdarank"><a class="header" href="#42-排序损失-bpr-与-lambdarank">4.2 排序损失: BPR 与 LambdaRank</a></h3>
+<p><strong>BPR</strong> (Bayesian Personalized Ranking): 给正样本 $i$ 与负样本 $j$, 模型打分 $s_u(i), s_u(j)$, 损失</p>
+<p>$$ \mathcal{L}_{\text{BPR}} = -\log \sigma(s_u(i) - s_u(j)) $$</p>
+<p>→ 让正样本打分恒高于负样本.</p>
+<p><strong>LambdaRank</strong> 进一步在梯度上乘 $\Delta \text{NDCG}$ 让"高位置错位惩罚更重", 工业推荐系统标准.</p>
+<hr />
+<h2 id="五泛化与正则"><a class="header" href="#五泛化与正则">五、泛化与正则</a></h2>
+<h3 id="51-经验风险-vs-真实风险"><a class="header" href="#51-经验风险-vs-真实风险">5.1 经验风险 vs 真实风险</a></h3>
+<p>设训练集 $\mathcal{D} = {(x_i, y_i)}<em>{i=1}^n$ 来自分布 $\mathcal{P}$. 经验风险 $\hat R(\theta) = \frac{1}{n}\sum \ell(f</em>\theta(x_i), y_i)$, 真实风险 $R(\theta) = \mathbb{E}<em>{(x,y)\sim\mathcal{P}}[\ell(f</em>\theta(x), y)]$.</p>
+<p>学习目标是最小化 $R$, 但只能观测 $\hat R$. <strong>泛化 gap</strong> $|R - \hat R|$ 由 Hoeffding + Rademacher complexity 控制 (回顾第零部分概率 §6.3):</p>
+<p>$$ R(\theta) \leq \hat R(\theta) + \mathcal{O}\left(\sqrt{\frac{\mathrm{complexity}}{n}}\right) $$</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>这一条解释了: 模型复杂度太高 / 训练数据太少 → 估计 gap 大 → train loss 低但 test loss 高 = <strong>过拟合</strong>. 实践手段: 增数据 / 降复杂度 / 加正则 / dropout / 早停.</p>
+</div>
+<h3 id="52-偏差-方差分解"><a class="header" href="#52-偏差-方差分解">5.2 偏差-方差分解</a></h3>
+<p>平方损失下:</p>
+<p>$$ \mathbb{E}[(y - \hat f(x))^2] = \underbrace{(\mathbb{E}[\hat f] - f)^2}<em>{\text{偏差}^2} + \underbrace{\operatorname{Var}(\hat f)}</em>{\text{方差}} + \underbrace{\sigma^2}_{\text{噪声}} $$</p>
+<ul>
+<li>模型太弱 → 高偏差 (欠拟合).</li>
+<li>模型太强 + 数据少 → 高方差 (过拟合).</li>
+<li>同一容量下 ensemble (随机森林 / dropout) 减方差而不增偏差 → <strong>为什么 ensemble 与 dropout 有效</strong>的根源.</li>
+</ul>
+<h3 id="53-正则手段总表"><a class="header" href="#53-正则手段总表">5.3 正则手段总表</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>手段</th><th>形式</th><th>数学依据</th></tr></thead><tbody>
+<tr><td>$L_2$ weight decay</td><td>$\lambda |\theta|_2^2$ 加在 loss</td><td>Gaussian 先验 (MAP = ridge)</td></tr>
+<tr><td>$L_1$</td><td>$\lambda |\theta|_1$</td><td>Laplacian 先验; 稀疏</td></tr>
+<tr><td><strong>Early stopping</strong></td><td>训到 val loss 上升就停</td><td>等价 implicit $L_2$ 正则 (Sjöberg 1995)</td></tr>
+<tr><td><strong>Dropout</strong> (2014 Srivastava)</td><td>训练时随机零化 $p$ 比例神经元</td><td>等价 ensemble over 子网络; 防共适应</td></tr>
+<tr><td><strong>Batch Norm</strong> (2015 Ioffe)</td><td>每层激活按 batch 归一化</td><td>减小 internal covariate shift + 隐式正则</td></tr>
+<tr><td><strong>Layer Norm</strong> (2016 Ba)</td><td>沿特征维归一化</td><td>Transformer 默认, batch 无关</td></tr>
+<tr><td><strong>Data augmentation</strong></td><td>变换扩样</td><td>等价 inject 先验 ("图像可平移翻转")</td></tr>
+<tr><td><strong>Label smoothing</strong></td><td>one-hot 改 $1-\epsilon$ / 各 $\epsilon/(K-1)$</td><td>防过度自信; 改善 calibration</td></tr>
+<tr><td><strong>Weight averaging</strong> (SWA, EMA)</td><td>训后/训中平均权重</td><td>减方差</td></tr>
+<tr><td><strong>Distillation</strong> (Hinton 2015)</td><td>soft target 来自 teacher</td><td>集成思想 + 隐式标签平滑</td></tr>
+</tbody></table>
+</div>
+<h3 id="54-双下降-double-descent-belkin-2019"><a class="header" href="#54-双下降-double-descent-belkin-2019">5.4 双下降 (double descent, Belkin 2019)</a></h3>
+<p>经典偏差-方差 U 形是单一峰; 实际深度学习在过参数化时, "test 风险继续下降":</p>
+<pre><code>risk
+  ↑
+  │  ╲              ╱── over-parameterized → ↓
+  │   ╲            ╱
+  │    ╲      interp╱
+  │     ╲     ●   ╱
+  │      ╲   ╱│╲ ╱
+  │       ╲ ╱ │ ╳
+  │        ●  │ ╳──   (second descent)
+  │            │
+  └─────────────→ model capacity
+   underfit  interp  over-param
+</code></pre>
+<p>数学解释: 当参数 $N \gg$ 样本 $n$ 时, 训练误差可达 0, 但在"最小 $L_2$ 范数解"附近的 implicit bias 让泛化仍良. 现代大模型在 right side of interp 训练.</p>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>"Double descent" 解释了: 为什么 GPT-3 175B 不能用经典 U-shape 偏差方差解释, 但训练后实际很泛化. 大模型这件事不是真理错误, 而是用错了上界.</p>
+</div>
+<h3 id="55-pac-学习一瞥"><a class="header" href="#55-pac-学习一瞥">5.5 PAC 学习一瞥</a></h3>
+<p>Probably Approximately Correct (Valiant 1984): 一类 $\mathcal{H}$ PAC-可学 iff 存在算法 $A$, 多项式样本与时间, 以 $\geq 1 - \delta$ 概率输出 $h \in \mathcal{H}$ 使 $R(h) \leq \epsilon + \min_h R(h)$, 任给 $\epsilon, \delta$.</p>
+<p>→ 把"学得动与否"形式化: 它不是"能否拟合", 而是"用什么样本复杂度能可证泛化".</p>
+<p>复杂度上限样本数 (回 Hoeffding 第零部分 §6.3): $n \geq \frac{1}{2\epsilon^2}\log(2|\mathcal{H}|/\delta)$.</p>
+<p>→ 直觉给了"快速高方差模型训练"应该重看 validation 的依据.</p>
+<hr />
+<h2 id="六最小可跑的回归--分类-pipeline-numpy-only"><a class="header" href="#六最小可跑的回归--分类-pipeline-numpy-only">六、最小可跑的回归 + 分类 pipeline (NumPy only)</a></h2>
+<pre><code class="language-python">import numpy as np
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+def logreg_train(X, y, lr=0.1, epochs=500):
+    n, d = X.shape
+    W = np.zeros(d); b = 0.0
+    for _ in range(epochs):
+        p = sigmoid(X @ W + b)
+        grad_W = X.T @ (p - y) / n   # 解析梯度: σ - y
+        grad_b = (p - y).mean()
+        W -= lr * grad_W; b -= lr * grad_b
+    return W, b
+
+def logreg_predict(X, W, b):
+    return (sigmoid(X @ W + b) &gt; 0.5).astype(int)
+
+if __name__ == "__main__":
+    from sklearn.datasets import make_moons
+    X, y = make_moons(200, noise=0.1, random_state=0)
+    W, b = logreg_train(X, y)
+    acc = (logreg_predict(X, W, b) == y).mean()
+    print(f"acc = {acc:.3f}")   # moons 非线性可分, 线性逻辑回归只能到 ~0.83
+    # 升到 MLP + tanh 就能拟合月牙
+</code></pre>
+<pre><code class="language-typescript">// 浏览器/Node 上的 toy logistic regression
+export function sigmoid(z: number): number { return 1 / (1 + Math.exp(-z)); }
+
+export function logregTrain(
+  X: number[][], y: number[],
+  lr = 0.1, epochs = 500,
+): { W: number[]; b: number } {
+  const n = X.length, d = X[0].length;
+  const W = new Array(d).fill(0); let b = 0;
+  for (let e = 0; e &lt; epochs; e++) {
+    const gW = new Array(d).fill(0); let gb = 0;
+    for (let i = 0; i &lt; n; i++) {
+      let s = b; for (let k = 0; k &lt; d; k++) s += X[i][k] * W[k];
+      const p = sigmoid(s); const r = p - y[i]; gb += r;
+      for (let k = 0; k &lt; d; k++) gW[k] += X[i][k] * r;
+    }
+    for (let k = 0; k &lt; d; k++) W[k] -= lr * gW[k] / n;
+    b -= lr * gb / n;
+  }
+  return { W, b };
+}
+</code></pre>
+<hr />
+<h2 id="七结束--速查表"><a class="header" href="#七结束--速查表">七、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回:</p>
+<ul>
+<li><strong>线性回归</strong>: $\beta^* = (X^\top X)^{-1} X^\top y$; 几何 = 投影; 概率 = Gaussian MLE.</li>
+<li><strong>加 Gaussian 先验</strong> → ridge; <strong>Laplacian</strong> → LASSO.</li>
+<li><strong>逻辑回归</strong>: $\hat p = \sigma(\beta^\top x)$; 损失 BCE; 反向梯度 $\hat p - y$.</li>
+<li><strong>多类 softmax + CE</strong>: 反向梯度 $s - \text{onehot}(y)$.</li>
+<li><strong>MLP</strong>: $W_2 \sigma(W_1 x + b_1) + b_2$; 万能近似 (但需训), 深比宽省参.</li>
+<li><strong>激活</strong>: 内部用 ReLU/GELU/SwiGLU (防饱和), 输出用 sigmoid/softmax (要概率).</li>
+<li><strong>损失即 NLL</strong>: 回归 MSE=Gaussian, 二元 BCE=Bernoulli, 多类 CE=Multinomial, 对比 NCE=softmax-negative, 生成 ELBO/扩散 noise-pred 都是.</li>
+<li><strong>正则</strong>: $L_2$ (ridge, 防过拟合, 平滑), $L_1$ (LASSO, 稀疏), Dropout (隐 ensemble), early stopping (隐 $L_2$), batch/layer norm (稳 + 隐正则).</li>
+<li><strong>泛化</strong>: $R \leq \hat R + \sqrt{\text{complexity}/n}$; double descent 解释过参模型仍泛化.</li>
+<li><strong>PAC</strong>: 多项式样本可证 $\epsilon$-optimal = "可学".</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="backprop.html">2. Backpropagation: 计算图 / 反向模式 AD / 雅可比链式 / 梯度检查</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../ai-ml/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../ai-ml/backprop.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../ai-ml/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../ai-ml/backprop.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

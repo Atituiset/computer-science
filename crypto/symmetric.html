@@ -1,0 +1,459 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>1. 对称加密: AES 与 ChaCha20 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="1-对称加密-aes-与-chacha20"><a class="header" href="#1-对称加密-aes-与-chacha20">1. 对称加密: AES 与 ChaCha20</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>对称加密 (symmetric encryption): 加/解密用<strong>同一把密钥</strong>. 业界两个 main 选手:</p>
+<ul>
+<li><strong>AES (Rijndael 2001)</strong> — SubBytes / ShiftRows / MixColumns / AddRoundKey 四步, 10-14 轮迭代. 硬件 (AES-NI) 指令, GB/s 量级.</li>
+<li><strong>ChaCha20 (Bernstein 2008)</strong> — ARX quarter-round 流密码, 无硬件加速也 GB/s. mobile/IoT 与 TLS 主流.</li>
+</ul>
+<p>读完此章你能在面试辨: 为何 AES 抗 differential 看每一轮 S-box's max differential probability; 为何 ChaCha20 用 quarter round + counter 保证每字节 keystream 不重写 (nonce+counter 任一是密文 byte 的 IV).</p>
+<hr />
+<h2 id="一加解密形式化"><a class="header" href="#一加解密形式化">一、加解密形式化</a></h2>
+<ul>
+<li>加密: $c = E_k(m)$, 解密: $m = D_k(c)$. 加密与解密均<strong>用同一密钥 $k$</strong>.</li>
+<li>现代对称加密基于 one-time pad 的理论: if keystream $S$ is uniform random 与 message 同长, ciphertext $c = m \oplus S$ 理论不可破. 现实不难造 $S$ — 真正随机 is hard.</li>
+<li>流密码 (ChaCha20, RC4, Salsa20): 用 PRG 从 short seed (key + nonce + counter) stretch 为 keystream $S$, $c = m \oplus S$.</li>
+<li>块密码 (AES): 用 PRP (pseudorandom permutation), 把 128-bit block 切成等价-keyed permutation. 用 modes (CBC/CTR/ECB/GCM) 扩展到任意长输入.</li>
+</ul>
+<hr />
+<h2 id="二aes-内部-spn-网络-substitution-permutation-network"><a class="header" href="#二aes-内部-spn-网络-substitution-permutation-network">二、AES 内部: SPN 网络 (Substitution-Permutation Network)</a></h2>
+<p>AES 处理 128-bit block; 密钥长 128, 192, 256 分别 10, 12, 14 轮.  每轮 4 步:</p>
+<ol>
+<li><strong>SubBytes</strong>: 16 字节逐个经过 8×8 S-box (查表). $x \to \text{SBox}[x]$.</li>
+<li><strong>ShiftRows</strong>: 按字节矩阵的每行循环左移 (0, 1, 2, 3 字节).</li>
+<li><strong>MixColumns</strong>: GF(2⁸) 上每列做矩阵乘.</li>
+<li><strong>AddRoundKey</strong>: ciphertext state $\oplus$ round key $k_i$.</li>
+</ol>
+<p>最后一轮跳 MixColumns (否则解密不安全).</p>
+<h3 id="21-s-box-设计依据"><a class="header" href="#21-s-box-设计依据">2.1 S-box 设计依据</a></h3>
+<p>AES S-box 不是随机表 — 是 $x \mapsto x^{-1}$ in GF(2⁸) 后接 affine map. 选择 inverse 因"低 differential/linear 概率":</p>
+<ul>
+<li>max differential prob ≈ 4/256, max linear prob ≈ 1/4; 都远低于随机 8-bit 函数.</li>
+</ul>
+<p>→ 抗 differential/linear cryptanalysis 的代数根.</p>
+<h3 id="22-mixcolumns"><a class="header" href="#22-mixcolumns">2.2 MixColumns</a></h3>
+<p>每列 4 字节, GF(2⁸) 上乘固定矩阵
+$$M = \begin{bmatrix} 2 &amp; 3 &amp; 1 &amp; 1 \ 1 &amp; 2 &amp; 3 &amp; 1 \ 1 &amp; 1 &amp; 2 &amp; 3 \ 3 &amp; 1 &amp; 1 &amp; 2\end{bmatrix}$$
+分支数 (branch number) = 5 (maximal for 4×4 binary matrix), 即每输入字节影响 5 个输出字节, 提供 diffusion.</p>
+<h3 id="23-keyschedule"><a class="header" href="#23-keyschedule">2.3 KeySchedule</a></h3>
+<p>Initial key → 第一轮 key derivation 推到下一轮; 每 4 字节recursive using S-box + Rcon (round constant) 防 symmetry.</p>
+<h3 id="24-aes-round-实施-python-style"><a class="header" href="#24-aes-round-实施-python-style">2.4 AES round 实施 (Python-style)</a></h3>
+<pre><code class="language-python">SBOX = [...]  # standard AES S-box.
+
+def aes_encrypt_block(block_16: bytes, round_keys: list[bytes]) -&gt; bytes:
+    assert len(block_16) == 16
+    state = bytearray(block_16)
+    for i in range(15):
+        sub_bytes(state)         # 1. S-box
+        shift_rows(state)         # 2. 
+        if i != 14:               # skip last MixColumns
+            mix_columns(state)     # 3.
+        add_round_key(state, round_keys[i + 1])  # 4.
+    return bytes(state)
+</code></pre>
+<p>让每个 128-bit block 加密成 1 个 cycle (16 字节 parallel GF mul). 现代 CPU AES-NI = <code>AESENC</code> 指令做以上四步.</p>
+<h3 id="25-aes-ni-硬件"><a class="header" href="#25-aes-ni-硬件">2.5 AES-NI 硬件</a></h3>
+<p>Intel 2010 Westmere 引入 AES-NI: <code>AESENC xmm1, xmm2</code> 直接做 1 round. AES-128 加密 ~1.3 cycle/byte, GB/s/copy. 现代 CPU 加密吞吐 5-10 GB/s core-parallel; GPU A100: 60+ GB/s.</p>
+<p>→ pure-software AES (~50-200 MB/s Python) 在没有 AES-NI 的 IoT 板上 bad 的 → 这就是 ChaCha20 的主场.</p>
+<hr />
+<h2 id="三chacha20-arx-流密码"><a class="header" href="#三chacha20-arx-流密码">三、ChaCha20: ARX 流密码</a></h2>
+<p>设计者 Bernstein 给 Salsa20 (2005) 改进版, RFC 7539 (2015) 收 HTTPS use. 用 256-bit key + 96-bit nonce + 32-bit counter; 每 block 64 字节 keystream.</p>
+<h3 id="31-internal-state-16-个-32-bit-words"><a class="header" href="#31-internal-state-16-个-32-bit-words">3.1 Internal state (16 个 32-bit words)</a></h3>
+<p>512-bit state:</p>
+<pre><code>const0 const1 const2 const3
+key0   key1   key2   key3
+key4   key5   key6   key7
+counter nonce0 nonce1 nonce2
+</code></pre>
+<p>前 4 是常数 "expand 32-byte k" split.</p>
+<h3 id="32-quarter-round-qr"><a class="header" href="#32-quarter-round-qr">3.2 Quarter Round (QR)</a></h3>
+<p>操作 4 个 state words:</p>
+<pre><code>a += b;  d ^= a;  d = ROL(d, 16);
+c += d;  b ^= c;  b = ROL(b, 12);
+a += b;  d ^= a;  d = ROL(d, 8);
+c += d;  b ^= c;  b = ROL(b, 7);
+</code></pre>
+<p>ARX (Add-Rotate-Xor): 所有操作寄存器可循环, 严密 anti-timing-side-channel by design.</p>
+<h3 id="33-double-round-column-qr--diagonal-qr"><a class="header" href="#33-double-round-column-qr--diagonal-qr">3.3 Double round: column QR + diagonal QR</a></h3>
+<p>20 轮 QR, 每 4 个 QR 处理三 row / 三列/diagonals 各一 (10 次 column + 10 次 diagonal).</p>
+<h3 id="34-输出"><a class="header" href="#34-输出">3.4 输出</a></h3>
+<p>最终 state + 原始 state (= 极小 key increment stream output), 这 64-byte XOR 与 message.</p>
+<h3 id="35-python-实现示意"><a class="header" href="#35-python-实现示意">3.5 Python 实现示意</a></h3>
+<pre><code class="language-python">import struct
+
+def rotl32(x, n):
+    return ((x &lt;&lt; n) | (x &gt;&gt; (32 - n))) &amp; 0xFFFFFFFF
+
+def quarter_round(s, a, b, c, d):
+    s[a] = (s[a] + s[b]) &amp; 0xFFFFFFFF; s[d] = rotl32(s[d] ^ s[a], 16)
+    s[c] = (s[c] + s[d]) &amp; 0xFFFFFFFF; s[b] = rotl32(s[b] ^ s[c], 12)
+    s[a] = (s[a] + s[b]) &amp; 0xFFFFFFFF; s[d] = rotl32(s[d] ^ s[a], 8)
+    s[c] = (s[c] + s[d]) &amp; 0xFFFFFFFF; s[b] = rotl32(s[b] ^ s[c], 7)
+
+def chacha20_block(key: bytes, counter: int, nonce: bytes) -&gt; bytes:
+    constants = b"expand 32-byte k"
+    s = list(struct.unpack("&lt;16I", constants + key + struct.pack("&lt;I", counter) + nonce))
+    init = s[:]
+    for _ in range(10):
+        quarter_round(s, 0, 4,  8, 12); quarter_round(s, 1, 5,  9, 13)
+        quarter_round(s, 2, 6, 10, 14); quarter_round(s, 3, 7, 11, 15)
+        quarter_round(s, 0, 5, 10, 15); quarter_round(s, 1, 6, 11, 12)
+        quarter_round(s, 2, 7,  8, 13); quarter_round(s, 3, 4,  9, 14)
+    out = [(init[i] + s[i]) &amp; 0xFFFFFFFF for i in range(16)]
+    return struct.pack("&lt;16I", *out)
+
+def chacha20_keystream(key: bytes, nonce: bytes, counter_start: int, length: int) -&gt; bytes:
+    out = b""
+    n = (length + 63) // 64
+    for i in range(n):
+        out += chacha20_block(key, counter_start + i, nonce)
+    return out[:length]
+
+def chacha20_xor(key: bytes, nonce: bytes, data: bytes, counter_start: int = 1) -&gt; bytes:
+    ks = chacha20_keystream(key, nonce, counter_start, len(data))
+    return bytes(a ^ b for a, b in zip(data, ks))
+</code></pre>
+<p>工程注意: Pure Python 5-20 MB/s, Go lib 100+ MB/s, modern CPU AVX 直 1-5 GB/s. Salsa20 family 在 WAN 圈善 landless 用, SHA-style throughput.</p>
+<hr />
+<h2 id="四aes-vs-chacha20-选型"><a class="header" href="#四aes-vs-chacha20-选型">四、AES vs ChaCha20 选型</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>AES-128-GCM</th><th>ChaCha20-Poly1305</th></tr></thead><tbody>
+<tr><td>加速</td><td>AES-NI: 5 GB/s</td><td>AVX2: 2-3 GB/s (无硬件一直)</td></tr>
+<tr><td>无硬件加速场景</td><td>30-50 MB/s</td><td>200+ MB/s</td></tr>
+<tr><td>Mobile/IoT</td><td>不友好 (no AES-NI)</td><td>友好</td></tr>
+<tr><td>256-bit 安全级</td><td>AES-256 直接</td><td>同 (32 byte key)</td></tr>
+<tr><td>Key/IV setup overhead</td><td>low</td><td>low (key 32B, nonce 12B)</td></tr>
+<tr><td>Counter 32-bit 大</td><td>Yes (counter + IV+block)</td><td>Yes, but requires careful nonce management (RFC 7539)</td></tr>
+<tr><td>Side channel safer</td><td>AES-NI instructions constant-time</td><td>算术 ARX inherently constant-time, ANY portable</td></tr>
+<tr><td>Wider use</td><td>TLS, IPsec, VPN,  disk encryption</td><td>TLS (Google), Signal, WireGuard, SSH</td></tr>
+</tbody></table>
+</div>
+<p>工程心智选: <strong>吾 AES-NI 占 95% PC/server</strong>, <strong>吾 mobile with weak AES arm ChaCha 选 WireGuard/Signal</strong>. Cloudflare 2019 paper 工程统计: TLS 1.3 ~17% ChaCha20, 83% AES-GCM; mobile traffic 中 ChaCha20 比例大幅高.</p>
+<hr />
+<h2 id="五block-cipher-attack-models--margin"><a class="header" href="#五block-cipher-attack-models--margin">五、Block Cipher Attack Models &amp; Margin</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>攻击</th><th>说明</th><th>AES 当前防御</th></tr></thead><tbody>
+<tr><td>differential (Biham-Shamir 1991)</td><td>找 differential trail with prob &gt; $2^{-}$ certificate 导致区分</td><td>4 round trail prob too low; full 10 round 攻击 ~$2^{254}$</td></tr>
+<tr><td>linear (Matsui 1993)</td><td>高 bias linear approximation 到 round 关联</td><td>full AES linear attack ~$2^{258}$ &gt; brute force</td></tr>
+<tr><td>integral (square attack)</td><td>用 byte-balanced input 的子 set 观察 after rounds 实际</td><td>full AES 防 6+ 轮有抗 integral 余</td></tr>
+<tr><td>related-key attack</td><td>key schedule.difficulty for AES-256 Astro 略弱, 仍 14 rounds 抵抗</td><td>AES-256 24-round key schedule 抵抗, key recovery ~$2^{254}$.</td></tr>
+<tr><td>side-channel (timing/power)</td><td>AES table walks leak memory write</td><td>AES-NI hardware bypass + constant-time 否 cache timing 选择</td></tr>
+</tbody></table>
+</div><div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>不要 homebrew AES — S-box 作 random table 时, table-lookup 真真创 cache timing leak. OvenSoft 公布 OpenSSL 2005 cache-timing AES attack: timing leak round ≥ 5 rounds 后 recover key. 永远 <code>use libcrypto / t crypto_aead_*</code> (libsodium) — done.</p>
+</div>
+<hr />
+<h2 id="六与-project-其他章节交叉"><a class="header" href="#六与-project-其他章节交叉">六、与 project 其他章节交叉</a></h2>
+<ul>
+<li><strong>complexity.md / approximation.md</strong>: NPC 算力不是现行攻击 RSA/AES 假设 base — 攻击 AES 用 specific algebraic attacks (AES 是 SPN 设计 by 具 differential 抵抗), factorzation is in NP∩co-NP (但 not NP-hard), whereas lattice LWE assumption base 现在 PQC.</li>
+<li><strong>os/lock/lockfree.md</strong>: constant-time 算术 = constant-time wait free algorithm — proper 上 identity.</li>
+<li><strong>os/net/zero-copy.md</strong>: TLS sendfile hotpath 芯 AES-NI + sendfile integrated 加速 NGINX 5×.</li>
+<li><strong>distributed/fault/erasure.md</strong>: Reed-Solomon code on GF(2⁸) 复用 AES field 的 FF inverse 构造.</li>
+</ul>
+<hr />
+<p>下一节 → <a href="modes.html">操作模式: ECB / CBC / CTR / GCM (AEAD)</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../crypto/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../crypto/modes.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../crypto/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../crypto/modes.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

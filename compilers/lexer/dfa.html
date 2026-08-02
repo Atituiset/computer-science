@@ -1,0 +1,489 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>正则 → NFA → DFA / 表驱动词法 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="正则--nfa--dfa--表驱动词法"><a class="header" href="#正则--nfa--dfa--表驱动词法">正则 → NFA → DFA / 表驱动词法</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>词法分析器 (Lexer/Scanner) 把源文本切成 token 流。常见做法是正则 → NFA (Thompson 构造) → DFA (子集构造) → 表驱动跳转。本节走完 Thompson NFA、power set DFA、最小化 (Hopcroft)、表驱动 vs <code>re2c</code> 直接生成 C 状态机、flex 的扩展 max-munch 规则、最长匹配、回溯 vs DFA 字符串字面量混合 lexer 实战。</p>
+<hr />
+<h2 id="一为什么正则--自动机"><a class="header" href="#一为什么正则--自动机">一、为什么正则 + 自动机</a></h2>
+<p>正则表达式 = regular language (Type-3 grammar in Chomsky hierarchy)，对应 NFA/DFA 描述。lexer 工作就是"识别 token 的有限状态机"。</p>
+<p>正则的"原子语言不描述 nesting"——这是为什么 parser 必须用上下文无关文法 (CFG, Chomsky Type-2)。下推下推栈。</p>
+<h2 id="二thompson-构造-nfa"><a class="header" href="#二thompson-构造-nfa">二、Thompson 构造 NFA</a></h2>
+<p>正则 e 转 ε-NFA recursive:</p>
+<pre><code>'a'            [start] --a--&gt; [accept]
+e1|e2          [start] --ε--&gt; NFA(e1)
+               [start] --ε--&gt; NFA(e2)
+                     accept(e1) / accept(e2)  --ε--&gt; [accept]
+e1e2           [start] --ε--&gt; NFA(e1).start
+               NFA(e1).accept --ε--&gt; NFA(e2).start
+               NFA(e2).accept --ε--&gt; [accept]
+e*             [start] --ε--&gt; NFA(e1).start
+               [start] --ε--&gt; [accept]
+               NFA(e1).accept --ε--&gt; NFA(e1).start  (回 loop)
+               NFA(e1).accept --ε--&gt; [accept]
+</code></pre>
+<p>每操作加 2 状态 (start + accept)。总 NFA 大小 O(|e|)。</p>
+<h2 id="三子集构造-nfa--dfa"><a class="header" href="#三子集构造-nfa--dfa">三、子集构造 NFA → DFA</a></h2>
+<pre><code>def subset_construction(nfa):
+    dfa_start = ε-closure(nfa.start)
+    dfa_states = [dfa_start]
+    dfa_transitions = {}
+    queue = [dfa_start]
+    while queue:
+        S = queue.pop()
+        for c in alphabet:
+            U = ε-closure(move(S, c))
+            if U not in dfa_states:
+                dfa_states.append(U)
+                queue.append(U)
+            dfa_transitions[S, c] = U
+    accept_states = [S for S in dfa_states if any(nfa.accept in S for s in S)]
+</code></pre>
+<p>最坏 O(2^n) 状态数（指数），但实际 lexspec 中表现好。</p>
+<h2 id="四hopcroft-最小化-dfa"><a class="header" href="#四hopcroft-最小化-dfa">四、Hopcroft 最小化 DFA</a></h2>
+<pre><code>def hopcroft(dfa):
+    P = {accepting, non-accepting}
+    W = {{accepting}, {non-accepting}}
+    while W:
+        A = W.pop()
+        for c in alphabet:
+            X = {s | move(s, c) in A}
+            refine P and W by split on X
+    return P
+</code></pre>
+<p>O(n log n) 时间。最小化后每状态语义更清晰。</p>
+<h2 id="五表驱动-lexer"><a class="header" href="#五表驱动-lexer">五、表驱动 lexer</a></h2>
+<pre><code class="language-c">// 状态表
+int transitions[MAX_STATES][256];  // ' ' = current state, char = next
+int is_accept[MAX_STATES];
+
+int lex() {
+    int state = 0;
+    int last_accept = -1;
+    int last_pos = 0;
+    char *p = input;
+    while (*p) {
+        state = transitions[state][(unsigned char)*p++];
+        if (is_accept[state]) {
+            last_accept = state;
+            last_pos = p - input;
+        }
+    }
+    return token_type[accept_state];
+}
+</code></pre>
+<p>特点：稳定、易生成；查表一个 byte lookup 几纳秒。LLVM tablegen / flex 生成该代码。</p>
+<h2 id="六re2c-直接生成-c-状态机"><a class="header" href="#六re2c-直接生成-c-状态机">六、<code>re2c</code> 直接生成 C 状态机</a></h2>
+<p>re2c 不做表 — 把 DFA 直接 emit C 代码：</p>
+<pre><code class="language-c">// re2c
+/*!re2c
+    [0-9]+  { return NUMBER; }
+    "if"    { return IF; }
+    [a-zA-Z_][a-zA-Z0-9_]* { return IDENT; }
+*/
+</code></pre>
+<p>转成:</p>
+<pre><code class="language-c">{
+    int yych = *cursor++;
+    switch (state) {
+    case 0:
+        if (yych &gt;= '0' &amp;&amp; yych &lt;= '9') goto state_num_1;
+        if (yych == 'i') goto state_kw_if_1;
+        ...
+    case state_num_1:
+        if (yych &gt;= '0' &amp;&amp; yych &lt;= '9') goto state_num_1;
+        else return NUMBER;
+    ...
+    }
+}
+</code></pre>
+<p>直接嵌入函数 — 比 flex 表驱动快 1.5-2x，无 indirect dispatch。PHP、ninja、Hack 用 re2c。</p>
+<h2 id="七flex-最古老"><a class="header" href="#七flex-最古老">七、flex (最古老)</a></h2>
+<p>flex 是 GNU lexer generator，基于 C 表驱动：</p>
+<ul>
+<li><code>%option</code> 控制 noyywrap / case-insensitive / never-interactive</li>
+<li>默认 POSIX lex 兼容</li>
+<li>输出 lex.yy.c，yylex() 主入口</li>
+</ul>
+<p>POSLEX 规则：</p>
+<ol>
+<li><strong>最长匹配 (max-munch)</strong>: 多 rule 命中 → 选最长 input 的</li>
+<li><strong>rule 优先</strong>: 同长 → 列文件中前 rule 优先</li>
+</ol>
+<pre><code class="language-c">"if"      return IF;
+[a-zA-Z]+ { return IDENT; }   // "ifx" 走这里而非 IF + X
+</code></pre>
+<h2 id="八关键场景-lexer-实战"><a class="header" href="#八关键场景-lexer-实战">八、关键场景 lexer 实战</a></h2>
+<h3 id="81-keyword-vs-identifier"><a class="header" href="#81-keyword-vs-identifier">8.1 Keyword vs Identifier</a></h3>
+<pre><code>"if"   rule_1:  return IF
+"iff"  (no rule)         → rule_2 IDENT  
+"ifx"  match IDENT       ← max-munch 让 "ifx" 全 ID，not IF + IDENT
+</code></pre>
+<h3 id="82-comment-嵌套"><a class="header" href="#82-comment-嵌套">8.2 Comment 嵌套</a></h3>
+<pre><code>/* outer /* inner comment */ 多嵌套 */
+</code></pre>
+<p>正则本身不足以处理嵌套。解决：状态机用 <code>start condition</code> (flex %x 区作用)：</p>
+<pre><code class="language-c">%x COMMENT
+%{
+    comment_depth = 0;
+%}
+%%
+"/*"     { BEGIN(COMMENT); comment_depth = 1; }
+&lt;COMMENT&gt;"/*"   { comment_depth++; }
+&lt;COMMENT&gt;"*/"   { if (--comment_depth == 0) BEGIN(INITIAL); }
+&lt;COMMENT&gt;.|\n    { /* skip */ }
+</code></pre>
+<h3 id="83-字符串字面量含转义"><a class="header" href="#83-字符串字面量含转义">8.3 字符串字面量含转义</a></h3>
+<pre><code class="language-c">\"([^\"\\]|\\.)*\"
+</code></pre>
+<p>正则描述即可，但 lexer 状态机模拟。flex 自身不需要 start condition 处理（正则够）。</p>
+<h3 id="84-here-doc-python-triple-quote"><a class="header" href="#84-here-doc-python-triple-quote">8.4 here-doc Python triple-quote</a></h3>
+<pre><code>"""multi line
+"""
+</code></pre>
+<p>用 start condition + construct buffer state 处理缩进敏感。</p>
+<h2 id="九错误恢复"><a class="header" href="#九错误恢复">九、错误恢复</a></h2>
+<p>lexer 错误恢复 minimalist:</p>
+<ul>
+<li>报错 row + col + 推进 1 byte</li>
+<li>继续给 parser</li>
+</ul>
+<p>NASal: lexer 多 case error 不行 (semantic 错在 parser/semant)。</p>
+<pre><code class="language-c">. {
+    fprintf(stderr, "lex error at %d:%d: char `%c'\n", line, col, *cursor);
+    cursor++;   // skip 1 char
+    continue;
+}
+</code></pre>
+<h2 id="十性能对比"><a class="header" href="#十性能对比">十、性能对比</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>工具</th><th>输出形式</th><th>性能</th><th>工</th></tr></thead><tbody>
+<tr><td>flex</td><td>表驱动 C</td><td>100 MB/s</td><td>类似</td></tr>
+<tr><td>re2c</td><td>直接 C 代码</td><td>200 MB/s</td><td>现代项目</td></tr>
+<tr><td>ANTLR4 lexer</td><td>Java/Go runtime</td><td>50 MB/s</td><td>易</td></tr>
+<tr><td>hand-written</td><td>switch-case + 状态 reg</td><td>200+ MB/s</td><td>high projects (Rust, V8)</td></tr>
+</tbody></table>
+</div>
+<p>V8 / Roslyn / rustc 全部 手写 lexer：状态用 switch，避免代码生成开销。</p>
+<h2 id="十一易错清单"><a class="header" href="#十一易错清单">十一、易错清单</a></h2>
+<ol>
+<li><strong>max-munch</strong>：longest match 不只是 first match</li>
+<li><strong>正则没记 count/嵌套</strong>：context-free 才行 (push down)</li>
+<li><strong>状态机 lookahead</strong> 常需 KMP-like 算法以不可回 (so-called <code>re2c : / = / gets flex yyless()</code>)</li>
+<li><strong>CRLF / LF / CR</strong> 跨平台换行 lexer 应处理</li>
+<li><strong>re2c <code>-b</code> <code>-c</code> <code>--case-insensitive</code></strong> 注意 case folded range (ASCII vs UTF-8)</li>
+<li><strong>lexer error recovery 通常 skip 1 char 不 strategy</strong></li>
+<li><strong>flex 中 <code>yyless(n)</code></strong> 把 n bytes 推回 input，但对 backtrack 有性能感</li>
+</ol>
+<h2 id="十二这一章带走的东西"><a class="header" href="#十二这一章带走的东西">十二、这一章带走的东西</a></h2>
+<ol>
+<li>正则 → NFA → DFA → min DFA 是 lexer 经典路径，O(n) worst-case 产 lexer 性能</li>
+<li>Thompson NFA 大小 O(|e|)，subset 构造最坏指数、实际 1.x 线性</li>
+<li>表驱动 (flex) vs 直接 C 状态机 (re2c) 性能差 1.5-2x</li>
+<li>max-munch + rule 优先级是 lexer 工具必要 POSIX 规则</li>
+<li>嵌套 / 复杂字符串字面量用 start condition (flex %x / re2c conditions)</li>
+<li>现代大编译器 (rustc/V8/Roslyn) 手写 lexer，省 codegen 开销</li>
+<li>错误恢复应保守 1 字符 forward 推进</li>
+</ol>
+<h2 id="下一节-"><a class="header" href="#下一节-">下一节 →</a></h2>
+<p><a href="unicode.html">Unicode、字符集、错误恢复</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../compilers/lexer/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../compilers/lexer/unicode.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../compilers/lexer/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../compilers/lexer/unicode.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

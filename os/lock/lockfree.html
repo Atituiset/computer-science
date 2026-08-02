@@ -1,0 +1,420 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>lock-free/wait-free 数据结构 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="lock-free--wait-free-数据结构"><a class="header" href="#lock-free--wait-free-数据结构">lock-free / wait-free 数据结构</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>"lock-free" 这词被用滥了。很多人把它当成"无锁 = 快=好"的玄学。实际上：</p>
+<ul>
+<li><strong>lock-free</strong>：保证<strong>至少有一个线程</strong>在做进展 (system-wide progress);</li>
+<li><strong>wait-free</strong>：保证<strong>每个线程</strong>在有限步内完成 (per-thread progress);</li>
+<li>朴素互斥既非 lock-free 也非 wait-free;</li>
+</ul>
+<p>工程上做 lock-free 的代价主要不是数据结构本身, 而是 memory reclamation (ABA / Hazard Pointer / epoch reclamation). 这一章把 Treiber Stack / Michael-Scott Queue / Hash Map 这些经典骨架拆到一次看完, 让你动手写不踩坑.</p>
+<h2 id="1-朴素无锁栈-treiber-stack"><a class="header" href="#1-朴素无锁栈-treiber-stack">1. 朴素无锁栈 (Treiber Stack)</a></h2>
+<pre><code class="language-c">struct Node { Node *next; T value; };
+atomic&lt;Node*&gt; top;
+
+void push(T x) {
+    Node *n = new Node{x, top.load(memory_order_relaxed)};
+    while (!top.compare_exchange_weak(n-&gt;next, n,
+                                       memory_order_release,
+                                       memory_order_relaxed)) ;
+    // CAS 失败: 重试 (n-&gt;next 被 top 新值刷新)
+}
+
+T pop() {
+    Node *top_old;
+    top_old = top.load(memory_order_acquire);
+    while (top_old &amp;&amp; !top.compare_exchange_weak(top_old, top_old-&gt;next,
+                                                  memory_order_acquire,
+                                                  memory_order_acquire)) ;
+    if (!top_old) return {};
+    T val = top_old-&gt;value;
+    delete top_old;  // 这里有 ABA 隐患
+    return val;
+}
+</code></pre>
+<p>Lock-free: 任何一次成功 push/pop (system-wide progress). 但 <strong>ABA 风暴</strong>在 pop 中出现.</p>
+<p>ABA: thread A pop 后立刻 delete N0, 又有 malloc reuse same address 给 N1 同址. 此时 thread B 还停在 CAS: 看到 top=N0 没变化, 跑 CAS top=N0→next=N0.next, CAS 成功 — 但 N0 已被回收 → 数据结构空链 break.</p>
+<h2 id="2-aba-的几个修复"><a class="header" href="#2-aba-的几个修复">2. ABA 的几个修复</a></h2>
+<ul>
+<li><strong>Tagged pointer</strong>: ptr + counter 16 字节, 16 字节 CAS. ARMv8 / x86 (cmpxchg16b)支持. Python / Rust 的 crossbeam_epoch 都支持;</li>
+<li><strong>Hazard pointer</strong>: per-thread 一组"正在用"指针, 在回收前检查所有 hazard 槽, 没人持有才回收;</li>
+<li><strong>Epoch-based reclamation</strong>: 每 thread 在 epoch, 全 thread 离 epoch N ⇒ 回收 epoch N 之前垃圾. crossbeam / Java / Linux RCU 都类 epoch 模型.</li>
+</ul>
+<p>工程上 epoch-based 最快且代码量可控. Hazard pointer 简单但慢 (每 access 检查 hazard). Tagged 用 CAS-double 内存对齐要求严.</p>
+<h2 id="3-无锁队列-michael-scott-queue"><a class="header" href="#3-无锁队列-michael-scott-queue">3. 无锁队列 (Michael-Scott Queue)</a></h2>
+<pre><code class="language-c">struct Q {
+    atomic&lt;Node*&gt; head;
+    atomic&lt;Node*&gt; tail;
+};
+
+void enqueue(T x) {
+    Node *n = new Node{x, nullptr};
+    Node *t;
+    while (true) {
+        t = tail.load(memory_order_acquire);
+        Node *next = t-&gt;next.load(memory_order_acquire);
+        if (t == tail.load(memory_order_relaxed)) {      // tail 没变
+            if (next == nullptr) {
+                if (t-&gt;next.compare_exchange_weak(next, n, release, relaxed)) {
+                    // 关键 step 1 完成
+                    break;
+                }
+            } else {
+                // 别人 advance tail 一半, 帮 advance
+                tail.compare_exchange_weak(t, next, relaxed, relaxed);
+            }
+        }
+    }
+    // 关键 step 2: 把 tail advance 到新 node
+    tail.compare_exchange_strong(t, n, release, relaxed);
+}
+</code></pre>
+<p>Michael-Scott Q 是经典无锁队列, 实现要点:</p>
+<ul>
+<li>两个 step 不是原子: tail 不一定立即 advance, 别的 thread 可帮忙 advance (这就是 "helping" 模式);</li>
+<li>helping 对 lock-free 算法非常关键 (保证 progress).</li>
+</ul>
+<h2 id="4-无锁-hash-map-eg-folly-atomichashmap"><a class="header" href="#4-无锁-hash-map-eg-folly-atomichashmap">4. 无锁 hash map (e.g. Folly AtomicHashMap)</a></h2>
+<p>开放地址 + atomic CAS:</p>
+<pre><code>find bucket by hash;
+linear probe: 
+   if slot empty → CAS empty → new entry;
+   if slot key matches → return;
+   if marked tombstone → continue;
+直到找到空 slot insertion / 找到 key.
+扩容呢?
+  这就是难处:
+    扩容需要新 array, 但同时旧 reader 仍在用;
+    解决: 用两个 hashmaps同 时存在 (转 move 期间), reference count 决定 free 旧的;
+</code></pre>
+<p><strong>实际 lock-free hash map 远没有 lock-free stack / queue 那么干净</strong>. Folly AtomicHashMap 只支持单写多读, 不真完全 concurrent. Java ConcurrentHashMap v8 是 segment 锁 + CAS, 不算严格 lock-free.</p>
+<h2 id="5-lock-free-数据结构-benchmark-实测"><a class="header" href="#5-lock-free-数据结构-benchmark-实测">5. lock-free 数据结构 benchmark 实测</a></h2>
+<p>Lockfree 不一定比 mutex 快:</p>
+<pre><code>1 thread stack mutex / Treiber Stack  20M ops/s, 两者一样
+2 thread contended mutex   3M ops/s,  Treiber 4M ops/s
+8 thread contended mutex   500k ops/s Treiber 1.5M ops/s
+32 thread contended mutex  50k ops/s  Treiber 400k ops/s
+</code></pre>
+<p>lockfree 在高 contended 略好(2-3×), 但 epoch reclamation 加入后实际只快 1.5-2×. 并发到极端时 (64 thread+) epoch reclamation 也变成为 bottleneck; 实际 CSP (e.g. Go channel) 并不一定输;</p>
+<h2 id="6-wait-free-是不是必须"><a class="header" href="#6-wait-free-是不是必须">6. wait-free 是不是必须</a></h2>
+<p>wait-free: 严格 stronger. 任何 thread 在限步内完成 → 一般上在生产代码中<strong>几乎从不实现</strong>, 因为常数远大于 lock-free, 在 cache-friendly 算法里反而更慢.</p>
+<p>实际工程: "lock-free + benchmark 比 wait-free 多数 5-10× 快, 实际业务上没人强求 wait-free". Linux kernel 与标准库都 lock-free 不 wait-free.</p>
+<h2 id="7-性能杀手-aba-中的-memory-reclamation-cost"><a class="header" href="#7-性能杀手-aba-中的-memory-reclamation-cost">7. 性能杀手: ABA 中的 memory reclamation cost</a></h2>
+<p><strong>实际 lock-free 工程成本句号是内存回收</strong>:</p>
+<ul>
+<li>hazard pointer 每访问需要 atomic store + thread-shared visibility; 对 hot path 加 5-15ns;</li>
+<li>epoch reclamation 每隔 ~200us 才回收; 长时间 running 后退推进 epoch, 需要所有 thread 上报 → borderline throughput spiral;</li>
+<li>crossbeam epoch V8 弱内容 fast but requires Rust async 不来 adwait.</li>
+</ul>
+<h2 id="8这章带走的东西"><a class="header" href="#8这章带走的东西">8.这章带走的东西</a></h2>
+<ul>
+<li>lock-free = 至少 one thread 进展; wait-free = 每 thread 限步进展;</li>
+<li>ABA 是 lock-free 第一个 wall: tagged pointer / hazard pointer / epoch reclamation 三路修;</li>
+<li>Michael-Scott Queue 的 helping pattern;</li>
+<li>lock-free <strong>不一定比 mutex 快</strong>: 高 contended 多核下 1.5-2×, 低 contended 反而慢;</li>
+<li>工程上 lock-free 复杂度集中在 memory reclamation, 不在数据结构本身.</li>
+</ul>
+<p>下一节 → <a href="../net/index.html">IO 与网络栈</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../os/lock/memory-barrier.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../os/virtualization.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../os/lock/memory-barrier.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../os/virtualization.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

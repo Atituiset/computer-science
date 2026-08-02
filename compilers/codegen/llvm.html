@@ -1,0 +1,546 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>LLVM / cranelift 设计 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="llvm-ir--selectiondag--指令选择"><a class="header" href="#llvm-ir--selectiondag--指令选择">LLVM IR / SelectionDAG / 指令选择</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>LLVM IR 是 SSA-based 的 typed 三地址中间表示，是 LLVM 编译流水线的"通用语言"。前端 (Clang、rustc、flang) 把源码翻译成 LLVM IR；后端把 IR 翻译成机器码，中间靠 <strong>SelectionDAG</strong> 做多 → 一的指令选择——把一个 basic block 的 SSA 节点打包成 DAG、用 tree-pattern 覆盖选最便宜的指令模板、再 legalizes 不支持的类型/操作到更小的指令序列。理解 SelectionDAG 是理解"为什么编译器生成那种神仙机器码"的入口。</p>
+<hr />
+<h2 id="一llvm-ir"><a class="header" href="#一llvm-ir">一、LLVM IR</a></h2>
+<h3 id="形式"><a class="header" href="#形式">形式</a></h3>
+<pre><code class="language-llvm">define i32 @add(i32 %a, i32 %b) {
+entry:
+  %sum = add i32 %a, %b
+  ret i32 %sum
+}
+</code></pre>
+<p>属性：</p>
+<ul>
+<li><strong>Static Single Assignment</strong>: 每个虚拟寄存器只被赋值一次</li>
+<li><strong>Typed</strong>：<code>i32</code>、<code>i64</code>、<code>f64</code>、<code>{i32, i8*}</code> 结构体；type 由前端给出</li>
+<li><strong>Three-address</strong>: 大多数指令形式 <code>%dst = op &lt;type&gt; %a, %b</code></li>
+<li><strong>Basic blocks</strong>: 一个函数有若干 block，block 内线性，block 之间通过 <code>br</code> 跳转</li>
+</ul>
+<h3 id="类型"><a class="header" href="#类型">类型</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>类型</th><th>用途</th></tr></thead><tbody>
+<tr><td><code>i1</code></td><td>布尔</td></tr>
+<tr><td><code>i32</code>, <code>i64</code></td><td>整数</td></tr>
+<tr><td><code>f32</code>, <code>f64</code></td><td>IEEE 浮点</td></tr>
+<tr><td><code>&lt;4 x float&gt;</code></td><td>SIMD vector</td></tr>
+<tr><td><code>ptr</code></td><td>不透明指针 (LLVM 15 起，取代 <code>i8*</code> etc.)</td></tr>
+<tr><td><code>[N x T]</code></td><td>数组</td></tr>
+<tr><td><code>{T1, T2, ...}</code></td><td>结构体</td></tr>
+<tr><td><code>%Name = type { ... }</code></td><td>命名结构体</td></tr>
+</tbody></table>
+</div>
+<h3 id="指令一览"><a class="header" href="#指令一览">指令一览</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>指令</th><th>语义</th></tr></thead><tbody>
+<tr><td><code>%r = add i32 %a, %b</code></td><td>加</td></tr>
+<tr><td><code>%r = fadd fast float %a, %b</code></td><td>浮点加速模式 (允许重排)</td></tr>
+<tr><td><code>%r = load i32, ptr %p</code></td><td>内存读</td></tr>
+<tr><td><code>store i32 %v, ptr %p</code></td><td>内存写</td></tr>
+<tr><td><code>%r = getelementptr [10 x i32], ptr %arr, i32 0, i32 %i</code></td><td>计算 <code>&amp;arr[i]</code>，不实际读内存</td></tr>
+<tr><td><code>%r = call i32 @foo(i32 %x)</code></td><td>调用</td></tr>
+<tr><td><code>br label %next</code></td><td>无条件跳转</td></tr>
+<tr><td><code>br i1 %cond, label %true_b, label %false_b</code></td><td>条件跳转</td></tr>
+<tr><td><code>%r = phi i32 [ %a, %bb1 ], [ %b, %bb2 ]</code></td><td>φ 节点</td></tr>
+<tr><td><code>%r = alloca i32</code></td><td>栈分配</td></tr>
+<tr><td><code>ret i32 %r</code></td><td>返回</td></tr>
+</tbody></table>
+</div>
+<h3 id="一个循环例子"><a class="header" href="#一个循环例子">一个循环例子</a></h3>
+<pre><code class="language-c">int sum_arr(int *a, int n) {
+    int s = 0;
+    for (int i = 0; i &lt; n; i++)
+        s += a[i];
+    return s;
+}
+</code></pre>
+<p>→ LLVM IR：</p>
+<pre><code class="language-llvm">define i32 @sum_arr(ptr nocapture %a, i32 %n) {
+entry:
+  br label %loop.cond
+
+loop.cond:
+  %i = phi i32 [ 0, %entry ], [ %next_i, %loop.body ]
+  %s = phi i32 [ 0, %entry ], [ %next_s, %loop.body ]
+  %cmp = icmp slt i32 %i, %n
+  br i1 %cmp, label %loop.body, label %loop.end
+
+loop.body:
+  %idx = getelementptr i32, ptr %a, i32 %i
+  %v = load i32, ptr %idx
+  %next_s = add i32 %s, %v
+  %next_i = add i32 %i, 1
+  br label %loop.cond
+
+loop.end:
+  ret i32 %s
+}
+</code></pre>
+<p>观察：</p>
+<ul>
+<li><code>s</code> 和 <code>i</code> 是 SSA 值，每次循环 <code>phi</code> 在 loop header 处选 entry 版本或 backedge 版本</li>
+<li><code>nocapture</code> 标注 <code>a</code> 的指针不会逃逸（来自 IPA），有助于下游别名分析</li>
+<li><code>getelementptr</code> (GEP) 只算地址不读内存——LLVM 把指针算术从整数算术里独立出，便于 alias analysis</li>
+</ul>
+<hr />
+<h2 id="二selectiondag"><a class="header" href="#二selectiondag">二、SelectionDAG</a></h2>
+<h3 id="为什么不用-ir-直接生成机器码"><a class="header" href="#为什么不用-ir-直接生成机器码">为什么不用 IR 直接生成机器码？</a></h3>
+<p>LLVM IR 是 SSA 的、跨架构的；机器指令是 CISC/RISC 的、有特殊限制。例如：</p>
+<ul>
+<li>x86 <code>add</code> 是 2-op dest-1st form（<code>add rax, rbx</code> → 写 rax）</li>
+<li>ARM64 大部分三操作数 <code>add x0, x1, x2</code></li>
+<li>x86 的 <code>imul</code> 是 IMUL 3-operand，但 <code>mul</code> (1-operand) 把结果放 dx:ax</li>
+<li>ARM64 有 SIMD load 配对寄存器 vs scalar load 单独单元</li>
+</ul>
+<p>直接逐条 IR 翻译出指令往往不优。<strong>SelectionDAG</strong> 把一个 basic block 一个 DAG，用 tree-pattern 的最便宜覆盖选机器指令。</p>
+<h3 id="dag-构造"><a class="header" href="#dag-构造">DAG 构造</a></h3>
+<p>IR basic block 的指令序 → 依赖图（def-use chain 形成的 DAG）。比如：</p>
+<pre><code>  %i  = phi ...
+  %idx = gep i32, ptr %a, i32 %i
+  %v = load i32, ptr %idx
+  %next = add i32 %v, %i
+</code></pre>
+<p>DAG：</p>
+<pre><code>                ADD
+               /   \
+            LOAD   (use of i)
+             |
+           GEP
+          /   \
+        %a    (use of i)
+</code></pre>
+<p>DAG node 类型：<code>add</code>, <code>sub</code>, <code>mul</code>, <code>load</code>, <code>store</code>, <code>br</code>, <code>phi</code>, <code>GEP</code>, <code>Constant</code>, <code>Register</code>, <code>EntryToken</code>, <code>TokenFactor</code> (chain for side effects)...</p>
+<h3 id="tree-pattern-匹配"><a class="header" href="#tree-pattern-匹配">Tree-Pattern 匹配</a></h3>
+<p>每个 target 定义一套 <strong>patterns</strong>——IR 操作 + operand shape → 一条机器指令 + cost：</p>
+<pre><code>// Target X86 .td
+def : Pat&lt;(add GR32:$src1, GR32:$src2),
+          (ADD32rr GR32:$src1, GR32:$src2)&gt;;
+def : Pat&lt;(add GR32:$src1, (load addr:$src2)),
+          (ADD32rm GR32:$src1, addr:$src2)&gt;;        ; load + add 合并
+</code></pre>
+<p>第二个 pattern 把 "add 一个加载值" 合并成一条 <code>ADD rm</code> 指令——避免单独的 load + add。</p>
+<p>DAgger 用 <strong>Burg-style dynamic programming on DAG</strong>: 自底向上为每个 node 计算每种指令模式的 cost，递归选最优。复杂度 O(N) per basic block.</p>
+<h3 id="dag-legalization"><a class="header" href="#dag-legalization">DAG Legalization</a></h3>
+<pre><code class="language-llvm">%r = add i128 %a, %b
+</code></pre>
+<p>目标架构如果是 x86-64 没有 i128 寄存器——support 不直接。Legalize pass 把 i128 加法拆成两条 64bit 加法：</p>
+<pre><code>add rax, rcx       ; low 64
+adc rdx, rdi       ; high 64, with carry
+</code></pre>
+<p>Legalize 类型:</p>
+<ol>
+<li><strong>Type Legalization</strong>：超大类型拆成多次小操作。</li>
+<li><strong>Op Legalization</strong>：x86 没有直接 SSE 的 <code>fneg</code> → 用 <code>xor %xmm, [SIGN_BIT_MASK]</code> 替代。</li>
+<li><strong>Vec Legalization</strong>：把 <code>&lt;8 x float&gt;</code> 拆成两条 <code>&lt;4 x float&gt;</code> SSE 操作。</li>
+</ol>
+<h3 id="dag--machineinstr"><a class="header" href="#dag--machineinstr">DAG → MachineInstr</a></h3>
+<p>DAG 选完 node 后，** legalize selection** 输出 linear sequence <code>MachineInstr</code>：</p>
+<pre><code>%r1 = MOV32rm &lt;frame&gt;     ; load
+%r2 = ADD32rr %r1, %i
+</code></pre>
+<p>MachineInstr 仍是虚拟寄存器，没有绑定到物理寄存器——这步交给<strong>寄存器分配</strong> (见 <a href="regalloc.html">regalloc.md</a>)。</p>
+<hr />
+<h2 id="三machine-function-pass-manager"><a class="header" href="#三machine-function-pass-manager">三、Machine Function Pass Manager</a></h2>
+<p>SelectionDAG 后是 Machine Function Pass** 串：</p>
+<div class="table-wrapper"><table><thead><tr><th>Pass</th><th>作用</th></tr></thead><tbody>
+<tr><td><code>Prolog/Epilog Insertion</code></td><td>添加函数 prologue (push rbp; save callee-saved) 和 epilogue</td></tr>
+<tr><td><code>Register Allocator</code></td><td>虚拟寄存器 → 物理寄存器 + spill 提出</td></tr>
+<tr><td><code>Instruction Scheduling</code></td><td>指令顺序优化 (List Scheduling)</td></tr>
+<tr><td><code>Branch Folding</code></td><td>删除空 basic block + 合并相邻无条件跳</td></tr>
+<tr><td><code>Peephole</code></td><td>局部模式替换，比如 <code>mov r1, r2; mov r2, r1</code> 删第二行</td></tr>
+</tbody></table>
+</div>
+<p>这些 pass 都是 target-specific 通过 <code>TargetInstrInfo</code> 接口暴露 hook 给 generic pass。</p>
+<hr />
+<h2 id="四fastisel"><a class="header" href="#四fastisel">四、FastISel</a></h2>
+<p>SelectionDAG 全方位但慢——对大函数编译时间显著。LLVM 同时有 <strong>FastISel</strong>: simple direct translation，不优化但快——<code>-O0</code> 调试构建用 FastISel，省时间。</p>
+<p>GlobalISel 是新一代统一的指令选择器（基于 IR-level pattern matching + legalizer → bank selector → reg alloc-related），现代 ARM target 推。</p>
+<hr />
+<h2 id="五codegen-性能实例对比"><a class="header" href="#五codegen-性能实例对比">五、Codegen 性能：实例对比</a></h2>
+<h3 id="自动-vec"><a class="header" href="#自动-vec">自动 vec</a></h3>
+<pre><code class="language-c">void add(float *a, float *b, float *c, int n) {
+    for (int i = 0; i &lt; n; i++) c[i] = a[i] + b[i];
+}
+</code></pre>
+<p>LLVM SelectionDAG 在 X86 target 上 pattern-matched:</p>
+<ol>
+<li>IR vec 后 → <code>&lt;4 x float&gt; add</code> → <code>ADDPS</code></li>
+<li>Legalize <code>&lt;4 x float&gt;</code> → SSE/AVX</li>
+<li>load 中 <code>getelementptr</code> folded 进 SIMD load pattern</li>
+</ol>
+<pre><code class="language-asm">.LBB0_8:
+  vmovups ymm0, [rdi + 4*rax]
+  vmovups ymm1, [rsi + 4*rax]
+  vaddps  ymm0, ymm0, ymm1
+  vmovups [rdx + 4*rax], ymm0
+  add rax, 8
+  cmp rax, rcx
+  jl .LBB0_8           ; AVX2 8 性能 8 个 float per iter
+</code></pre>
+<h3 id="不向量化版本"><a class="header" href="#不向量化版本">不向量化版本</a></h3>
+<p>把 <code>c[i] = a[i] + b[i]</code> 改成带 pointer alias 时:</p>
+<pre><code class="language-c">void add_alias(float *a, float *b, float *c, int n) {
+    for (int i = 0; i &lt; n; i++) {
+        c[i] = a[i] * 2;
+        a[i] = c[i - 1]; // 假 alias，c[i-1] 依赖 c[i-1]
+    }
+}
+</code></pre>
+<p>→ 没向量化。LLVM 标无法 prove no-alias → fall back to scalar。</p>
+<hr />
+<h2 id="六llvm-ir-是软件工程师的工具"><a class="header" href="#六llvm-ir-是软件工程师的工具">六、LLVM IR 是软件工程师的工具</a></h2>
+<p>很多大项目直接用 LLVM IR：</p>
+<div class="table-wrapper"><table><thead><tr><th>项目</th><th>用途</th></tr></thead><tbody>
+<tr><td><strong>Rust</strong></td><td>把 Rust MIR 翻译成 LLVM IR，借 LLVM 优化器</td></tr>
+<tr><td><strong>Julia</strong></td><td>JIT 编译时直接生成 LLVM IR</td></tr>
+<tr><td><strong>Halide</strong></td><td>数字图像处理 DSL，定义 schedule 后 emit LLVM IR</td></tr>
+<tr><td><strong>GPU NVVM</strong></td><td>基于 LLVM IR 的 NVPTX backend</td></tr>
+<tr><td><strong>Cranelift</strong></td><td>WASM runtime 的 IR (独立设计，但概念同 LLVM)</td></tr>
+<tr><td><strong>WASM SIMD</strong></td><td>LLVM IR 上 vector op 映射到 WASM SIMD 指令</td></tr>
+</tbody></table>
+</div>
+<p>LLVM IR 在工业里这么红是因为它<strong>丰富、稳定、配套生态完整</strong>——同时是 cross-target API，又是优化 pass 的输入格式，又是 JIT 的快通道。<strong>工程师会读 LLVM IR 是和编译器对话的关键技能</strong>——<code>clang -S -emit-llvm foo.c -o -</code> 看 IR、<code>godbolt.org</code> 看对应汇编，调优起步。</p>
+<hr />
+<h2 id="七易错清单"><a class="header" href="#七易错清单">七、易错清单</a></h2>
+<ol>
+<li><strong>LLVM IR SSA 在 exception 边界</strong>：landingpad 节点处需要特殊处理；C try/catch + patchpoint 的 unwind 表必须正确。</li>
+<li><strong><code>getelementptr</code> 的 inbounds</strong>：标 <code>inbounds</code> 表示没溢出，编译器更激进做 alias analysis；错标会 silent UB。</li>
+<li><strong><code>nocapture</code> 错标 → caller 错期望 callee 不存指针</strong>：bigfoot 性能 bug。LLVM 的 <code>_ARG nocapture</code> 由 <code>inferattrs</code> pass 自动推。</li>
+<li><strong>SelectionDAG 与 GlobalISel 不可同时用</strong>：target 选其一；现代 AArch64 默认 GlobalISel 实验。</li>
+<li><strong>Debug info 与优化 pass 同步</strong>：老 LLVM 版本 <code>O2</code> 把变量位置打飞 → debugger 乱跳行号。Location-tracking 改进。</li>
+</ol>
+<hr />
+<h2 id="八等等-x86-翻译"><a class="header" href="#八等等-x86-翻译">八、等等 X86 翻译：</a></h2>
+<h3 id="关于-llvm-ir-与-selectiondag"><a class="header" href="#关于-llvm-ir-与-selectiondag">关于 LLVM IR 与 SelectionDAG</a></h3>
+<p><strong>LLVM IR</strong> 在 SSA 上做 machine-independent 优化；<strong>SelectionDAG</strong> 在 per-basic-block 上做指令选择，把 IR 翻译成 MachineInstr(虚拟寄存器阶段) → 寄存器分配 → 机器码。</p>
+<p>这是 LLVM 的核心架构**——它让"IR 优化 pass"与"后端指令选择"解耦：第三方 target 不用重写所有 opt pass，只用写 <code>.td</code> pattern + legalizer hook 就上 LLVM 生态。</p>
+<h3 id="例把-llvm-ir-的-add-i32-在-risc-v-上选择指令"><a class="header" href="#例把-llvm-ir-的-add-i32-在-risc-v-上选择指令">例：把 LLVM IR 的 <code>add i32</code> 在 RISC-V 上选择指令</a></h3>
+<pre><code>; RISC-V 64 target
+%r = add i32 %a, %b
+</code></pre>
+<p>RISC-V <code>.td</code>:</p>
+<pre><code>def : Pat&lt;(add GPR:$src1, GPR:$src2),
+          (ADD GPR:$src1, GPR:$src2)&gt;;
+</code></pre>
+<p>SelectionDAG → MachineInstr:</p>
+<pre><code>%r = ADD %a, %b
+</code></pre>
+<p>Reg alloc 后:</p>
+<pre><code>add a0, a1, a2             ; a0/a1/a2 = RISC-V 寄存器约定
+</code></pre>
+<p>emit binary:</p>
+<pre><code>00000000 00100001 00000001 00110011   ; add a0, a1, a2 编码
+</code></pre>
+<hr />
+<h2 id="这一章带走的东西"><a class="header" href="#这一章带走的东西">这一章带走的东西</a></h2>
+<ol>
+<li>LLVM IR 是 SSA-based、typed、跨架构的中间表示——前端 emit、后端 translate。</li>
+<li>SelectionDAG 用 tree-pattern dynamic programming 选最便宜的机器指令模板。</li>
+<li>Legalize 把 IR 上启发式不支持的类型/操作拆成目标架构支持的指令序列。</li>
+<li>Machine Function Pass 一串：prolog/epilog insert + reg alloc + sched + peephole。</li>
+<li>LLVM IR 是工程师的"和编译器对话"工具，会读 IR 是性能调优的入门门槛。</li>
+</ol>
+<hr />
+<p>下一节 → <a href="regalloc.html">寄存器分配</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../compilers/codegen/regalloc.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../compilers/codegen/jit.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../compilers/codegen/regalloc.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../compilers/codegen/jit.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

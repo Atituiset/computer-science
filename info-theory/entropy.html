@@ -1,0 +1,459 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>1. Shannon Entropy: 离散源熵 / 联合熵 / 条件熵 / 互信息 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="1-shannon-entropy-离散源熵--联合熵--条件熵--互信息"><a class="header" href="#1-shannon-entropy-离散源熵--联合熵--条件熵--互信息">1. Shannon Entropy: 离散源熵 / 联合熵 / 条件熵 / 互信息</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>熵 $H(X)$ = 信源 $X$ 的<strong>平均</strong>不确定度 (字 bit-by-bit 平 TG 系统 coap 联接中, 必分布在平均未发生" leagues 触少 MB; something. per second waiting ). 它是:</p>
+<p>$$H(X) = -\sum_{x} p(x) \log_2 p(x)$$</p>
+<p>扩展到联合 ($H(X, Y)$), 条件 ($H(Y|X)$), <strong>互信息 $I(X;Y) = H(X) - H(X|Y)$</strong> 即"因为我已知 $X$, $Y$ 的不确定减少了多少". 熵是所有后续章节 (压缩极限, 容量) 的源头.</p>
+<hr />
+<h2 id="一为什么用--log-p"><a class="header" href="#一为什么用--log-p">一、为什么用 $-\log p$</a></h2>
+<p>Shannon 一开始提"信息量" $I(x) = -\log_2 p(x)$: 概率小的事件发生让我们"惊讶大", 信息量大. 几个 desirable properties 唯一确定:</p>
+<ol>
+<li>$I(x) \geq 0$.</li>
+<li>$I(x)$ 随 $p \to 0$  → $\infty$.</li>
+<li>$I(x) = 0$ iff $p(x) = 1$.</li>
+<li>独立事件叠加: $I(x, y) = I(x) + I(y)$ if independent.</li>
+</ol>
+<p>唯一 $f$ 满足所有: $f(x) = -\log_b x$ (任意对数底). 默认 $b = 2$ 取 bit.</p>
+<p><strong>期望</strong>: $H(X) = E[I(X)] = -\sum p(x) \log p(x)$.</p>
+<hr />
+<h2 id="二examples-起手"><a class="header" href="#二examples-起手">二、Examples 起手</a></h2>
+<h3 id="21-公平硬币--高度偏"><a class="header" href="#21-公平硬币--高度偏">2.1 公平硬币 + 高度偏:</a></h3>
+<ul>
+<li>Fair coin: $H = -2 \cdot (1/2) \log(1/2) = 1$ bit.</li>
+<li>Loaded coin $P(H)=0.99$: $H = -0.99 \log 0.99 - 0.01 \log 0.01 \approx 0.081$ bit.</li>
+</ul>
+<p>→ 偏源册的熵远低 (实际每 toss 真正"惊喜"少).</p>
+<h3 id="22-ascii-英文"><a class="header" href="#22-ascii-英文">2.2 ASCII 英文</a></h3>
+<p>英文 26 字母 (空格 + punctuation) variate 很多: empirical 熵 (字天然统计) $H \approx 4.5$ bit/char 但 raw 8 bit/char ⇒ 冗余 44%.</p>
+<p>Shannon 1951 估 English word (条件 char-by-char) 实际熵 ≈1.3 bit/char ⇒ 总冗余 84%.</p>
+<p>→ 这就是英文 真可压缩到 1/6 原文 size, 实现上 zstd / brotli 接到 1/4 ~ 1/5 之 size.</p>
+<h3 id="23-python-计算"><a class="header" href="#23-python-计算">2.3 Python 计算</a></h3>
+<pre><code class="language-python">from collections import Counter
+from math import log2
+
+def empirical_entropy(text: str) -&gt; float:
+    counts = Counter(text)
+    n = len(text)
+    return -sum(c / n * log2(c / n) for c in counts.values())
+
+print(empirical_entropy("the quick brown fox jumps over the lazy dog"))
+# ~4.4 bit/char
+</code></pre>
+<hr />
+<h2 id="三联合熵-hx-y"><a class="header" href="#三联合熵-hx-y">三、联合熵 $H(X, Y)$</a></h2>
+<p>$$H(X, Y) = -\sum_{x, y} p(x, y) \log p(x, y)$$</p>
+<p>是, 即同时出现"X 取 $x$ 且 Y 取 $y$"的不确定度.</p>
+<h3 id="31-性质"><a class="header" href="#31-性质">3.1 性质</a></h3>
+<ul>
+<li>$H(X, Y) \leq H(X) + H(Y)$ (subj. 独立时取等).</li>
+<li>$H(X, Y) = H(Y, X)$ (对称).</li>
+<li>$H(X, Y) \geq \max(H(X), H(Y))$ (knowing 不会 make more uncertain).</li>
+</ul>
+<hr />
+<h2 id="四条件熵-hyx"><a class="header" href="#四条件熵-hyx">四、条件熵 $H(Y|X)$</a></h2>
+<p>$$H(Y|X) = \sum_x p(x) H(Y|X=x) = -\sum_{x, y} p(x, y) \log p(y|x)$$</p>
+<p>"已知 $X$ 的情况下 $Y$ 还剩多少不确定".</p>
+<h3 id="41-链式法则"><a class="header" href="#41-链式法则">4.1 链式法则</a></h3>
+<p>$$H(X, Y) = H(X) + H(Y|X)$$</p>
+<p>Example: $X$ = "今日天气", $Y$ = "明天天气". $H(X, Y) = H(X) + H(Y|X)$ = "今日不确定 + 已知今日的明日增量".</p>
+<h3 id="42-信息不在-x-完美预测-y"><a class="header" href="#42-信息不在-x-完美预测-y">4.2 信息不在 $X$ 完美预测 $Y$</a></h3>
+<ul>
+<li>若 $Y = f(X)$ 确定性: $H(Y|X) = 0$.</li>
+<li>反之 $X \perp Y$: $H(Y|X) = H(Y)$.</li>
+</ul>
+<h3 id="43-性质"><a class="header" href="#43-性质">4.3 性质</a></h3>
+<ul>
+<li>$H(Y|X) \leq H(Y)$ (knowing $X$ 不会增加 $Y$ 不确定).</li>
+<li>此式 identificar:</li>
+</ul>
+<hr />
+<h2 id="五互信息-ixy--hx---hxy--hy---hyx"><a class="header" href="#五互信息-ixy--hx---hxy--hy---hyx">五、互信息 $I(X;Y) = H(X) - H(X|Y) = H(Y) - H(Y|X)$</a></h2>
+<p>互信息是发现自己一个"用 $X$ 推 $Y$ 的相关程度"标准. 详细公式:</p>
+<p>$$I(X; Y) = \sum_{x, y} p(x, y) \log \frac{p(x, y)}{p(x) p(y)}$$</p>
+<p>直观: "X 与 Y 的实际联合分布与独立分布的 KL散度".</p>
+<h3 id="51-properties"><a class="header" href="#51-properties">5.1 Properties</a></h3>
+<ul>
+<li>$I(X; Y) \geq 0$.</li>
+<li>$I(X; Y) = 0$ iff $X \perp Y$.</li>
+<li>$I(X; Y) \leq \min(H(X), H(Y))$.</li>
+</ul>
+<p>工程意义: $I(X; Y)$ 量化 channel throughput:</p>
+<ul>
+<li>channel $Y = X + N$, $N$ 高斯噪声 ⇒ $I(X; Y) = \frac{1}{2} \log\left(1 + \text{SNR}\right)$. 这就是<strong>香农容量</strong>的来源 (next chapter).</li>
+</ul>
+<h3 id="52-python"><a class="header" href="#52-python">5.2 Python</a></h3>
+<pre><code class="language-python">import numpy as np
+
+def mutual_info(px: list[float], py: list[float], pxy: list[list[float]]):
+    return sum(pxy[x][y] * np.log2(pxy[x][y] / (px[x] * py[y]) + 1e-12)
+               for x in range(len(px)) for y in range(len(py)))
+
+# example channel (BSC):
+p = 0.1    # error prob
+px = [0.5, 0.5]
+py = [0.5, 0.5]   # marginal stays
+pxy = [[0.95, 0.05], [0.05, 0.95]]
+print(mutual_info(px, py, pxy))   # ~0.531 bit
+</code></pre>
+<hr />
+<h2 id="六kl-divergence-d_textklpq"><a class="header" href="#六kl-divergence-d_textklpq">六、KL divergence $D_{\text{KL}}(P||Q)$</a></h2>
+<p>$$D_{\text{KL}}(P | Q) = \sum_x p(x) \log \frac{p(x)}{q(x)}$$</p>
+<p>性质:</p>
+<ul>
+<li>$D \geq 0$.</li>
+<li>$D = 0$ iff $P = Q$.</li>
+<li>不对称: $D(P||Q) \neq D(Q||P)$.</li>
+</ul>
+<p>是<strong>所有 generative model training</strong> (VAE, GAN, language modeling "negative log likelihood" 训练) 损失函数 源 象 源 = minimize $D_{\text{KL}}(\text{model}||data)$.</p>
+<p>키 chain:</p>
+<p>$$I(X;Y) = D_{\text{KL}}(p(x, y) | p(x)p(y))$$</p>
+<hr />
+<h2 id="七cross-entropy-hp-q"><a class="header" href="#七cross-entropy-hp-q">七、Cross-entropy $H(P, Q)$</a></h2>
+<p>$$H(P, Q) = -\sum_x p(x) \log q(x)$$</p>
+<p>性质: $H(P, Q) = H(P) + D_{\text{KL}}(P || Q)$. 即"我以为是 Q 但实际是 P 的不确定 = 真实熵 + 认知误差".</p>
+<p>ML training: minimize $\theta$: $H(P_{\text{data}}, Q_\theta)$.  等价 minimize $D_{\text{KL}}(P_{\text{data}} | Q_\theta)$ since $H(P_{\text{data}})$ 与 $\theta$ 无关.</p>
+<hr />
+<h2 id="八shannon-信源编码定理-source-coding-theorem"><a class="header" href="#八shannon-信源编码定理-source-coding-theorem">八、Shannon 信源编码定理 (source coding theorem)</a></h2>
+<p><strong>定理</strong>: 任何无损压缩的期望长 ≥ $H(X)$ bits/symbol. 且存在渐近可达 $H(X)$.</p>
+<p>例: 给 $X$ = 6 个 outcome 频率 = {0.4, 0.2, 0.15, 0.1, 0.1, 0.05}.</p>
+<pre><code class="language-python">import math
+H = -sum(p * math.log2(p) for p in [0.4, 0.2, 0.15, 0.1, 0.1, 0.05])
+# H ≈ 2.286 bit/symbol
+</code></pre>
+<p>即最优 prefix code 长度 ~2.286 bit/symbol. Huffman (下一章) 取 ~2.30 (integer bit/char); 算术编码到 2.286 (分数 bit).</p>
+<hr />
+<h2 id="九differential-entropy-logos-continuous-rv"><a class="header" href="#九differential-entropy-logos-continuous-rv">九、Differential entropy (logos continuous RV)</a></h2>
+<p>Continuou 随机变量 entropy _guide 严 ely differential:</p>
+<p>$$h(X) = -\int p(x) \log p(x) dx$$</p>
+<p>注意:</p>
+<ul>
+<li><strong>differential entropy 可负</strong>: 与离散不同. uniform $[a, b]$ 给 $\log(b-a)$. 随 $b-a \to 0$ $\log\to-\infty$.</li>
+<li>工程用<strong>相对</strong>意义: $D_{\text{KL}}$ 和 $I$ 全 retained identical for continuou.</li>
+</ul>
+<p>高斯: $X \sim \mathcal{N}(\mu, \sigma^2)$ → $h(X) = \frac{1}{2}\log(2\pi e \sigma^2)$.</p>
+<p><strong>关键论</strong>: 在方差固定的连续分布中, <strong>高斯分布是</strong> maximize entropy** 的**. This is non-trivial. 证明用 Jensen 不等式.</p>
+<hr />
+<h2 id="十maximum-entropy-principle"><a class="header" href="#十maximum-entropy-principle">十、Maximum Entropy Principle</a></h2>
+<p>给定约束 maximally entropic distribution 最不偏:</p>
+<ul>
+<li>已知 mean + variance: $\mathcal{N}$ normal.</li>
+<li>已知 mean only $[a, b]$: $\text{Uniform}[a, b]$.</li>
+<li>已知 mean only $[0, \infty)$: Exponential.</li>
+<li>已知 mean only in discrete space: Geometric.</li>
+</ul>
+<p>工程论 model picking: "maximize entropy given known" ⇔ 乐 ISO科学 model ('doesn''t add bias not 宝 most-site given羁 BIND')</p>
+<hr />
+<h2 id="十一bridges"><a class="header" href="#十一bridges">十一、Bridges</a></h2>
+<ul>
+<li><strong>complexity.md</strong> / <strong>压缩极限</strong>: 信息熵直接给 minimum 压缩长. H(X) ≤ log|alphabet| = log2 combinatorial 复杂;</li>
+<li><strong>compression.md next</strong> 给 LZ + Huffman + ANS 走 theorem edges.</li>
+<li><strong>capacity.md</strong> next: channel capacity 与 mutual information $C = \max_{p(x)} I(X; Y)$.</li>
+<li><strong>crypto</strong>: weak cryptographic hash output 分析 compression resistance via Max entropy of the uniform distribution of $n$-bit outputs.</li>
+<li><strong>distributed/clock/dag</strong>: information flow between nodes and within timing 相关 communication network.</li>
+<li><strong>crypto/hashes.md</strong>: prefers hashes link.</li>
+</ul>
+<hr />
+<p>下一节 → <a href="capacity.html">信道容量</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../info-theory/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../info-theory/capacity.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../info-theory/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../info-theory/capacity.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

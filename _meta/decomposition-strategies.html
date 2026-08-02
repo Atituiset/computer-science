@@ -1,0 +1,392 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>3. 分治 vs 贪心 vs DP：什么是&quot;最优子问题分解&quot; - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="3-分治-vs-贪心-vs-dp-什么是最优子问题分解"><a class="header" href="#3-分治-vs-贪心-vs-dp-什么是最优子问题分解">3. 分治 vs 贪心 vs DP: 什么是"最优子问题分解"</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>分治 / 贪心 / DP 表面上是三种范式, 仔细一看它们是"<strong>怎么把原问题分解成子问题</strong>的三个程度":从最不限 (分治) 到最严 (DP 表上每个子问题被重算维护). 理解三种范式的"分解自由度"梯度, 你面对新一道题能机械尝试.</p>
+<h2 id="分级-从分解自由度看三种范式"><a class="header" href="#分级-从分解自由度看三种范式">分级: 从"分解自由度"看三种范式</a></h2>
+<pre><code>分治: 任意分解 (递归从不考虑未来), 每子问题解一次
+贪心: 每步只看眼前, 不回退, 不组合
+DP:   列所有子问题, 顺序求解, 子问题之间共享解
+</code></pre>
+<p>三者都是"分解 + 合并", 但<strong>对分解形态的约束</strong>依次更紧:</p>
+<ul>
+<li>分治: 分形无要求, 子问题独立;</li>
+<li>贪心: 局部决策 == 全局决策, 即"无后效"+凸性"对最近的局部正确";</li>
+<li>DP: 子问题之间<strong>存在重叠</strong>, 显式表达依赖以利 memo.</li>
+</ul>
+<h2 id="数学表达"><a class="header" href="#数学表达">数学表达</a></h2>
+<p>考虑原问题 <code>P(x)</code>. 三种范式中我们将 <code>P</code> 分解为子问题 <code>P(x_i)</code>:</p>
+<p><strong>分治</strong>: <code>P(x) = combine(P(x1), P(x2))</code>. 子问题彼此独立.</p>
+<p><strong>贪心</strong>: <code>P(x) = if condition x_k satisfiable, then choice(x_k) + P(rest)</code>. 选择完直接剪掉这一步.</p>
+<p><strong>DP</strong>: <code>P(x) = opt_i P(x_i') + cost</code>. 子问题之间是<strong>重叠</strong> 的, 即多个 P(x) 共享相同的 P(x_i') 子问题. 写一个表把所有子问题按顺序求解, 共享中间结果.</p>
+<h2 id="三种范式的共同源头"><a class="header" href="#三种范式的共同源头">三种范式的共同源头</a></h2>
+<p>每种范式都假设<strong>最优子结构</strong>:</p>
+<pre><code>P(x*) 的最优解由 P(x_i) 的最优解组合而成。
+若 subproblem-specific optimum is determined by "max/min", 
+原则严格保持最优.
+</code></pre>
+<p>进一步:</p>
+<ul>
+<li>分治: 不要求定序, 只要组合函数保持一致;</li>
+<li>贪心: 多了"无后效"+ "组合函数有局部最优" 的"凸性"假定;</li>
+<li>DP: 多了 "子问题可枚举集合 P(x_i) 有限"  的"有限制" 假定.</li>
+</ul>
+<p>记忆: <strong>更紧的假设</strong> 对应<strong>更复杂的录入</strong>, 但也允许<strong>更紧的复杂度上界</strong>.</p>
+<h2 id="同一道题三种范式的不同"><a class="header" href="#同一道题三种范式的不同">同一道题三种范式的不同</a></h2>
+<p>例子: Longest Increasing Subsequence (LIS).</p>
+<h3 id="分治解-not-适用"><a class="header" href="#分治解-not-适用">分治解: NOT 适用</a></h3>
+<p>LIS 并不太可分治, 因为子问题之间无可独立合并. 写成分治需要额外"在合并阶段 cross-processing"复杂度反而 O(n log² n) 或更高.</p>
+<h3 id="dp-解-经典-on²"><a class="header" href="#dp-解-经典-on²">DP 解: 经典 O(n²)</a></h3>
+<pre><code>dp[i] = max(dp[j] + 1) for j &lt; i, a[j] &lt; a[i]
+</code></pre>
+<p><code>dp[i]</code> 依赖所有 <code>dp[j] (j &lt; i)</code>. 子问题重叠明显, 直接 DP 表.</p>
+<h3 id="贪心--二分-on-log-n"><a class="header" href="#贪心--二分-on-log-n">贪心 + 二分: O(n log n)</a></h3>
+<p>观察: 不需要保留所有 dp. 仅需 <code>tails[k]</code> = 长度为 k+1 的 LIS 末尾最小值. 当一个新元素进来时, 比 tails[k] 大则附加, 否则替换 tails 中第一个比它的 (binary search 替换).</p>
+<p>这是一个 "DP + 结构 + 贪心化简" 的形式：<strong>DP 的全表达不是必需, 可以用多余信息做剪枝退化为贪心</strong>.</p>
+<h2 id="工程师视角-选择哪种范式"><a class="header" href="#工程师视角-选择哪种范式">工程师视角: 选择哪种范式</a></h2>
+<pre><code>1. 看子问题之间是否有独立的"非线性表" 形态？
+   有 → 分治.
+2. 看是否 "局部最优即全局最优" 有凸性保证？
+   有 → 贪心.
+3. 子问题重叠？
+   是 → DP.
+4. 用 DP 但发现某维可被代数压缩？
+   是 → 简化到"DP+贪心" 或"昭 ham".
+</code></pre>
+<h2 id="多语言同构"><a class="header" href="#多语言同构">多语言同构</a></h2>
+<p>DP 在所有语言里写法差不多. 但工程上<strong>记忆化 vs 显式表</strong>给语言选用带来差异:</p>
+<div class="table-wrapper"><table><thead><tr><th>语言</th><th>记忆化写法</th><th>显式表写法</th></tr></thead><tbody>
+<tr><td>Python</td><td><code>@cache</code> 一行</td><td><code>dp[k]</code> 显式迭代</td></tr>
+<tr><td>TS</td><td>闭包 + memo Map</td><td><code>dp[]: number[]</code> 迭代</td></tr>
+<tr><td>Go</td><td><code>map[state]int</code></td><td>一层循环 dp</td></tr>
+<tr><td>C++</td><td><code>vector&lt;int&gt; memo</code> + 递归</td><td><code>dp[...]</code> 一维数组滚动</td></tr>
+</tbody></table>
+</div>
+<p><code>@cache</code> Python 是最优雅的入口 (一行装饰器即可), 但在大 input 上 Python 递归栈是 1000 限制障碍, 仍需"拓扑序迭代". 工程上惯用模式:</p>
+<pre><code class="language-python">from functools import lru_cache
+@lru_cache(None)
+def solve(i, j): ...
+solve(0, n-1)
+</code></pre>
+<p>但重度规模必须改写为 <code>dp[i][j]</code> 循环迭代, 因为 Python 递归太慢、太深、栈可能爆.</p>
+<h2 id="工程现实"><a class="header" href="#工程现实">工程现实</a></h2>
+<p>DP 类问题在大规模工程里特别少, 真实使用场景:</p>
+<ul>
+<li>序列对齐 (生物信息学);</li>
+<li>Viterbi 译码 (通信、语音);</li>
+<li>强化学习 value iteration、Q iteration;</li>
+<li>矩阵链乘编译 (LAPACK、cuBLAS) ;</li>
+<li>路径规划: DP 加 A* 或 Dijkstra.</li>
+</ul>
+<p>DP 不会作为日常产品代码反复出现, 但<strong>在工程某些"模型核心"位置上反复出</strong>: 你写的机器人控制, 序列对齐, 隐马尔可夫, 都先落到 DP 上.</p>
+<h2 id="这一章带走的东西"><a class="header" href="#这一章带走的东西">这一章带走的东西</a></h2>
+<ul>
+<li>分治 / 贪心 / DP 是"分解自由度" 严格递减范式的同一族;</li>
+<li>同一道题三种范式不一定都解, 但存在各范式的"退化路径";</li>
+<li>DP 是最适合工程大模型核心的"子问题显式表达框架";</li>
+<li>各语言运行时给出的 syntactical 表达差异很大, 但抽象同构;</li>
+<li>LIS 尾部二分 = "DP 解后用结构剪枝退化为贪心" 的经典模式.</li>
+</ul>
+<p>下一篇 → <a href="memory-hierarchy.html">4. 缓存层级: 从 L1 到 DRAM 到 SSD 到 RDMA 的同构</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../_meta/amortized-vs-worst.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../_meta/memory-hierarchy.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../_meta/amortized-vs-worst.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../_meta/memory-hierarchy.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

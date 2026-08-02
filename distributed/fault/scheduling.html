@@ -1,0 +1,505 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Borg / Kubernetes / Mesos 调度 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="borg--kubernetes--mesos-调度"><a class="header" href="#borg--kubernetes--mesos-调度">Borg / Kubernetes / Mesos 调度</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p><strong>集群调度器 (cluster scheduler)</strong> 决定把容器/任务/作业分配到哪台机器上, 目标是最大化利用率、最小化延迟、扛机器故障、满足作业 SLA。 Borg (Google 2015 paper, 2003 内部已用) 是 Kubernetes 的爷爷, Borgmon 演化为 Prometheus; Mesos (2011) 是 Apache 2009 开源的"两级调度器"; Omega (Borg 团队 2013 论文) 是更 declarative 的 scheduler, 用 optimistic concurrency 让各 framework 单独 schedule。 Kubernetes (2014 开源, Borg 团队成员设计) 是 <strong>steady-state scheduler + declarative API</strong> —— 用户提交 Deployment/Pod manifest, control loop (kube-scheduler + kubelet) 让状态收敛到 desired。 Borg/K8s/Mesos 的核心差异: 单体 vs 两级 vs shared-state 调度。本章梳理 Borg 设计、Omega 乐观共享状态、Mesos 主从 + framework offer、K8s scheduling queue + filtered predicate + scorer priority, 默认调度算法, typical 故障 (单点 scheduler、slow scheduling through。</p>
+<hr />
+<h2 id="一borg"><a class="header" href="#一borg">一、Borg</a></h2>
+<h3 id="architecture"><a class="header" href="#architecture">Architecture</a></h3>
+<p>Google 2003 起 Python 写的 Borg, 2015 论文公开:</p>
+<ul>
+<li><strong>Borgmaster</strong>: master 进程, 5 副本用 Paxos keep state, leader 接收 job submission。 <strong>Paxos replicated Cell</strong> = cluster 单位, 几千台机器 ~10k+ jobs。</li>
+<li><strong>Borglet</strong>: 每机器 agent, 启停 task + report state to Borgmaster。</li>
+<li><strong>Scheduler</strong>: Borgmaster 内部子模块, holds pending queue, computes task-to-machine assignment。</li>
+</ul>
+<h3 id="borg-调度算法"><a class="header" href="#borg-调度算法">Borg 调度算法</a></h3>
+<ol>
+<li><strong>Filter</strong> (谓 词): 去掉不满足条件的机器 (e.g., CPU/memory core 充足性, required attributes match, port 已占用)。</li>
+<li><strong>Scoring</strong>: 对剩余候选机器打分数。 Scoring �unctions:
+<ul>
+<li><strong>Mixed score</strong> "best fit" (用 100 − 10·(sum residual)^2 etc.): 让 high affinity task 紧凑放, 剩余空 machine 多。</li>
+<li><strong>Worst fit</strong>: 让资源 分散 (避免 hot spot)。</li>
+<li><strong>BEST_FIT + diversity</strong>: Bin-packing + 优先 spread jobs across rack/DC.</li>
+</ul>
+</li>
+<li><strong>Pessimistic Allocate by EIVA/P (EVALUATE)</strong>: score 加 weight后再 ranking 选 top-K candidates 装配, fallback 到 next 时候 conflict.</li>
+</ol>
+<h3 id="borg-mid-term"><a class="header" href="#borg-mid-term">Borg Mid-Term</a></h3>
+<p>"a task" + "alloc" 二分: alloc 是 资源预留占 port+资源，哪怕 task 还没启动; Borg 把等的 task 间接 POSIX 化 — "single 中队 ma wait point of alloc set" 在 source (Borg 死 task as 一个 scheduling unit).</p>
+<h3 id="preemption"><a class="header" href="#preemption">Preemption</a></h3>
+<p>Tasks 有 <strong>priority class</strong>:</p>
+<ul>
+<li>"free" / "best-effort" (低)</li>
+<li>"production" (中)</li>
+<li>"monitoring" / "system" (高)</li>
+</ul>
+<p>低优先级 job 可以 purge by 高优先级 job. <strong>Preemption cascade</strong>: purge 一组 task 加到 high-priority 比单 task 调度 (user 看 latency shortening clean behavior).</p>
+<h3 id="中长期-stability"><a class="header" href="#中长期-stability">中长期 Stability</a></h3>
+<p>Borg 用 Pacemaker 逻辑: 实际运行使用率 avg-out + P99 = 60-70% CPU usage is typical, P95 &lt; 80%. task 启动失败 lines recovers automatic via healthcheck + restart.</p>
+<hr />
+<h2 id="二omega-2013"><a class="header" href="#二omega-2013">二、Omega (2013)</a></h2>
+<p>Borg 论文 derivative, Google Borg team 2013 论文 "Omega: flexible, scalable schedulers for large compute clusters". Omega 是 <strong>shared-state scheduler</strong>:</p>
+<ul>
+<li>Cluster state 集中保在 Paxos-replicated Cell store。</li>
+<li><strong>Optimistic concurrency control</strong>: 每个 framework (scheduler) 各自local copy of cluster state + 想要加自己的 task assignment, 通过 <strong>Paxos transactional commit</strong> 与 shared state merge. Conflict -&gt; retry framework specified <strong>spin slot backoff</strong>.</li>
+</ul>
+<p>Omega 与 Borg master 区别:</p>
+<ul>
+<li>无 single scheduler bottleneck, 多 framework parallel schedule.</li>
+<li>Conflict handling by retry: framework retry 直到 "make it".</li>
+</ul>
+<p>Open-source 等价: Kubernetes scheduler framework in 1.19+ has 支持 same shared-state concurrency 实质.</p>
+<hr />
+<h2 id="三mesos-2011"><a class="header" href="#三mesos-2011">三、Mesos (2011)</a></h2>
+<p>Apache Mesos 是 2009开始在 Berkeley PhD of Benjamin Hindman, 集群 2010实现 2009 论文。 它是<strong>两 级 调度 (two-level scheduler)</strong>:</p>
+<ul>
+<li><strong>Mesos master</strong>: 给 framework offers. 每 framework 收到 resource offer like "机器 X 上 4 CPU 8GB you 取?"; framework 接受或拒。</li>
+<li><strong>Frameworks</strong>: Spark, Marathon, Chronos, Kafka-on-Mesos 等各 framework 实现自己的 scheduler。</li>
+</ul>
+<h3 id="offer-模型"><a class="header" href="#offer-模型">Offer 模型</a></h3>
+<pre><code>Master to framework "Spark": "offer: machine 1: 4 CPU, 16GB内存"
+Spark (自己决定 schedule):
+  if my Spark job needs 2 CPU 4GB:
+    accept: spawn executor at machine 1
+    respond to master: "yes"
+  else:
+    decline "no"
+master 之后 asked next framework(s) same offer
+</code></pre>
+<h3 id="mesos--zookeeper-实-ha-master"><a class="header" href="#mesos--zookeeper-实-ha-master">Mesos + ZooKeeper 实 HA master</a></h3>
+<p>Mesos master 多 副本保 quorum 跨 ZK election. 失败时 ~5-15s failover.</p>
+<h3 id="mesos-limitation-at-scale"><a class="header" href="#mesos-limitation-at-scale">Mesos limitation at scale</a></h3>
+<ul>
+<li>Offer 模型在高 framework 数 (&gt;10) 时 throughput 慢 - 每 framework 顺序 offer decision → high latency framework. fine for Hadoop + Spark coexist, hard for 100 微服务各 framework.</li>
+<li>Conflict resolution 无 Omega 事务所大, 当两 framework 想同机器 → first-accept wins, after-accept retry.</li>
+</ul>
+<p>Google 内部 Omega + Mesos paper (2015 "Omega OS Review") actually mentioned famine 与 Omega. Mesos 实际工业使用 启动大批 cluster, Twitter 早期, Apple Siri 早期.utilization 不高, 现已 部分替换 K8s.</p>
+<h3 id="mesos--marathon"><a class="header" href="#mesos--marathon">Mesos + Marathon</a></h3>
+<p>Marathon 是 Mesos 上 general long-running service scheduler (类 Kubernetes), 让 Mesos 提供 container orchestration-level API. Twitter, Airbnb, Box 公司 early adopters.</p>
+<hr />
+<h2 id="四kubernetes-scheduler"><a class="header" href="#四kubernetes-scheduler">四、Kubernetes Scheduler</a></h2>
+<h3 id="架构"><a class="header" href="#架构">架构</a></h3>
+<p>K8s 控制面 API 列:</p>
+<ul>
+<li><strong>kube-apiserver</strong>: ❰❰ API 入口, all client (kubectl, controller) REST/v1。</li>
+<li><strong>etcd</strong>: 强一致 KV store, 集群状态 (PRAF té RA statute)。</li>
+<li><strong>kube-scheduler</strong>: 一个进程, 看 pending pods (phase=Pending), schedule 给 nodes, writes pod.spec.nodeName。</li>
+<li><strong>kube-controller-manager</strong>: 多 controllers 各自 process: Deployment, Replicaset, StatefulSet, DaemonSet,Job...</li>
+<li><strong>kubelet</strong> (每节点): watch pod.spec.nodeName=该 node的 pods, container runtime 启动。</li>
+<li><strong>kube-proxy</strong> (每节点): iptables / IPVS 规则同步, 服务发现 + load balancing。</li>
+</ul>
+<h3 id="scheduler-主循环"><a class="header" href="#scheduler-主循环">Scheduler 主循环</a></h3>
+<pre><code class="language-python">while True:
+    pods = get_pending_pods_from_api()      # 批量拉 pending
+    for pod in pods:
+        feasible_nodes = filter(nodes, pod.requests, pod.affinity, pod.tolerations, ...)
+        if not feasible_nodes:
+            mark pod unschedulable, 退回队列加 backoff
+            continue
+        node = score(feasible_nodes, pod)    # 多 scoring function 加权 排名 选 top
+        # ESS rate 多 nodes are required
+        bind_pod_to_node(pod, node)          # API update pod.spec.nodeName=node
+</code></pre>
+<h3 id="filter-谓词-candidate-nodes"><a class="header" href="#filter-谓词-candidate-nodes">Filter (谓词 Candidate Nodes)</a></h3>
+<p>常见 predicates:</p>
+<ul>
+<li><strong>PodFitsResources</strong>: node CPU/memory/GPU 充足。</li>
+<li><strong>PodFitsHostPorts</strong>: pod.spec.containers.ports 与 node 已占用 host port 不冲突。</li>
+<li><strong>MatchNodeSelector / NodeAffinity</strong>: pod.spec.nodeSelector / pod.spec.affinity 必须匹配 node labels。</li>
+<li><strong>Toleration</strong>: pod.spec.tolerations satisfate node 之 taints, 否则被 taints 拒绝。</li>
+<li><strong>VolumeBinding</strong>: pod PVCs 与 node 上 PV 的 topology match (topology.kubernetes.io/zone).</li>
+<li><strong>PodTopologySpread</strong>: pod 应 spread 跨 zones/topology domains.</li>
+<li><strong>PodAntiAffinity</strong>: pod 与其他已 schedule 的 pod 反亲和 (e.g., 同 service 的 pod 分散到不同 node)。</li>
+</ul>
+<h3 id="score-priorities"><a class="header" href="#score-priorities">Score (priorities)</a></h3>
+<p>K8s 当前 (1.20+) 默认 Score 是 <code>NodeResources Fit</code> family of plugins:</p>
+<ul>
+<li><strong>NodeResourcesBalancedAllocation</strong>: balance CPU/mem ratio (避免单 CPU 满但 mem 空)。</li>
+<li><strong>NodeResourcesLeastAllocated</strong> (default): prefer least-allocated node (spread jobs across nodes).</li>
+<li><strong>NodeResourcesMostAllocated</strong>: opposite, bin-pack 让 server 紧凑 (适合 consolidation)。</li>
+<li><strong>InterPodAffinity</strong>: pod-pod co-locating (e.g., redis client 与  redis server same node)。</li>
+<li><strong>PodTopologySpread</strong>: spread pods across zones。</li>
+<li><strong>NodeAntiAffinity</strong>: 反向, 让 pod 不挤同 node。</li>
+<li><strong>ImageLocality</strong>: prefer node 已有 image cached (快启动)。</li>
+<li><strong>TaintToleration</strong>: 优先 untainted node / untaint higher priority。</li>
+</ul>
+<p>Final Score = sum of weighted scores。kube-scheduler config 可调 weights。</p>
+<h3 id="k8s-121-scheduling-framework"><a class="header" href="#k8s-121-scheduling-framework">K8s 1.21+ Scheduling Framework</a></h3>
+<p><code>Scheduling Framework</code> 提供 extension 机制 plugin 接口:</p>
+<ul>
+<li>Filter extension (custom filter logic)</li>
+<li>Score extension (custom scoring)</li>
+<li>Bind extension (集成 external scheduler)</li>
+<li>Queue sort</li>
+<li>Reserve permit / permit hook</li>
+</ul>
+<p>写了 plugin 后用 Go build custom scheduler binary (<code>kube-scheduler --config config.yaml</code>)。</p>
+<h3 id="default-k8s-scheduling-performance"><a class="header" href="#default-k8s-scheduling-performance">Default K8s Scheduling Performance</a></h3>
+<ul>
+<li>26 节点 cluster: schedule 一个 pod 10-50ms (queued + filtered + selected + bound)。</li>
+<li>5000 节点 cluster: ~50-200ms per pod (filter expensive in large cluster).</li>
+<li>100k+ 节点 cluster (Alibaba 2018 paper): K8s scheduling bottlenecks in api-server throughput. 在 api-server 加 caching + scheduler cache 加 quick "feasibility detection" 后 efficiency proper。</li>
+</ul>
+<h3 id="bin-packing-vs-spreading"><a class="header" href="#bin-packing-vs-spreading">Bin Packing vs Spreading</a></h3>
+<p>K8s 默认 <code>LeastAllocated</code> → <strong>spreading</strong>, 资源利用 不集中 but fair，不便于 power-down 部分机器。用 <code>MostAllocated</code> 改 → bin-packing, 让 schedule 集中，便于 consolidation + idle machines can power-down saving energy。</p>
+<h3 id="daemonset-与-node-affinity-tight"><a class="header" href="#daemonset-与-node-affinity-tight">DaemonSet 与 Node-Affinity Tight</a></h3>
+<p>DaemonSet 触发 node-level pod (e.g., Node Exporter, kube-proxy, fluentd collector), 不走 main scheduler queue, controller 直接 given every node 创建 pod (binded to that node)。</p>
+<hr />
+<h2 id="五borg-vs-k8s-vs-omega-vs-mesos-对比"><a class="header" href="#五borg-vs-k8s-vs-omega-vs-mesos-对比">五、Borg vs K8s vs Omega vs Mesos 对比</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>系统架构</th><th>Borg</th><th>Omega</th><th>Mesos</th><th>K8s</th></tr></thead><tbody>
+<tr><td>Scheduler 类</td><td>单体</td><td>shared-state transactional</td><td>两 级 offer</td><td>单体 + plugin framework</td></tr>
+<tr><td>State store</td><td>Paxos-replicated local</td><td>Paxos cell store</td><td>Zookeeper</td><td>etcd (Raft)</td></tr>
+<tr><td>Preemption</td><td>优先级 + cascade</td><td>optimistic conflict retry</td><td>offer refused / revoke</td><td>PriorityClass + preemption policy</td></tr>
+<tr><td>自定义工作 unit</td><td>task + alloc</td><td>task</td><td>task + framework resources</td><td>pod (1+) containers in cgroup</td></tr>
+<tr><td>多租户隔离</td><td>cell cell disjoint-frame SecurityContext</td><td>optimistic + framework</td><td>framework</td><td>namespace + RBAC + PodSecurityPolicy</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="六典型-k8s-事故"><a class="header" href="#六典型-k8s-事故">六、典型 K8s 事故</a></h2>
+<h3 id="api-serveretcd-overload-on-hot-pod-scheduling"><a class="header" href="#api-serveretcd-overload-on-hot-pod-scheduling">API Server/etcd Overload on Hot Pod Scheduling</a></h3>
+<p>大 cluster scale-up 同时 1000+ pods pending → clog scheduler queueing (sequence). Some pods wait 30 seconds. Fix: furious 提示 batch scheduling (<code>kube-batch</code>/<code>volcano</code>) let scheduler batch 处理多 pods together (combinatorial consideration). Alibaba volcano 用此模式。</p>
+<h3 id="pod-spec-mandatory-image-must-be-pulled-by-all-scheduler-compatible-nodes"><a class="header" href="#pod-spec-mandatory-image-must-be-pulled-by-all-scheduler-compatible-nodes">Pod Spec Mandatory Image Must Be Pulled By All Scheduler Compatible Nodes</a></h3>
+<p>某公司 K8s 1.18 cluster migration 升 立即 pull missing image at 大量 nodes 触 发网络拥塞 resolve restart. Fix: <code>imagePullPolicy: IfNotPresent</code> + pre-cache images on cluster nodes via DaemonSet pull.</p>
+<h3 id="nodeaffinity-错配-extends-误-阻-schedule"><a class="header" href="#nodeaffinity-错配-extends-误-阻-schedule">NodeAffinity 错配 extends 误 阻 schedule</a></h3>
+<p>某 deployment 有 <code>nodeAffinity required: zone:us-east-1a</code>, 但 cluster nodes 都无 <code>zone</code> label → pod 卡 Pending. Fix: 监控 Pending pod 提示 unschedulable reason, cluster operator 必 review labels.</p>
+<h3 id="podantiaffinity-在大-cluster-1000-pods规模-single-pod-schedule-slow"><a class="header" href="#podantiaffinity-在大-cluster-1000-pods规模-single-pod-schedule-slow">PodAntiAffinity 在大 cluster 1000 pods规模 single-pod schedule slow</a></h3>
+<ul>
+<li><code>podAntiAffinity</code> 实现 message check against existing pods: 1000 pods in cluster, scheduling 100 new pods would trigger O(N²) checks → scheduler 10+ seconds。</li>
+<li>Fix: <code>podAntiAffinity</code> 使用 topology keys (e.g., hostname) cache efficiently, K8s 1.20+ optimization。</li>
+</ul>
+<h3 id="scheduler-单点-fail"><a class="header" href="#scheduler-单点-fail">Scheduler 单点 fail</a></h3>
+<p>早期 K8s <code>kube-scheduler</code> 单实例 crash lead scheduled pod falls to pending indefinitely → 1.19+ enable scheduler leader election by default 멀 instance leader + RCA detect.</p>
+<hr />
+<h2 id="七k8s-与-borgmon--prometheus"><a class="header" href="#七k8s-与-borgmon--prometheus">七、K8s 与 Borgmon = Prometheus</a></h2>
+<p>Google Borgmon (Borg 集群的 generic monitoring) 是 Borg 的 内部监控 + alert + label-based query 接近 PrometheusQL. Prometheus (2012) 是 Borgmon 公开实现, 现 CNCF 二级毕毕业 project。</p>
+<p>Prometheus 是时序 metric database + alerting rule engine:</p>
+<ul>
+<li>pull metrics scrape targets (HTTP /metrics endpoint).</li>
+<li>PromQL aggregate filter 数据。</li>
+<li>Alert notification to Alertmanager 跨 routing.</li>
+</ul>
+<p>Open-source 现在 standardize K8s monitoring stack: Pod node /metrics + Prometheus + Grafana + Alertmanager.</p>
+<hr />
+<h2 id="八易错清单"><a class="header" href="#八易错清单">八、易错清单</a></h2>
+<ol>
+<li><strong>K8s scheduler 是 single-process</strong>: 大 cluster 考虑多 instance leader election + scaling-out scheduler 限制作业 throughput`.</li>
+<li><strong><code>PodAntiAffinity</code> 在 大 cluster 高 cost O(N²)</strong>: topology key cache 必开, 但可选 boundKeys 长仍有 cost.</li>
+<li><strong>Pod sch之星 Spark uses batch scheduling优 Volcano/kube-batch</strong>: K8s default scheduler handle single-pod, batch job scheduler use <code>Volcano Scheduler</code> for gang scheduling.</li>
+<li><strong>Borg/Omega/Mesos has framework abstraction</strong>: K8s scheduler framework 1.21+ 允许 plugin extension, 替代之前 fork scheduler binary 编译出来.</li>
+<li><strong>Pod-cgroup container resources include user-defined <code>requests</code> vs <code>limits</code></strong>: requests 决定орош schedulabiliity (软 quota), limits 决定 hard cgroup cap. trick: requests &lt; limits 让 pod burst (CPU burst allowed) .</li>
+</ol>
+<hr />
+<h2 id="九这一章带走的东西"><a class="header" href="#九这一章带走的东西">九、这一章带走的东西</a></h2>
+<ol>
+<li>Borg = Google's Paxos-replicated single master scheduler; inspired both K8s design 与 OpenStack.</li>
+<li>Omega = shared-state optimistic concurrency scheduler, 多 framework parallel schedule.</li>
+<li>Mesos = 两 级 offer-based scheduler, fine for Hadoop + Spark coexist but less 工 100 framework microservices.</li>
+<li>K8s = single-process scheduler with stateless etcd + filter + score + bind pattern + framework plugin mechanism extensible.</li>
+<li>K8s system scale 5000 节点 default; larger requires scheduler plugin (volcano, poseidon, yunikorn) for aggregated scheduling policy.</li>
+<li>SVMutilization balanced 物 odne scheduling依赖: 不能最优 HYPERVISOR (不 bin packing) 能空p space cluster maintenance failover less critical alternative policyJudre.</li>
+<li>Borgmon 演化为 Prometheus 是监控界legacy.蓝天 论 thriving 一会常有 育各orn fórum하 peeled.</li>
+</ol>
+<hr />
+<p>下一节 → <a href="../../system-design/index.html">系统设计总览</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../distributed/fault/erasure.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../system-design/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../distributed/fault/erasure.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../system-design/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,451 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>DHCP / ARP / NDP - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="dhcp--arp--ndp"><a class="header" href="#dhcp--arp--ndp">DHCP / ARP / NDP</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>IP 地址不是绑定网卡的物理属性；地址解析、地址分配靠 ARP（IPv4）和 NDP（IPv6）+ DHCPv4 / DHCPv6/SLAAC 完成。这一节讲协议细节、安全陷阱、企业网络实践。</p>
+<h2 id="arp-概览"><a class="header" href="#arp-概览">ARP 概览</a></h2>
+<p>ARP 不是 L2 协议也不是 L3 协议；它是"用 IP 解 MAC"的桥接：</p>
+<ol>
+<li>主机 A 想发到 192.0.2.5</li>
+<li>查 ARP cache，没命中 -&gt; 发广播 <code>Who has 192.0.2.5?</code> (EtherType 0x0806)</li>
+<li>主机 B 应单播 <code>192.0.2.5 is at 11:22:33:44:55:66</code></li>
+<li>A 在 cache 写入 IP→MAC，设 15-30 min TTL</li>
+<li>之后 A 直接封装 Ethernet 帧发送</li>
+</ol>
+<h3 id="arp-packet-结构"><a class="header" href="#arp-packet-结构">ARP packet 结构</a></h3>
+<pre><code>| HW type (16) | Proto type (16) | HW len (8) | Proto len (8) | Op (16) |
+| Sender hardware addr (HWlen)  | Sender protocol addr (Plen)            |
+| Target hardware addr (HWlen)  | Target protocol addr (Plen)            |
+</code></pre>
+<p>类型 1=Ethernet, 2=IPv4, op 1=request, 2=reply. ARP 包 42-60 字节（不够 64 需要链路层 padding）。</p>
+<h3 id="gratuitous-arp--acd"><a class="header" href="#gratuitous-arp--acd">Gratuitous ARP / ACD</a></h3>
+<p>主机开机或 IP 改变后发一个 ARP 广播宣告 <code>my IP is at my MAC</code>，未请求的广播。用于：</p>
+<ul>
+<li>防止冲突（ACD，Address Conflict Detection）</li>
+<li>高可用切换：主备 VIP 漂移后让交换机刷新 MAC 表（这点 Linux 的 keepalived 默认会发）</li>
+</ul>
+<hr />
+<h2 id="dhcpv4-流程"><a class="header" href="#dhcpv4-流程">DHCPv4 流程</a></h2>
+<pre><code>client -&gt; DISCOVER (broadcast UDP 67)
+servers -&gt; OFFER (broadcast/unicast, UDP 68)
+client -&gt; REQUEST   (挑一个，含 server id)
+server -&gt; ACK       (含 lease_time, options)
+</code></pre>
+<p>DHCP Options 丰富：</p>
+<div class="table-wrapper"><table><thead><tr><th>CODE</th><th>Option</th><th>备注</th></tr></thead><tbody>
+<tr><td>1</td><td>Subnet Mask</td><td></td></tr>
+<tr><td>3</td><td>Router (default gateway)</td><td></td></tr>
+<tr><td>6</td><td>DNS Servers</td><td></td></tr>
+<tr><td>12</td><td>Hostname</td><td></td></tr>
+<tr><td>51</td><td>Lease Time</td><td></td></tr>
+<tr><td>53</td><td>DHCP Message Type</td><td>必备</td></tr>
+<tr><td>54</td><td>DHCP Server Identifier</td><td></td></tr>
+<tr><td>82</td><td>Relay Agent Information</td><td>DHCP Snooping 用</td></tr>
+<tr><td>119</td><td>Domain Search List</td><td></td></tr>
+</tbody></table>
+</div>
+<h3 id="lease-续约"><a class="header" href="#lease-续约">Lease 续约</a></h3>
+<pre><code>T1 = 0.5 * lease_time        -&gt; 看门狗，找原 server 续
+T2 = 0.875 * lease_time       -&gt; 原 server 失联，找任何 server
+lease_time 到期              -&gt; 必须放掉 IP
+</code></pre>
+<p>默认租约 24 小时；本机查看：</p>
+<pre><code class="language-bash">$ sudo cat /var/lib/dhcp/dhclient.leases  # Debian/Ubuntu
+$ sudo cat /var/db/dhcpd_leases             # macOS
+$ nmcli dev show eth0 | grep IP4.ADDRESS
+</code></pre>
+<h3 id="dhcp-relayrfc-3046-option-82"><a class="header" href="#dhcp-relayrfc-3046-option-82">DHCP Relay（RFC 3046 Option 82）</a></h3>
+<p>L3 网段到 DHCP server 跨网段时，relay agent 把 client 广播转单播发到 server：</p>
+<pre><code>client ----broadcast----&gt; relay
+  relay -unicast to DHCP- with Option 82 (Agent Circuit ID + Remote ID)
+        &lt;- response from DHCP with Option 82
+relay ----broadcast-----&gt; client
+</code></pre>
+<p><strong>Option 82</strong> 是企业网大规模集中 DHCP 的基础：在大楼 L2 接入交换机上启 DHCP Snooping，所有 DHCP 包按端口抓包 + 在 Option 82 里塞入口标识，集中 DHCP server 能据此分出每个接入端口实际在公司哪个楼层。<strong>Cable MSO 用 DHCP Option 82 给家里 CM (cable modem) 分 IP</strong>。</p>
+<hr />
+<h2 id="arp-安全陷阱"><a class="header" href="#arp-安全陷阱">ARP 安全陷阱</a></h2>
+<h3 id="arp-欺骗arp-spoofing"><a class="header" href="#arp-欺骗arp-spoofing">ARP 欺骗（ARP Spoofing）</a></h3>
+<p>LAN 上任何主机可发伪造的 ARP Reply："192.0.2.1 is at attacker_mac"，邻居 ARP cache 被污染，所有去 192.0.2.1 的帧到达攻击者。Linux 工具：</p>
+<pre><code class="language-bash"># arpspoof from dsniff 套件
+sudo arpspoof -i eth0 -t 192.0.2.10 192.0.2.1
+# 现在所有 192.0.2.10 -&gt; 192.0.2.1 的包都到攻击机
+</code></pre>
+<p>防御：</p>
+<ul>
+<li>交换机 <strong>Dynamic ARP Inspection (DAI)</strong>，只允许 DHCP snooping 表里记录的 IP/MAC 映射发 ARP Reply</li>
+<li>主机静态 ARP——但移动场景难维护</li>
+<li>802.1X + MACsec 加密链路层数据 → 二层攻击者看不到加密内容</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p><strong>MACsec</strong> (IEEE 802.1AE) 在 L2 做 AES-GCM 加密 → 即使接入了恶意设备，所有跨 link 的帧都是密文。数据中心管理网 / 5G 时代电网 BN（backhaul network）常用。</p>
+</div>
+<h3 id="proxy-arp"><a class="header" href="#proxy-arp">Proxy ARP</a></h3>
+<p>某些路由器（如 K8s Calico、docker0 bridge）开启 optional "代理 ARP"：对其它子网里 IP 也能应 ARP（拿自己的 MAC 当网关）。</p>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>配错会让 client 觉得到外网直连，反而漏了路由器的存在。K8s Calico 用 BGP + Proxy ARP 解决 CNI 子网跨节点访问，但要确保 iptables/IPVS 规则也跟得上，否则冲突时容易丢包。</p>
+</div>
+<hr />
+<h2 id="ipv6-ndp取代-arp"><a class="header" href="#ipv6-ndp取代-arp">IPv6 NDP（取代 ARP）</a></h2>
+<p>NDP 用 ICMPv6 over IPv6 link local (<code>fe80::/10</code>)：</p>
+<pre><code>host sends NS to solicited-node multicast ff02::1:ffXX:XXXX
+target responds NA from its link-local src
+host updates Neighbor Cache
+</code></pre>
+<p>solicited-node 组播用最后 24 bit MAC 派生地址，<strong>比纯广播负载低很多</strong>：8 台主机分别对应 8 个 solicited-node 多播地址，互不打扰。</p>
+<h3 id="dadduplicate-address-detection"><a class="header" href="#dadduplicate-address-detection">DAD（Duplicate Address Detection）</a></h3>
+<p>加新地址前发 NS 询问此地址在不在；2s 没人回 -&gt; 接管。<code>Tentative</code> 状态保持期约 1s。</p>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>在 WiFi 漫游 / 中断场景下，DAD 会延迟到几秒，几秒内服务断。<strong>优化1</strong>：RFC 7527 Optimistic DAD 让 client 紧急时使用 tentative 地址。<strong>优化2</strong>：RFC 4429 SEcure Neighbor Discovery (SEND) 用 RSA 地址防伪。</p>
+</div>
+<h3 id="路由器发现-slaac"><a class="header" href="#路由器发现-slaac">路由器发现 (SLAAC)</a></h3>
+<p>参见 <a href="ipv6.html">IPv4/IPv6/ICMP</a> 那节。RA 报文 RA flags 控制：</p>
+<ul>
+<li><code>A</code> flag → 用 SLAAC</li>
+<li><code>M</code> flag → 用 DHCPv6</li>
+<li><code>O</code> flag → 用 stateless DHCPv6（只拿 DNS）</li>
+</ul>
+<h3 id="ndp-攻击"><a class="header" href="#ndp-攻击">NDP 攻击</a></h3>
+<p>NA 欺私、伪造 RS/RA -&gt; 整网关路由都被劫持。
+<strong>RA Guard</strong> 在交换机丢弃 client 端口的 RA。Cisco/Aruba 等大厂商接入交换机必启。</p>
+<hr />
+<h2 id="dhcpv6-vs-slaac"><a class="header" href="#dhcpv6-vs-slaac">DHCPv6 vs SLAAC</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>SLAAC</th><th>DHCPv6 stateful</th></tr></thead><tbody>
+<tr><td>配置朴实</td><td>自动</td><td>需部署 DHCP server</td></tr>
+<tr><td>DNS NTP 配置</td><td>通过 RA RDNSS option 或 stateless DHCPv6</td><td>通过 options</td></tr>
+<tr><td>日志可追溯</td><td>难</td><td>可定位 IP 签发历史</td></tr>
+<tr><td>IPv4 + IPv6 共存</td><td>自动 SLAAC</td><td>需编排</td></tr>
+<tr><td>临时地址（Privacy）</td><td>与 SLAAC 配合佳</td><td>DHCPv6 不能签 Privacy 地址</td></tr>
+</tbody></table>
+</div>
+<p>企业网络部署最佳实践：<strong>SLAAC + stateless DHCPv6 (拿 DNS + sip战)</strong>。运营商通常用 SLAAC + DHCPv6-PD (Prefix Delegation)，给家里下发 /56 或 /60 一段继续分给客户家中各个 subnet。</p>
+<hr />
+<h2 id="真实生产事故"><a class="header" href="#真实生产事故">真实生产事故</a></h2>
+<ol>
+<li><strong>CERNET 2016 一个 EchoStorm 攻击</strong>: 一个学生的笔记本被植入恶意软件，发 Gratuitous ARP 把自己宣告为网关 → 所有学生断网 → 被 ARP table 老化迅速传播，校园网 2000 终端中毒样式 flood。<strong>修复</strong>：所有接入交换机启 DAI + DHCP Snooping + 802.1X。<strong>教训</strong>：任何用户接入网关必须有二层 ARP 防御。</li>
+<li><strong>AWS managed DHCP leaked KV 2017</strong>：Option 82 在某些 region 填错接口 ID，明明 Instance 在 us-east-1d，Option 82 显示 us-east-1b → 客户跨 AZ 链路计费正确性 ID 混乱。<strong>修复</strong>：AWS 后台重建所有 Option 82 + DHCP 流水。<strong>教训</strong>：只要 Option 82 进入业务关键路径，必须有独立审计。</li>
+<li><strong>CDN 2018 RA Attack</strong>: 某 CDN POP 在客户服务器被 over-permissive 配置允许 RA → 网络被劫，部分客户失败。<strong>修复</strong>：所有客户端 → RA Guard（接入交换机端口规则）+ Ban 来路异常的 RA。<strong>教训</strong>：IPv6 安全模型与 IPv4 不同，但是迟 IPv6 部署反而激发了安全性提出更严。</li>
+</ol>
+<hr />
+<h2 id="这一章带走的东西"><a class="header" href="#这一章带走的东西">这一章带走的东西</a></h2>
+<ol>
+<li>ARP 是 ~25 µs 的 LAN 互信，但 MACsec 是新加 L2 防御</li>
+<li>DHCP Option 82 是跨网段 DHCP 关键 + 企业网 Cable MSO 大量用</li>
+<li>NDP 比 ARP 多了 DAD + 组播 + 多选项，且 RA/RS 取代广播减少了 LAN 单包负载</li>
+<li>DAI + RA Guard 是企业级 L2 安全面，与 802.1X 配合构成纵深防御</li>
+<li>部署 DHCPv6 vs SLAAC 时视场景选；类 IPv4 的运维ásiongan 仍有"日志可追溯"价值</li>
+</ol>
+<p>下一节 → <a href="bgp-ospf.html">BGP / OSPF 路由</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../networking/ip/ipv6.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../networking/ip/bgp-ospf.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../networking/ip/ipv6.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../networking/ip/bgp-ospf.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

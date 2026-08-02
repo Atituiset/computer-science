@@ -1,0 +1,615 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>4. 微积分与最优化: 链式法则 / 雅可比 / Hessian / 凸优化 / 信息几何 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="4-微积分与最优化-链式法则--雅可比--hessian--凸优化--信息几何"><a class="header" href="#4-微积分与最优化-链式法则--雅可比--hessian--凸优化--信息几何">4. 微积分与最优化: 链式法则 / 雅可比 / Hessian / 凸优化 / 信息几何</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>优化是计算机科学里"反向"的一面: 用前向 (compiles 哪些到哪些) 算"loss", 再用反向 (链式法则) 算"该怎么改参数让 loss 更小". Transformer、信息论容量推导、调度器最短作业先选、HP 计算代价模型本质都是同一件事: <strong>在光滑空间里取梯度</strong>. 这一篇覆盖:</p>
+<ol>
+<li><strong>极限与导数</strong> — 微分与差分的连续 / 离散切换.</li>
+<li><strong>链式法则 + 多元函数 + 雅可比矩阵</strong> — Transformer 反向传播的硬公式.</li>
+<li><strong>Hessian + 泰勒展开 + 二阶方法</strong> — 极值附近的曲率信号.</li>
+<li><strong>凸函数 / 凸优化</strong> — 优化领域的"快 + 全局最优"区间.</li>
+<li><strong>梯度下降 / Stochastic / Momentum / Adam</strong> — 工业优化器谱系.</li>
+<li><strong>拉格朗日 + KKT</strong> — 带约束优化的标准框架.</li>
+<li><strong>信息几何</strong> — 用 KL / Fisher 度量把"分布空间"做成流形, 推出自然梯度与变分推断.</li>
+</ol>
+<p>目标: 看到 <code>Adam</code>、<code>EM</code>、<code>$\nabla_\phi \mathbb{E}[\ldots]$</code>、<code>$\Lambda \succeq 0$</code> 不再卡.</p>
+<hr />
+<h2 id="一极限连续可导"><a class="header" href="#一极限连续可导">一、极限、连续、可导</a></h2>
+<h3 id="11-极限"><a class="header" href="#11-极限">1.1 极限</a></h3>
+<p>$\lim_{x \to a} f(x) = L$ 表任意 $\epsilon &gt; 0$, 存在 $\delta$ 使 $0 &lt; |x-a| &lt; \delta \Rightarrow |f(x) - L| &lt; \epsilon$ (Cauchy-Weierstrass 定义).</p>
+<p>工程上<strong>渐近等价</strong>记号 $f(x) \sim g(x)$: $\lim_{x \to \infty} f/g = 1$. 与 DSA 中 $O/\Theta/\Omega$ 同根.
+例如 $n! \sim \sqrt{2\pi n} (n/e)^n$ (Stling 公式) 是计算组合数 log 的钥匙.</p>
+<h3 id="12-导数"><a class="header" href="#12-导数">1.2 导数</a></h3>
+<p>$$ f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h} $$</p>
+<p>几何含义: 切线斜率. 物理含义: 瞬时速率.</p>
+<p><strong>关键四件</strong>:</p>
+<ul>
+<li>链式: $(g \circ f)' = g'(f(x)) \cdot f'(x)$.</li>
+<li>乘法: $(fg)' = f'g + fg'$.</li>
+<li>商: $(f/g)' = (f'g - fg')/g^2$.</li>
+<li>反函数: $(f^{-1})'(y) = 1/f'(x)$ where $y = f(x)$.</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>自适应学习率优化 (Adam, RMSprop) 本质是用 $f' / \sqrt{\mathbb{E}[f'^2] + \epsilon}$ 而不是 $f'$ 是因为第二个额度依赖反函数的梯度的"曲率方向", 详见 §4-5.
+自适应瞬间看, 这是 Newton 法用 $H^{-1} g$ 的近似, 用反方向升级.</p>
+</div>
+<h3 id="13-几个重要函数的导数"><a class="header" href="#13-几个重要函数的导数">1.3 几个重要函数的导数</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>$f$</th><th>$f'$</th></tr></thead><tbody>
+<tr><td>$x^n$</td><td>$n x^{n-1}$</td></tr>
+<tr><td>$e^x$</td><td>$e^x$</td></tr>
+<tr><td>$\ln x$</td><td>$1/x$</td></tr>
+<tr><td>$\sin x$</td><td>$\cos x$</td></tr>
+<tr><td>$\cos x$</td><td>$-\sin x$</td></tr>
+<tr><td>$\sigma(x) = \frac{1}{1+e^{-x}}$</td><td>$\sigma(1 - \sigma)$</td></tr>
+<tr><td>$\tanh x$</td><td>$1 - \tanh^2 x$</td></tr>
+<tr><td>$\mathrm{ReLU}(x)$</td><td>$\mathbb{1}_{x &gt; 0}$ (在 0 处不可导; 工程上常设 0)</td></tr>
+<tr><td>$\mathrm{softmax}_i(\boldsymbol x)$</td><td>$\sigma_i(1 - \sigma_i)$ (对 $x_i$), $-\sigma_i \sigma_j$ (对 $x_j$)</td></tr>
+</tbody></table>
+</div>
+<p><strong>softmax 雅可比尤其重要</strong>, 见 §2.</p>
+<h3 id="14-积分"><a class="header" href="#14-积分">1.4 积分</a></h3>
+<p>$$ \int_a^b f(x), dx = \lim_{n \to \infty} \sum_{i=0}^{n-1} f\left(a + i \frac{b-a}{n}\right) \cdot \frac{b-a}{n} $$</p>
+<p>微积分基本定理:</p>
+<p>$$ \int_a^b f(x), dx = F(b) - F(a), \quad F' = f $$</p>
+<ul>
+<li><strong>分部积分</strong>: $\int u, dv = uv - \int v, du$.</li>
+<li><strong>换元</strong>: $\int f(g(x)) g'(x) dx = \int f(u), du$.</li>
+<li>概率积分 $\int e^{-x^2} dx$ 全空间 = $\sqrt{\pi}$, 这是 Gaussian 归一化常数.</li>
+</ul>
+<hr />
+<h2 id="二多元与链式法则-transformer-必备"><a class="header" href="#二多元与链式法则-transformer-必备">二、多元与链式法则 (Transformer 必备)</a></h2>
+<h3 id="21-偏导数与方向导数"><a class="header" href="#21-偏导数与方向导数">2.1 偏导数与方向导数</a></h3>
+<p>$f: \mathbb{R}^n \to \mathbb{R}$ 的偏导 $\partial f / \partial x_i$. 梯度:</p>
+<p>$$ \nabla f(\boldsymbol x) = \left(\frac{\partial f}{\partial x_1}, \ldots, \frac{\partial f}{\partial x_n}\right)^\top $$</p>
+<p>方向 $\boldsymbol v$ 上的方向导数 = $\nabla f \cdot \boldsymbol v / |\boldsymbol v|$; 沿梯度方向取最大. 即"梯度下降合理性"的数学.</p>
+<h3 id="22-复合与雅可比"><a class="header" href="#22-复合与雅可比">2.2 复合与雅可比</a></h3>
+<p>设 $g: \mathbb{R}^n \to \mathbb{R}^m$, $f: \mathbb{R}^m \to \mathbb{R}$. 复合 $h = f \circ g: \mathbb{R}^n \to \mathbb{R}$:</p>
+<p>$$ \frac{\partial h}{\partial \boldsymbol x} = \underbrace{\nabla f(g(\boldsymbol x))^\top}<em>{1 \times m} \cdot \underbrace{J_g(\boldsymbol x)}</em>{m \times n} $$</p>
+<p>$J_g$ 即雅可比矩阵, $[J_g]_{ij} = \partial g_i / \partial x_j$.</p>
+<p><strong>Transformer 反向传播就是矩阵化 + 反序的链式法则</strong>: 每一层的"loss 对输入梯度"= 该层输出梯度乘该层权重梯度.</p>
+<h3 id="23-softmax-雅可比"><a class="header" href="#23-softmax-雅可比">2.3 softmax 雅可比</a></h3>
+<p>$\boldsymbol s = \mathrm{softmax}(\boldsymbol z)$:</p>
+<p>$$ \frac{\partial s_i}{\partial z_j} = \begin{cases} s_i (1 - s_i) &amp; i = j \ -s_i s_j &amp; i \neq j \end{cases} $$</p>
+<p>向量形式 $J_{\mathrm{softmax}} = \mathrm{diag}(s) - s s^\top$.</p>
+<p>工程意义: 反向传 $(\boldsymbol{ds}) = J \cdot \boldsymbol{dz}$ 即 $\boldsymbol{ds} = s \odot (\boldsymbol{dz} - (s^\top \boldsymbol{dz})\mathbf{1})$.</p>
+<h3 id="24-反向传播-autograd-模式"><a class="header" href="#24-反向传播-autograd-模式">2.4 反向传播 (autograd 模式)</a></h3>
+<pre><code class="language-python">import numpy as np
+# 简化的两层数值梯度校验
+def softmax_ce(logits, y):
+    z = logits - logits.max(axis=-1, keepdims=True)
+    e = np.exp(z); s = e / e.sum(axis=-1, keepdims=True)
+    return -np.log(s[y] + 1e-12)
+
+def grad_softmax_ce(logits, y):
+    s = np.exp(logits - logits.max()) / np.exp(logits - logits.max()).sum()
+    g = s.copy(); g[y] -= 1
+    return g    # 简化: 对 logit 的导数 = (σ - onehot)
+</code></pre>
+<p><strong>关键观察</strong>: 交叉熵 + softmax 的反传结果是 $(s - \mathbf{1}_y)$, 这条公式出现在每个 softmax 分类器里. 记下来一辈子省试错.</p>
+<h3 id="25-数值方法-自动求导"><a class="header" href="#25-数值方法-自动求导">2.5 数值方法: 自动求导</a></h3>
+<ul>
+<li>前向模式 AD: 一个变量求偏导链, O(n) 算一个分量.</li>
+<li>反向模式 AD: 一次反向跑出所有偏导, O(1) 算 loss 对所有参数 (gradient). 这就是 PyTorch 默认反向 (TensorFlow <code>tf.GradientTape</code>).</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>反向 AD 是 1970 Linnainmaa 发现 + 1986 Rumelhart-Hinton-Williams popularized. 现代 DL 能训参数 $10^{11}$ 都是它的功劳. 写"反向传播"不是推每个 dot; 而是按计算图节点按拓扑逆序局部求导.</p>
+</div>
+<hr />
+<h2 id="三hessian-与二阶"><a class="header" href="#三hessian-与二阶">三、Hessian 与二阶</a></h2>
+<h3 id="31-二阶偏导"><a class="header" href="#31-二阶偏导">3.1 二阶偏导</a></h3>
+<p>$$ H_f(\boldsymbol x)_{ij} = \frac{\partial^2 f}{\partial x_i \partial x_j} $$</p>
+<p>$H$ 是对称矩阵 (若 $f$ 充分光滑). 在 stationary $\nabla f = 0$ 处:</p>
+<ul>
+<li>$H \succ 0$ ⇒ 局部最小.</li>
+<li>$H \prec 0$ ⇒ 局部最大.</li>
+<li>不定 ⇒ 鞍点.</li>
+<li>半正定/半负定 ⇒ 二阶检验不足, 需高阶.</li>
+</ul>
+<h3 id="32-泰勒展开-2d-局部"><a class="header" href="#32-泰勒展开-2d-局部">3.2 泰勒展开 (2D 局部)</a></h3>
+<p>$$ f(\boldsymbol x + \boldsymbol h) \approx f(\boldsymbol x) + \nabla f(\boldsymbol x)^\top \boldsymbol h + \frac{1}{2} \boldsymbol h^\top H_f(\boldsymbol x) \boldsymbol h $$</p>
+<p><strong>含义</strong>: 沿一阶方向线性近似; 二阶项表达曲率. 这就是 Newton 法、Trust-region、CG、BFGS 的全部来源.</p>
+<h3 id="33-newton-迭代"><a class="header" href="#33-newton-迭代">3.3 Newton 迭代</a></h3>
+<p>$$ \boldsymbol x_{k+1} = \boldsymbol x_k - H_f^{-1}(\boldsymbol x_k) \nabla f(\boldsymbol x_k) $$</p>
+<p><strong>优点</strong>: 二次收玫 (近最优时极快). <strong>缺点</strong>: 求 $(n \times n) H^{-1}$ 太贵, $H$ 可能 ill-conditioned. 工程变体:</p>
+<ul>
+<li>拟牛顿 BFGS / L-BFGS: 用历史梯度更新 $H^{-1}$ 近似.</li>
+<li>共轭梯度 CG: 只需 $H$ × 向量乘法.</li>
+</ul>
+<h3 id="34-为什么深度学习不用-newton"><a class="header" href="#34-为什么深度学习不用-newton">3.4 为什么深度学习不用 Newton?</a></h3>
+<ul>
+<li>参数维度 $n \sim 10^9$, $H \in \mathbb{R}^{10^9 \times 10^9}$ 显然太贵.</li>
+<li>非凸+随机性 ⇒ 一阶 SGD 经验反而更好+可 scale.</li>
+<li>反向传播比求逆便宜太多.</li>
+</ul>
+<p>→ 这就是 Adam 之类一阶方法的现实位置.</p>
+<hr />
+<h2 id="四凸优化"><a class="header" href="#四凸优化">四、凸优化</a></h2>
+<h3 id="41-凸函数"><a class="header" href="#41-凸函数">4.1 凸函数</a></h3>
+<p>凸集 $S \subseteq \mathbb{R}^n$: $\forall \boldsymbol x, \boldsymbol y \in S, \lambda \in [0, 1]$: $\lambda \boldsymbol x + (1-\lambda) \boldsymbol y \in S$.</p>
+<p>凸函数 $f: S \to \mathbb{R}$:</p>
+<p>$$ f(\lambda \boldsymbol x + (1-\lambda)\boldsymbol y) \leq \lambda f(\boldsymbol x) + (1-\lambda)f(\boldsymbol y) $$</p>
+<p>判定: 一阶 (凸) $\nabla^2 f \succeq 0$.</p>
+<p><strong>凸优化强</strong>:</p>
+<ul>
+<li>任何局部最小 = 全局最小.</li>
+<li>KKT 条件充要 (约束情形).</li>
+<li>多项式时间可达 $\epsilon$-optimal (Interior Point).</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>即使损失非凸, 工程上常见"局部凸": 在 good init 周围 Hessian 半正定, Newton / GD 仍可以收敛到本地区的最优. 这是 NTM、LoRA fine-tune 的"为什么调一调就 OK".</p>
+</div>
+<h3 id="42-典型凸损失"><a class="header" href="#42-典型凸损失">4.2 典型凸损失</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>损失</th><th>形式</th><th>类</th></tr></thead><tbody>
+<tr><td><strong>平方</strong> $(y - \hat y)^2$</td><td>强凸</td><td>Gauss 似然 + 方差常量</td></tr>
+<tr><td><strong>绝对</strong> $</td><td>y - \hat y</td><td>$</td></tr>
+<tr><td><strong>Huber</strong></td><td>平方绝对拼接</td><td>robust to outliers</td></tr>
+<tr><td><strong>Logistic</strong> $\log(1 + e^{-y\hat y})$</td><td>凸、光滑</td><td>二项式 MLE</td></tr>
+<tr><td><strong>Softmax CE</strong></td><td>凸 (在权重)</td><td>多项式 MLE</td></tr>
+<tr><td><strong>Hinge</strong> $\max(0, 1-y\hat y)$</td><td>凸但非光滑</td><td>SVM</td></tr>
+<tr><td><strong>exp-convex</strong></td><td>凸</td><td>boosting</td></tr>
+</tbody></table>
+</div>
+<h3 id="43-拉格朗日对偶"><a class="header" href="#43-拉格朗日对偶">4.3 拉格朗日对偶</a></h3>
+<p>原问题 $\min f(\boldsymbol x) \text{ s.t. } g_i(\boldsymbol x) \leq 0, h_j(\boldsymbol x) = 0$:</p>
+<p>$$ \mathcal{L}(\boldsymbol x, \boldsymbol\lambda, \boldsymbol\nu) = f(\boldsymbol x) + \sum_i \lambda_i g_i(\boldsymbol x) + \sum_j \nu_j h_j(\boldsymbol x) $$</p>
+<p>对偶函数 $g(\lambda, \nu) = \inf_x \mathcal{L}$. главная trick: 最大化对偶 ⇒ 上界原问题最优. 弱对偶恒, 强对偶凸+slater 条件.</p>
+<h3 id="44-kkt-条件"><a class="header" href="#44-kkt-条件">4.4 KKT 条件</a></h3>
+<p>最优 $\boldsymbol x^*$ 满足:</p>
+<ol>
+<li><strong>Stationarity</strong>: $\nabla f + \sum_i \lambda_i \nabla g_i + \sum_j \nu_j \nabla h_j = 0$.</li>
+<li><strong>Primal feasibility</strong>: $g_i \leq 0, h_j = 0$.</li>
+<li><strong>Dual feasibility</strong>: $\lambda_i \geq 0$.</li>
+<li><strong>Complementary slackness</strong>: $\lambda_i g_i(\boldsymbol x^*) = 0$.</li>
+</ol>
+<p>→ SVM 的推导从这里来; 因凸, KKT 充要.</p>
+<h3 id="45-lp--qp--sdp"><a class="header" href="#45-lp--qp--sdp">4.5 LP / QP / SDP</a></h3>
+<pre><code>LP:  min c^T x  s.t. Ax = b, x ≥ 0            (单纯形 / interior point)
+QP:  min (1/2)x^T Q x + c^T x  s.t.  linear  (Q ≥ 0 ⇒ 凸)
+SDP: min c^T x  s.t. F_0 + Σx_i F_i ⪰ 0      (矩阵半正定约束)
+</code></pre>
+<p><strong>应用</strong>: LP 调度/路由; QP 投资组合 / SVM; SDP 控制论 / PhyLayer 检验扩展 Lyapunov.</p>
+<hr />
+<h2 id="五迭代一阶优化器谱系"><a class="header" href="#五迭代一阶优化器谱系">五、迭代一阶优化器谱系</a></h2>
+<h3 id="51-梯度下降-gd"><a class="header" href="#51-梯度下降-gd">5.1 梯度下降 (GD)</a></h3>
+<p>$$ \boldsymbol x_{k+1} = \boldsymbol x_k - \eta \nabla f(\boldsymbol x_k) $$</p>
+<ul>
+<li>$\eta$ 小 ⇒ 慢但稳; 大 ⇒ 震荡可能发散.</li>
+<li>收敛分析: $\eta \leq 1/L$ 时凸 $L$-smooth ⇒ $f_k - f^* = O(1/k)$.</li>
+</ul>
+<h3 id="52-sgd-robbins-monro-1951"><a class="header" href="#52-sgd-robbins-monro-1951">5.2 SGD (Robbins-Monro 1951)</a></h3>
+<p>每次用 mini-batch 估计 $\nabla f \approx \hat g_k$:</p>
+<p>$$ \boldsymbol x_{k+1} = \boldsymbol x_k - \eta_k \hat g_k $$</p>
+<p>学习速率 schedule: $\sum \eta_k = \infty, \sum \eta_k^2 &lt; \infty$ ⇒ a.s. 收敛 (Robbins-Monro).</p>
+<h3 id="53-momentum--nesterov"><a class="header" href="#53-momentum--nesterov">5.3 Momentum / Nesterov</a></h3>
+<p>Momentum 在梯度方向添加"惯性":</p>
+<p>$$ v_{k+1} = \beta v_k - \eta \nabla f(\boldsymbol x_k), \quad \boldsymbol x_{k+1} = \boldsymbol x_k + v_{k+1} $$</p>
+<p>Nesterov 加速: 先用 $\boldsymbol x_k + \beta v_k$ 评估梯度.</p>
+<p>直觉: 沿一致方向加速, 沿高频噪声阻尼. 凸情形 Nesterov 给最优 $O(1/k^2)$ 速率.</p>
+<h3 id="54-rmsprop"><a class="header" href="#54-rmsprop">5.4 RMSProp</a></h3>
+<p>$$ \mathbb{E}[g^2]<em>k = \alpha \mathbb{E}[g^2]</em>{k-1} + (1-\alpha) g_k^2, \quad \boldsymbol x_{k+1} = \boldsymbol x_k - \frac{\eta}{\sqrt{\mathbb{E}[g^2]_k + \epsilon}} g_k $$</p>
+<p><strong>关键观察</strong>: 不同参数维度, 不同尺度梯度自适应 → Adam 接近 "1 个 axis 1 个步长".</p>
+<h3 id="55-adam-kingma--ba-2014"><a class="header" href="#55-adam-kingma--ba-2014">5.5 Adam (Kingma &amp; Ba 2014)</a></h3>
+<p>$$ m_k = \beta_1 m_{k-1} + (1-\beta_1) g_k $$
+$$ v_k = \beta_2 v_{k-1} + (1-\beta_2) g_k^2 $$
+$$ \hat m_k = \frac{m_k}{1 - \beta_1^k}, \quad \hat v_k = \frac{v_k}{1-\beta_2^k} $$
+$$ \boldsymbol x_{k+1} = \boldsymbol x_k - \eta \frac{\hat m_k}{\sqrt{\hat v_k} + \epsilon} $$</p>
+<ul>
+<li>默认 $\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 10^{-8}$.</li>
+<li>动量 + RMSprop 合一; bias correction 针对初始时刻.</li>
+<li>ML 中 99% 任务用 Adam 即可跑出 baseline.</li>
+</ul>
+<pre><code class="language-python">def adam_update(params, grads, m, v, t, lr=1e-3, b1=0.9, b2=0.999, eps=1e-8):
+    for p, g in zip(params, grads):
+        m[p] = b1 * m[p] + (1 - b1) * g
+        v[p] = b2 * v[p] + (1 - b2) * g * g
+        m_hat = m[p] / (1 - b1 ** t)
+        v_hat = v[p] / (1 - b2 ** t)
+        p -= lr * m_hat / (v_hat.sqrt() + eps)   # 高级 pseudocode
+    return params, m, v
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>Adam 标准实现的"收敛证明" (Reddi et al. 2018) 发现初版收敛不严, 改进如 AMSGrad / AdamW 解决. 现代 Transformer 训练几乎全用 AdamW (decoupled weight decay), 不用 vanilla Adam.</p>
+</div>
+<h3 id="56-optimizer-速查"><a class="header" href="#56-optimizer-速查">5.6 Optimizer 速查</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>优化器</th><th>用途</th></tr></thead><tbody>
+<tr><td>SGD</td><td>CV 大模型 (ResNet), 带强 augmentation</td></tr>
+<tr><td>SGD+Momentum</td><td>CV 稳态训 90%</td></tr>
+<tr><td>RMSProp</td><td>RNN 经典</td></tr>
+<tr><td>Adam</td><td>默认, including transformer</td></tr>
+<tr><td>AdamW</td><td>Transformer (decoupled decay)</td></tr>
+<tr><td>LAMB / LARS</td><td>大 batch 稳定 (BERT scale)</td></tr>
+<tr><td>Sophia / Shampoo</td><td>二阶近似, 2-3× 加速, research-stage</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="六信息几何"><a class="header" href="#六信息几何">六、信息几何</a></h2>
+<h3 id="61-分布空间作流形"><a class="header" href="#61-分布空间作流形">6.1 分布空间作流形</a></h3>
+<p>参数族 ${p_\theta: \theta \in \Theta}$, 一个分布对应一个参数点. <strong>Fisher 信息矩阵</strong>:</p>
+<p>$$ \mathcal{I}(\theta)<em>{ij} = \mathbb{E}</em>{x \sim p_\theta}\left[\frac{\partial \log p_\theta}{\partial \theta_i} \frac{\partial \log p_\theta}{\partial \theta_j}\right] $$</p>
+<p>直觉: Fisher 信息 = "你能用数据区分参数变化的灵敏度". 实际 $\mathcal{I} = -\mathbb{E}[H_{\log p}]$ (期望负 Hessian).</p>
+<h3 id="62-kl-看作曲率"><a class="header" href="#62-kl-看作曲率">6.2 KL 看作曲率</a></h3>
+<p>对参数 $\theta$ 微扰 $d\theta$, KL 散度局部展开:</p>
+<p>$$ \mathrm{KL}(p_\theta | p_{\theta + d\theta}) = \frac{1}{2} d\theta^\top \mathcal{I}(\theta) d\theta + o(|d\theta|^2) $$</p>
+<p>→ Fisher 矩阵就是<strong>分布参数空间的黎曼度量</strong>.</p>
+<h3 id="63-自然梯度"><a class="header" href="#63-自然梯度">6.3 自然梯度</a></h3>
+<p>普通梯度下降不看度量; 用 Fisher 修正:</p>
+<p>$$ \theta_{k+1} = \theta_k - \eta \cdot \mathcal{I}_k^{-1} g_k $$</p>
+<p>直觉: 让"参数行进一步"在分布空间等价 (而不是欧式). 在 KL 时 $\theta$ 的大变化不一定 = $p$ 的大变化, 自然梯度把它校正.</p>
+<p>→-policy gradient 变体如 TRPO / PPO 的原理, 自然梯度约束 $\mathrm{KL} \leq \delta$.</p>
+<h3 id="64-elbo--kl-反向最小"><a class="header" href="#64-elbo--kl-反向最小">6.4 ELBO = KL 反向最小</a></h3>
+<p>变分推断要找近似 $q_\phi$ 拟合 $p(z | x)$. 写 ELBO:</p>
+<p>$$ \mathcal{L}(\phi) = \mathbb{E}<em>{q</em>\phi}[\log p(x, z)] - \mathbb{E}<em>{q</em>\phi}[\log q_\phi(z)] $$</p>
+<p>最大化 $\mathcal{L}$ ⇔ 最小化 $\mathrm{KL}(q_\phi | p_{z|x})$. VAE 解码器就是这么训.</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>信息几何 + Bayesian 推断 + KL 散度是一件事的三个名: 在统计参数空间用 Fisher 内积做梯度下降,(reverse-)KL 是 Riemannian metric 赋值.</p>
+</div>
+<hr />
+<h2 id="七其他常用工具"><a class="header" href="#七其他常用工具">七、其他常用工具</a></h2>
+<h3 id="71-logistic-函数-vs-softmax"><a class="header" href="#71-logistic-函数-vs-softmax">7.1 Logistic 函数 vs Softmax</a></h3>
+<p>$$ \sigma(x) = \frac{1}{1 + e^{-x}} = \mathrm{softmax}_+[x, 0] $$</p>
+<p>→ 二分类 softmax = Logistic; $K$-分类是 softmax.</p>
+<h3 id="72-svd-协助-pca-重申线代"><a class="header" href="#72-svd-协助-pca-重申线代">7.2 SVD 协助 PCA (重申线代)</a></h3>
+<p>PCA = 数据协方差矩阵 $\Sigma = (X - \bar X)^\top (X - \bar X)/n$ 做特征分解. 取 top-$k$ 特征向量方向. 等价: 数据矩阵 SVD 左奇异向量.</p>
+<p>→ 推荐用 svd 而非 eig (数值更稳).</p>
+<h3 id="73-对偶-极大熵分布"><a class="header" href="#73-对偶-极大熵分布">7.3 对偶: 极大熵分布</a></h3>
+<p>满足某些矩约束 $\mathbb{E}_p[g_i(x)] = c_i$ 的所有 $p$ 中, <strong>熵最大的</strong> $p^*$ 是指数族:</p>
+<p>$$ p^*(x) = \frac{1}{Z} \exp\left(\sum_i \lambda_i g_i(x)\right) $$</p>
+<p>→ Logistic 回归就是均值给定下熵最大的伯努利. 这是 Logistic 给"伯努利 + 高斯先验 → 应用最广"的数学根.</p>
+<h3 id="74-重要公式速查"><a class="header" href="#74-重要公式速查">7.4 重要公式速查</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>公式</th><th>形式</th></tr></thead><tbody>
+<tr><td><strong>softmax</strong> 导数向量化</td><td>$(\boldsymbol{ds}) = s \odot (\boldsymbol{dz} - \mathbf{1}(s^\top \boldsymbol{dz}))$</td></tr>
+<tr><td><strong>Newton step</strong></td><td>$\boldsymbol x - H^{-1} \nabla f$</td></tr>
+<tr><td><strong>KL 局部展开</strong></td><td>$\mathrm{KL}(p_\theta | p_{\theta+d}) = \frac{1}{2} d^\top \mathcal{I} d + o(|d|^2)$</td></tr>
+<tr><td><strong>链式</strong></td><td>$\frac{\partial (f \circ g)}{\partial \boldsymbol x} = J_g^\top \nabla f$</td></tr>
+<tr><td><strong>Jensen</strong> (凸 $\varphi$)</td><td>$\mathbb{E}[\varphi(X)] \geq \varphi(\mathbb{E}[X])$, KL 是 Jensen 直推</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="八结束--速查表"><a class="header" href="#八结束--速查表">八、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回:</p>
+<ul>
+<li><strong>链式</strong>: $\partial(f \circ g) / \partial \boldsymbol x = J_g^\top \nabla f$.</li>
+<li><strong>softmax 反向</strong>: $\boldsymbol{ds} = s \odot (\boldsymbol{dz} - \mathbf{1}(s^\top \boldsymbol{dz}))$.</li>
+<li><strong>CE+softmax</strong>: 反传对 logit = $s - \mathrm{onehot}$.</li>
+<li><strong>Hessian</strong>: $\nabla^2 f$; 半正定 ⇒ 局部最小.</li>
+<li><strong>Newton</strong>: $-H^{-1} \nabla f$, 二次收敛, $O(n^3)$ 反演费.</li>
+<li><strong>凸</strong>: 集合 + 函数 / KKT 充要 / LP-QP-SDP 递增.</li>
+<li><strong>Adam</strong>: $\hat m / \sqrt{\hat v} + \epsilon$; Transformer 默认 AdamW.</li>
+<li><strong>Fisher</strong>: $\mathcal{I} = \mathbb{E}[\nabla \log p \cdot \nabla \log p^\top]$.</li>
+<li><strong>自然梯度</strong>: $\theta - \eta \mathcal{I}^{-1} \nabla$; TRPO/PPO.</li>
+<li><strong>ELBO</strong>: $\mathbb{E}_q[\log p - \log q]$, reverse-KL min.</li>
+<li><strong>Taylor</strong>: 局部 $f + \nabla^\top h + \frac12 h^\top H h$.</li>
+<li><strong>Lagrange</strong>: $\mathcal{L} = f + \lambda g + \nu h$; KKT 4 条件.</li>
+<li><strong>极值极大熵</strong> → 指数族 (Bernoulli → LR, Multinomial → Softmax).</li>
+</ul>
+</div>
+<hr />
+<p>回主目录: <a href="index.html">第零部分 · 工程数学与离散数学基础 README</a>.
+下一篇系统正文: <a href="../dsa/index.html">第一部分 · DSA 开篇</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../math/prob.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../engineering/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../math/prob.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../engineering/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,566 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>循环优化、向量化、strength reduction - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="循环优化--向量化--strength-reduction"><a class="header" href="#循环优化--向量化--strength-reduction">循环优化 / 向量化 / Strength Reduction</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>循环是热代码所在——Amdahl 法则下 90% 的时间在 10% 的循环里。Compiler 把循环优化当成头等大事：LICM (Loop Invariant Code Motion) 把不变量提到循环外、循环展开 (unrolling) 减少分支开销、归纳变量强度削减 (IV strength reduction) 把乘法变成加法、SIMD 向量化把标量循环变成向量指令、Loop Fission / Fusion / Distribution 改变循环结构。所有这些 pass 都基于 <strong>loop nest tree</strong> + <strong>支配关系</strong> + <strong>归纳变量 (induction variable)</strong> 分析。LLVM 用 LoopInfo、HotSpot 用 Loop Tree，Cranelift 用 ebb-based loopCFG。</p>
+<hr />
+<h2 id="一loop-的形式化"><a class="header" href="#一loop-的形式化">一、Loop 的形式化</a></h2>
+<h3 id="natural-loop"><a class="header" href="#natural-loop">Natural Loop</a></h3>
+<pre><code>        preheader
+            ↓
+       ┌→ header ←─┐
+       │    ↓       │
+       │   body     │  backedge
+       │    ↓       │
+       └─ latch ────┘
+            ↓
+         exit
+</code></pre>
+<p><strong>Natural loop 的判定</strong>：</p>
+<ol>
+<li>找到 back-edge <code>u → h</code>（h dominates u）。</li>
+<li>header <code>h</code>，loop body = <code>{h} ∪ {所有能到达 u 的节点}</code>。</li>
+</ol>
+<p>这套用 <strong>支配树 (dominator tree)</strong> 算得出。LLVM <code>LoopInfo</code> 把所有 natural loop 算出来，构成 <strong>loop nest forest</strong>——内层循环是外层循环的子节点。</p>
+<h3 id="preheader--exit-block"><a class="header" href="#preheader--exit-block">Preheader &amp; Exit block</a></h3>
+<p>优化 LICM 需要 preheader（循环前的单一前驱）来放外提的指令；loop exit 块用来放"循环退出时的逻辑"。<strong>Irreducible loop</strong>（multi-entry）通常先通过 node splitting 转化成 reducible——这种"硬核" irreducible 转换很少做，Harvard 论文里 HotSpot 用 Loopify pass 处理。</p>
+<hr />
+<h2 id="二licm-loop-invariant-code-motion"><a class="header" href="#二licm-loop-invariant-code-motion">二、LICM (Loop-Invariant Code Motion)</a></h2>
+<h3 id="识别不变量"><a class="header" href="#识别不变量">识别不变量</a></h3>
+<p>一个指令 <code>x = a + b</code> 在循环内是 invariant 的，当：</p>
+<ol>
+<li>所有 operand 是常量、或定义在循环外、或定义在循环内但本身 invariant。</li>
+<li>指令没有副作用（store、call、可能 throw）。</li>
+<li>指令所在的 block <strong>支配所有 loop exit</strong>——否则外提会改变"如果循环 0 次迭代就执行"的语义。</li>
+</ol>
+<pre><code>for (i = 0; i &lt; n; i++) {
+    a[i] = x + y;        // x + y 不变，LICM 提到循环外
+}
+</code></pre>
+<p>→</p>
+<pre><code class="language-c">int t = x + y;             // hoisted
+for (i = 0; i &lt; n; i++) {
+    a[i] = t;
+}
+</code></pre>
+<h3 id="安全条件"><a class="header" href="#安全条件">安全条件</a></h3>
+<p><strong>支配所有 exit</strong> 这一条件容易翻车：</p>
+<pre><code class="language-c">for (;;) {
+    if (cond) break;       // exit 在 mid-loop
+    a = compute_invariant();
+}
+</code></pre>
+<p><code>compute_invariant()</code> 所在 block 不支配 exit block（exit 在 break 之后），不能简单外提——循环可能 0 次执行 compute 后就 break。LLVM 解法是 <strong>loop rotation</strong>——把循环变成 do-while 形式，preheader 先执行一遍，保证 body 至少跑一次。</p>
+<h3 id="loadlicm"><a class="header" href="#loadlicm">LoadLICM</a></h3>
+<p><code>load *p</code> 在循环内、循环不变量？需要 alias analysis 证明循环内没有 store 可能改 <code>*p</code>。否则<strong>不能外提</strong>。这是 alias info 进入 LICM 的入口。<code>-fstrict-aliasing</code> 让 type-based alias analysis (TBAA) 严格起来，能更多外提。</p>
+<hr />
+<h2 id="三归纳变量分析-induction-variable"><a class="header" href="#三归纳变量分析-induction-variable">三、归纳变量分析 (Induction Variable)</a></h2>
+<h3 id="基本归纳变量"><a class="header" href="#基本归纳变量">基本归纳变量</a></h3>
+<pre><code class="language-c">for (i = 0; i &lt; n; i++) {
+    a[i] = b[i];
+}
+</code></pre>
+<p><code>i</code> 是 basic IV (induction variable)：每次加常量。<code>a[i]</code> 的地址是 <code>&amp;a + i*4</code>，是 <strong>derived IV</strong>——线性映射自基本 IV。</p>
+<h3 id="强度削减-strength-reduction"><a class="header" href="#强度削减-strength-reduction">强度削减 (Strength Reduction)</a></h3>
+<p>把循环里的乘法变成加法：</p>
+<pre><code class="language-c">int *p = a;
+for (i = 0; i &lt; n; i++) {
+    *p++ = b[i];        // p 每次加 4 字节，i 加 1
+}
+</code></pre>
+<p>→</p>
+<pre><code>i : 0, 1, 2, ..., n-1
+p : a, a+4, a+8, ..., a+4*(n-1)
+</code></pre>
+<p><code>p</code> 直接当 IV 用，省掉 <code>a + i*4</code> 的乘法。在现代 CPU 上乘法不慢，但<strong>地址计算的 IV 替换</strong>对 cache 局部性、load/store 单元利用仍有意义。LLVM 的 <code>loop-strength-reduce</code> pass 做这个。</p>
+<h3 id="linear-function-test-replacement-lftr"><a class="header" href="#linear-function-test-replacement-lftr">Linear Function Test Replacement (LFTR)</a></h3>
+<pre><code class="language-c">for (i = 0; i &lt; n; i++) {
+    j = 4 * i;
+}
+</code></pre>
+<p>把 <code>i &lt; n</code> 替换为 <code>j &lt; 4 * n</code>（用 derived IV），删掉 <code>i</code>。这叫 LFTR——把循环终结条件也转成新 IV 形式，彻底删掉 <code>i</code> 这个 IV。</p>
+<hr />
+<h2 id="四循环展开-unrolling"><a class="header" href="#四循环展开-unrolling">四、循环展开 (Unrolling)</a></h2>
+<h3 id="fully-vs-partial"><a class="header" href="#fully-vs-partial">Fully vs Partial</a></h3>
+<pre><code class="language-c">// 原始
+for (i = 0; i &lt; n; i++) a[i] = b[i] + c[i];
+
+// 完全展开
+a[0] = b[0] + c[0];
+a[1] = b[1] + c[1];
+...
+a[n-1] = b[n-1] + c[n-1];
+
+// 部分展开（4 路）
+for (i = 0; i &lt; (n &amp; ~3); i += 4) {
+    a[i]   = b[i]   + c[i];
+    a[i+1] = b[i+1] + c[i+1];
+    a[i+2] = b[i+2] + c[i+2];
+    a[i+3] = b[i+3] + c[i+3];
+}
+for (; i &lt; n; i++) a[i] = b[i] + c[i];     // 余数处理
+</code></pre>
+<h3 id="代价"><a class="header" href="#代价">代价</a></h3>
+<ul>
+<li>减少分支、减少 loop overhead、给指令调度更大空间。</li>
+<li>代码体积膨胀——i-cache 友好性下降。LLVM 用 trip count 和 PGO 决定展开度。</li>
+<li>完全展开（trip count 静态已知且小）：用于减少 hot loop 的总开销。</li>
+</ul>
+<h3 id="hotspot-的-loop-unroll"><a class="header" href="#hotspot-的-loop-unroll">HotSpot 的 Loop Unroll</a></h3>
+<p>JIT 把循环编译成计数器+entry check 形式：</p>
+<pre><code class="language-java">for (int i = 0; i &lt; 1000; i++) {
+    body
+}
+</code></pre>
+<p>→ HotSpot C2 用 OSR (On-Stack Replacement) 从解释栈切到 JIT 后编译，<strong>先降速运行计数器后编译</strong>，编译时 trip count 已知就能完全展开。Rust、Go 编译器没这套 JIT 机制——只能静态 trip count 推断。</p>
+<h3 id="unroll--jam"><a class="header" href="#unroll--jam">Unroll &amp; Jam</a></h3>
+<pre><code class="language-c">for (i = 0; i &lt; n; i++) {
+    a[i] = f(i);
+    b[i] = g(i);
+}
+</code></pre>
+<p>展开外层 → 内层仍有独立 jam，组合执行 → 寄存器重用上升。工程上用得少，但 HotSpot 和 ICC 做这个。</p>
+<hr />
+<h2 id="五simd-自动向量化"><a class="header" href="#五simd-自动向量化">五、SIMD 自动向量化</a></h2>
+<h3 id="simd-指令模型"><a class="header" href="#simd-指令模型">SIMD 指令模型</a></h3>
+<p>x86 AVX2：256bit 寄存器，一条指令处理 8 个 float32、4 个 float64、8 个 int32。</p>
+<pre><code class="language-c">for (i = 0; i &lt; n; i++) {
+    c[i] = a[i] + b[i];
+}
+</code></pre>
+<p>→</p>
+<pre><code>vmovups ymm0, [a+i]
+vaddps  ymm1, ymm0, [b+i]
+vmovups [c+i], ymm1
+</code></pre>
+<p>每条 <code>vaddps</code> 跑 8 个 float 加法。</p>
+<h3 id="向量化的合法性"><a class="header" href="#向量化的合法性">向量化的合法性</a></h3>
+<ol>
+<li><strong>无循环携带依赖 (loop-carried dependence)</strong>：
+<pre><code class="language-c">for (i = 1; i &lt; n; i++) a[i] = a[i-1] + 1;   // 写 a[i] 依赖前次 a[i-1]，不可向量化
+</code></pre>
+</li>
+<li><strong>内存不别名</strong>：<code>a</code>、<code>b</code>、<code>c</code> 不重叠。LLVM 通过 <code>noalias</code> (C <code>restrict</code>)、TBAA 等机制证明。</li>
+<li><strong>可处理余数</strong>：<code>n</code> 不能被 SIMD lane 数整除，需要 mask 或 scalar tail loop。</li>
+</ol>
+<h3 id="llvm-的-vectorizer"><a class="header" href="#llvm-的-vectorizer">LLVM 的 Vectorizer</a></h3>
+<ul>
+<li><code>loop-vectorize</code>：循环级向量化，处理带 preheader 的规范循环。</li>
+<li><code>slp-vectorizer</code>：基本块内的 superword-level parallelism——一组标量指令有相同 op 时打包成 SIMD。</li>
+</ul>
+<p>GCC、ICC、HotSpot 编译器都有等价 pass。LLVM 的向量化成本模型基于"target transform info (TTI)"——知道目标 CPU 的指令 throughput、寄存器数、掩码能力。</p>
+<h3 id="工程上的反例"><a class="header" href="#工程上的反例">工程上的"反例"</a></h3>
+<pre><code class="language-c">// 不可向量化（Python list comprehension 编译到 C 的常翻场景）
+for (i = 0; i &lt; n; i++) {
+   (bin)[i] = (a[i] &gt; 0) ? a[i] : 0;        // select 不是分支，可向量化
+}
+
+for (i = 0; i &lt; n; i++) {
+    if (a[i] &gt; 0) b[i] = a[i];               // 通过 mask load/store + blend 可向量化
+    else b[i] = 0;
+}
+</code></pre>
+<pre><code class="language-c">// 真不可向量化：间接访问
+for (i = 0; i &lt; n; i++) b[idx[i]] = a[i];    // gather/scatter，AVX2 支持但慢
+</code></pre>
+<p>Gather/Scatter 在 AVX2 起支持但 throughput 差。常规向量化偏好 unit-stride 访问。</p>
+<hr />
+<h2 id="六其他循环-pass"><a class="header" href="#六其他循环-pass">六、其他循环 pass</a></h2>
+<h3 id="loop-fusion"><a class="header" href="#loop-fusion">Loop Fusion</a></h3>
+<pre><code class="language-c">for (i = 0; i &lt; n; i++) a[i] = i;
+for (i = 0; i &lt; n; i++) b[i] = a[i] * 2;
+</code></pre>
+<p>→</p>
+<pre><code class="language-c">for (i = 0; i &lt; n; i++) {
+    a[i] = i;
+    b[i] = a[i] * 2;       // 寄存器复用 a[i]
+}
+</code></pre>
+<p>前提：trip count 相同、无依赖、无副作用融合后变化。</p>
+<h3 id="loop-fission-distribution"><a class="header" href="#loop-fission-distribution">Loop Fission (Distribution)</a></h3>
+<pre><code class="language-c">for (i = 0; i &lt; n; i++) {
+    a[i] = compute_a(i);
+    if (cond[i]) b[i] = compute_b(i);    // 罕见分支拖累 SIMD
+    c[i] = compute_c(i);
+}
+</code></pre>
+<p>→</p>
+<pre><code class="language-c">for (i = 0; i &lt; n; i++) a[i] = compute_a(i);
+for (i = 0; i &lt; n; i++) if (cond[i]) b[i] = compute_b(i);
+for (i = 0; i &lt; n; i++) c[i] = compute_c(i);
+</code></pre>
+<p>把可向量化部分与有分支的部分拆开。</p>
+<h3 id="loop-interchange"><a class="header" href="#loop-interchange">Loop Interchange</a></h3>
+<pre><code class="language-c">for (j = 0; j &lt; M; j++)
+    for (i = 0; i &lt; N; i++)
+        a[i][j] = ...;
+</code></pre>
+<p>→</p>
+<pre><code class="language-c">for (i = 0; i &lt; N; i++)
+    for (j = 0; j &lt; M; j++)
+        a[i][j] = ...;
+</code></pre>
+<p>C 用行主序，外层 i 内层 j → 连续访问，cache miss 大降。但要求无依赖——若内层循环有 carried dep 这就改了语义。</p>
+<h3 id="loop-rerolling"><a class="header" href="#loop-rerolling">Loop Rerolling</a></h3>
+<p>源码手写展开后重新 roll：</p>
+<pre><code class="language-c">x = a[0] + a[1] + a[2] + a[3];
+</code></pre>
+<p>→ 重新 roll 成</p>
+<pre><code class="language-c">for (i = 0; i &lt; 4; i++) x += a[i];
+</code></pre>
+<p>允许后续 SIMD 看到"循环"语义重新向量化。LLVM 的 re-roll pass。不常见但 very few projects 依赖（如 BLAS 模板）。</p>
+<h3 id="loop-peeling"><a class="header" href="#loop-peeling">Loop Peeling</a></h3>
+<p>把循环的前 k 次分出来：</p>
+<pre><code class="language-c">for (i = 0; i &lt; n; i++) body;
+</code></pre>
+<p>→</p>
+<pre><code class="language-c">body;  // i = 0
+for (i = 1; i &lt; n; i++) body;
+</code></pre>
+<p>用于消除异常迭代的不变量、给后续 pass 减小分析范围（比如证明 alias、消除边界检查）。</p>
+<hr />
+<h2 id="七工业事故循环优化的真实翻车"><a class="header" href="#七工业事故循环优化的真实翻车">七、工业事故：循环优化的真实翻车</a></h2>
+<h3 id="gcc--fstrict-aliasing--linux-kernel"><a class="header" href="#gcc--fstrict-aliasing--linux-kernel">GCC <code>-fstrict-aliasing</code> + Linux Kernel</a></h3>
+<p>Linux kernel 某些代码用 union 来 alias 不同类型，违反 strict aliasing。GCC 4.x 在 <code>-O2</code> 后默认 strict-aliasing，删掉了一些 union 重叠访问的代码 → 静默数据损坏。社区加 <code>-fno-strict-aliasing</code>。</p>
+<h3 id="llvm-loop-unroll--工程代码"><a class="header" href="#llvm-loop-unroll--工程代码">LLVM Loop Unroll + 工程代码</a></h3>
+<p>某项目把 100MB 数组完全展开后整个 binary 爆炸（500MB+），编译器来不及反馈给用户。LLVM 加 <code>-mllvm -max-unroll-times</code> 上限。</p>
+<h3 id="icc-的-auto-vectorization-性能问题"><a class="header" href="#icc-的-auto-vectorization-性能问题">ICC 的 Auto-vectorization 性能问题</a></h3>
+<p>ICC 自动向量化 TSVC benchmark 加速 2-5x，但当遇到包含条件分支 + 间接访问的组合时退回标量。模型本身没 bug——但用户误解"自动向量化一定生效"。Profile 显示 scalar tail 太多，需要手动加 <code>#pragma omp simd</code>。</p>
+<hr />
+<h2 id="八per-cpu-策略"><a class="header" href="#八per-cpu-策略">八、Per-CPU 策略</a></h2>
+<h3 id="x86-vs-arm-vs-gpu"><a class="header" href="#x86-vs-arm-vs-gpu">x86 vs ARM vs GPU</a></h3>
+<ul>
+<li><strong>x86 AVX2/AVX-512</strong>：256/512bit 寄存器，向量化带来 4-16x 加速。AVX-512 的 mask register 让条件向量化很优雅。</li>
+<li><strong>ARM NEON / SVE</strong>：NEON 128bit 固定宽度；SVE 是可变 SIMD 宽度 (128-2048 bit)，同一 binary 在不同硬件跑出 CPU 支持的 lane 数。SVE 的 whilelt 指令完美处理 tail loop。</li>
+<li><strong>GPU</strong>：PTX 的 SIMT 模型，warp 32 thread 同步执行。GPU 编译器的向量化更像是"识别_parallel pattern + memory coalescing"。</li>
+</ul>
+<h3 id="cpu-profile-guided-vectorization"><a class="header" href="#cpu-profile-guided-vectorization">CPU Profile-Guided Vectorization</a></h3>
+<p>PGO 提供 trip count 分布、分支概率，编译器决定<strong>展开度</strong>和<strong>是否向量化</strong>。LLVM 的 <code>opt -pgo</code> 流程：</p>
+<ol>
+<li>编译 <code>-fprofile-generate</code> 插桩</li>
+<li>真实运行收集 trip count</li>
+<li><code>-fprofile-use</code> 重编译，cost model 优化</li>
+</ol>
+<p>PostgreSQL、Chromium 项目都大量用 PGO。</p>
+<hr />
+<h2 id="九易错清单"><a class="header" href="#九易错清单">九、易错清单</a></h2>
+<ol>
+<li><strong>浮点循环不能重排结合</strong>：<code>sum += a[i]</code> 循环展开后并行加会破坏浮点结合律。<code>-ffast-math</code> 或 Rust <code>fadd fast</code> 才允许。</li>
+<li><strong>循环边界 <code>n</code> 是循环内修改的全局</strong>：compile 期 trip count 推断错；向量化时会死。</li>
+<li><strong>pointer alias 验证不严</strong>：<code>restrict</code> 错放数组会让无 alias 假设错。Rust 的 ownership 模型保证 <code>&amp;mut</code> 唯一 → Rust 默认无 alias，向量化比 C 容易。</li>
+<li><strong>OSR 与 Retry Budget</strong>：HotSpot 在低层级 JIT 失败时 deopt，编译开销大。多核 CPU 上常看到 "tiered compile lag"。</li>
+<li><strong>SIMD 的 tail loop</strong>：标量 tail 仍是开发者看到加速不到预期的真凶，应该看 <code>asm</code> 输出，确认 tail。</li>
+</ol>
+<hr />
+<h2 id="这一章带走的东西"><a class="header" href="#这一章带走的东西">这一章带走的东西</a></h2>
+<ol>
+<li>LICM 是最常用循环优化，<strong>安全条件是支配所有 exit</strong>。</li>
+<li>Induction Variable 强度削减：把乘法降级成加法，是循环中精度换算术的经典。</li>
+<li>循环展开要配 PGO，盲目完全展开炸 depolar i-cache、binary 体积。</li>
+<li>SIMD 向量化靠<strong>无循环携带依赖 + 无 alias + trip count 信息</strong>，三者缺一编译器保守放弃。</li>
+<li>Loop Fusion / Fission / Interchange 改循环结构——编译器叫这种 "polyhedral optimization"，工程上在 ML 编译器（TVM、XLA、IREE）用得最重。</li>
+</ol>
+<hr />
+<p>下一节 → <a href="inline.html">Inline / IPA / escape analysis</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../compilers/opt/basic.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../compilers/opt/inline.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../compilers/opt/basic.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../compilers/opt/inline.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

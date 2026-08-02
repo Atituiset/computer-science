@@ -1,0 +1,443 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>2. 信道容量: 香农公式 C &#x3D; B · log₂(1 + SNR) - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="2-信道容量-香农公式-c--b--log₂1--snr"><a class="header" href="#2-信道容量-香农公式-c--b--log₂1--snr">2. 信道容量: 香农公式 C = B · log₂(1 + SNR)</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p><strong>香农容量定理</strong> (1948): given 物理 (带宽 $B$, SNR=S/N) AWGN 通信信道下, 无错传输率<strong>上界</strong>:
+$$ C = B \log_2(1 + \mathrm{SNR}) $$</p>
+<p>这是一条<strong>自然定律</strong>: no matter what code you design, no matter error-correction, no matter modulation, no encoding scheme can deliver bits reliably faster than $C$ bits/sec.</p>
+<p>本章节小问题稍微 recover:</p>
+<ul>
+<li>5G mmWave 100 MHz, 25 dB SNR ⇒ $C = 830$ Mbit/s, 8x8 MIMO push 学 $6.6$ Gbit/s.</li>
+<li>香农极限 vs feedback 8dB → real engineers in production 距离 ≤ 1.5 dB via LDPC + LDPC.</li>
+</ul>
+<hr />
+<h2 id="一channel-model"><a class="header" href="#一channel-model">一、Channel model</a></h2>
+<h3 id="11-离散无记忆信道-dmc"><a class="header" href="#11-离散无记忆信道-dmc">1.1 离散无记忆信道 (DMC)</a></h3>
+<p>input alphabet $\mathcal{X}$, output $\mathcal{Y}$, transition probability $p(y|x)$. Memoryless: 每次独立 (与 prior 输入无关).</p>
+<p>容量:
+$$ C = \sup_{p(x)} I(X; Y) $$</p>
+<h3 id="12-bsc-binary-symmetric-channel"><a class="header" href="#12-bsc-binary-symmetric-channel">1.2 BSC (Binary Symmetric Channel)</a></h3>
+<p>$\mathcal{X} = \mathcal{Y} = {0, 1}$, $p(0|0) = p(1|1) = 1 - p$, $p(0|1) = p(1|0) = p$.</p>
+<p>这里 $p$ 是 bit error probability.</p>
+<p>$$ C_{\text{BSC}} = 1 - H_2(p), \quad H_2(p) = -p \log_2 p - (1-p) \log_2(1-p). $$</p>
+<div class="table-wrapper"><table><thead><tr><th>$p$</th><th>$C$</th><th>meaning</th></tr></thead><tbody>
+<tr><td>0</td><td>1 bit</td><td>无噪</td></tr>
+<tr><td>0.5</td><td>0 bit</td><td>全噪 (无可传)</td></tr>
+<tr><td>0.01</td><td>$\approx 0.92$ bit</td><td>8% lost</td></tr>
+</tbody></table>
+</div>
+<h3 id="13-bec-binary-erasure-channel"><a class="header" href="#13-bec-binary-erasure-channel">1.3 BEC (Binary Erasure Channel)</a></h3>
+<p>$\mathcal{Y} = {0, 1, ?}$ (erasure ?) with prob $\epsilon$:</p>
+<p>$$ C_{\text{BEC}} = 1 - \epsilon $$</p>
+<p>工程意义: TCP packet loss = erasure channel.  TCP throughput 上界 = bandwidth × $(1 - loss)$.</p>
+<h3 id="14-awgn"><a class="header" href="#14-awgn">1.4 AWGN</a></h3>
+<p>$Y = X + N$, $N \sim \mathcal{N}(0, \sigma^2)$. 给定 input power P, signal-and-noise ratio S/N:</p>
+<p>$$ C = \frac{1}{2} \log_2(1 + \mathrm{SNR}) \quad \text{per real symbol}$$</p>
+<p>or for bandwidth $B$ bandpass channel:
+$$C = B \log_2(1 + \mathrm{SNR}) $$</p>
+<hr />
+<h2 id="二capacity-推导-sketch"><a class="header" href="#二capacity-推导-sketch">二、Capacity 推导 sketch</a></h2>
+<p>记 $X$ 是发送信号, power 上界 $P$; 噪声 $N$ 高斯 $\sigma^2$. 我们希望 max $I(X; Y)$ over $p(x)$.</p>
+<p>$$ I(X; Y) = h(Y) - h(Y|X) = h(Y) - h(N) $$</p>
+<p>因 $h(N) = \frac{1}{2} \log(2\pi e \sigma^2)$ 是常数 (given $X$, $Y = X + N$, $h(Y|X) = h(N)$).</p>
+<p>$Y$ has mean $E[X]$ (assume 0 WLOG) and variance $P + \sigma^2$. Max 鞅 high entropy ⇒ Gaussian ⇒ $h(Y) \leq \frac{1}{2} \log(2\pi e (P + \sigma^2))$.</p>
+<p>$$\max I = \frac{1}{2}\log(2\pi e(P+\sigma^2)) - \frac{1}{2}\log(2\pi e \sigma^2) = \frac{1}{2}\log\left(1 + \frac{P}{\sigma^2}\right)$$</p>
+<p>公式 rise field quickly $\frac{1}{2}\log_2(1 + \mathrm{SNR})$ per sample.</p>
+<p>For bandwidth $B$ signal (Nyquist sample rate 2B/sec), result $B\log_2(1+\text{SNR})$.</p>
+<hr />
+<h2 id="三5g-实践-raw-numbers"><a class="header" href="#三5g-实践-raw-numbers">三、5G 实践 raw numbers</a></h2>
+<h3 id="31-mmwave-28-ghz-cell"><a class="header" href="#31-mmwave-28-ghz-cell">3.1 mmWave 28 GHz cell</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>数值</th></tr></thead><tbody>
+<tr><td>Bandwidth</td><td>100 MHz</td></tr>
+<tr><td>SNR</td><td>25 dB (cell center) → 5 dB (cell edge)</td></tr>
+<tr><td>Capacity single stream</td><td>100 × $\log_2(1 + 10^{25/10})$ ≈ 100 × 8.66 = 866 Mbit/s (cell center)</td></tr>
+<tr><td>Single stream 香农 @ 5dB</td><td>100 × $\log_2(1 + 3.16)$ ≈ 224 Mbit/s</td></tr>
+<tr><td>MIMO 4x4 spatial streams*</td><td>×4 香农 ≈ 3.46 Gbit/s</td></tr>
+<tr><td>5G NR demonstrated peak rate downlink in lab</td><td>~4.2 Gbit/s</td></tr>
+</tbody></table>
+</div>
+<ul>
+<li>MIMO spatial multiplexing requires good channel conditions. 4 streams at SNR sufficient.</li>
+</ul>
+<h3 id="32-wifi-6--80211ax"><a class="header" href="#32-wifi-6--80211ax">3.2 WiFi 6 / 802.11ax</a></h3>
+<p>20 MHz bandwidth 20:11 1024-QAM 11 dB SNR ⇒ capacity 1 Gbit/s theoretical, 实测 100s Mbit/s.</p>
+<h3 id="33-dsl-vdsl2"><a class="header" href="#33-dsl-vdsl2">3.3 DSL VDSL2</a></h3>
+<p>100 kHz - 12 MHz bandwidth. Saturated $\Rightarrow$ 200 Mbit/s total raw (down+up). 距离 line 25 dB SNR at 30 MHz ⇒ $C ≈ 200$ Mbit/s.</p>
+<hr />
+<h2 id="四coding-gain-实际编码离香农的距离"><a class="header" href="#四coding-gain-实际编码离香农的距离">四、Coding gain (实际编码离香农的距离)</a></h2>
+<p><strong>Coding gain</strong>: 双 error-rate (e.g. BER=10⁻⁶), coding 可给相同 BER 用较低 SNR. 单位 dB.</p>
+<div class="table-wrapper"><table><thead><tr><th>Code</th><th>Coding gain @ 10⁻⁶</th><th>Fuel use成熟</th></tr></thead><tbody>
+<tr><td>Hamming (15,11)</td><td>~1 dB</td><td>古典</td></tr>
+<tr><td>Reed-Solomon (255,223)</td><td>~2-3 dB at BER10⁻⁶</td><td>品格 industry obsolete 不是 nesta der (offset via symbol errors)</td></tr>
+<tr><td>Reed-Muller (128,64)</td><td>~1.5 dB</td><td>short codes country PDF: Polar 起源有关</td></tr>
+<tr><td>Convolutional code + Viterbi (K=7)</td><td>~3-4 dB</td><td>3G 基 line 代</td></tr>
+<tr><td>Turbo code (3G)</td><td>~5.5 dB</td><td>3G/4G</td></tr>
+<tr><td>LDPC (Wifi 6/5G)</td><td>~6-8 dB</td><td>现工</td></tr>
+<tr><td>Polar code (5G NR control)</td><td>~5 dB</td><td>5G</td></tr>
+<tr><td>ML optimal (Shannon limit)</td><td>~9-10 dB**</td><td>floor</td></tr>
+</tbody></table>
+</div>
+<p><strong>与香农极限的距离</strong>: typical production code 在香农 底 + 1-3 dB ⇒ throughput 法例 lower limit at 95%, much harder to find.</p>
+<hr />
+<h2 id="五cross-layer-capacity-vs-power-mimo-ofdm"><a class="header" href="#五cross-layer-capacity-vs-power-mimo-ofdm">五、Cross-layer: capacity vs power, MIMO, OFDM</a></h2>
+<h3 id="51-power-bandwidth-tradeoff"><a class="header" href="#51-power-bandwidth-tradeoff">5.1 Power-bandwidth tradeoff</a></h3>
+<p>固定 capacity C 下: $P \sim 2^{C/B}$. 高 B 低功率 (NB-IoT), 低 B 高功率 (卫星 VSAT).</p>
+<h3 id="52-mimo"><a class="header" href="#52-mimo">5.2 MIMO</a></h3>
+<p>$M$ transmit antennas, $N$ receive antennas give potential $\min(M, N)$ independent spatial streams:</p>
+<p>$$ C_{\text{MIMO}} = H \cdot \log(1 + \text{SNR}) \cdot \min(M, N) $$</p>
+<p>(H = scaling factor based on antenna correlation).</p>
+<p>5G mmWave 4x4 spatial streams ⇒ ~4× capacity.</p>
+<h3 id="53-ofdm"><a class="header" href="#53-ofdm">5.3 OFDM</a></h3>
+<p>OFDM 划分 into $K$ subcarriers, each with flat-fading assumption. 总 capacity:</p>
+<p>$$ C_{\text{OFDM}} = \sum_i B_i \log_2(1 + \text{SNR}_i) $$</p>
+<p>5G OFDM gives per-subcarrier modulation selection: QPSK on weak subcarriers, 64-QAM on good. Water-filling algorithm骏 optimal.</p>
+<h3 id="54-水注-water-filling"><a class="header" href="#54-水注-water-filling">5.4 水注 (water-filling)</a></h3>
+<p>Power $P$ distribute cross parallel subchannels to maximize total. Optimal:</p>
+<p>$$ P_i^* = \max(0, \lambda - \sigma_i^2) $$</p>
+<p>where $\lambda$ 是 determined budget constraint $\sum_i P_i^* = P$ total.</p>
+<p>→ better subchannels get more power. Practical 5G adaptive modulation does approximate.</p>
+<hr />
+<h2 id="六典型系统-capacities"><a class="header" href="#六典型系统-capacities">六、典型系统 capacities</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>系统</th><th>Bandwidth</th><th>SNR (dB)</th><th>Capacity</th><th>5G 的 downlink cell edge (Mbps)</th></tr></thead><tbody>
+<tr><td>WiFi 6 (1024-QAM)</td><td>160 MHz</td><td>35</td><td>~5400 Mbit/s</td><td>1.5 Gbit/s peak</td></tr>
+<tr><td>5G NR mmWave (28GHz)</td><td>100-400 MHz</td><td>25 (cell); 5 edge</td><td>860-3440 center</td><td>200-500 edge</td></tr>
+<tr><td>Sub6 5G (3.5GHz)</td><td>100 MHz</td><td>20 / 0 edge</td><td>666 center / 100 edge</td><td>200-500</td></tr>
+<tr><td>4G LTE (Cat 19)</td><td>20 MHz</td><td>15-20</td><td>200-450 Mbit/s</td><td>1000 peak DL</td></tr>
+<tr><td>1000BASE-T Ethernet (1 Gbit/s / 100m Cat5)</td><td>bandwidth regulated, binary signaling via PAM5 + DSP</td><td></td><td>Dissertation / vs coding kauge.</td><td></td></tr>
+<tr><td>10GBASE-T codec (1024-PAM / DSQ128 encoding) 兼容 100m Cat6a</td><td>bandwidth 500 MHz over 100 m</td><td>250 MHz—with coding cancel crosstalk</td><td>10 Gbit/s</td><td>100% efficiency</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="七capacity-实践-用-python-仿真"><a class="header" href="#七capacity-实践-用-python-仿真">七、Capacity 实践: 用 Python 仿真</a></h2>
+<pre><code class="language-python">import numpy as np
+
+def shannon_capacity(bw_hz: float, snr_db: float) -&gt; float:
+    return bw_hz * np.log2(1 + 10 ** (snr_db / 10))
+
+# mmWave cell center &amp; edge
+print(shannon_capacity(100e6, 25))  # ~866 Mbit/s
+print(shannon_capacity(100e6, 5))   # ~224
+print(shannon_capacity(100e6, 0))   # ~100
+
+# MIMO throughput (4x4 with same SNR)
+print(4 * shannon_capacity(100e6, 10))  # ~1.37 Gbit/s
+</code></pre>
+<hr />
+<h2 id="八有限-block-length-capacity"><a class="header" href="#八有限-block-length-capacity">八、有限 block-length capacity</a></h2>
+<p>Shannon's classical theorem是 asymptotic ($n \to \infty$). 有限 block length $n$ 给出修正:
+$$ \log M^* \leq n C - \sqrt{n V} Q^{-1}(\epsilon) + O(\log n) $$</p>
+<p>where $V$ 是 dispersion (channel dispersion), $Q^{-1}$ 是 inverse Gaussian Q function, $\epsilon$ 是 error probability.</p>
+<p>工程意义: short packets (control channels in 5G) 受惩罚. Polar code 在 short packet (e.g., 32-256 bits) 距离香农更近 =&gt; 5G 选 Polar for control.</p>
+<hr />
+<h2 id="九桥梁"><a class="header" href="#九桥梁">九、桥梁</a></h2>
+<ul>
+<li><strong>compression.md prev</strong>: source coding theorem vs. channel coding theorem 双极限.</li>
+<li><strong>modulation.md next-跳到</strong>: QAM constellations give precisely $\log_2 M$ bits per symbol; 与 capacity $\sim B \log (1+\text{SNR})$ 取 best modulation.</li>
+<li><strong>ldpc.md</strong>: LDPC is the producer-in-production code nearest to channel capacity for 5G NR data.</li>
+<li><strong>crypto</strong>: capacity feedback limit 不直接 位 crypto 但 random source entropy uses ≥ 2·H(X) source candidate puts. Multi key bit predictions rate.</li>
+<li><strong>distributed/clock/dag</strong>: latency-bandwidth product impacts relation 计算 (link RTT × capacity = inflight bits, TCP/QUIC congestion window).</li>
+</ul>
+<hr />
+<p>下一节 → <a href="compression.html">无损压缩</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../info-theory/entropy.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../info-theory/compression.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../info-theory/entropy.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../info-theory/compression.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

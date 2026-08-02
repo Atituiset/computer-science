@@ -1,0 +1,503 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>5. Reed-Solomon 在 GF(2⁸) 上的纠错码 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="5-reed-solomon-在-gf2⁸-上的纠错码"><a class="header" href="#5-reed-solomon-在-gf2⁸-上的纠错码">5. Reed-Solomon 在 GF(2⁸) 上的纠错码</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p>Reed-Solomon (RS) 发明 1960 (Reed &amp; Solomon in MIT Lincoln Lab), 是 BCH 类 cyclic code 在 GF($2^m$) 上的实现. RS(n, k) 编码 k 个数据 symbol 为 n 个 codeword symbol, 各 symbol 在 GF($2^m$). key properties:</p>
+<ul>
+<li>可纠 $(n-k)/2$ 个 symbol error</li>
+<li>可纠 $n - k$ 个 erasure (位置已知 )</li>
+<li>适合纠 burst error (单 byte 全错也称 1 symbol error)</li>
+<li>实际生活: CD-ROM, DVD, QR code, DSL, storage RAID 6, satellite links, Voyager probe.</li>
+</ul>
+<hr />
+<h2 id="一代数背景"><a class="header" href="#一代数背景">一、代数背景</a></h2>
+<h3 id="11-galois-field-gf28"><a class="header" href="#11-galois-field-gf28">1.1 Galois Field GF(2^8)</a></h3>
+<p>8-bit symbol field: $\beta_7 \beta_6 \ldots \beta_0$, where $\beta_i \in {0, 1}$. 在 GF(2) 上模 reduction polynomial $p(x) = x^8 + x^4 + x^3 + x^2 + 1$ 给 standard field arithmetic; QR CODE标准 generating polynomial.</p>
+<pre><code>def make_gf256(generator_poly_exp):
+    exp = [0] * 512
+    log = [0] * 256
+    x = 1
+    for i in range(255):
+        exp[i] = x
+        log[x] = i
+        x = (x &lt;&lt; 1)
+        if x &amp; 256: x ^= x ^ 0x11D  # which is the standard QR generator 0x11D
+    for i in range(255, 512): exp[i] = exp[i - 255]
+    return exp, log
+
+GF256_EXP, GF256_LOG = make_gf256(0x11D)
+
+def gf_mul(x, y): return GF256_EXP[GF256_LOG[x] + GF256_LOG[y]] if x and y else 0
+def gf_div(x, y): return GF256_EXP[GF256_LOG[x] + 255 - GF256_LOG[y]] if x and y else (0 if y else 'div0')
+def gf_pow(x, p): return GF256_EXP[(GF256_LOG[x] * p) % 255] if x else 0
+def gf_inv(x): return GF256_EXP[255 - GF256_LOG[x]]
+</code></pre>
+<p>(实工程直接做法 用 GF(2^8) creative JS, 文献 撇 主要 because of <code>MixedPolynomial FM inverse map taper Algebra</code>).</p>
+<h3 id="12-polynomial-多项式-in-gf28"><a class="header" href="#12-polynomial-多项式-in-gf28">1.2 Polynomial 多项式 in GF(2^8)</a></h3>
+<p>Codeword state多项式 C(x) data input 经 generator $g(x) = \prod_{i=0}^{n-k-1} (x - \alpha^i)$ where $\alpha$ = field primitive. n - k 个 distance transfers.</p>
+<hr />
+<h2 id="二encoding-用-systematic-form"><a class="header" href="#二encoding-用-systematic-form">二、Encoding 用 systematic form</a></h2>
+<h3 id="21-给-data-symbols-dx--d_k-1-xk-1--ldots--d_0"><a class="header" href="#21-给-data-symbols-dx--d_k-1-xk-1--ldots--d_0">2.1 给 data symbols $D(x) = d_{k-1} x^{k-1} + \ldots + d_0$.</a></h3>
+<ol>
+<li>$D'(x) = x^{n-k} D(x)$, 给 distance term space at low position.</li>
+<li>Compute remainder $R(x) = D'(x) \bmod g(x)$.</li>
+<li>Codeword $C(x) = D'(x) - R(x) = D'(x) + R(x)$ (因 GF(2) addition = subtraction = XOR).</li>
+</ol>
+<p>The key properties understand:</p>
+<ul>
+<li>C(α) = 0 for all i=0..n-k-1.</li>
+<li>$R(x)$ is syndromes-free code portion in the codewords.</li>
+</ul>
+<h3 id="22-例子-与-python"><a class="header" href="#22-例子-与-python">2.2 例子 与 Python</a></h3>
+<pre><code class="language-python">def rs_generator_poly(nsym):
+    """Generate irreducible polynomial for n-k parity symbols."""
+    g = [1]
+    for i in range(nsym):
+        g = gf_poly_mul(g, [1, GF256_EXP[i]])
+    return g
+
+def gf_poly_mul(p, q):
+    r = [0] * (len(p) + len(q) - 1)
+    for j in range(len(q)):
+        for i in range(len(p)):
+            r[i + j] ^= gf_mul(p[i], q[j])
+    return r
+
+def rs_encode_msg(msg_in, nsym):
+    gen = rs_generator_poly(nsym)
+    # pad msg with zeros for parity
+    msg_out = msg_in + [0] * (len(gen) - 1)
+    # polynomial division
+    for i in range(len(msg_in)):
+        coef = msg_out[i]
+        if coef != 0:
+            for j in range(1, len(gen)):
+                msg_out[i + j] ^= gf_mul(gen[j], coef)
+    # msg_out[len(msg_in):] is parity
+    return msg_in + msg_out[len(msg_in):]
+</code></pre>
+<p>例 encode "Hello World!" 用 RS(255, 223):</p>
+<ul>
+<li>data=12 bytes ASCII</li>
+<li>parity = (n-k)*(rounded) = 32 symbols (assumes 6 bytes padding ratio)</li>
+<li>encoded message len = 44 bytes; 6 errors 可纠.</li>
+</ul>
+<hr />
+<h2 id="三decoding"><a class="header" href="#三decoding">三、Decoding</a></h2>
+<h3 id="31-syndromes"><a class="header" href="#31-syndromes">3.1 Syndromes</a></h3>
+<pre><code class="language-python">def rs_calc_syndromes(msg, nsym):
+    return [gf_poly_eval(msg, GF256_EXP[i]) for i in range(nsym)]
+</code></pre>
+<p>If all syndromes 0 → no corruption.</p>
+<h3 id="32-berlekamp-massey-error-locator-polynomial"><a class="header" href="#32-berlekamp-massey-error-locator-polynomial">3.2 Berlekamp-Massey: error locator polynomial</a></h3>
+<p>Given syndromes $S_1..S_{n-k}$, find error locator polynomial $\Lambda(x)$ whose roots indicate error positions.</p>
+<pre><code class="language-python">def rs_find_error_locator(synd, nsym):
+    """Berlekamp-Massey algorithm to find error locator polynomial."""
+    err_loc = [1]
+    old_loc = [1]
+    for i in range(nsym):
+        old_loc = old_loc + [0]
+        delta = synd[i] ^ gf_poly_eval(err_loc[::-1], synd[i])
+        if delta == 0: continue
+        if len(old_loc) &gt; len(err_loc):
+            new_loc = scale_poly(old_loc, delta)
+            old_loc = scale_poly(err_loc, gf_inv(delta))
+            err_loc = new_loc
+        err_loc = gf_poly_add(err_loc, scale_poly(old_loc, delta))
+    return err_loc
+</code></pre>
+<h3 id="33-chien-search"><a class="header" href="#33-chien-search">3.3 Chien search</a></h3>
+<p>Find roots of $\Lambda(x)$ in field ⇒ get error positions.</p>
+<h3 id="34-forney-algorithm"><a class="header" href="#34-forney-algorithm">3.4 Forney algorithm</a></h3>
+<p>Compute error magnitudes at error positions, subtract from received codeword to recover original.</p>
+<pre><code class="language-python">def rs_correct_msg(msg_in, nsym):
+    if len(msg_in) &lt; nsym: return msg_in
+    synd = rs_calc_syndromes(msg_in, nsym)
+    if max(synd) == 0: return msg_in  # no errors
+    err_loc = rs_find_error_locator(synd, nsym)
+    err_pos = rs_find_errors(err_loc, len(msg_in))
+    if not err_pos: raise ValueError("uncorrectable")
+    msg_out = rs_forney(msg_in, nsym, err_pos)
+    return msg_out
+</code></pre>
+<hr />
+<h2 id="四qr-code-rs-example"><a class="header" href="#四qr-code-rs-example">四、QR code RS example</a></h2>
+<p>QR code version 4 (33 modules × 33 modules) splits data into blocks. For Level Q + version 3:</p>
+<pre><code>data codewords: 70 bytes  =  content
+EC codewords: 36 bytes per QR block split 2 阻:
+Block 1: 26 data + 14 EC  =  40 bytes RS(40,26)
+Block 2: 18 data + 14 EC  =  32 bytes RS(32,18)
+</code></pre>
+<p>→ RS code correction 补 toml hammers pick pitch collection, 允许受损 QR codes still be readable. Level L (low EC) ~7% error recovery; Level H (high) ~30% — designed to handle 包裹被部分覆盖/partial damage.</p>
+<hr />
+<h2 id="五cd-rom--dvd-实施"><a class="header" href="#五cd-rom--dvd-实施">五、CD-ROM / DVD 实施</a></h2>
+<p>CD-ROM audio uses <strong>CIRC</strong> (Cross-Interleaved Reed-Solomon Code):</p>
+<ul>
+<li>C1 (32, 28) RS code inner.</li>
+<li>C2 (28, 24) RS code outer.</li>
+<li>Interleaving between C1 and C2 handles burst error up to 4000 bits.</li>
+</ul>
+<p>DVD: RS-PC (Product Code), 32 rows × 16 cols structure, encoder RS(208, 192) × RS(182, 172).</p>
+<pre><code>[ 32 bytes per C1 outer row - 16 inner+  28 bytes BC..]
+       ↓ ✗ interleaved in actual CD scan // burst noise block → spread across blocks
+[   * (28, 24) C2 inner.ATORHER guffins plusidate atopif freshly banker picky!
+</code></pre>
+<p>Each error up to 0.5% mass coverage CD can be recovered (~137 byte burst continuous). Industry governing 子 ordering + redundancy.</p>
+<hr />
+<h2 id="六raid-6-use-reed-solomon-p--q"><a class="header" href="#六raid-6-use-reed-solomon-p--q">六、RAID 6 use Reed-Solomon (P + Q)</a></h2>
+<p>RAID 6 = 2 parity disks: P disk = XOR, Q disk = Reed-Solomon by GF(2^8) on sum:</p>
+<pre><code>P = sum_i d_i
+Q = sum_i alpha^i · d_i  (RS at byte level)
+</code></pre>
+<p>Can recover up to 2 disk failures:</p>
+<ul>
+<li>1 failure: get from P.</li>
+<li>2 failures: solve $d_{i1} + d_{i2} = P$ and $\alpha^{i1} d_{i1} + \alpha^{i2} d_{i2} = Q$ system.</li>
+</ul>
+<p>Modern ZFS / btrfs use 3+ parities (<code>raidz3</code>).</p>
+<hr />
+<h2 id="七卫星-link--voyager"><a class="header" href="#七卫星-link--voyager">七、卫星 link / Voyager</a></h2>
+<p>Voyager 1/2 used RS(255, 223) concatenated with hal rate convolutional code (rate 1/2, K=7) by Viterbi decoder. Combined @coding gain 7 dB level. Independent error correction combined: 上行 signal weak from deep space (sun's emissivity ≈ -80 dBm SNR), → Voyager still sends 比特 @160 bit/s 上加！</p>
+<hr />
+<h2 id="八其它-rs-variant"><a class="header" href="#八其它-rs-variant">八、其它 RS variant</a></h2>
+<ul>
+<li><strong>CCSDS RS</strong>: deep-space international standard RS(255, 223).</li>
+<li><strong>DVB</strong>: DVB-S, DVB-T uses RS(204, 188).</li>
+<li><strong>DSL</strong>: ANSI DSL RS(255, 239).</li>
+<li><strong>WiMAX</strong>: RS(255, 239).</li>
+<li><strong>CDN / 物理层</strong>: EDAC -&gt; SRAM ECC:  ECC server RAM typical 8 byte (symbols) Hamming code for 64-bit data word; not RS.</li>
+</ul>
+<hr />
+<h2 id="九工程-example"><a class="header" href="#九工程-example">九、工程 example</a></h2>
+<pre><code class="language-python"># Encode a string with RS(255, 223) — 32 parity bytes per message
+data = list(b"Hello, World! This is a test message.")
+nsym = 32
+encoded = rs_encode_msg(data, nsym)
+print(len(encoded), 'code bytes total')   # 47 bytes
+# simulate 3 byte corruption
+import random
+err_pos = random.sample(range(len(encoded)), 3)
+for p in err_pos: encoded[p] ^= 200
+# Decode/recover
+recovered = rs_correct_msg(encoded, nsym)
+assert recovered[:len(data)] == data
+print("OK! Recovered:", bytes(recovered[:len(data)]))
+</code></pre>
+<hr />
+<h2 id="十性能-limit"><a class="header" href="#十性能-limit">十、性能 limit</a></h2>
+<ul>
+<li>RS code 接近 Shannon only at medium-to-high SNR (e.g., &gt;4 dB). At low SNR, <strong>不</strong> approaching near-Shannon.</li>
+<li>coding gain 较 LDPC / turbo / polar less than modern based distance based meters. 在 short-block size RS 还 scalable lengths. → 不会无故 use modern coding.</li>
+</ul>
+<hr />
+<h2 id="十一桥梁"><a class="header" href="#十一桥梁">十一、桥梁</a></h2>
+<ul>
+<li><strong>crypto/asymmetric.md</strong>: GF(2^8) arithmetic components share with AES MixColumns.</li>
+<li><strong>distributed/fault/erasure.md</strong>: erasure coding to do robust storage overhead比 3-replication lower → 写 cross-reference next.</li>
+<li><strong>capacity.md prev channel coding</strong>: RS codebook vs LDPC coding gap reasoning.</li>
+<li><strong>databases/recovery/checkpoint</strong>: WAL checksums (CRC32C) JTwStrength, ReedSolomon for backup files 大 length SOCUL 替代 total SHA-256 fueling no post.</li>
+</ul>
+<hr />
+<p>下一节 → <a href="bch.html">BCH 码、循环码与多项式基础</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../info-theory/hamming.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../info-theory/bch.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../info-theory/hamming.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../info-theory/bch.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

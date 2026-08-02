@@ -1,0 +1,637 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>1. 计算机发展史纵贯线: 1936 → 2026 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="1-计算机发展史纵贯线-1936--2026"><a class="header" href="#1-计算机发展史纵贯线-1936--2026">1. 计算机发展史纵贯线: 1936 → 2026</a></h1>
+<h2 id="tldr"><a class="header" href="#tldr">TL;DR</a></h2>
+<p><strong>90 年计算机史用三条线索串起</strong>: (1) <strong>形式系统</strong>: "什么是可计算"逐步被严格定义;(2) <strong>硬件能力</strong>: 计算速度、内存、IO 用摩尔定律等指数曲线提升, 价位指数下降, 推动"软件范式"被迫重组; (3) <strong>抽象层级</strong>: 每一代工程师不得不引入新抽象来对抗复杂度, 把上一代底层细节封装到契约里.</p>
+<p>每一节都讲: <strong>那年发生了什么 / 缔造了什么契约 / 把什么写进了"已经不可能回退"的清单</strong>.</p>
+<p>读完应能: 用 20 分钟讲清计算机从 Turing → 2026 推理模型时代的关键节点, 每个节点一句话点破质变.</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>2025-2026 段落已按 2026-08 公开资料（原厂 release note / 主流媒体）核对；模型发布与数字以官方口径为准。</p>
+</div>
+<hr />
+<h2 id="0-概览图"><a class="header" href="#0-概览图">0. 概览图</a></h2>
+<pre><code>1936   Turing 论文 "On Computable Numbers..."
+1945   von Neumann 架构报告; ENIAC 完成
+1947   Bell Labs 三人组发明晶体管
+1957   Sputnik → ARPA 成立; FORTRAN; IBM 360 开端
+1961   COBOL; 第一台分时系统 CTSS
+1969   UNIX Prototype (Bell Labs); ARPANET 起
+1971   Intel 4004; 第一台微处理器; 软盘
+1975   Altair 8800 → Bill Gates/Microsoft; "个人计算" 概念
+1977   Apple II; Commodore PET; TRS-80
+1981   IBM PC (开放架构 → clone 洪流 → Wintel 垄断)
+1985   Windows 1.0; ARM1 (Acorn)
+1991   Linux 0.01 (Linus); WWW 第一网页
+1993   Mosaic → Web 爆炸; iPhone 之父在此出生
+1995   Win95; Java 1.0; Amazon/eBay (Web 商业化)
+2006   AWS EC2 起; iPhone (2007); 触屏 + app store
+2012   AlexNet (ImageNet top-5 &lt; 16%, GPU 训练); "深度学习 = GPU"
+2017   Transformer / "Attention Is All You Need"
+2020   COVID → 数亿人远程办公 → 云速率 5x; 扩散模型
+2022   ChatGPT —— 5 天注册破 100M; RLHF 出现工程化
+2023   LLaMA / Qwen / DeepSeek 系; 开源 70B 可单机推理
+2024   NPU / H100 / TPU v5p / Groq / Cerebras / 量子计算长征
+       Blackwell B200 / GB200 NVL72 (NVIDIA); DeepSeek-V3 开源 (12 月)
+2025   GPT-5 统一 o 系; Claude 4.x / Gemini 3 / Grok 4 推理模型常态化;
+       DeepSeek-R1 "时刻"; Agentic AI + MCP; gpt-oss 开源; HBM4 量产;
+       Google Willow 低于阈值量子纠错
+2026   GPT-5.x→5.6 / Claude 5 / Gemini 3.6 Flash / DeepSeek R2 快节奏迭代;
+       NVIDIA Rubin 量产 + AMD MI450; 昇腾 950 超节点 (1024 卡);
+       HBM4 三家量产 (~2 TB/s/stack) + CXL 3.2; 量子数十逻辑 qubit
+</code></pre>
+<hr />
+<h2 id="一1936-1945-可计算性的形式化--第一台通用电子计算机"><a class="header" href="#一1936-1945-可计算性的形式化--第一台通用电子计算机">一、1936-1945: 可计算性的形式化 + 第一台通用电子计算机</a></h2>
+<h3 id="11-church-turing-论题-1936"><a class="header" href="#11-church-turing-论题-1936">1.1 Church-Turing 论题 (1936)</a></h3>
+<ul>
+<li><strong>Alan Turing</strong>: 论文 <em>On Computable Numbers, with an Application to the Entscheidungsproblem</em> 提出 Turing Machine.</li>
+<li><strong>Alonzo Church</strong>: lambda calculus 同期给出等价定义.</li>
+<li><strong>Church-Turing 论题</strong>: 任何"算法可计算"的函数 = TM 可计算 (直觉但<strong>不是定理</strong>, 是把"算法定义"和"TM 定义"绑成一体).</li>
+</ul>
+<p>→ 回到 <a href="../theory/turing-machine.html">第九部分 计算理论</a> 看形式化定义与停机问题.</p>
+<h3 id="12-第二次世界大战的硬件倒逼"><a class="header" href="#12-第二次世界大战的硬件倒逼">1.2 第二次世界大战的硬件倒逼</a></h3>
+<ul>
+<li><strong>Colossus</strong> (1943, Bletchley Park) 破译 Lorenz 密码的专用机器 (非通用).</li>
+<li><strong>ENIAC</strong> (1945, Eckert &amp; Mauchly, 宾大): 第一台通用电子数字计算机. 17468 真空管、30 吨、5 kW、每秒 5000 加法.</li>
+<li><strong>EDVAC 报告</strong> (1945, von Neumann): 提出<strong>存储程序</strong>架构, CPU + 内存 + IO 三分, 指令和数据同存内存. 这就是后世"von Neumann 架构".</li>
+</ul>
+<div class="mdbook-alerts mdbook-alerts-warning">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  warning
+</p>
+<p>这个架构的"存储程序 + 共享总线"是把<strong>冯诺依曼瓶颈</strong>钉死在所有现代 CPU 里. CPU 与内存的频率差距至今不断拉开, 这就是为什么 HBM / CXL / NUMA 等手段反复被发明 — 都是绕过 1945 那条契约.</p>
+</div>
+<hr />
+<h2 id="二1947-1960-晶体管--大型机--高级语言"><a class="header" href="#二1947-1960-晶体管--大型机--高级语言">二、1947-1960: 晶体管 + 大型机 + 高级语言</a></h2>
+<h3 id="21-晶体管-1947"><a class="header" href="#21-晶体管-1947">2.1 晶体管 (1947)</a></h3>
+<p>Bell Labs 的 Shockley / Bardeen / Brattain 发明点接触晶体管 (Nobel 1956). 替代真空管: 体积小、能耗低、长寿命 → 可堆大规模. 没它就没有集成电路.</p>
+<h3 id="22-集成电路-1958"><a class="header" href="#22-集成电路-1958">2.2 集成电路 (1958)</a></h3>
+<ul>
+<li>Jack Kilby (TI) 与 Robert Noyce (Fairchild) 几乎同时分别发明 IC.</li>
+<li>1965 Gordon Moore 提出 Moore 定律 (每 18-24 月晶体管数翻倍). 半个世纪后这条曲线仍未平.</li>
+</ul>
+<h3 id="23-大型机时代-1955-1975"><a class="header" href="#23-大型机时代-1955-1975">2.3 大型机时代 (1955-1975)</a></h3>
+<ul>
+<li><strong>IBM 701</strong> (1952): IBM 第一台商用电子计算机.</li>
+<li><strong>IBM S/360</strong> (1964): 主打"全系列兼容", 引入 ISA (instruction set architecture) 与 microarch 分离的概念. 这一台机器让"程序员一旦写汇编, 在更高型号同运行"成为可能, 也让<strong>ISA 抽象</strong>成为行业必需.</li>
+</ul>
+<p>→ 这是"计算机抽象层级"的真正起点, 见 <a href="abstraction-layers.html">abstraction-layers</a>.</p>
+<h3 id="24-高级语言史-1957-1972"><a class="header" href="#24-高级语言史-1957-1972">2.4 高级语言史 (1957-1972)</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>年份</th><th>语言</th><th>出发点</th></tr></thead><tbody>
+<tr><td>1957</td><td>FORTRAN (IBM)</td><td>科学计算; 之前手写汇编</td></tr>
+<tr><td>1959</td><td>COBOL</td><td>商业数据处理 (DoD 推)</td></tr>
+<tr><td>1958</td><td>LISP</td><td>符号计算, AI 起源</td></tr>
+<tr><td>1964</td><td>BASIC</td><td>教学, 简化学生入门</td></tr>
+<tr><td>1970</td><td>Pascal</td><td>结构化编程教学</td></tr>
+<tr><td>1972</td><td>C (Ritchie)</td><td>用来重写 Unix, "可移植汇编"</td></tr>
+</tbody></table>
+</div>
+<p>→ <strong>C 与 Unix 是孪生兄弟</strong>; 操作系统首次可移植 (PDP-7 → PDP-11 → VAX). 这件事让"硬件厂家锁定"被反复松动, 是后续一切的种子.</p>
+<hr />
+<h2 id="三1969-1981-unix--arpanet--微处理器--pc"><a class="header" href="#三1969-1981-unix--arpanet--微处理器--pc">三、1969-1981: Unix + ARPANET + 微处理器 + PC</a></h2>
+<h3 id="31-unix-1969"><a class="header" href="#31-unix-1969">3.1 Unix (1969)</a></h3>
+<p>Ken Thompson &amp; Dennis Ritchie 在 Bell Labs 为 PDP-7 写"unics" (-&gt; Unix), 后用 C 重写为可移植 OS. 几乎所有现代 OS (Linux, macOS, iOS, Android 底层, BSD) 都直接或间接是 Unix 派生.</p>
+<p><strong>贡献</strong>: 文件即字节流 / 进程 / fork-exec / pipe / 小工具组合的 shell 哲学 / 网络套接字.</p>
+<p>→ 本书 <a href="../os/index.html">第二部分 OS</a> 几乎是 Unix 与 Linux 工程化的延伸.</p>
+<h3 id="32-arpanet-1969"><a class="header" href="#32-arpanet-1969">3.2 ARPANET (1969)</a></h3>
+<p>第一个分组交换网络; 4 节点起步 (UCLA / SRI / UCSB / Utah). 1973 TCP/IP 雏形 (Cerf-Kahn). 1983 NSFNET 升级 TCP/IP, "互联网" 实质开始.</p>
+<p>1971 Ray Tomlinson 发第一封 email. 1976 Apple I 卖给爱好者; 1977 Apple II 内置 BASIC + 成品机箱; 1981 IBM PC 出货, 标致"个人计算机"被企业级认可.</p>
+<h3 id="33-intel-4004-1971-第一颗微处理器"><a class="header" href="#33-intel-4004-1971-第一颗微处理器">3.3 Intel 4004 (1971): 第一颗微处理器</a></h3>
+<p>Intel 4004 = 2300 晶体管, 4-bit, 740 kHz. 上面运行 Busicom 打印机的计算. 这件事的本质: <strong>CPU 也能做成芯片</strong>而不再是机房箱柜. 后续 8080/8086 (1978 x86 起) 一步步推.</p>
+<h3 id="34-altair-8800-1975-与-microsoft-起步"><a class="header" href="#34-altair-8800-1975-与-microsoft-起步">3.4 Altair 8800 (1975) 与 Microsoft 起步</a></h3>
+<p>Pop Electronics 1975 封面 Altair 8800 → 哈佛大二学生 Bill Gates 与 Paul Allen 写 Altair BASIC 解释器, 一年不到成立 Microsoft. "软件"作为商品第一次清晰化.</p>
+<hr />
+<h2 id="四1981-1995-pc-标准化--gui--互联网基础"><a class="header" href="#四1981-1995-pc-标准化--gui--互联网基础">四、1981-1995: PC 标准化 + GUI + 互联网基础</a></h2>
+<h3 id="41-ibm-pc-1981"><a class="header" href="#41-ibm-pc-1981">4.1 IBM PC (1981)</a></h3>
+<ul>
+<li>用 Intel 8088 (4.77 MHz, 16-bit 内核 + 8-bit 外总线); OS 用 Microsoft DOS (买断 Seattle Computer 产品 QDOS 改名).</li>
+<li><strong>关键</strong>: 架构未保密 → Compaq / Phoenix BIOS 等厂商大量克隆 → "PC 兼容机"潮 → x86 成为事实标准.</li>
+</ul>
+<p>→ <strong>x86 vs ARM</strong> 分叉的故事从这年开始, 见 <a href="mainframe-xpu.html">mainframe-xpu</a>.</p>
+<h3 id="42-wimp--gui"><a class="header" href="#42-wimp--gui">4.2 WIMP + GUI</a></h3>
+<ul>
+<li>1973 Xerox PARC 的 Alto 第一次实现 GUI (windows, icons, mouse, popup).</li>
+<li>1984 Apple Macintosh 商业化 GUI. 1985 Windows 1.0.</li>
+<li>1989 Tim Berners-Lee 在 CERN 提 HyperText + HTTP/HTML, 写下第一个 web server.</li>
+</ul>
+<h3 id="43-lan-与数据库"><a class="header" href="#43-lan-与数据库">4.3 LAN 与数据库</a></h3>
+<ul>
+<li>1980 Novell NetWare / 3Com Ethernet 网卡让办公室组 LAN 成常态.</li>
+<li><strong>关系数据库</strong> 1970 Codd 论文 → Oracle (1979) / IBM DB2 (1983) / PostgreSQL前身 Postgres (1996). 这是 <a href="../databases/index.html">第四部分数据库</a> 的源头.</li>
+</ul>
+<hr />
+<h2 id="五1991-2001-linux--web--开源"><a class="header" href="#五1991-2001-linux--web--开源">五、1991-2001: Linux + Web + 开源</a></h2>
+<h3 id="51-linux-1991"><a class="header" href="#51-linux-1991">5.1 Linux (1991)</a></h3>
+<p>Linus Torvalds 在赫尔辛基大学宿舍写 Linux 0.01 (1991-08-25 公告), 1992 GPL 化 → 开源爆发. 90 年代 ~ 一切服务器都 Linux 化; "LAMP stack" (Linux+Apache+MySQL+PHP) 成为 web 默认.</p>
+<p>→ 这是 Unix 之外<strong>第二支不锁厂商的开源 OS</strong>, 给后续 web 服务、云计算、AI 训练堆栈全部用 Linux 作底.</p>
+<h3 id="52-world-wide-web-1991"><a class="header" href="#52-world-wide-web-1991">5.2 World Wide Web (1991)</a></h3>
+<p>Tim Berners-Lee 在 CERN 部署第一个 web server, HTTP 0.9 / HTML. 1993 Marc Andreessen 写 Mosaic 浏览器 → Netscape (1994) → 商业化 web.</p>
+<p>→ 后续影响 <a href="../networking/index.html">第三部分网络</a> 的一切. HTTP 是几乎所有协议层的"最后一公里".</p>
+<h3 id="53-开源浪潮"><a class="header" href="#53-开源浪潮">5.3 开源浪潮</a></h3>
+<ul>
+<li>1985 GNU (Richard Stallman) → GCC, glibc, bash, Emacs.</li>
+<li>1991 Linux + 1995 Apache HTTP 服务器 + 1996 PostgreSQL + 2005 Git.</li>
+</ul>
+<p>→ 2000 年后开源几乎成为基础设施软件默认形态, 也是 AI 时代模型托管 (HuggingFace) 的预设.</p>
+<hr />
+<h2 id="六2001-2010-web-20--移动--arm-逆袭--虚拟化"><a class="header" href="#六2001-2010-web-20--移动--arm-逆袭--虚拟化">六、2001-2010: Web 2.0 + 移动 + ARM 逆袭 + 虚拟化</a></h2>
+<h3 id="61-ajax--web-20-2004-2005"><a class="header" href="#61-ajax--web-20-2004-2005">6.1 AJAX + Web 2.0 (2004-2005)</a></h3>
+<ul>
+<li>Gmail (2004) / Google Maps (2005) 引爆 AJAX → 浏览器成"富客户端", SPA (Single Page App) 兴起.</li>
+<li>2006 AWS EC2 商业化 (虚拟机租用), 启云时代.</li>
+</ul>
+<h3 id="62-iphone--触屏--app-store-2007"><a class="header" href="#62-iphone--触屏--app-store-2007">6.2 iPhone + 触屏 + App Store (2007)</a></h3>
+<ul>
+<li>2007 初代 iPhone (ARM11 412 MHz, 128MB RAM) 改变"手机"定义: 全屏触屏 + 应用商店.</li>
+<li>2008 Android 1.0; ARM 几乎一夜成为移动通用 CPU → 制造规模超 x86 → RISC 复兴.</li>
+<li>2010 iPad; 2011 Chromebook.</li>
+</ul>
+<p>→ ARM 在手机出货量以 <strong>100×</strong> 量级碾压 x86, 后又通过 Apple Silicon M1 (2020) 与 AWS Graviton 反杀数据中心. 见 <a href="mainframe-xpu.html">mainframe-xpu</a>.</p>
+<h3 id="63-虚拟化与云萌芽"><a class="header" href="#63-虚拟化与云萌芽">6.3 虚拟化与云萌芽</a></h3>
+<ul>
+<li>1999 VMware; 2003 Xen; 2006 EC2; 2008 KVM 入 Linux 主干.</li>
+<li>"弹性的服务器"成为商品 → 创业公司不需自买机架 + 上架.</li>
+</ul>
+<p>→ <a href="../system-design/index.html">第七部分系统设计</a> 的所有 case (Twitter Snowflake / Google 三件套 / Kubernetes 控制平面) 都默认这套云底座.</p>
+<hr />
+<h2 id="七2010-2020-深度学习--大数据--容器化"><a class="header" href="#七2010-2020-深度学习--大数据--容器化">七、2010-2020: 深度学习 + 大数据 + 容器化</a></h2>
+<h3 id="71-gpu-通用计算爆发-2007-cuda-2012-alexnet"><a class="header" href="#71-gpu-通用计算爆发-2007-cuda-2012-alexnet">7.1 GPU 通用计算爆发 (2007+ CUDA, 2012 AlexNet)</a></h3>
+<ul>
+<li>2007 NVIDIA 推出 CUDA 让 GPU 可做通用并行.</li>
+<li>2012 AlexNet (ImageNet top-5 error 16%) 第一次大规模用 GPU 训 CNN, <strong>一举把深度学习从学识题变成工业题</strong>.</li>
+<li>2013-2015 VGG/ResNet/Inception; 2014 GAN; 2015 Batch Norm; 2016 ResNet (152 层可训).</li>
+<li>2017 Transformer → 序列建模换赛道.</li>
+</ul>
+<h3 id="72-大数据基础设施-2004-mapreduce--gfs--2010-spark"><a class="header" href="#72-大数据基础设施-2004-mapreduce--gfs--2010-spark">7.2 大数据基础设施 (2004 MapReduce / GFS → 2010 Spark)</a></h3>
+<ul>
+<li>2004 Google MapReduce &amp; GFS paper → Hadoop (2006) 开源 copy.</li>
+<li>2006 BigTable paper → Cassandra (2008) / HBase / Dynamo (2007) / Redis (2009).</li>
+<li>2014 Kubernetes; 2015 Docker 1.0 主流; 2018 service mesh / Istio / Envoy.</li>
+</ul>
+<p>→ <a href="../distributed/index.html">第六部分分布式系统</a> 的 CAP / Paxos / Raft / K8s 全靠这十年开源沉淀.</p>
+<h3 id="73-cpu-增长遇阻--多核--加速器登场"><a class="header" href="#73-cpu-增长遇阻--多核--加速器登场">7.3 CPU 增长遇阻 + 多核 + 加速器登场</a></h3>
+<ul>
+<li>2005 后单核性能增速放慢 (Dennard scaling 结束), 8 核 / 16 核 / 32 核 CPU 成主流.</li>
+<li>2010 后 GPU / TPU / FPGA 在数据中心占比上升 → <strong>异构计算</strong>开篇.</li>
+<li>2017 RISC-V 基金会成立; ISA 开源化大潮.</li>
+</ul>
+<p>→ 直接铺垫 <a href="../computer-arch/index.html">第八部分组成原理</a> 里的 GPU / TPU / NPU 章节.</p>
+<hr />
+<h2 id="八2020-2024-大模型--生成式-ai--xpu-主流化"><a class="header" href="#八2020-2024-大模型--生成式-ai--xpu-主流化">八、2020-2024: 大模型 + 生成式 AI + XPU 主流化</a></h2>
+<h3 id="81-关键事件"><a class="header" href="#81-关键事件">8.1 关键事件</a></h3>
+<ul>
+<li>2020 GPT-3 (175B); <strong>scaling law</strong> (Kaplan 2020) 起势.</li>
+<li>2021 ViT / DALL-E; 2022 ChatGPT (5 天 +1 亿用户, 历史最快).</li>
+<li>2022 扩散模型 (Stable Diffusion, Midjourney).</li>
+<li>2023 LLaMA-2 (Meta); Qwen / Baichuan / DeepSeek 等中国开源; 推理成本 -90% / 半年.</li>
+<li>2024 推理为王, TPU v5p, Groq LPU, Cerebras WSE, RISC-V 在 AI子系统, NPU 进入个人 PC 与手机, CXL 内存池化.</li>
+</ul>
+<h3 id="82-范式迁移-cpu-时代--gpu-时代--xpu-时代"><a class="header" href="#82-范式迁移-cpu-时代--gpu-时代--xpu-时代">8.2 范式迁移: CPU 时代 → GPU 时代 → XPU 时代</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>阶段</th><th>算力主流芯片</th><th>开发模型</th></tr></thead><tbody>
+<tr><td>1981-2005 CPU</td><td>x86 / ARM 单核</td><td>C / C++ / Java</td></tr>
+<tr><td>2005-2015 多核</td><td>8-32 核 CPU</td><td>pthreads / TBB / Java util.concurrent</td></tr>
+<tr><td>2010-2020 GPU</td><td>NVIDIA + CUDA</td><td>CUDA / OpenCL / OpenGL</td></tr>
+<tr><td>2016-2024 加速器</td><td>TPU / NPU / DPU</td><td>高层框架 (PyTorch / JAX) + 算子级</td></tr>
+<tr><td>2024+ XPU 异构</td><td>CPU + GPU + NPU + DPU + 量子预研</td><td>全栈编排: MLIR-on-IR + workload dispatch</td></tr>
+</tbody></table>
+</div>
+<p>→ "XPU" 是 Andy Bechtolsheim 2017 命名,<strong>统一意味着异构</strong>: CPU 处理控制流, GPU 处理大并行, DPU 卸载网络与存储, NPU 在终端推理. 见 <a href="mainframe-xpu.html">mainframe-xpu</a> 详述.</p>
+<h3 id="83-rlhf-工程化"><a class="header" href="#83-rlhf-工程化">8.3 RLHF 工程化</a></h3>
+<ul>
+<li>2022 InstructGPT → ChatGPT 把"政策对齐"从科研推成通用工程.</li>
+<li>后续 DPO (Direct Preference Optimization, 2023) / RLHF with KL penalty / GRPO (DeepSeek 2024) 成主流.</li>
+</ul>
+<hr />
+<h2 id="八52025-2026-推理模型agentic-ai-与-blackwell-时代"><a class="header" href="#八52025-2026-推理模型agentic-ai-与-blackwell-时代">八·5、2025-2026: 推理模型、Agentic AI 与 Blackwell 时代</a></h2>
+<blockquote>
+<p>按 2026-08 公开资料 (原厂 release note / 主流媒体) 核对; 模型发布与数字以官方口径为准.</p>
+</blockquote>
+<h3 id="851-推理模型-reasoning-models-主流化"><a class="header" href="#851-推理模型-reasoning-models-主流化">8.5.1 推理模型 (Reasoning Models) 主流化</a></h3>
+<ul>
+<li><strong>OpenAI o1</strong> (2024 末) 与 <strong>o3</strong> (2025): 把 Chain-of-Thought 显式化训练, 用 RL 学习"长内部思考"过程; "test-time compute" 成为新维度.</li>
+<li><strong>DeepSeek-R1</strong> (2025-01): 完全开源的 reasoning 模型, 凭冷启动 + 规则奖励 RL 训出一阶性能接近 o1; 价格却只有零头, 一夜踩穿美国闭源厂商定价 → "<strong>DeepSeek 时刻</strong>".</li>
+<li><strong>GPT-5 统一 o 系</strong> (2025-08): OpenAI 把 o 系并入 GPT-5 按需切换推理 / 普通模式, 同周开源 <strong>gpt-oss-120b/20b</strong> (2025-08-05, Apache 2.0); 此后按"月"迭代 (5.1 → 5.2 → … → 5.6), 2026-07 的 <strong>GPT-5.6</strong> 再分成 Sol / Terra / Luna 三档能力层.</li>
+<li><strong>Anthropic</strong> (2025-2026): Claude 3.7 / 4.x 把 "extended thinking" 做成内置开关; 2026-02 <strong>Sonnet 4.6</strong> 首搭 1M context, 2026-06/07 进入 <strong>Claude 5 时代</strong> (Sonnet 5 / Opus 5), agentic 编程与超长上下文成为默认能力.</li>
+<li><strong>Google / xAI</strong> (2025-11): <strong>Gemini 3 Pro</strong> 与 <strong>Grok 4.1</strong> 同期发布; 2026-07 Google 出 <strong>Gemini 3.6 Flash / 3.5 Flash-Lite / 3.5 Flash Cyber</strong> 主打 agent 效率, Grok 5 却一再跳票、只更新到 4.5 —— 大版本节奏第一次被拉开.</li>
+<li><strong>中国开源路线齐发</strong> (2025-2026): DeepSeek V3.2 → <strong>R2</strong> (2026 初)、Qwen3-Max → <strong>Qwen3.5</strong> (2026-02)、Kimi K2.5、GLM-Z1 等, 把 RL + verifier + 过程奖励走通并保持开源权重.</li>
+</ul>
+<p>→ <strong>统计学含义</strong>: 不再只是 next-token 似然, 而是 MCTS + PRM + verifiable reward 上的策略优化; 模型从"模仿分布" 变 "在状态空间搜解". 这把强化学习 (RL) 从边缘推成 LLM 训练 core 环, 且 2026 年推理算力曲线比预训练更陡 —— "推理时算力" 成为新的军备竞赛主轴.</p>
+<h3 id="852-百万-token-上下文与-kv--attention-革新"><a class="header" href="#852-百万-token-上下文与-kv--attention-革新">8.5.2 百万 token 上下文与 KV / attention 革新</a></h3>
+<ul>
+<li>2024 Gemini 1.5 Pro 首秀 1M context; 2026-03 <strong>Claude Opus 4.6 / Sonnet 4.6 把 1M context 转正为 GA</strong> (标准价、无溢价), Gemini 3 / Claude 5 延续 1M+ 原生支持, OpenAI 400K 走"短上下文快推理" 路线.</li>
+<li>技术栈: sparse attention + sink token + RoPE 外插改进 (YaRN / LongRoPE) + KV 量化 (FP8 / INT4) + PagedAttention.</li>
+<li>→ 把 <a href="../ai-ml/transformer.html">第十二部分 §2 MHA</a> 与 <a href="../ai-ml/backprop.html">§3 backprop</a> 里 attention 显存 $O(T^2)$ 的容器打到工程极限; 长上下文从"演示指标" 变成"默认产品参数".</li>
+</ul>
+<h3 id="853-nvidia-blackwell-与-hbm4--rubin"><a class="header" href="#853-nvidia-blackwell-与-hbm4--rubin">8.5.3 NVIDIA Blackwell 与 HBM4 / Rubin</a></h3>
+<ul>
+<li><strong>B200</strong> (2024 发布 / 2025 量产): 双 die, 192 GB HBM3e, 8 PFLOPS FP4. 注意 B200 不再单芯片, 而是 2 个 reticle 用 NV-HBI 互连封装.</li>
+<li><strong>GB200 NVL72</strong>: 36 块 Grace CPU + 72 块 B200 通过 1.8 TB/s NVLink 互联构建单机柜巨型张量机.</li>
+<li><strong>HBM4</strong> (JEDEC 2025-04 定标; SK 海力士 2025-10 量产 → Samsung 2026-02 → Micron 2026-06 通过 NVIDIA 认证): 位宽 1024→2048 bit, <strong>单 stack 约 2 TB/s</strong>, 8-hi 24 GB / 12-hi 36 GB 起步; 配合 CXL 3.x 让 Tiered memory 走向主流.</li>
+<li><strong>Rubin / Vera Rubin</strong> (CES 2026 发布, 2026 下半年量产): 72 Rubin GPU + 36 Vera CPU, NVLink 6 (每 GPU 3.6 TB/s) + ConnectX-9, 把"整柜张量机"再推上机架级 NVLink Domain; 2026 起 AI 硬件竞争从单卡打到整机柜.</li>
+</ul>
+<h3 id="854-asic-与-xpu-谱系扩展"><a class="header" href="#854-asic-与-xpu-谱系扩展">8.5.4 ASIC 与 XPU 谱系扩展</a></h3>
+<ul>
+<li><strong>Google TPU v6 Trillium</strong> / <strong>AMD Instinct MI450</strong> (2026, 432 GB HBM4, 19.6 TB/s, Helios 机架) / <strong>AWS Trainium 2</strong>: 都朝"张量 + 互联" 押大注; Intel <strong>Falcon Shores 2025-01 取消</strong> (仅作内部测试芯片), 转向机架级 <strong>Jaguar Shores</strong> —— 路线图再一次证明竞争重心在"系统" 而非"单卡".</li>
+<li><strong>Groq LPU</strong> 主打"流式推理"几十到几百 tok/s 单卡.</li>
+<li><strong>Cerebras WSE-3</strong> 与 <strong>SambaNova SN40L</strong>: 整片晶圆级芯片 + 长上下文推理 SDK.</li>
+<li><strong>Apple M5</strong> (2025-10) / <strong>M5 Pro/Max</strong> (2026-03) Neural Engine + <strong>骁龙 X Elite NPU</strong> 终端推理普及; 一台笔记本上跑百亿参数成产品级.</li>
+<li><strong>国产</strong>: 昇腾 910C 大规模国产替代 → <strong>昇腾 950 超节点 Atlas 950 SuperPoD</strong> (2026 WAIC 首展: 1024 卡互联, 1 EFLOPS FP8 / 2 EFLOPS FP4, 256 TB 统一内存), 昇腾 384 超节点已商用 750+ 套; SMIC N+2 (7nm 等效) 2026 年底产能目标 7 万片/月; 寒武纪思元 590 / 阿里倚天 / 含光 亦成熟.</li>
+</ul>
+<h3 id="855-agentic-ai--mcp-协议"><a class="header" href="#855-agentic-ai--mcp-协议">8.5.5 Agentic AI + MCP 协议</a></h3>
+<ul>
+<li>2024 末 Anthropic 提出 <strong>MCP</strong> (Model Context Protocol) 让 LLM 与外部工具 / 数据源通过标准 JSON-RPC 协议交互.</li>
+<li>2025-2026 GPT-5.x / Claude 5 / Gemini 3.x 把 tool use / 多轮调用 / sub-agents 工程化; <strong>Codex / claude-code 等 coding agent 成为首个"产品级 agent" 品类</strong>, "Agent = LLM + tool loop + memory" 成主流范式.</li>
+<li>由此工具调用从单 API 进化为"企业应用总线"; 安全与沙箱 (Yamada / eBPF 隔离) 同步兴起, agent 从 demo 走向生产.</li>
+</ul>
+<h3 id="856-量子计算-logical-qubit-时代"><a class="header" href="#856-量子计算-logical-qubit-时代">8.5.6 量子计算 "logical qubit" 时代</a></h3>
+<ul>
+<li><strong>Google Willow</strong> (2024-12, 105 qubit): 首次演示表面码<strong>低于阈值 (below threshold)</strong> —— 错误率随码距增大指数下降, 纠错从理论变成工程曲线.</li>
+<li><strong>Quantinuum Helios</strong> (2025-11): 98 物理 qubit 编码出 <strong>48 个逻辑 qubit</strong>, 2Q 门平均保真 99.92%, 是目前逻辑 qubit 的最高纪录.</li>
+<li>2026 现实: 主流设备落在 <strong>10-48 逻辑 qubit</strong>, 尚未抵达 "~100 logical" 门槛; IBM 200 逻辑 qubit 的 Starling 预期 2028-2029.</li>
+<li>但 <strong>Shor 还要 100 万-1 千万物理 qubit</strong> 才能威胁 RSA-2048; 业内"Y2Q (years to quantum)" 估计仍在 10-30 年.</li>
+</ul>
+<hr />
+<h2 id="九用一条数学线把-1936-2026-拉直"><a class="header" href="#九用一条数学线把-1936-2026-拉直">九、用一条数学线把 1936-2026 拉直</a></h2>
+<pre><code>1936 TM        ──── "可计算" 形式化
+                                        1948 Shannon 信息论 ── 熵 = 压缩下界 / 容量 = 通信上界
+                                              │
+1980 协议理论 (Lamport / Pew / FLP) ─── 分布式算法理论起步
+                                              │
+1995 RSA / DH / ZKP 一线 (Crypto)
+                                              │
+2012 深度学习 = 反向传播 + GPU + 概率分布建模 大爆
+                                              │
+2022 大模型工程化 = 自回归 + RLHF + 推理优化
+                                              │
+2024 异构计算 = 数学调度优化 + 硬件窄并发抽象
+                                              │
+2025 推理模型 + Agent = RL + verifier + 显式思维链;
+       Blackwell B200 把"芯片"从单片推到多 reticle 系统
+                                              │
+2026 HBM4 (~2 TB/s) + CXL 3.2 + 昇腾 950 超节点 + 量子数十逻辑 qubit:
+       数学调度不止 on-die, 跨 memory / chiplet / quantum 同步推上日程
+</code></pre>
+<p><strong>这条线告诉读者</strong>: 数学在第零部分不是孤立基础, 而是<strong>在 1936-2026 这 90 年里每隔十几年就被换一次主角</strong>, 从离散的 TM → 概率的信息论 → 协议的不变式 → 数论的密码学 → 优化的 AI.</p>
+<hr />
+<h2 id="十一句话点破每一年质变"><a class="header" href="#十一句话点破每一年质变">十、一句话点破每一年质变</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>年份</th><th>事件</th><th>质变一句话</th></tr></thead><tbody>
+<tr><td>1936</td><td>Turing</td><td>把"算法"从直觉推到形式</td></tr>
+<tr><td>1945</td><td>von Neumann</td><td>把"程序"放进内存 → 抽象层从此可分</td></tr>
+<tr><td>1947</td><td>晶体管</td><td>把"开关"从机电推到固态</td></tr>
+<tr><td>1964</td><td>IBM S/360</td><td>把"型号"从一次性推到 ISA 兼容</td></tr>
+<tr><td>1969</td><td>Unix</td><td>把"OS"从机房专属推到可移植代码</td></tr>
+<tr><td>1969</td><td>ARPANET</td><td>把"通信"从点对点推到分组交换</td></tr>
+<tr><td>1971</td><td>4004</td><td>把"CPU"从箱柜推到芯片</td></tr>
+<tr><td>1981</td><td>IBM PC</td><td>把"计算机"从机房推到桌面</td></tr>
+<tr><td>1991</td><td>Linux + WWW</td><td>把"操作系统"和"信息消费"各自开源 / 全球化</td></tr>
+<tr><td>2006</td><td>AWS EC2</td><td>把"服务器"从资本推到按分钟计费</td></tr>
+<tr><td>2007</td><td>iPhone</td><td>把"计算机"从桌面推到口袋 (ARM 击穿)</td></tr>
+<tr><td>2012</td><td>AlexNet + CUDA</td><td>把"GPU"从图形推到通用张量</td></tr>
+<tr><td>2017</td><td>Transformer</td><td>把"序列建模"从时间串联推到并行 attention</td></tr>
+<tr><td>2022</td><td>ChatGPT</td><td>把"AI"从论文推到日常工具</td></tr>
+<tr><td>2024</td><td>XPU 异构</td><td>把"CPU 一统天下"推到分工表</td></tr>
+<tr><td>2025</td><td>推理模型 / DeepSeek 时刻</td><td>把"LLM"从续写推到 RL 增强推理; 开源踩穿定价</td></tr>
+<tr><td>2025</td><td>Blackwell B200 / GB200</td><td>把"GPU"从单片推到 multi-reticle + 整柜张量机</td></tr>
+<tr><td>2025</td><td>MCP / Agentic AI</td><td>把"LLM"从问答推到工具总线 + 多轮 Agent</td></tr>
+<tr><td>2026</td><td>HBM4 三家量产 + Rubin / MI450 + 昇腾 950</td><td>把"算力"从单供应商单片推到整柜多源分工</td></tr>
+<tr><td>2026</td><td>量子 10-48 逻辑 qubit</td><td>把纠错从物理实验推到工程爬坡</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="十一结束--速查表"><a class="header" href="#十一结束--速查表">十一、结束 + 速查表</a></h2>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>一页快速唤回:</p>
+<ul>
+<li><strong>1936 Turing</strong>: 算法形式化; 不可判定性.</li>
+<li><strong>1945 von Neumann</strong>: 存储程序 ISA; CPU + 内存 + IO 三分.</li>
+<li><strong>1947 晶体管 + 1958 IC</strong>: 让大规模逻辑可堆.</li>
+<li><strong>1964 IBM 360</strong>: 引入 ISA 抽象; "兼容"成为商品属性.</li>
+<li><strong>1969 Unix + ARPANET</strong>: OS 可移植 + 分组交换.</li>
+<li><strong>1971 Intel 4004</strong>: CPU-on-chip; 微处理器时代.</li>
+<li><strong>1981 IBM PC</strong>: x86 + DOS, Wintel 出芽.</li>
+<li><strong>1991 Linux + WWW</strong>: 开源 OS + 全球网.</li>
+<li><strong>1995 商业 web</strong>: 浏览器, LAMP stack.</li>
+<li><strong>2006 AWS</strong>: 云原生起.</li>
+<li><strong>2007 iPhone</strong>: ARM 移动逆袭.</li>
+<li><strong>2012 AlexNet + CUDA</strong>: GPU = 张量计算事实标准.</li>
+<li><strong>2017 Transformer</strong>: 并行 attention 取代 RNN.</li>
+<li><strong>2022 ChatGPT</strong>: 大模型工程化, 用户数年破亿.</li>
+<li><strong>2024 XPU</strong>: CPU + GPU + DPU + NPU + 量子预研.</li>
+<li><strong>2025 Reasoning + Blackwell</strong>: 推理模型把 RL 推上 LLM 主舞台; B200 / GB200 把 GPU 推到整柜张量机.</li>
+<li><strong>2025 DeepSeek 时刻</strong>: 开源踩穿闭源定价; 中国开源路线齐发.</li>
+<li><strong>2025 MCP / Agentic</strong>: LLM 进化为 Agent + tool bus.</li>
+<li><strong>2026 HBM4 (2 TB/s) + Rubin / MI450 + 昇腾 950 + 量子数十逻辑 qubit</strong>: 整柜算力 + 多源供应链; 逻辑 qubit 纠错进入工程爬坡.</li>
+</ul>
+</div>
+<hr />
+<p>下一篇: <a href="abstraction-layers.html">2. 抽象层级: 从晶体管到 AI 模型的十层金字塔</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../prologue/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../prologue/abstraction-layers.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../prologue/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../prologue/abstraction-layers.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../katex/katex.min.js"></script>
+        <script src="../katex/contrib/auto-render.min.js"></script>
+        <script src="../katex-init.js"></script>
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+        <script src="../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

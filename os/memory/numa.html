@@ -1,0 +1,446 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>NUMA 与 CXL 内存池 - Computer Science Notes</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Personal CS knowledge base — DSA, OS, Networks, DB, Compilers, Distributed Systems, System Design, Computer Architecture, Computation Theory, Cryptography, Information Theory">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../katex/katex.min.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Computer Science Notes</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h1 id="numa-与-cxl-内存池"><a class="header" href="#numa-与-cxl-内存池">NUMA 与 CXL 内存池</a></h1>
+<h2 id="一句话"><a class="header" href="#一句话">一句话</a></h2>
+<p>你看过 64 核的服务器跟普通桌面机 CPU 长得一样，<strong>但物理上 64 个核分成 2-8 个 socket，每个 socket 自己独享 1-4 TB 内存，跨 socket 访问那条"QPI/UPI / Infinity Fabric"链要 100-200ns 等 — 比本机内存慢两到四倍</strong>。这就是 NUMA。在 NUMA 机器上跑一个不知道 NUMA 概念的服务（如 Redis），P99 可能比理论值高 3 倍。理解了 NUMA 后，再看 CXL 这种新硬件，本质是"把 NUMA 横向伸到机柜"——同一个抽象在网络层重新物化。</p>
+<h2 id="1-uma--numa-的物理演进"><a class="header" href="#1-uma--numa-的物理演进">1. UMA → NUMA 的物理演进</a></h2>
+<p>岁月静好 UMA 模型：</p>
+<pre><code>所有 CPU 共享一条前端总线 → 同一条 DRAM 总线 → 所有 CPU 看内存延迟一致
+</code></pre>
+<p>但当 CPU 核数从 4 → 16 → 64，总线带宽抢不过来了，<strong>必须分簇</strong>：</p>
+<pre><code>Socket 0: 32 核 + 1 TB DRAM  ─ hyperlink ┘
+                                │       ← 100-200 ns cross-socket
+Socket 1: 32 核 + 1 TB DRAM  ─ hyperlink ┘
+</code></pre>
+<p>每个 socket 自己内存达"近"，跨 socket 远。这就是 <strong>NUMA = Non-Uniform Memory Access</strong>.</p>
+<h2 id="2-物理延迟常数表"><a class="header" href="#2-物理延迟常数表">2. 物理延迟常数表</a></h2>
+<pre><code>本地 DRAM 访问      80-100 ns
+跨 socket UPI      + 100-150 ns
+跨 2 跳 NUMA       + 200 ns
+HBM (本地 fusion)   50-100 ns
+CXL.mem 直连        170-250 ns (新一代 &lt; 200 ns)
+RDMA 同机柜         2-5 μs
+</code></pre>
+<p>跨 socket 延迟接近<strong>翻倍</strong>——这就是 NUMA 不被知道的代价。</p>
+<h2 id="3-linux-numa-工具入口"><a class="header" href="#3-linux-numa-工具入口">3. Linux NUMA 工具入口</a></h2>
+<pre><code class="language-bash"># 查 NUMA 拓扑
+numactl --hardware
+lscpu = NUMA node(s):
+# 一般 1-socket systems: NUMA nodes = 1
+# 2-socket servers: 2 NUMA nodes
+# AMD Epyc: 4 / 8 NUMA nodes per socket (NPS4)
+
+# 进程当前 NUMA 分布
+cat /proc/&lt;pid&gt;/numa_maps
+numastat -p &lt;pid&gt;
+</code></pre>
+<p>在 SYstemD 里:</p>
+<pre><code class="language-bash"># 启动绑到第一个 node
+numactl --cpunodebind=0 --membind=0 ./yourapp
+
+# 或更精细, bind CPU list:
+numactl --physcpubind=0-15 --membind=0 ./yourapp
+</code></pre>
+<h2 id="4-numa-调优真实工程模式"><a class="header" href="#4-numa-调优真实工程模式">4. NUMA 调优真实工程模式</a></h2>
+<h3 id="模式-1进程隔离"><a class="header" href="#模式-1进程隔离">模式 1：进程隔离</a></h3>
+<p>32 核服务器跑两个高内存服务，绑两个 NUMA node：</p>
+<pre><code class="language-bash">numactl --cpunodebind=0 --membind=0 service_a &amp;
+numactl --cpunodebind=1 --membind=1 service_b &amp;
+</code></pre>
+<p>每个服务仅用本地节点内存，跨 socket 0 次。</p>
+<h3 id="模式-2numa-aware-分配-libnuma"><a class="header" href="#模式-2numa-aware-分配-libnuma">模式 2：NUMA-aware 分配 libnuma</a></h3>
+<pre><code>#include &lt;numa.h&gt;
+struct bitmask *mask = numa_allocate_nodemask();
+numa_bitmask_setbit(mask, 0);
+numa_set_membind(mask);
+void *p = numa_alloc_onnode(1024*1024, 0);
+</code></pre>
+<p>C / C++ 应用直接 libnuma 控制内存位置.</p>
+<h3 id="模式-3线程--cpu-共同绑定"><a class="header" href="#模式-3线程--cpu-共同绑定">模式 3：线程 + CPU 共同绑定</a></h3>
+<p>更近一步: 用 pthread_setaffinity_np 把线程粘在 CPU 上, 同时把内存放本地 node. 这个组合通常能拿到 P99 1/3 的延迟下降 — 这一招是高频交易 / 大数据服务的标配.</p>
+<h3 id="模式-4avoid-remote-alloc"><a class="header" href="#模式-4avoid-remote-alloc">模式 4：avoid remote alloc</a></h3>
+<p>Linux 默认 <code>first-touch</code> policy: 第一次写入页的 CPU 决定页落在哪. 所以初始化大数组时<strong>写它的线程就决定了它的 NUMA 归属</strong>. 程 service startup 时有个 worker 提前 touch 全部内存, 后面 worker 共享该内存经常跑跨 socket :</p>
+<pre><code class="language-c">#pragma omp parallel for
+for (int i = 0; i &lt; N; i++) a[i] = 0;        // 每线程 touch 局部 → 跨 NUMA 拆分
+</code></pre>
+<p><strong>默认 OpenMP 有 first-touch 也是这种语义</strong>. 但手动管理时容易踩坑.</p>
+<h2 id="5-redis-案例-numa-不知道就-15-3-慢"><a class="header" href="#5-redis-案例-numa-不知道就-15-3-慢">5. Redis 案例: NUMA 不知道就 1.5-3× 慢</a></h2>
+<p>实验对比 (8-socket 服务器, 200 GB Redis Cache):</p>
+<ul>
+<li>默认启动 Redis: QPS ~ 220k, P99 ~3 ms;</li>
+<li>numactl → 单 node 绑核: QPS ~ 450k, P99 ~ 1 ms;</li>
+<li>双 NUMA 分两个 Redis 实例 + 路由: QPS ~ 900k 加起来, P99 ~0.5 ms.</li>
+</ul>
+<p><strong>在不改 Redis 源码的情况下</strong>, 仅用 NUMA 工具拿到的 1.5-3× 加速. 这是工程上"懂得硬件 = 直接升职" 的 Classic.</p>
+<h2 id="6-多线程同步原语在-numa-下的代价"><a class="header" href="#6-多线程同步原语在-numa-下的代价">6. 多线程同步原语在 NUMA 下的代价</a></h2>
+<p><code>pthread_mutex</code> 不是公平的: 不是 FIFO, 不是 LIFO, <strong>Linux 内核 futex 是 task-fair spinlock, 但 lock handoff across NUMA 拥有时间成本</strong>:</p>
+<pre><code>同 socket thread 互相抢: ~ 100 ns (L3 hit)+ wakeup;
+cross-socket thread 抢: 200-500 ns (UPI latency) + wakeup;
+</code></pre>
+<p>NUMA topology-aware spinlock/sh mutex 在 Linux 上叫 <code>NUMA-aware lock</code>, 各种 lock ticker 包括 futex 改造能用 <code>MCS lock</code>, <code>TTAS w backoff</code>, <code>CNA lock</code> 之类减少 cross-socket. Linux <code>qspinlock</code> 加强 num-aware since 5.x.</p>
+<p>业务代码 → 拆线程 → 一致在 socket 内做 sync. SHard data → per-socket storage.</p>
+<pre><code class="language-c">// 反例：
+static mutex m;
+void run() {
+    lock_guard&lt;mutex&gt; g(m);
+    ...                                  // 多线程从 2 个 socket 同时进入 = 跨 socket 抢锁
+}
+
+// 正例：
+per_socket mutex m[N_SOCKETS];
+void run(int s) {
+    lock_guard&lt;mutex&gt; g(m[s]);
+    ...                                  // 同 socket 线程抢同 / 同 socket 锁
+}
+</code></pre>
+<h2 id="7-pgas--dsm-的历史"><a class="header" href="#7-pgas--dsm-的历史">7. PGAS / DSM 的历史</a></h2>
+<p>把"跨 NUMA 内存" 推到极致就是 DSM (Distributed Shared Memory) — 用网络硬件支持 CPU 远程访问其他机内存. 90 年代 Stanford DASH / Flash (Dash-Flash), MIT Alewife 都是这条路. 但网络延迟微秒级远超 DRAM 纳秒级, 实操成本高, 商业上 JPG.</p>
+<p>但 GPU 一脉/CXL 一脉把这条路拖回来了：</p>
+<ul>
+<li>NVLink 4.0 → 400 GB/s GPU-GPU direct peer access;</li>
+<li>CXL 2.0 → CPU ↔ device 一致缓存, host peer memory;</li>
+<li>CXL.mem → 远地 DRAM 当作本地但延迟 ~170-250 ns, 类似 cross-socket NUMA.</li>
+</ul>
+<h2 id="8-cxl-在同一台机柜里的-numa-延伸"><a class="header" href="#8-cxl-在同一台机柜里的-numa-延伸">8. CXL: 在同一台机柜里的 NUMA 延伸</a></h2>
+<p>CXL 是基于 PCIe 5 的 cache-coherent 互连协议, 看上去是 NUMA 的延续：</p>
+<pre><code>传统 NUMA:   CPU A ↔ UPI ↔ CPU B (本地 DRAM)
+CXL:         CPU A ↔ CXL.mem ↔ 远端内存池
+CXL.cache:   CPU ↔ CXL device (NIC / 加速器) 共享 cache 一致性
+</code></pre>
+<p>CXL.mem 让一台 4 TB 内存的服务器把"远端 1 TB 内存池"视为远端 NUMA node 4. ** numa 工具、 <code>numactl --cpunodebind</code> 全都直接适用**.</p>
+<p>工程意义:</p>
+<ul>
+<li>内存池化 → 多台 server 共享一个 DRAM pool, 业务 server 内存按需扩 out. 冷启动快几十 GB;</li>
+<li>持久内存 → 把 PMem/NVDIMM 放到远端;</li>
+<li>加速器互连 (如 GPU 内存) 借助 CXL 互通, 互访延迟 ms 级 → μs 级.</li>
+</ul>
+<p>这个时代从 2024-2025 开始部署最早, GC + Redis + KV 仓库陆续适配. NUMA 知识直接迁移过去.</p>
+<h2 id="9-numa-与分配器的协同"><a class="header" href="#9-numa-与分配器的协同">9. NUMA 与分配器的协同</a></h2>
+<p><code>jemalloc</code> 内置 NUMA 感知: arena 数 = NUMA nodes × 4, 内部 init 时绑定 arena → node. 这是分配器与 NUMA 同源工程示例:</p>
+<ul>
+<li>arena 0-N 在 Node 0 上 alloc 页;</li>
+<li>arena N-2N 在 Node 1 上 alloc 页;</li>
+<li>thread x → arena hash → 选择本地 node;</li>
+</ul>
+<p>这是 NUMA + allocator 的"两个抽象层共同优化 cache 行为" 的同构案例.</p>
+<h2 id="10-多语言同一抽象"><a class="header" href="#10-多语言同一抽象">10. 多语言同一抽象</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>语言</th><th>NUMA 触达</th><th>备注</th></tr></thead><tbody>
+<tr><td>C / C++</td><td>libnuma + first-touch</td><td>最底层</td></tr>
+<tr><td>Rust</td><td>libnuma-bind + jemalloc</td><td>高度可定制</td></tr>
+<tr><td>Go</td><td>runtime.LockOSThread + cgo libnuma</td><td>没有 first-touch 自动</td></tr>
+<tr><td>Java</td><td><code>-XX:+UseNUMA</code> + JEP 369 (Hotspot, GCCore)</td><td>JVM 把 heap per node</td></tr>
+<tr><td>Python</td><td>多进程 + numactl</td><td>默认单核绑核</td></tr>
+</tbody></table>
+</div>
+<p>所有语言在 NUMA 机器上都有办法适配, 但需要<strong>显式配置, 否则默认行为不 NUMA-aware</strong>.</p>
+<h2 id="11-这章带走的东西"><a class="header" href="#11-这章带走的东西">11. 这章带走的东西</a></h2>
+<ul>
+<li>NUMA 是 multi-socket 服务器的常态, 默认行为不优化, 跨 socket 延迟翻 2-4×;</li>
+<li>思维: 同 socket 内 才应该共享 data / lock; 跨 socket 用分多实例 / partition / NUMA-aware 数据结构</li>
+<li>工具链: numactl + libnuma + numastat 直接可用, 不需修改 language runtime;</li>
+<li>CXL 是 NUMA 互连在网络层扩展, 同抽象可拓到机柜级;</li>
+<li>allocator (jemalloc) 内嵌 NUMA arena 是 OS 层 + 运行时层共同优化的同构示例.</li>
+</ul>
+<p>下一节 → <a href="../fs/index.html">文件系统</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../os/memory/allocator.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../os/fs/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../os/memory/allocator.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../os/fs/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../katex/katex.min.js"></script>
+        <script src="../../katex/contrib/auto-render.min.js"></script>
+        <script src="../../katex-init.js"></script>
+        <script src="../../mermaid.min.js"></script>
+        <script src="../../mermaid-init.js"></script>
+        <script src="../../notes.js"></script>
+
+
+
+    </div>
+    </body>
+</html>
