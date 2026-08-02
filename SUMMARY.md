@@ -17,6 +17,15 @@
 
 ---
 
+# 学习笔记 · 心得记录
+
+> 随读随记的轻量工具：笔记默认只存在你的浏览器 localStorage（不注册、无数据库），需要沉淀时一键导出为 GitHub Issue，或复制 Markdown 粘贴到 Discussions / 自己的仓库。
+
+- [开篇: 个人笔记工具与用法](notes/README.md)
+- [心得日志: 把想法沉淀成条目](notes/journal.md)
+
+---
+
 # 第零部分 · 工程数学与离散数学基础
 
 > 把后面十三部分反复出现的同一组数学抽到一处讲透: 离散结构 + 线性代数 + 概率统计 + 微积分/优化. 让后续读 DSA / OS / DB / Compiler / Crypto / 信息论 / Transformer 时, 数学不再是被卡的那一关.
