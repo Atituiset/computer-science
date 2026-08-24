@@ -137,4 +137,4 @@ PagedAttention: 逻辑块→物理块映射, 消除内外碎片, 支持共享
 架构:   PD 分离 + GPU 池 + 路由/限流 + 弹性; 盯 TTFT/TPOT/吞吐
 ```
 
-下一篇: [元抽象卷 · 跨章节大主题](../_meta/index.html)。
+下一篇: [元抽象卷 · 跨章节大主题](../_meta/README.md)。

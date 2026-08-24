@@ -267,4 +267,4 @@ Twitter API 限每 IP 15 requests / 15min, proxy users behind same nat 让 公�
 
 ---
 
-下一节 → [经典系统案例](../case/index.html)
+下一节 → [经典系统案例](../case/README.md)

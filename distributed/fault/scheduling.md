@@ -250,4 +250,4 @@ Open-source 现在 standardize K8s monitoring stack: Pod node /metrics + Prometh
 
 ---
 
-下一节 → [系统设计总览](../../system-design/index.html)
+下一节 → [系统设计总览](../../system-design/README.md)

@@ -179,7 +179,6 @@ Service 1 update + emit event → topic. Service 2 consumes event + 更新 local
 - Strict serializable + linearizable + cross-shard ACID
 
 Trade-off is large; only used when must.
-Ÿ
 
 ---
 
@@ -222,7 +221,7 @@ Migration **draining binary** flip client routing — full hot migration, no dow
 
 ### Read Replica
 
-读写 hot key → route read to replica → DB 主几 复 flash reserved for replica。 
+读写 hot key → 路由到多个副本分摊读流量 → 为热点 key 预留专用 replica（避免与普通流量争抢资源）。
 Cassandra Naturally多个 replica. 实际流量分布 across multiple replicas + read repair。
 
 ### Caching Hot Key (Redis local tier)
@@ -231,7 +230,7 @@ If hot-key data fits in Redis, server-side cache each local Redis 实例 hit red
 
 ### Celebrity Problem + Pre-compute at cache-layer
 
-Twitter fan-out a Coulter during "Kardashian post".PropTypes: pre-detected celebrity + "fanout reduction" — write celebrity timeline read instead of pushing all his//her posts to followers' inbox. Real engineering pattern.
+Twitter 的名人发推（"Kardashian 问题"）是典型 fan-out 风暴：写时推送会把一条推文复制到数千万粉丝的收件箱。工程解法是**混合模型**：预先识别名人账号，其推文不写入粉丝 inbox，改为读时从作者 timeline 实时拉取合并——写扩散转读聚合。
 
 ### Cache Replication
 
@@ -315,4 +314,4 @@ Vitess retry-mode vcstream logic over long-table migrate pound wall causing 表 
 
 ---
 
-下一节 → [缓存](../cache/index.html)
+下一节 → [缓存](../cache/README.md)

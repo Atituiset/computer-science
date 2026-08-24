@@ -219,4 +219,4 @@ Riak AAE 30 分钟扫 all keys build Merkle Tree, 100GB keys 内存写入 ~1GB M
 
 ---
 
-下一节 → [时钟与顺序](../clock/index.html)
+下一节 → [时钟与顺序](../clock/README.md)

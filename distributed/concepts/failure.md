@@ -230,4 +230,4 @@ Cabbandra 默认 phi = 8. Failure with spiking traffic chatter: heartbeat delay 
 
 ---
 
-下一节 → [共识](../consensus/index.html)
+下一节 → [共识](../consensus/README.md)

@@ -9,6 +9,18 @@
 
 读完后, 你能在面试/代码评审里立刻辨出"这语言是否需要栈/计数器"——这就是 parser 选型 (LL / LR / PEG) 的底层依据.
 
+## 思想链
+
+```
+评审现场: "这个文本模式能不能用 grep 的正则写? 会不会有性能陷阱?"
+  └─> 先问: 这门语言正则吗? 两把尺子
+       ├─> pumping lemma: 必要不充分 —— 只能反证"非正则", 抓不住的反例一堆
+       └─> Myhill-Nerode: 充要 —— 等价类有限 ⟺ 正则, 且类数 = 最小 DFA 状态数
+             └─> a^n b^n 有无穷个互不等价的前缀类 → 非正则 → "计数"必须交给栈
+                   └─> 工程映射: lexer 层只做正则; 需要"配对/计数"的留给 parser 文法层 (下一章)
+                         └─> backreference (\1) 看似正则实超 Type-3 —— RE2/Rust regex 干脆不做
+```
+
 ---
 
 ## 一、正则语言的形式化
@@ -33,7 +45,7 @@ $$ \text{正则表达式} \;\stackrel{\text{Thompson}}{\longrightarrow}\; \varep
 工程直接收益: **awk pattern 是 DFA-able**; **Backreference** (PCRE 的 `\1`) 让语言超出 Type-3 (e.g. `(a+)\1` 描等长 a 串拼接, 实质是 $\{a^n a^n\}$), 这就是为什么 PCRE 退回 backtracking + 无法 DFA.
 
 > [!NOTE]
-> 这点常被工程师误解. Go `regexp` 故意不支持 backreference, 因为加了它就再也不能用 NFA 编译. 西工大 Snid、Rust `regex` 同理.
+> 这点常被工程师误解。RE2（Go 标准库 `regexp` 走的就是 RE2 路线）与 Rust 的 `regex` 引擎都**故意不支持 backreference**——一旦加上它，就再也回不到 NFA/自动机的线性时间保证，只能退回 backtracking。两者宁可少一个功能，也要保住 $O(n)$ 匹配时间。
 
 ---
 
@@ -101,13 +113,13 @@ $$ x \equiv_L y \iff \forall z: (xz \in L) \Leftrightarrow (yz \in L). $$
 
 ### 4.2 用 pump lemma 也卡的例子
 
-证 $\{ a^n b^n\}$ 非正则: $x_i = a^i$ for $i = 0, 1, 2, ...$, []),
+证 $\{a^n b^n \mid n \geq 0\}$ 非正则: 对每个 $i \geq 0$ 取前缀 $x_i = a^i$,
 - $x_i$ 与 $x_j$ ($i \neq j$) 不等价, 因为以 $z = b^i$ 接续: $x_i z = a^i b^i \in L$, $x_j z = a^j b^i \notin L$.
-- 故等价类无限 → 非正则. 直接.
+- 故 $\{a^i\}$ 两两落在不同等价类, 类数无限 → 非正则. 论证比 pumping lemma 更直接——它同时说明了"任何 DFA 都必须为每个已读的 a 记一个独立状态", 这正是"有限状态装不下无限计数"的精确表述.
 
 ### 4.3 最小 DFA 上界
 
-等价类 $\emptyset, [a], [a^2], \ldots$ 互不相等, 最小 DFA 状态数 = 类数 = $\infty$, 因此非正则.
+等价类 $[\epsilon], [a], [a^2], \ldots$ 互不相等, 最小 DFA 状态数 = 类数 = $\infty$, 因此非正则. 反过来, 若能证明等价类只有 $k$ 个, 就同时拿到了最小 DFA 的状态数——Myhill-Nerode 是**唯一**能把"非正则证明"和"最小状态数下界"一次给全的工具.
 
 ### 4.4 工程示例题: 判断 $L = \{xyy^R x^R \mid x, y \in \{a,b\}^*\}$ 是否正则
 
@@ -130,6 +142,9 @@ $$ x \equiv_L y \iff \forall z: (xz \in L) \Leftrightarrow (yz \in L). $$
 
 最后一项提醒: **"含某性质"的"是否存在 k"和"相等" 等价性极强**, 不要急着用 lemma. 先想清楚 $L$ 是不是合于"两串是否相等"——平等性是 pumping 极不友好的 a 类.
 
+> [!TIP]
+> 上表就是面试速查卡。用法口诀：先给语言归类——**计数/配对类**（$a^n b^n$、回文）用 pumping，取 $i = 0$ 或 $i = 2$ 打破平衡；**前缀比较类**（"两个前缀谁也替代不了谁"）直接上 Myhill-Nerode 数类；拿到题目先怀疑"它会不会其实是正则"——一半的经典陷阱题（如 $\{xyy^R x^R\}$）答案是平凡的正则。
+
 ---
 
 ## 六、与其他章节的桥梁
@@ -137,6 +152,19 @@ $$ x \equiv_L y \iff \forall z: (xz \in L) \Leftrightarrow (yz \in L). $$
 - **第三章 [CFG/PDA]**: $a^n b^n$ 需要 PDA = CFG 接受, 进入 Type-2 语言层级;
 - **第五章 [不可判定]**: Post Correspondence Problem 用 CFG 类比不可判定;
 - **第七部分 [系统设计]** 的"为什么不能穷举所有可能入手路径" 跟 pumping lemma "DFA 必复读某状态" 的同构——资源有限自然形成循环.
+
+---
+
+## 七、一页速查
+
+```
+正则语言: regex ≡ ε-NFA ≡ NFA ≡ DFA (Kleene 定理); 对 并/交/补/连接/*/同态 全闭合
+pumping:  存在 p, |w|>=p ⇒ w=xyz, |xy|<=p, |y|>=1, ∀i: xy^i z ∈ L —— 必要不充分
+Myhill-N: x≡_L y ⟺ ∀z: (xz∈L ⟺ yz∈L); 类数有限 ⟺ 正则, 类数 = 最小 DFA 状态数 (充要)
+经典反例: a^n b^n 非正则 (pump 取 i=0 / MN 取 z=b^i); {xyy^R x^R} 其实 = Σ* 正则!
+backref:  PCRE \1 超出 Type-3 → 只能回溯; RE2 (Go regexp) / Rust regex 弃之保 O(n)
+工程分界: lexer 只做正则; "配对/计数"交给 parser 文法层 —— 选型依据就在本章两把尺子
+```
 
 ---
 

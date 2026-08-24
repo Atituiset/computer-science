@@ -344,5 +344,5 @@ LLM 生成时每 token 一次 forward pass, GPU 利用率低. 用一个**草稿�
 
 ---
 
-回主目录: [第十二部分 · 人工智能与机器学习 README](index.html).
-下一篇系统正文: [第十三部分 · 元抽象: 跨章节大主题](../_meta/index.html).
+回主目录: [第十二部分 · 人工智能与机器学习 README](README.md).
+下一篇系统正文: [第十三部分 · 元抽象: 跨章节大主题](../_meta/README.md).

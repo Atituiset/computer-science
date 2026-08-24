@@ -299,5 +299,5 @@ OTel Collector (统一采集: metrics/logs/traces, 采样, 脱敏)
 
 ---
 
-回主目录: [工程化实践轴 README](index.html).
-下一篇系统正文: [导论卷回到主目录](../prologue/index.html) 或任选下面章节。
+回主目录: [工程化实践轴 README](README.md).
+下一篇系统正文: [导论卷回到主目录](../prologue/README.md) 或任选下面章节。

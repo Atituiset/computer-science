@@ -136,4 +136,4 @@ limits.memory=2G ⇒  cgroup.memory.max=2147483648
 - 自适应工具 kubelet config + cpu + memory + io + 关注 cgroup-adapt runtime;
 - 设 / Standalone Go 经济; K8s recomms runtime GOMAXPROCS default `min(ncpu, cpu.max / period)`.
 
-下一节 → [锁与同步原语](../lock/index.html)
+下一节 → [锁与同步原语](../lock/README.md)

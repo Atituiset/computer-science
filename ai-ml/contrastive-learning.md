@@ -299,4 +299,4 @@ export function infoNCE(
 
 ---
 
-下一篇: [形式化方法卷 README](../formal/index.html).
+下一篇: [形式化方法卷 README](../formal/README.md).

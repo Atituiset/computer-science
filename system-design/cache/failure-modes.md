@@ -277,4 +277,4 @@ User profile write to DB, cache delete send stale 1 second; user update fire 双
 
 ---
 
-下一节 → [消息队列与异步](../queue/index.html)
+下一节 → [消息队列与异步](../queue/README.md)

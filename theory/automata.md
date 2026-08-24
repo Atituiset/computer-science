@@ -10,6 +10,18 @@
 
 **三者等价** (都识别正则语言), 但工程上 ε-NFA 最易手写、DFA 执行最快. 子集构造把 NFA 编译成 DFA; Hopcroft 算法把 DFA 压到最小. 这一进一出就是 grep / sed / regex JIT 的内部.
 
+## 思想链
+
+```
+工程现场: 在 10MB 日志里匹配 /^(ERROR|WARN)[0-9]*:/
+  └─> 正则 --Thompson--> ε-NFA --子集构造(可 lazy)--> DFA
+       └─> DFA 每字符 O(1)、无回溯 → 天然免疫 ReDoS, 这是 grep 高吞吐的根
+             │      (代价: backreference 被放弃 —— 见下一章 regular.md)
+             └─> 但 a^n b^n 这类"计数"语言正则表达不了 → 泵引理 / Myhill-Nerode 判界
+                   └─> 需要栈 → PDA ⇔ CFG (下一章) → parser 的 LL/LR 全家
+                         └─> 栈也不够的 → 图灵机 → 可计算性的天花板 (第 4 章)
+```
+
 ---
 
 ## 一、DFA 的形式化定义
@@ -41,7 +53,7 @@ States Q = {A, B}, Σ = {0,1}, q0 = A, F = {B}
 Input: 1010
   A --1--> A --0--> B --1--> A --0--> B  ∈ F → accept
 Input: 1011
-  A --1--> A --0--> B --1--> A --0?... 错, 末位是 1 → A ∉ F → reject
+  A --1--> A --0--> B --1--> A --1--> A   ∉ F → reject (末位是 1)
 ```
 
 ### 1.3 Python 实现
@@ -106,7 +118,7 @@ export function runDFA(m: DFA, w: string): boolean {
 
 ### 2.1 直觉
 
-NFA 是"幻觉中的并行"——一次走多条路, 只要**任何一条** reach 接受状态就接受. 这不是物理并行, 是数学抽象: 我们用"成像"维护**当前状态集**.
+NFA 是"幻觉中的并行"——一次走多条路, 只要**任何一条** reach 接受状态就接受. 这不是物理并行, 是数学抽象: 我们只需维护**当前可能状态的集合**.
 
 形式化同样五元组, 唯一差别:
 $$ \delta: Q \times \Sigma \to 2^Q $$
@@ -135,7 +147,7 @@ Q = {S, A, F}, Σ = {a, b}, q0 = S, F = {F}
 
 $w = a_1 a_2 \ldots a_n$ 被 NFA 接受 iff 存在状态序列 $q_0 \to q_1 \to \ldots \to q_n$ 使得 $q_i \in \delta(q_{i-1}, a_i)$ 且 $q_n \in F$.
 
-注意"**存在**": NFA 验证比 DFA 弱——它说"有价值", DFA 说"一定走对路".
+注意"**存在**": NFA 的接受是存在量词——同一输入对应多条路径, 只要有一条到达终态即接受; DFA 只有唯一路径, 没有"运气"可言. 这也解释了为什么 NFA 表达力与 DFA 相同但**描述**能力更强: 存在量词把"猜对了的那条路"的构造负担甩给了子集构造.
 
 ### 2.4 NFA 的实现: 维护状态"集合"
 
@@ -248,13 +260,89 @@ def nfa_to_dfa(nfa) -> DFA:
                q0=start, F=F_dfa)
 ```
 
+Go 版本 (与上面 Python 版一一对应, Go 1.21+ 标准库):
+
+```go
+// Go 版子集构造: ε-NFA -> DFA
+type SSet map[string]bool // NFA 状态名集合
+
+// ε-closure: 从 S 沿 ε 边能到的全部状态 (含 S 自身)
+func closure(eps map[string]SSet, S SSet) SSet {
+	seen := make(SSet, len(S))
+	stack := make([]string, 0, len(S))
+	for q := range S {
+		seen[q] = true
+		stack = append(stack, q)
+	}
+	for len(stack) > 0 {
+		q := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		for r := range eps[q] {
+			if !seen[r] {
+				seen[r] = true
+				stack = append(stack, r)
+			}
+		}
+	}
+	return seen
+}
+
+func name(S SSet) string {
+	xs := slices.Sorted(maps.Keys(S))
+	return strings.Join(xs, ",")
+}
+
+// move(q, ch) 返回该转移可达的状态集; 无转移时返回空集.
+// 返回值: DFA 状态 id -> 字符 -> 后继 id. 含任一 NFA 终态的集合即 DFA 终态.
+func nfaToDFA(sigma []string, move func(q, ch string) SSet,
+	eps map[string]SSet, q0 string) map[string]map[string]string {
+
+	start := closure(eps, SSet{q0: true})
+	id := map[string]string{name(start): "D0"}
+	dfa := map[string]map[string]string{"D0": {}}
+	for queue := []SSet{start}; len(queue) > 0; queue = queue[1:] {
+		S, sid := queue[0], id[name(queue[0])]
+		for _, ch := range sigma {
+			nxt := SSet{}
+			for q := range S {
+				for r := range move(q, ch) {
+					nxt[r] = true
+				}
+			}
+			T := closure(eps, nxt)
+			tid, ok := id[name(T)]
+			if !ok { // 只展开被实际触达的状态 —— eager 版; RE2 是 lazy 版
+				tid = fmt.Sprintf("D%d", len(id))
+				id[name(T)] = tid
+				dfa[tid] = map[string]string{}
+				queue = append(queue, T)
+			}
+			dfa[sid][ch] = tid
+		}
+	}
+	return dfa
+}
+
+func accepts(dfa map[string]map[string]string, finalsOf func(string) bool, w string) bool {
+	q := "D0"
+	for i := 0; i < len(w); i++ {
+		nx, ok := dfa[q][string(w[i])]
+		if !ok {
+			return false // 死状态: 提前失败
+		}
+		q = nx
+	}
+	return finalsOf(q)
+}
+```
+
 ### 5.2 复杂度
 
 最坏 |DFA 状态| = $2^{|Q_{\text{NFA}}|}$. 这个上界紧: 接受 "倒数第 $k$ 个字符是 a" 串的语言, ε-NFA k+1 状态, 子集构造爆出 $2^k$ 状态 DFA. 这也是为什么 grep 不直接编译成 DFA 加载到内存——内存吃不起.
 
 ### 5.3 工程版: lazy + cache
 
-Go `regexp` & RE2 实现 lazy 子集构造: 边跑边缓存 (state-set, ch)→state-set, 第一次 miss 则构造 #. 不预先编译所有状态, 把最坏 2^n 推迟到真正见到很多输入时——大多数 regex 实际只用很少状态.
+Go `regexp` 与 RE2 用 **lazy** 子集构造: 边跑边缓存 (state-set, char) → state-set, 第一次 miss 才现场构造新 DFA 状态. 不预先展开全部 $2^n$, 把最坏情况推迟到真的见到大量不同输入时——大多数 regex 在真实流量里只触达很少的状态.
 
 ---
 
@@ -294,11 +382,11 @@ def hopcroft_minimize(dfa) -> DFA:
     ...
 ```
 
-工程意义: 每跑一次 regex-fuse 把状态数砍一半, 内存 cache 命中明显改善.
+工程意义: 最小化常能把 DFA 状态数砍掉一大截, 状态表变小直接换来更好的 cache 命中率——Rust `regex` 在编译期就把 NFA 精简到最小再落成执行结构, 思路同源.
 
-### 6.3 真实版: Brzozowski's derivative
+### 6.3 真实版: Brzozowski 双反转
 
-对 NFA 倒过排序 + 子集构造**一步到位**给最小 DFA——理论极美但实践不如 Hopcroft 稳.
+把自动机 **反转 → 子集构造 → 再反转 → 再子集构造**, 两轮下来得到的恰是**最小** DFA——理论极美, 但每轮确定化都可能指数爆炸, 实践不如 Hopcroft 稳.
 
 ---
 

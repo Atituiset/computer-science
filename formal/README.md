@@ -33,7 +33,7 @@
 
 ## 章节结构
 
-- [开篇: 用数学证明"系统是对的"](index.html) ← 当前
+- [开篇: 用数学证明"系统是对的"](README.md) ← 当前
 - [1. 模型检查与 TLA+: 穷举状态空间找反例](model-checking-tla.md)
 - [2. 定理证明: Coq / Lean / 依赖类型 / Curry-Howard](coq-lean.md)
 - [3. 程序验证: Hoare 逻辑 / 符号执行 / 形式语义](program-verification.md)

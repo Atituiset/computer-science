@@ -20,11 +20,11 @@
 
 ## 这一部分的章节
 
-- [物理层 / 数据链路层](phy/index.html) — 以太网帧、CSMA/CD、PHY/MAC 分层、光纤、DWDM、机房布线
-- [IP / 路由](ip/index.html) — IPv4/v6、ICMP、ARP/NDP/DHCP、BGP/OSPF、NAT+conntrack
-- [TCP / UDP](tcp/index.html) — 三次握手四次挥手、TIME_WAIT、Reno/Cubic/BBR、SACK/RTO 估计
-- [HTTP / TLS](http/index.html) — 1.0→1.1→2→3 演进、TLS 1.3 握手与 0-RTT、证书链/PKI、gRPC/Protobuf
-- [QUIC](quic/index.html) — over UDP 解决什么、连接迁移、BBR 在 QUIC 下的特点
+- [物理层 / 数据链路层](phy/README.md) — 以太网帧、CSMA/CD、PHY/MAC 分层、光纤、DWDM、机房布线
+- [IP / 路由](ip/README.md) — IPv4/v6、ICMP、ARP/NDP/DHCP、BGP/OSPF、NAT+conntrack
+- [TCP / UDP](tcp/README.md) — 三次握手四次挥手、TIME_WAIT、Reno/Cubic/BBR、SACK/RTO 估计
+- [HTTP / TLS](http/README.md) — 1.0→1.1→2→3 演进、TLS 1.3 握手与 0-RTT、证书链/PKI、gRPC/Protobuf
+- [QUIC](quic/README.md) — over UDP 解决什么、连接迁移、BBR 在 QUIC 下的特点
 
 读完你应该能回答这些问题，而不是只会说"我学过计算机网络"：
 

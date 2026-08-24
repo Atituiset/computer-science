@@ -2,7 +2,7 @@
 
 ## 一句话
 
-机器学习是一类**用数据替换显式规则**的程序写法: 当规则写不出来、但能定义"做对/做错"时, 让数学优化自动从样本里把函数拟合出来. 70 年路线从**线性回归 (Legendre 1805 / Gauss 1809)** 演到 **MLP (1986)** → **反向传播自动求导 (1970/1986)** → **CNN/RNN (1998/1997)** → **Attention/Transformer (2017)** → **扩散模型 (2020)** → **RLHF 对齐 (2022)**. 我们抽主干 5 章把它一气讲通, 全部数学已在 [第零部分](../math/index.html) 准备好, 本部分直接引用.
+机器学习是一类**用数据替换显式规则**的程序写法: 当规则写不出来、但能定义"做对/做错"时, 让数学优化自动从样本里把函数拟合出来. 70 年路线从**线性回归 (Legendre 1805 / Gauss 1809)** 演到 **MLP (1986)** → **反向传播自动求导 (1970/1986)** → **CNN/RNN (1998/1997)** → **Attention/Transformer (2017)** → **扩散模型 (2020)** → **RLHF 对齐 (2022)**. 我们抽主干 5 章把它一气讲通, 全部数学已在 [第零部分](../math/README.md) 准备好, 本部分直接引用.
 
 ## 思想链
 
@@ -33,7 +33,7 @@
 
 ## 章节
 
-- [开篇: 从线性回归到 Transformer 的 70 年](index.html) ← 当前
+- [开篇: 从线性回归到 Transformer 的 70 年](README.md) ← 当前
 - [1. Foundations: 线性回归 → 逻辑回归 → MLP → 损失函数谱 → 泛化与正则](foundations.md)
 - [2. Backpropagation: 计算图 / 反向模式 AD / 雅可比链式 / 梯度检查](backprop.md)
 - [3. Transformer: self-attention / MHA / FFN / LayerNorm / 残差 / Encoder-Decoder / 训练损失](transformer.md)
@@ -62,8 +62,8 @@
 ## 不在本部分讲什么
 
 - **传统 ML 的剩下半壁 (k-means / PCA / 聚类与降维)**: 已在 §6 树模型与 SVM 之外的部分仍按需自学; 聚类与降维与深度表示学习(§10)在目标上同构, 数学基础 (MLE/MAP, KKT, SVD) 都在第零部分.
-- **形式化方法 / 程序验证**: Coq / Lean / TLA+ 见 TODO 未来方向.
-- **量子计算**: Deutsch–Jozsa / Shor / 量子纠错见 TODO 未来方向.
+- **形式化方法 / 程序验证**: Coq / Lean / TLA+ 已独立成卷, 见 [形式化方法卷](../formal/README.md).
+- **量子计算**: Deutsch–Jozsa / Shor / 量子纠错已独立成卷, 见 [量子计算卷](../quantum/README.md).
 
 ## 历史 1: 1957 - 1986 三起三落
 

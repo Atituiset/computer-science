@@ -20,7 +20,7 @@
 - **触发**: 读[导论卷 history](../prologue/history.md)时，发现 2025-2026 的内容需要按 2026-08 公开资料核对。
 - **结论**: 每个时代节点的质变不在新硬件 / 新模型本身，而在它改写了哪条"契约"——例如 HBM4 把单 stack 带宽从 ~1.2 TB/s 抬到 ~2 TB/s，改变的是 memory-bound 训练的边界。
 - **反例 / 坑**: 凭记忆写"单 stack 384 GB/s"和"~100 logical qubit 已抵达"都错了；落笔前先查原厂 release note / 论文。
-- **链接**: [prologue/history.md](../prologue/history.md)、[发展史 TL;DR](history.md) 对应 2025-2026 小节。
+- **链接**: [prologue/history.md](../prologue/history.md)、[发展史 TL;DR](../prologue/history.md) 对应 2025-2026 小节。
 
 ---
 

@@ -94,7 +94,7 @@ def ecdh_curve25519():
 ### 3.1 PFS examples
 
 - **TLS 1.3**: ECDHE 是默认, 强制 PFS. RSA-only key transport 已 **deprecate**.
-- **Signal**: Double Ratchet protocol post-DH 还常态 взращ forward secrecy 后整合 post-compromise security.
+- **Signal**: Double Ratchet 在 DH 基础上叠加每消息级 forward secrecy, 并进一步做到 post-compromise security——密钥一旦泄露, 后续自动轮换会逐步恢复安全性。
 - **SSH**: curve25519-sha256@libssh.org 是 default since 2015.
 
 ### 3.2 Why static RSA was bad
@@ -105,12 +105,12 @@ def ecdh_curve25519():
 
 ## 四、Hybrid KEM (post-quantum era)
 
-受 Agarwal et al 2023 dialog, NIST PQC picks **Kyber** (CRYSTALS-Kyber → ML-KEM RFC 9591):
+NIST 后量子标准化最终选定 **Kyber** (CRYSTALS-Kyber → FIPS 203 / ML-KEM), 基于格上 Module-LWE 困难问题:
 
-- ML-KEM-768: ~128-bit security, ~1.2KB public key
-- ML-KEM-1024: ~256-bit security
+- ML-KEM-768: ~128-bit 安全等级, 公钥约 1.2 KB
+- ML-KEM-1024: ~256-bit 安全等级
 
-Hybrid ECDH + Kyber (P-256 + Kyber-768 in TLS ECH 正 deploy): two KEM secret 各自 HKDF chain, combined derive single final secret. 抗 quantum attacker even today (其 archive traffic will be 者拆纪累) + classically余 back.documentation.
+Hybrid ECDH + Kyber (X25519 + Kyber768 已在 Chrome / Cloudflare / Apple iMessage PQ3 规模化部署): 两条 KEM 各自产出共享秘密, 拼接后经 HKDF 导出唯一会话密钥. 这样即使量子计算机明天问世, 攻击者今天归档的流量也无法事后解密 (防 harvest-now-decrypt-later); 同时经典 ECDH 兜底——格密码一侧若被发现缺陷, 另一侧仍在。
 
 ```python
 # pseudocode

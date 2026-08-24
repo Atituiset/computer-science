@@ -203,7 +203,7 @@ Redis Enterprise 提供 server-side CRDTs: counters, sets, hashes, strings all s
 
 ### Figma
 
-Figma 是协同 GUI 设计工具, 用 incremental JSON ops + CRDT-lite (custom) for multiplayer editing——差异化 是 Figma多用 CDN-delayed broadcast + own tree CRDT (over-all-attribute-pair LWW-Set). Pure CRDT 不适用 nested graphics tree——Figma 自定义deletion + insert hybrid.
+Figma 的多人实时协作没有直接套用现成 CRDT：文档是嵌套的图形树，通用 CRDT 在其上开销过高。实际做法是**中心服务器定序 + 增量操作流**（类 OT 的简化）：客户端把属性修改作为增量 op 发给服务器，服务器以单一权威顺序广播给其他客户端。每个对象属性对用 last-writer-wins 语义合并，删除与插入用自定义的混合规则处理。配合 CDN 延迟广播降低带宽峰值——**当存在可信中心节点时, 简单定序往往优于分布式收敛协议**, 这是与 CRDT 适用边界的重要对照。
 
 ---
 

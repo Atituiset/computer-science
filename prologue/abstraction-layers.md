@@ -123,7 +123,7 @@
 - Linux: monolithic + module; CFS 调度, cgroup v2 隔离, eBPF 动态扩展.
 - Windows NT: 微内核思想实用化, micro-kernel-ish + Executive.
 
-→ 第二部分 [OS](../os/index.html) 全部讲这一层.
+→ 第二部分 [OS](../os/README.md) 全部讲这一层.
 
 ### 3.3 第 7 层: 系统调用 POSIX
 
@@ -160,7 +160,7 @@
 - 分布式: Kafka / Pulsar; gRPC / Thrift; Etcd / ZooKeeper; K8s operator / Helm / Argo CD.
 - 数据 / ML: Spark / Flink / Dask / Ray / Airflow; experiment tracking (MLflow / W&B).
 
-→ 第七部分 [系统设计](../system-design/index.html) 与第六部分 [分布式](../distributed/index.html) 都在这一层操作.
+→ 第七部分 [系统设计](../system-design/README.md) 与第六部分 [分布式](../distributed/README.md) 都在这一层操作.
 
 ### 4.3 第 10 层: AI 模型 / Agent
 
@@ -170,7 +170,7 @@
 - 形态: 在线服务 (OpenAI / Anthropic API) vs 自托管开源模型 (LLaMA / Qwen / DeepSeek) vs 端侧模型 (Apple Intelligence / Phi-3) vs 嵌入式 (NPU on phone).
 - 关键不变式破坏: 训练数据分布 ✗ 推理分布 (covariate shift) / 测试时思考预算 ≠ 训练分布 / 多模态对齐困难.
 
-→ 第十二部分 [AI/ML](../ai-ml/index.html) 与未来可能的 RL/Agent 章节.
+→ 第十二部分 [AI/ML](../ai-ml/README.md) 与未来可能的 RL/Agent 章节.
 
 ---
 
@@ -275,7 +275,7 @@
 - "并发 / 故障模型下不变式是什么?"
 - "依赖下层什么不变式? 下层失败呢?"
 
-→ 见 [第十三部分 _meta/brhardware-shapes-software](../_meta/hardware-shapes-software.md) 与 [第八部分 / OS 第 2 章](../os/sched/index.html).
+→ 见 [第十三部分 _meta/brhardware-shapes-software](../_meta/hardware-shapes-software.md) 与 [第八部分 / OS 第 2 章](../os/sched/README.md).
 
 ### 7.3 学习路径: "沿层上下走"
 
@@ -290,8 +290,8 @@
 - 抽象 ↑层(10-9) 主线依靠第十二部分 AI/ML 与第七部分系统设计.
 - 抽象 ↓层(1-4) 主线依靠第八部分组成原理.
 - 第 5 ISA 直接对应第八部分 [isa-design](../computer-arch/isa-design.md).
-- 第 6 内核对应第二部分 [OS](../os/index.html).
-- 第 7-8 之间——语言运行时 vs 系统调用——与第五部分 [compiler](../compilers/index.html) + [_meta runtime-semantics](../_meta/runtime-semantics.md) 直接相关.
+- 第 6 内核对应第二部分 [OS](../os/README.md).
+- 第 7-8 之间——语言运行时 vs 系统调用——与第五部分 [compiler](../compilers/README.md) + [_meta runtime-semantics](../_meta/runtime-semantics.md) 直接相关.
 - 第 4 层泄漏洞的 [crypto/sidechannel](../crypto/sidechannel.md) 讲 Spectre/Meltdown 的密码学攻击面.
 - 数学 (第零部分) 跨层使用: 第零部分线代对应 (4) 微架构张量核心; 概率对应 (10) AI 模型; 微积分/优化对应 (10).
 

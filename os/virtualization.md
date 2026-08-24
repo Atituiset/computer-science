@@ -153,4 +153,4 @@ KVM:    内核态 hypervisor, 客户 OS = non-root 模式, 中断注入/APICv
 运维:    steal time 查宿主争抢 / 大页配 EPT / 热迁移要特征掩码一致
 ```
 
-下一篇: [锁与同步原语](lock/index.html)。
+下一篇: [锁与同步原语](lock/README.md)。

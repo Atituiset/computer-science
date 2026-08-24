@@ -223,4 +223,4 @@ Trie 与并查集在硬件层都有规模化实例:
 - 这两个结构都**适合 BRAM 物化**, 在 FPGA / 网卡设备上落地;
 - 实际生产代码不要裸写 Trie 除非必要: redis / gin 内部自带 Radix Tree.
 
-下一节 → [图](../graphs/index.html)
+下一节 → [图](../graphs/README.md)

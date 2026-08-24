@@ -325,4 +325,4 @@ random_page_cost 默认 4 → planner 偏 seq scan。SSD 应改 1.1。 indexes �
 
 ## 下一节 →
 
-[日志与崩溃恢复](../recovery/index.html) — ARIES、fuzzy checkpoint、CLR、Point-in-time 恢复、PITR
+[日志与崩溃恢复](../recovery/README.md) — ARIES、fuzzy checkpoint、CLR、Point-in-time 恢复、PITR

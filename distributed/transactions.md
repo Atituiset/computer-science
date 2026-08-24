@@ -182,4 +182,4 @@ Spanner: 2PC 每分片跑 Paxos + TrueTime commit wait = external consistency
 选型: 默认重构避免; 强一致短事务=2PC; 最终一致长链路=Saga; 资源型=TCC
 ```
 
-下一篇: [分布式存储与容错](fault/index.html)。
+下一篇: [分布式存储与容错](fault/README.md)。

@@ -6,12 +6,12 @@
 
 ## 这一部分的章节
 
-- [内存](memory/index.html)
-- [文件系统](fs/index.html)
-- [进程与线程调度](sched/index.html)
-- [锁与同步原语](lock/index.html)
+- [内存](memory/README.md)
+- [文件系统](fs/README.md)
+- [进程与线程调度](sched/README.md)
+- [锁与同步原语](lock/README.md)
 - [虚拟化与容器](virtualization.md)
-- [IO 与网络栈](net/index.html)
+- [IO 与网络栈](net/README.md)
 
 ## 阅读策略
 

@@ -39,7 +39,22 @@ Denning 1968 提出:
 
 **"第二次机会"**: 一次性扫描的 cold 页访问 first time → inactive 但 (在 cache 上) referenced bit 置, 但仍然 inactive; 第二次访问才 active. 这让"扫一遍大数据" 不会污染 active 列表.
 
-这个模型优化点: **让热点更难进**, **让冷点更易被踢**. 但完全防抖的保护需要额外 anti-detection. 我看 `mm/vmscan.c` 复杂度很高, 它要适应各种工作负载.
+这个模型优化点: **让热点更难进**, **让冷点更易被踢**. `mm/vmscan.c` 的复杂度很高, 因为它要适应各种工作负载.
+
+### 多代 LRU (MGLRU): 6.1+ 的新答案
+
+active/inactive 双链表在大内存机器上暴露两个问题: 链表操作要拿全局锁 (跨 NUMA 扩展差), 且"只看最近一次访问"无法区分"一分钟前"和"一小时前"的冷度。Linux 6.1 合入的 **MGLRU (multi-gen LRU)** 把页按访问时间分到多个"代"(generation), 用**访问位 + 时间分桶**近似 LFU:
+
+```text
+generation n (最老/最冷) ← ... ← generation 0 (最新)
+回收从最老的 generation 开始扫; 页被再访问则晋升到新 generation
+```
+
+- 每个 generation 是一次"批量老化", 链表遍历换成世代轮转, 锁竞争和扫描开销都下降;
+- 对"流式扫描污染热点"的防护由分代自然获得——一次性扫过的页留在同一代里被优先回收;
+- Chrome OS / Android 上为低内存设备设计, 后进入服务器内核; 开关 `/sys/kernel/mm/lru_gen/enabled`.
+
+工程含义: 调优老文章里的 `swappiness` 单旋钮之外, 现在还要知道 MGLRU 是否启用——两者的回收行为差异足以改变 P99 表现。
 
 ## LRU 派生变种比较
 
@@ -59,10 +74,10 @@ Linux 内核大致是 "LRU + 第二次机会 + 频次 hint"; Postgres buffer 采
 
 Linux 页分两类:
 
-1. **Anon (匿名)页**: stack/heap/secstack, 没 file backing, swap 出去就 swap 一块 partition;
+1. **Anon (匿名)页**: stack/heap 这类没有文件后备的内存, 回收必须写入 swap 分区/文件;
 2. **File-backed 页**: mmap 出来的文件内容, 直接丢弃 → 下次访问再从文件拉.
 
-file-backed page 比anon page reclaim 更快 (无需 swap 写 io). 写 workload 要 fsync 时, page 从 clean → dirty → writeback; 如果 dirty 太多, kswapd 忙碌 → tail latency 跨 mutex.
+file-backed page 比 anon page 回收更快 (干净页直接丢弃即可, 无需写 swap). 写 workload 持续 fsync 时, page 走 clean → dirty → writeback; dirty 积压太多会逼 kswapd 高速运转, 回收路径上的锁与 IO 直接打穿 P99 尾延迟。
 
 ## thrashing 监测
 

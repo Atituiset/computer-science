@@ -232,4 +232,4 @@ FPGA 上实现 hash table 是 HFT 与 packet processing 的常用块：
 - SipHash = 抗 Hash DoS 的最低要求;
 - 一种"hash + probe" 抽象在 SIMD CPU、lock-free、FPGA 桥间同构.
 
-下一节 → [树](../structures/trees/index.html)
+下一节 → [树](../structures/trees/README.md)

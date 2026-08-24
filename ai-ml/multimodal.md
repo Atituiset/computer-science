@@ -338,4 +338,4 @@ VLM 读 K 张图 + 原文 → answer
 
 ---
 
-下一篇: [元抽象卷 · 跨章节大主题](../_meta/index.html).
+下一篇: [元抽象卷 · 跨章节大主题](../_meta/README.md).

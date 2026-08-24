@@ -61,7 +61,7 @@
 
 - 进程 = 一份拥有独立虚地址空间的执行单位; 内核为每个建 page table, 给"独立空间"幻觉.
 - 调度器 (Linux CFS / EDF / RT) 将 CPU 时间切片让多进程并发"幻觉".
-- 上下文切换挂上下文 + TLB; 延迟 ~ 1-10us (见 [os/sched](../os/sched/index.html)).
+- 上下文切换挂上下文 + TLB; 延迟 ~ 1-10us (见 [os/sched](../os/sched/README.md)).
 
 ### 2.2 文件系统: 让 IO 字节流化
 
@@ -73,7 +73,7 @@
 | `fsync(fd)` | WAL flush + 块设备 cache flush |
 | `sendfile(out, in)` | zero-copy, DMA |
 
-→ 见 [os/fs](../os/fs/index.html).
+→ 见 [os/fs](../os/fs/README.md).
 
 ### 2.3 网络栈与 epoll/io_uring
 
@@ -84,7 +84,7 @@
 
 - 进程内 sync: mutex / semaphore / rwlock; kernel 内 futex + CAS; 浪费大批 lock-free / RCU 设计.
 
-→ 见 [os/lock](../os/lock/index.html).
+→ 见 [os/lock](../os/lock/README.md).
 
 ### 2.5 OS 对承接链"承诺"的清单一句话
 
@@ -107,7 +107,7 @@
 
 ### 3.2 HTTP / TLS: 最薄一英里
 
-- HTTP/0.9-1.1 一条 TCP 一个 request; HTTP/2 (2015) 一条连接多路 stream; HTTP/3 over QUIC (2022+) → 见 [networking/quic](../networking/quic/index.html).
+- HTTP/0.9-1.1 一条 TCP 一个 request; HTTP/2 (2015) 一条连接多路 stream; HTTP/3 over QUIC (2022+) → 见 [networking/quic](../networking/quic/README.md).
 - TLS 1.3 (2018) 1-RTT + 0-RTT; X.509 + PKI + CT.
 
 ### 3.3 Web 把客户端拉成终端
@@ -132,7 +132,7 @@ OS 文件系统只承诺 "字节流", 没说"原子写 / 多 client 并发 / cra
 - MVCC + WAL + 2PL + snapshot isolation.
 - 主流: PostgreSQL / MySQL (OLTP), ClickHouse / Snowflake (OLAP), Redis / Dynamo (KV).
 
-→ 见 [databases](../databases/index.html). 这是承接链 **保存状态** 的核心一层.
+→ 见 [databases](../databases/README.md). 这是承接链 **保存状态** 的核心一层.
 
 ### 4.2 数据库如何依赖 OS / 网络 / 硬件
 
@@ -153,7 +153,7 @@ OS 文件系统只承诺 "字节流", 没说"原子写 / 多 client 并发 / cra
 
 - 1957 FORTRAN; 1972 C; 1990 GCC; 2000 LLVM; 2010 V8 Tiered JIT; 2020 Rust + LLVM + Miri.
 - 编译器把"人工可写"高级语言转到"机器可执行" ISA, 同时做优化: SSA / CFG / constant folding / dead-code / loop unroll / auto-vectorize / IPO.
-- 见 [compilers](../compilers/index.html).
+- 见 [compilers](../compilers/README.md).
 
 ### 5.2 编译器承接了"OS 加上后程序可点点"
 
@@ -172,7 +172,7 @@ OS 文件系统只承诺 "字节流", 没说"原子写 / 多 client 并发 / cra
 
 - 单机扩展到 +10GHz 时 CPU 与内存墙都搅过; 一台机器能跑的 QPS / 数据量 / HA 都不可满足 → 必须多机.
 - 多机 = 网络 → 延迟 + 故障 + 异构 → 必须协议 (CAP / 一致性).
-- Multi-Paxos / Raft / Gossip + CRDT; 见 [distributed](../distributed/index.html).
+- Multi-Paxos / Raft / Gossip + CRDT; 见 [distributed](../distributed/README.md).
 
 ### 6.2 共识 = 状态机复制的工具
 
@@ -203,7 +203,7 @@ OS 文件系统只承诺 "字节流", 没说"原子写 / 多 client 并发 / cra
 ### 7.2 系统设计 = 反推与分解
 
 - 任务需求 → 估算 → 主组件 → 数据流 → 失败模式 → 可观测 → 上云.
-- 见 [system-design](../system-design/index.html).
+- 见 [system-design](../system-design/README.md).
 
 ### 7.3 微服务网格的承接
 

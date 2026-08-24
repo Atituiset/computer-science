@@ -176,20 +176,20 @@
 
 | 部分 | 一句话 | 入口 | 估读时长 |
 |------|------|------|-----|
-| 0 数学 | 离散+线代+概率+优化, 喂全书全部 | [math/README](../math/index.html) | 8-12h |
-| 1 DSA | 数据形态 × 性能空间的设计空间 | [dsa/README](../dsa/index.html) | 20-30h |
-| 2 OS | 把硬件封成可写代码的虚机器 | [os/README](../os/index.html) | 15-25h |
-| 3 网络 | 协议分层 + 拥塞 + modern stack | [networking/README](../networking/index.html) | 15-20h |
-| 4 DB | 并发 / 故障下状态一致 | [databases/README](../databases/index.html) | 15-20h |
-| 5 编译 | 把人话变机器码的流水线 | [compilers/README](../compilers/index.html) | 15-20h |
-| 6 分布式 | 让 N 台机器表现得像 1 台 | [distributed/README](../distributed/index.html) | 12-18h |
-| 7 系统设计 | 反推 + 分解 = 工程师能力核心 | [system-design/README](../system-design/index.html) | 12-18h |
-| 8 组成原理 | 从晶体管到 XPU 的硬件栈 | [computer-arch/README](../computer-arch/index.html) | 20-30h |
-| 9 计算理论 | 什么是可计算 / 高效可计算 | [theory/README](../theory/index.html) | 10-15h |
-| 10 密码学 | 把对抗难度转移为协议设计目标 | [crypto/README](../crypto/index.html) | 12-18h |
-| 11 信息论 | Shannon 极限的工程化 | [info-theory/README](../info-theory/index.html) | 12-15h |
-| 12 AI/ML | 数据替代显式规则的程序写法 | [ai-ml/README](../ai-ml/index.html) | 15-25h |
-| 13 元抽象 | 把 1-12 横通, 上钻一层 | [_meta/README](../_meta/index.html) | 6-10h |
+| 0 数学 | 离散+线代+概率+优化, 喂全书全部 | [math/README](../math/README.md) | 8-12h |
+| 1 DSA | 数据形态 × 性能空间的设计空间 | [dsa/README](../dsa/README.md) | 20-30h |
+| 2 OS | 把硬件封成可写代码的虚机器 | [os/README](../os/README.md) | 15-25h |
+| 3 网络 | 协议分层 + 拥塞 + modern stack | [networking/README](../networking/README.md) | 15-20h |
+| 4 DB | 并发 / 故障下状态一致 | [databases/README](../databases/README.md) | 15-20h |
+| 5 编译 | 把人话变机器码的流水线 | [compilers/README](../compilers/README.md) | 15-20h |
+| 6 分布式 | 让 N 台机器表现得像 1 台 | [distributed/README](../distributed/README.md) | 12-18h |
+| 7 系统设计 | 反推 + 分解 = 工程师能力核心 | [system-design/README](../system-design/README.md) | 12-18h |
+| 8 组成原理 | 从晶体管到 XPU 的硬件栈 | [computer-arch/README](../computer-arch/README.md) | 20-30h |
+| 9 计算理论 | 什么是可计算 / 高效可计算 | [theory/README](../theory/README.md) | 10-15h |
+| 10 密码学 | 把对抗难度转移为协议设计目标 | [crypto/README](../crypto/README.md) | 12-18h |
+| 11 信息论 | Shannon 极限的工程化 | [info-theory/README](../info-theory/README.md) | 12-15h |
+| 12 AI/ML | 数据替代显式规则的程序写法 | [ai-ml/README](../ai-ml/README.md) | 15-25h |
+| 13 元抽象 | 把 1-12 横通, 上钻一层 | [_meta/README](../_meta/README.md) | 6-10h |
 
 **总计**: ≈ 200-280 小时通读全书完整深度 ≈ 11-15 周 (周 20 小时). 但你不必通读, 各画像只读对应 4-6 部即可入门.
 
@@ -373,5 +373,5 @@ Step 5. 在矩阵上行+列打个 ●; 读完这页就画上 ●.
 ---
 
 回主目录:
-- [导论 README](index.html)
-- [全书 README](../index.html)
+- [导论 README](README.md)
+- [全书 README](../README.md)

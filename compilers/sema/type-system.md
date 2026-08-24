@@ -65,11 +65,11 @@ match e:
         return (s2 ∘ s1, t2)
 ```
 
-Gen 是 generalize: 把 monotype all unbound var 转 quantified，let-bound polymorphic.
+Gen 是 generalize：把 monotype 中所有未被 env 约束的类型变量量化成 scheme（`τ → ∀α.τ`），这就是 let 绑定多态的来源——`let id = fn x => x` 之后 `id` 可以同时用于 `int` 和 `string`。
 
 ### 3.3 Value Restriction
 
-Standard ML ML let-polymorphic 扩 value 才 typeable → 否则 soundness issues  ref-cell:
+只有 let 右侧是**语法值**（variable / constant / constructor 全量应用 / `fn` 抽象）才允许泛化；含函数调用的表达式一律不泛化。否则与可变引用组合会破坏 soundness——经典的反例：
 
 ```
 let id = ref (fn x => x)
@@ -77,7 +77,7 @@ id := true
 !id(0)
 ```
 
-OCaml/Haskell scale-generalize only let-bound polymorphism application must be value-type.
+OCaml/Haskell 都只对 let 绑定做泛化（let-polymorphism），且受 value restriction 约束：右侧必须是语法值才能泛化。参数多态（如 `'a list -> 'a list` 的显式泛型）不受此限，因为量化边界是显式写出来的。
 
 ## 四、Subtyping
 
@@ -85,9 +85,9 @@ OCaml/Haskell scale-generalize only let-bound polymorphism application must be v
 S <: T  (S sub type of T)
 ```
 
-substitutability: 用 S 的位置能放 S 予 T (Object oriented extends).
+substitutability: 需要 T 的位置都能放 S (OO 的 extends/implements 就是它的特例).
 
-subtyping 的类型推断 O(n^2) (in general no algorithm 当然 Heating principal affine Dumfries).
+一旦 subtyping 与多态组合（Java 泛型 / Scala / C++ 模板 + 继承），**principal type 一般不存在，完整推断不可判定**（推断复杂度随类型构造器增长到不可解）。所以这类语言都退而求其次：泛型参数显式标注、推断只做局部（方法内），跨方法边界一律靠声明。
 
 ```
 Γ ⊢ e : T   T <: T'

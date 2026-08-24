@@ -249,7 +249,7 @@ Kafka 3.x 引入 KRaft 替代 ZooKeeper 后, 某次 controller failover 后 new 
 4. **Snapshot 必须包含 state machine snapshot index 之前所有 apply 状态**: follower 收 InstallSnapshot 必须原子替换 local state, 防 partial snapshot apply 中 crash 状态混乱。
 5. **Membership change 单 server 变更**: 避免一次性 add/remove 多 node 时 (C_old majority) 与 (C_new majority) 不再 overlap。
 6. **Client writes 必须 idempotent**: command_id 去重, 否则 raft reply lost client retry 时双执行 (e.g., accounts transfer 重复执行)。 
-7. **Read Linearizable 一定要 Read-Index 或 Lease (而不裸读)**: 裸读可能读到 stale leader 的 local state, 违反 linearizability。6
+7. **Read Linearizable 一定要 Read-Index 或 Lease (而不裸读)**: 裸读可能读到 stale leader 的 local state, 违反 linearizability。
 8. **Follower 接 InstallSnapshot 期间必须 ignore AppendEntries**: state machine 半 apply snapshot 极易损坏 log consistency invariant。
 9. **Pipeline + Batch 优化得记 in-flight entries**: leader reply 前不一定 commit, lost leader 切换时 in-flight entries 已写 log但未 commit, 必须 resend or discard by new leader's log overwrite. 协议正确已经被 Log Matching Property 保 safety, 但 client side 一定要 idempotent。
 
@@ -262,18 +262,6 @@ Kafka 3.x 引入 KRaft 替代 ZooKeeper 后, 某次 controller failover 后 new 
 3. Log Matching Property 强 backward check, follower 拒绝 prev_log 不匹配的 AppendEntries, leader 减 next_index 重试, 最终一致。
 4. Commit Rule 必须 **current term entry 间接 commit** 旧 term entries, 防 Fig 8 反例。
 5. Raft read path Linearizable 通过 **ReadIndex (heartbeat confirmation)** 或 **Lease Read** 实现, 每次 read 1 RTT 或 0 RTT (lease held).
-6. Membership change 推荐 **single-server change** (always maj(C_old) ∩ maj(C_new) 非空), 避免 joint consensus 的双 majority 死锁。
-7. Pre-Vote 防 partition-induced term inflation, etcd 默认开启。
-
----
-
-## 九、这一章带走的东西
-
-1. Raft 拆分 Leader Election / Log Replication / Safety 三个独立 subproblem, 比 Paxos 易理解。
-2. Term 是 Raft 的逻辑时钟; 强约束 (lower term RPC reject, 看到 higher term 自己 downgrade) 保证 algorithm 不协议错乱。
-3. Log Matching Property 强 backward check, follower 拒绝 prev_log 不匹配的 AppendEntries, leader 减 next_index 重试, 最终一致。
-4. Commit Rule 必须 **current term entry 间接 commit** 旧 term entries, 防 Fig 8 反例。
-5. Raft read path Linearizable 通过 **ReadIndex (heartbeat qracdelay)** 或 **Lease Read** 实现, 每次 read 1 RTT 或 0 RTT (lease held).
 6. Membership change 推荐 **single-server change** (always maj(C_old) ∩ maj(C_new) 非空), 避免 joint consensus 的双 majority 死锁。
 7. Pre-Vote 防 partition-induced term inflation, etcd 默认开启。
 

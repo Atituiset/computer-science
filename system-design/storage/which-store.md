@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-"选什么数据库" 是系统设计的最频繁问题。答案不简单是 "MySQL", "MongoDB", "Redis"——而是当下业务特性 (latency / throughput / consistency / query pattern / budget) 决定数据存储最佳默认。本章梳理 7 类**典型**存储类型 + 各自适用场景与坑:
+"选什么数据库" 是系统设计的最频繁问题。答案不简单是 "MySQL", "MongoDB", "Redis"——而是当下业务特性 (latency / throughput / consistency / query pattern / budget) 决定数据存储最佳默认。本章梳理 10 类**典型**存储类型 + 各自适用场景与坑:
 
 1. **Key-Value store (Redis, Memcached)**: 快 cache, sub-millisecond get/set, 不持久化默认, 不支持查询。
 2. **Wide-column store (Cassandra, HBase, DynamoDB)**: 极高写入, multi-row wide data, eventual consistency, 跨 DC 复制。
@@ -13,6 +13,7 @@
 7. **图 (Neo4j, Dgraph, TigerGraph, JanusGraph)**: 深度关系查询, social network graph, fraud detection.
 8. **对象存储 (S3, GCS, OSS)**: 大 file 不变量, blob unlimited.
 9. **搜索 (Elasticsearch, Solr, Meilisearch, Typesense)**: full-text search + relevance scoring.
+10. **向量 (pgvector, Milvus, Qdrant, Pinecone)**: embedding 近邻检索, RAG / 推荐召回的底座。
 
 ---
 
@@ -385,7 +386,47 @@ Index = 表; 文档 = 行; mapping = schema. Lucene-based inverted index.
 
 ---
 
-## 十、混合策略实际系统
+## 十、向量数据库: pgvector / Milvus / Qdrant / Pinecone
+
+### 适用场景
+
+- 语义检索 / RAG: 文本 embedding 后按"意思相近"而非关键词匹配召回 (与第九节的 BM25 词法检索互补)
+- 推荐召回 / 相似图片 / 去重: 一切"把对象编码成向量再找邻居"的场景
+- 典型规模: 千万到十亿级向量, 维度 384–3072 (BERT 系 ~768, 大 embed 模型可达 3072)
+
+### 数据模型与索引
+
+存的是 `(id, vector, metadata)`, 核心是**近似最近邻 (ANN) 索引**——精确暴力搜索 O(N·d) 在亿级不可行:
+
+| 索引 | 思想 | 取舍 |
+|------|------|------|
+| HNSW | 多层跳表式近邻图, 贪心下行 | 召回率/延迟最优, 内存大, 构建慢 |
+| IVF-PQ | 先聚类分桶 (IVF), 桶内乘积量化压缩 (PQ) | 内存省 10×+, 有召回损失 |
+| DiskANN | PQ 压缩放 SSD, 图导航 | 十亿级单机, 延迟换磁盘 IO |
+| Flat | 暴力扫描 | 小数据 (<100 万) 反而最快最准 |
+
+过滤条件 (metadata filter) 与 ANN 的组合是工程难点——先过滤后搜还是先搜后过滤, 各数据库实现差异很大。
+
+### 选型
+
+- **pgvector**: 已有 PostgreSQL 就加个扩展; HNSW 支持; 亿级内最省事的默认项
+- **Milvus / Qdrant**: 专用引擎, 存算分离、多副本、标量过滤成熟, 亿级以上
+- **Pinecone**: 全托管, 不想运维选它; 数据出域是代价
+- Redis / Elasticsearch 也都加了 KNN——**如果 QPS 和规模不大, 用现有存储的向量插件往往优于引入新组件**
+
+### 弱点
+
+- 召回率是近似值, 必须用业务查询集实测 recall@k, 不能信厂商默认参数
+- 向量维度高 → 内存即成本: 10 亿 × 768 维 float32 ≈ 3 TB, 量化/降维是必选项
+- 元数据更新与向量重建耦合: 模型升级换 embedding 后全库需重灌
+- 单独的向量库解决不了"检索质量"问题——rerank、混合检索 (BM25+向量)、chunking 策略往往影响更大
+
+> [!NOTE]
+> 向量库与 [倒排索引](../../databases/indexing/inverted-index.md) 是互补而非替代: 关键词精确匹配 BM25 仍强, 语义泛化靠 ANN。生产 RAG 普遍做 hybrid 检索再融合排序。
+
+---
+
+## 十一、混合策略实际系统
 
 多数生产真实系统 mix 多 store:
 
@@ -416,7 +457,7 @@ Index = 表; 文档 = 行; mapping = schema. Lucene-based inverted index.
 
 ---
 
-## 十一、典型事故
+## 十二、典型事故
 
 ### MongoDB "事务"误解 (2017一堆)
 
@@ -432,7 +473,7 @@ Index = 表; 文档 = 行; mapping = schema. Lucene-based inverted index.
 
 ---
 
-## 十二、易错清单
+## 十三、易错清单
 
 1. **Cache 与持久化混用**: Redis 不应作 primary store, destroy 不能 recoverable。
 2. **MongoDB transaction 4.0+ 必须选 REPEATABLE_READ on driver**: 否则 cross-shard transaction broken.
@@ -445,7 +486,7 @@ Index = 表; 文档 = 行; mapping = schema. Lucene-based inverted index.
 
 ---
 
-## 十三、这一章带走的东西
+## 十四、这一章带走的东西
 
 1. 不同存储引擎有**明确擅长的领域**, 没有 "one-size-fits-all" 数据库。
 2. Cache → Redis; OLTP → PostgreSQL / MySQL; OLAP → ClickHouse / BigQuery; AP → Cassandra / DynamoDB; 时序 → TimescaleDB / VictoriaMetrics。

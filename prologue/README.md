@@ -53,7 +53,7 @@
 
 ## 章节结构
 
-- [开篇: 这卷要做什么](index.html) ← 当前
+- [开篇: 这卷要做什么](README.md) ← 当前
 - [1. 计算机发展史纵贯线: 1936 → 2026](history.md)
 - [2. 抽象层级: 从晶体管到 AI 模型的十层金字塔](abstraction-layers.md)
 - [3. 形态演进: 大型机 → PC → 单片机/ARM → 云 → Web → AI → XPU](mainframe-xpu.md)
@@ -78,7 +78,7 @@
 
 ## 阅读路径
 
-- **第一次来全书**: 先读导论 5 章 → 再按 [主 README](../index.html) 的阅读路径下钻.
+- **第一次来全书**: 先读导论 5 章 → 再按 [主 README](../README.md) 的阅读路径下钻.
 - **已熟 CS 想横通**: 直接读 [map](map.md) 与 [standing-shoulders](standing-on-shoulders.md), 跳过 history.
 - **学 Transformer 优先**: 看 [mainframe-xpu](mainframe-xpu.md) 的"GPU / XPU"段即可, 跳到第十二部分.
 

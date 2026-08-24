@@ -2,7 +2,23 @@
 
 ## 一句话
 
-数据结构界表面上看有十几种, 但底层只两种物理化选项: **顺序** (contiguous) 和 **链接** (linked). 顺序赢在 cache locality 和位运算, 链接赢在 O(1) splice 和迭代器稳定性. 这两种物理化在 CPU 视角、运行时视角、网络协议视角、磁盘视角都反复出现 —— **理解了"顺序 vs 链接"这一对双胞胎, 你就理解了所有数据结构差异的 80%**.
+数据结构教科书里有十几种结构, 但落到物理内存上只有两种选项: **顺序** (contiguous) 和 **链接** (linked). 顺序赢在 cache locality 和 SIMD 吞吐, 链接赢在 O(1) splice 和迭代器稳定性. 这两种物理化在 CPU 视角、运行时视角、网络协议视角、磁盘视角都反复出现 —— **理解了"顺序 vs 链接"这一对双胞胎, 你就理解了数据结构差异的 80%**.
+
+## 思想链
+
+```
+工程问题: 为什么 std::vector 几乎总是比 std::list 快?
+  └─► 数学对象必须选一个物理化身
+        └─► 顺序: addr[i] = base + i * sizeof(T), 地址可以直接算出来
+        └─► 链接: node->next 逐个追指针, 地址不可预测
+  └─► 硬件三层把差距放大成数量级
+        └─► cache: 顺序流一次取回 64B line 全是有用数据;
+                   链表节点散落各处, 指针 + 有效负载挤在一起
+        └─► prefetcher: 固定 stride 的顺序流是理想客户; 指针追逐无法预取
+        └─► SIMD: AVX-512 一条 load 吃 16 个 int; 链表喂不进向量寄存器
+  └─► 但链接买到了两样东西: O(1) splice + 迭代器稳定性
+        └─► 选型问题归结为一句: "你要局部性, 还是要稳定性?" —— 其余全是推论
+```
 
 ## 第一站: 物理化
 
@@ -17,120 +33,139 @@
 
 ### 选项 A: 顺序 (contiguous)
 
-把所有元素紧排到连续内存, 用偏移量 i 找元素: `addr[i] = base + i · sizeof(T)`.
+把所有元素紧排到连续内存, 用偏移量 i 找元素: `addr[i] = base + i * sizeof(T)`.
 
-- **代表**: 数组、动态数组、堆、CSR 邻接表、B+ 树页、SIMD、SSD page.
-- **优势**: O(1) 索引、cache 极友好、SIMD 并发、零指针开销.
-- **代价**: 大小固定 / 改大小要扩容、中插代价 O(n)、迭代器失效.
+- **代表**: 数组、动态数组、堆、CSR 邻接表、B+ 树页、SIMD 缓冲、SSD page;
+- **优势**: O(1) 索引、cache 极友好、SIMD 可并行、零指针开销;
+- **代价**: 大小固定 / 改大小要扩容、中间插入代价 O(n)、迭代器失效.
 
 ### 选项 B: 链接 (linked)
 
-每个元素自带一个或多个指针指下/上元素, 内存可以散乱分布.
+每个元素自带一个或多个指针指向下/上一个元素, 内存可以散乱分布.
 
-- **代表**: 链表、树、跳表、哈希桶链、STL std::map、跳表.
-- **优势**: O(1) splice (已知指针时)、迭代器稳定、动态扩容零拷贝.
-- **代价**: 每元素 +8B (或更多) 指针开销、cache miss 风暴、几乎不可 SIMD.
+- **代表**: 链表、树、跳表、哈希桶链、`std::map` (红黑树);
+- **优势**: O(1) splice (已知指针时)、迭代器稳定、动态扩容零拷贝;
+- **代价**: 每元素 +8B (或更多) 指针开销、cache miss 风暴、几乎无法 SIMD.
 
-## 这两种物化的 lifecycle 一种抽象对偶
+## 同一抽象的两条物化路径
 
-数学抽象层面, 它们对应**对偶同构**: 同一抽象有两条工程化路径. 让我从 CPU、运行时、协议、磁盘四处各举一对实例:
+数学抽象层面, 它们是**一对对偶**: 同一个抽象有两条工程化路径. 下面从 CPU、运行时、协议、磁盘四处各举一对实例:
 
 ### CPU 层
 
 ```
-顺序: SSE/AVX SIMD — 16/32/64 字节一字 load 多元素 = 1 cycle/8 元素;
-链接: 间接寻址 (load 指针再 load 数据) — ~10 cycle/元素
+顺序: SSE/AVX SIMD — 16/32/64 字节一条 load 装多个元素 ≈ 1 cycle / 8 个元素
+链接: 间接寻址 (load 指针再 load 数据) ≈ 10+ cycle / 元素
 ```
 
-CPU 在 SIMD 上一次处理的就是"一段顺序". "链接"在 CPU 层就是被惩罚的代名词 —— 链接破坏 prefetcher 模型.
+CPU 在 SIMD 上一次处理的就是"一段顺序". "链接" 在 CPU 层是被惩罚的代名词 —— 链接破坏 prefetcher 的 stride 模型.
 
-### 内存模型层
+### 内存模型层 (运行时)
 
 ```
 顺序: std::vector / Go slice / Python list 内部 = 一段连续字节.
 链接: std::list / intrusive_list / dict overflow bucket 链.
 ```
 
-`std::vector::iterator` 在扩容时失效 (因为底层基地址换了). `std::list::iterator` 在 erase 后对其他节点仍然有效 —— **这就是 "链接" 的标志特征**.
+`std::vector::iterator` 在扩容时失效 (底层基地址换了); `std::list::iterator` 在 erase 之后对其他节点仍然有效 —— **这就是 "链接" 的标志特征**.
 
 ### 网络协议层
 
 ```
-顺序:TCP 字节流 — 数据按顺序到达, 滑动窗口按 sequence
-链接:IP 路由的 next-hop 链 — 数据包一跳一跳走
+顺序: TCP 字节流 — 数据按序到达, 滑动窗口按 sequence 号推进
+链接: IP 路由的 next-hop 链 — 数据包一跳一跳地走
 ```
 
-TCP 是 sequential 接收 IP 是 hop-by-hop 路由, 这是网络栈上同型的两个层级.
+TCP 是 sequential 接收, IP 是 hop-by-hop 路由 —— 这是网络栈里同型的两个层级 (详见 [三次握手与滑动窗口](../networking/tcp/handshake.md)).
 
 ### 磁盘与日志层
 
 ```
-顺序: WAL / LSM-Tree / Kafka append-only — 顺序写 1+ GB/s
+顺序: WAL / LSM-Tree / Kafka append-only — 顺序写可达 GB/s
 链接: inode / extent tree / B+ 树内部节点
 ```
 
-LSM-Tree 把"顺序写"做到极致 (单段顺序追加), B+ 树把"范围查询"做到极致 (叶子链接 + 内部顺序). ** LSM 与 B+ 都在"一棵树"上**, 但 LSM 把"顺序"放在 IO 层, B+ 把"顺序"放在内存层 — 这就是同一抽象不同物化的对偶.
+LSM-Tree 把"顺序写"做到极致 (单段顺序追加), B+ 树把"范围查询"做到极致 (叶子链接 + 内部有序). **LSM 与 B+ 都在"一棵树"上**, 但 LSM 把"顺序"放在 IO 层, B+ 把"顺序"放在内存层 —— 这就是同一抽象不同物化的对偶 (分别见 [LSM-Tree 与 SSTable](../databases/indexing/lsm.md) 与 [B+ 树索引](../databases/indexing/btree.md)).
+
+> [!NOTE]
+> 这对对偶在磁盘层还有一个直接后果: SSD 最怕随机小写, 所以 LSM 的"顺序追加"天然对 SSD 友好, 而 B+ 树的随机页写只能靠 FTL 兜底——写放大因此差出数倍, 量化分析见 [存储硬件: NAND Flash / SSD FTL](../computer-arch/ssd-storage.md).
 
 ## 怎么决定选哪种?
 
-业务真的需要 **迭代器稳定性 / splice / 已知指针位置操作** ⇒ 链接. 否则, **选顺序**.
+业务真的需要 **迭代器稳定性 / splice / 已知指针位置的 O(1) 操作** ⇒ 链接. 否则, **选顺序**.
 
 一个简单决策表:
 
 | 需求特征 | 推荐物理化 |
 |---------|------------|
 | 批量随机访问 | 顺序 |
-| 中间频繁插入 (无已知指针) | 顺序滚动 + 二分插入 |
+| 中间频繁插入 (无已知指针) | 顺序 + 二分定位后批量搬移 |
 | 中间频繁插入 (已知指针) | 链接 |
 | 大空间扩容 + 容量不可预测 | 顺序动态数组 |
 | 大空间扩容 + 容量可限定 | 顺序 ring buffer |
-| 跨多线程接口稳定迭代器 | 顺序 std::deque 或链接 |
-| 范围扫描 | 顺序 (任何能 SIMD 友好的) |
-| 高 IO 顺序写 | LSM (一种顺序实现) |
+| 跨多线程需要稳定迭代器 | 顺序 `std::deque` 或链接 |
+| 范围扫描 | 顺序 (任何 SIMD 友好的形态) |
+| 高 IO 顺序写 | LSM (顺序物化的工程化版本) |
 
-## 工程的折衷: 闘尾同构
+## 工程的折衷: 跨层同构
 
-这一段的中心观点: **数据结构的"顺序 / 链接" 在不同层有同构**.
+这一段的中心观点: **"顺序 / 链接" 这对对偶在不同层次反复出现**.
 
 ```
 软件层: 数组 vs 链表
-OS层:   page cache sequential read vs fsync 散写
-网络层: TCP 顺序 byte stream vs IP 多跳路由
+OS 层:  page cache 顺序读 vs fsync 散写
+网络层: TCP 顺序字节流 vs IP 逐跳路由
 硬件层: SIMD packed op vs 间接寻址
 ```
 
-**底层是同一抽象的列向物化**: 在同一规模上, "顺序" 总在 cache、SIMD、batch 友好; "链接" 总允许 splice、稳定迭代器、跨层 indirection.
+**底层是同一抽象的两个方向物化**: 在同一规模上, "顺序" 总在 cache、SIMD、batch 上占优; "链接" 总换来 splice、稳定迭代器、跨层 indirection.
 
 ## 多语言对比
 
-语言标准库对 "顺序/链接" 的默认提供非常不同:
+语言标准库对 "顺序 / 链接" 的默认提供非常不同:
 
 | 语言 | 主顺序容器 | 主链接容器 | 备选 |
 |------|------------|-------------|------|
 | C++ | `std::vector` | `std::list` | `std::deque` 折中 |
-| Rust | `Vec<T>` | (无 std 内置链表) | `Box<Node>` 自实现 |
-| Go | `[]T` 切片 | `container/list` 通用 | `Ring` ring buffer |
-| Python | `list` | (无纯链接 类型) | `deque` 分块链接 |
+| Rust | `Vec<T>` | 标准库故意不内置 | `Box<Node>` 自实现 |
+| Go | `[]T` 切片 | `container/list` 通用 | `ring` 环形缓冲 |
+| Python | `list` | 无纯链接类型 | `deque` 分块链接 |
 | Java | `ArrayList` | `LinkedList` | `ArrayDeque` 通常更优 |
-| JS | `Array` 紧排 (Smi) | (无) | linked-list 模拟 |
+| JS | `Array` 紧排模式 | 无内置 | 对象模拟链表 |
 
-特别提到 Rust 故意不在标准库链表 —— 这是语言设计哲学的表态: **现代默认应该选顺序, 链接只在确需时引入**. 这个决定不是性能微调, 而是把数据结构物理化的选择**显式化** —— 你需要链表就 `unsafe` 自己写或者用 crate. 这反而强迫你**思考清楚需求**.
+特别提到 Rust 故意不在标准库内置链表 —— 这是语言设计哲学的表态: **现代默认应该选顺序, 链接只在确需时引入**. 这个决定不是性能微调, 而是把数据结构物理化的选择**显式化** —— 你真需要链表就得自己写或者引第三方 crate. 这反而强迫你**思考清楚需求**.
 
 ## FPGA 视角
 
 在 FPGA 上, 这种对偶更明显:
 
-- **顺序 BRAM**: 单地址空间, 给 base addr + offset 数组寻址, 等价软件的数组;
-- **链式 BRAM**: 链表节点存下一节点地址, 通过 deref 流水线 token 移动;
+- **顺序 BRAM**: 单地址空间, 给 base addr + offset 即可寻址, 等价软件的数组;
+- **链式 BRAM**: 链表节点存下一节点地址, 需要在 BRAM 上模拟指针解引用, 一次跳转延迟几十 cycle.
 
-数据流图 (DFG) 加速器里常见 sequential shift register / systolic array = 顺序物化的"流水", 而 linked 描述则需要在 BRAM 上模拟 ptr, **延迟几十 cycle**. 这就是 FPGA 上**几乎所有高速数据通路都选顺序物化**的原因.
+数据流图 (DFG) 加速器里常见的 shift register / systolic array 就是顺序物化的"流水"; 而链式描述必须在 BRAM 上模拟 ptr. 这就是 FPGA 上**几乎所有高速数据通路都选顺序物化**的原因.
 
 ## 这一章带走的东西
 
-- **数学上只有顺序 vs 链接, 几乎所有数据结构都是这两条物化之一**;
-- 顺序赢 cache+SIMD+indexing, 链接赢 splice+iterator stability;
+- **物理化几乎只有顺序 vs 链接两条路, 绝大多数数据结构都是这两者之一或其组合**;
+- 顺序赢 cache + SIMD + indexing, 链接赢 splice + 迭代器稳定性;
 - 网络层、OS 层、硬件层都有这种对偶同构;
-- 选哪种不仅仅看 "操作复杂度 O()", 更看 cache、并发、迭代器稳定性;
-- Rust 的 std 不内置 list 是一种哲学态度: 显式选择物理化.
+- 选哪种不只看操作复杂度 O(), 更看 cache、并发、迭代器稳定性;
+- Rust 标准库不内置 list 是一种哲学态度: 显式选择物理化.
 
-下一篇 → [摊还 vs 最坏](amortized-vs-worst.md)
+> [!WARNING]
+> "链表插入 O(1)" 只在**已知指针**时成立, 先找到插入点仍然是 O(n). 而 vector 中部插入虽然要搬移元素, 但那是一次 SIMD 友好的 `memmove`, 元素数不大时实测往往比 list 更快——不要用复杂度记号代替 benchmark, 两者的基准对比见 [数组与动态数组](../dsa/structures/array.md) 与 [链表: 单链/双链/跳表](../dsa/structures/linked-list.md).
+
+## 一页速查
+
+| 维度 | 顺序 (contiguous) | 链接 (linked) |
+|------|-------------------|---------------|
+| 寻址 | `base + i * sizeof(T)`, O(1) | 追指针, O(n) |
+| cache / prefetcher | 友好, stride 固定 | miss 风暴, 无法预取 |
+| SIMD | 可向量化 | 喂不进向量寄存器 |
+| 中间插删 | O(n) 批量搬移 | 已知指针时 O(1) |
+| 迭代器稳定性 | 扩容即失效 | erase 其他节点仍有效 |
+| 空间开销 | 只有元素本身 | 每节点多 1-2 个指针 |
+| 代表结构 | array / vector / deque / 堆 / CSR / B+ 叶子 | list / 树 / 跳表 / 哈希桶链 |
+| 跨层同构 | WAL · LSM · TCP 字节流 · SIMD load | inode · extent · IP 逐跳 · 间接寻址 |
+
+下一篇: [2. 摊还 vs 最坏: 工程常数与硬实时的张力](amortized-vs-worst.md)。

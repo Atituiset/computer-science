@@ -22,12 +22,12 @@ API 高层：用户 `POST /api/order`，看似一个简单 RPC 调用——
 
 ## 6 个章节
 
-- [基础概念](concepts/index.html) — CAP / PACELC / BASE / 一致性等级 / 故障模型
-- [共识](consensus/index.html) — Paxos / Multi-Paxos / Raft / ZAB
-- [复制](replication/index.html) — 主从 / 多主 / 无主 / CRDT
+- [基础概念](concepts/README.md) — CAP / PACELC / BASE / 一致性等级 / 故障模型
+- [共识](consensus/README.md) — Paxos / Multi-Paxos / Raft / ZAB
+- [复制](replication/README.md) — 主从 / 多主 / 无主 / CRDT
 - [分布式事务](transactions.md) — 2PC / Saga / TCC / Outbox / Spanner
-- [时钟与顺序](clock/index.html) — Logical Clock / Vector Clock / HLC / TrueTime / DAG
-- [分布式存储与容错](fault/index.html) — Quorum / Erasure Coding / 调度器
+- [时钟与顺序](clock/README.md) — Logical Clock / Vector Clock / HLC / TrueTime / DAG
+- [分布式存储与容错](fault/README.md) — Quorum / Erasure Coding / 调度器
 
 读完应能回答：
 
@@ -57,4 +57,4 @@ Berkley Amazon Dynamo 论文发表，业界第一个大规模 AP + Vector Clock 
 
 ---
 
-下一节 → [基础概念](concepts/index.html)
+下一节 → [基础概念](concepts/README.md)

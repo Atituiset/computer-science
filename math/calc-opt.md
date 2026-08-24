@@ -400,5 +400,5 @@ $$ p^*(x) = \frac{1}{Z} \exp\left(\sum_i \lambda_i g_i(x)\right) $$
 
 ---
 
-回主目录: [第零部分 · 工程数学与离散数学基础 README](index.html).
-下一篇系统正文: [第一部分 · DSA 开篇](../dsa/index.html).
+回主目录: [第零部分 · 工程数学与离散数学基础 README](README.md).
+下一篇系统正文: [第一部分 · DSA 开篇](../dsa/README.md).

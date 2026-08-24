@@ -213,4 +213,4 @@ Taxi trip 50k/s 写 Hudi MoR，read 5 min lag。但 daily ingestion compaction s
 
 ## 下一部分 →
 
-[第五部分 · 编译原理](../../compilers/index.html) — 从 lexer→parser→sema→opt→codegen 一线 pipeline
+[第五部分 · 编译原理](../../compilers/README.md) — 从 lexer→parser→sema→opt→codegen 一线 pipeline

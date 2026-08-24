@@ -298,7 +298,7 @@ Hierarchical (多级):
 | Submanager | 分区 leader (Raft multi-raft) |
 | 失败重试 | retry / at-least-once |
 
-> 见 [distributed/README](../distributed/index.html)。关键洞察：**multi-agent system 也是一个分布式系统**——消息可能延误、节点可能产生不一致的世界观、hand-off 崩溃导致状态丢失。工程上同样要解决：**消息可靠性、因果序、最终一致性、错误检测**。
+> 见 [distributed/README](../distributed/README.md)。关键洞察：**multi-agent system 也是一个分布式系统**——消息可能延误、节点可能产生不一致的世界观、hand-off 崩溃导致状态丢失。工程上同样要解决：**消息可靠性、因果序、最终一致性、错误检测**。
 
 ### 7.3 失败模式
 
@@ -448,7 +448,7 @@ Observation: 3275
 | [§9 training-at-scale](training-at-scale.md) | 长 context / KV cache | 长 history 的处理 |
 | [§10 contrastive](contrastive-learning.md) | embedding 检索 | long-term memory 向量召回 |
 | [info-theory](../info-theory/entropy.md) | 熵 / mutual info | compression of trajectory, tool selection |
-| [distributed](../distributed/index.html) | leader election / actor / consensus | multi-agent 拓扑同构 |
+| [distributed](../distributed/README.md) | leader election / actor / consensus | multi-agent 拓扑同构 |
 | [OS _meta](../_meta/memory-hierarchy.md) | L1/DRAM/磁盘的同构 | agent memory hierarchy |
 | [engineering/app-security](../engineering/app-security.md) | OWASP / least privilege | agent 工具的安全治理 |
 | [system-design/cache](../system-design/cache/) | cache-aside / 失败模式 | retrieval cache + trajectory cache |

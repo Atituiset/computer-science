@@ -226,4 +226,4 @@ etcd cluster quorum 失(2 of 3 down) → K8s API server 阻塞所有写(Pod sche
 
 ---
 
-下一节 → [复制](../replication/index.html)
+下一节 → [复制](../replication/README.md)
