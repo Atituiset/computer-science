@@ -125,7 +125,7 @@ DSA 树那一段讲过 pure functional / persistent tree：每次"修改"返回�
 |------|----------|------------|
 | RCU | rcu_read_lock/unlock + preempt_disable | synchronize_rcu / call_rcu |
 | Java GC (concurrent mark + sweep) | 持 ref 即可 | concurrent trace of live set |
-| Rust Arc<T> / Weak<T> | 持 Arc 即可 | last Arc drop |
+| Rust `Arc<T>` / `Weak<T>` | 持 Arc 即可 | last Arc drop |
 | Haskell STM | 持 TVars 引用 | GC 根扫描 |
 
 四种实现都是"读路径轻、回收靠专门阶段"。GC 是隐式 RCU，RCU 是显式 GC。这一组同构让你看 Java/Go GC 设计与 RCU 设计时不慌——它们都在解决 "读不阻塞 + 回收安全" 这同一问题，物化形式不同。

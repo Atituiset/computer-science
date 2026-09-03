@@ -286,7 +286,7 @@ profile 收集每个 call site 被调用的实际类型、每条 branch 的触�
 2. **Inline 不代表语言层面的"声明 inline"**：C++ `inline` 关键字只代表"允许多 TU 出现定义"，不强制 inline。
 3. **Cross-language LTO 需要同等 IR**：Rust + C 不能 cross language LTO，除非都是 LLVM。GCC `lto-plugin` 处理 ELF link-time。
 4. **没标 pure 的 call 不要轻易 DCE**：副作用错删是大事故。LLVM 的 LLVM IR 要 correct `readnone` 标注，否则保留。
-5. **Box 不在 stack**：Rust Box 一定 heap。但 Option<Box<T>> 的某些编译期转换会布尔字段化（niche optimization），看懂 stack vs heap 区别。
+5. **Box 不在 stack**：Rust Box 一定 heap。但 `Option<Box<T>>` 的某些编译期转换会布尔字段化（niche optimization），看懂 stack vs heap 区别。
 6. **Go 闭包捕获引用类型逃逸**：`func() { s := []int{}; goroutine(func(){ s = append(s, 1) }); }` → s 逃逸到堆，由 goroutine 同时持有。
 
 ---

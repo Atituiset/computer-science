@@ -35,6 +35,6 @@
 
 ## 实现与配置
 
-- 组件：[notes.js](../notes.js)（无依赖原生 JS，样式内联）。
-- 挂载：`book.toml` → `[output.html]` → `additional-js = ["notes.js"]`。
-- 目标仓库：`notes.js` 顶部的 `GITHUB_REPO` 常量，导出 Issue 时指向该仓库。
+- 组件：`.vitepress/theme/notes.ts`（无框架依赖的原生 DOM 逻辑，样式在 `notes.css`）。
+- 挂载：VitePress 主题扩展（`Layout` 的 `layout-bottom` 插槽，见 `.vitepress/theme/index.ts`），SPA 路由切换后自动重建高亮。
+- 目标仓库：`notes.ts` 顶部的 `GITHUB_REPO` 常量，导出 Issue 时指向该仓库。

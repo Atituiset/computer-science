@@ -120,10 +120,10 @@ flowchart TB
 
 | 步 | 动作 | 保留站 | 寄存器状态表 |
 |----|------|--------|------------|
-| 0 | `fld f0, data1` | RS0 {op: load, tag: T0} | f0 → T0 |
-| 1 | `fld f2, data2` | RS1 {op: load, tag: T1} | f2 → T1 |
-| 2 | `fmul f4, f0, f2` | RS2 {op: mul, src1: wait T0, src2: wait T1, tag: T2} | f4 → T2 |
-| 3 | `fadd f0, f6, f8` | RS3 {op: add, src1: f6 ready, src2: f8 ready, tag: T3} | f0 → T3 |
+| 0 | `fld f0, data1` | `RS0 {op: load, tag: T0}` | f0 → T0 |
+| 1 | `fld f2, data2` | `RS1 {op: load, tag: T1}` | f2 → T1 |
+| 2 | `fmul f4, f0, f2` | `RS2 {op: mul, src1: wait T0, src2: wait T1, tag: T2}` | f4 → T2 |
+| 3 | `fadd f0, f6, f8` | `RS3 {op: add, src1: f6 ready, src2: f8 ready, tag: T3}` | f0 → T3 |
 | 4 | T0 返回 (ld f0 done) → CDB 广播 | RS2 捕获 src1, 仍等 src2 | |
 | 5 | T3 返回 (fadd f0 done) → CDB 广播 | 寄存器和等待 f0 者更新 | f0 → T3 |
 | 6 | T1 返回 (ld f2 done) → CDB 广播 | RS2 全部就绪 → 发射乘法 | |

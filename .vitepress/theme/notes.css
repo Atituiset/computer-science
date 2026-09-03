@@ -1,0 +1,388 @@
+/* 学习笔记工具样式 — 移植自 notes.js 内联样式, 增加深色模式适配 */
+
+#cs-notes-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 22px;
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#cs-notes-fab:hover {
+  background: #1d4ed8;
+}
+
+#cs-notes-panel {
+  position: fixed;
+  right: 20px;
+  bottom: 84px;
+  width: min(400px, calc(100vw - 40px));
+  max-height: 72vh;
+  background: #fff;
+  color: #1f2937;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  z-index: 10001;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+#cs-notes-panel.open {
+  display: flex;
+}
+#cs-notes-panel .cn-head {
+  padding: 10px 12px;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#cs-notes-panel .cn-head b {
+  flex: 1;
+  font-size: 14px;
+  color: #111827;
+}
+#cs-notes-panel .cn-head span {
+  color: #6b7280;
+  font-size: 11px;
+  max-width: 38%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#cs-notes-panel .cn-add {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 3px 9px;
+  cursor: pointer;
+  font-size: 12px;
+}
+#cs-notes-panel .cn-close {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #6b7280;
+  padding: 0 4px;
+}
+#cs-notes-panel .cn-tabs {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+}
+#cs-notes-panel .cn-tab {
+  flex: 1;
+  padding: 7px;
+  text-align: center;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #6b7280;
+  border-bottom: 2px solid transparent;
+  font-size: 13px;
+}
+#cs-notes-panel .cn-tab.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+  font-weight: 600;
+}
+#cs-notes-panel .cn-body {
+  padding: 10px 12px;
+  overflow: auto;
+  flex: 1;
+  min-height: 120px;
+}
+#cs-notes-panel .cn-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px;
+  margin-top: 8px;
+  background: #fafafa;
+}
+#cs-notes-panel .cn-item .cn-meta {
+  color: #6b7280;
+  font-size: 12px;
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+#cs-notes-panel .cn-item .cn-quote {
+  background: #fffbeb;
+  border-left: 3px solid #f59e0b;
+  color: #92400e;
+  font-size: 12px;
+  padding: 4px 6px;
+  margin: 4px 0;
+  max-height: 64px;
+  overflow: auto;
+}
+#cs-notes-panel .cn-item .cn-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 140px;
+  overflow: auto;
+  margin: 4px 0 6px;
+  color: #111827;
+}
+#cs-notes-panel .cn-item .cn-ops button {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  border-radius: 6px;
+  padding: 3px 8px;
+  margin-right: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+#cs-notes-panel .cn-item .cn-ops button.cn-del {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+#cs-notes-panel .cn-item .cn-ops button:hover {
+  background: #f3f4f6;
+}
+#cs-notes-panel .cn-hint {
+  color: #6b7280;
+  font-size: 12px;
+  padding: 8px 12px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+#cs-notes-panel .cn-empty {
+  color: #9ca3af;
+  text-align: center;
+  padding: 18px 0;
+}
+#cs-notes-panel .cn-page {
+  font-weight: 600;
+  color: #374151;
+  margin: 10px 0 2px;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.cs-note-mark {
+  background: rgba(250, 204, 21, 0.3);
+  color: inherit;
+  border-bottom: 1px solid rgba(250, 204, 21, 0.9);
+  border-radius: 2px;
+  padding: 0 1px;
+  cursor: pointer;
+}
+.cs-note-mark:hover {
+  background: rgba(250, 204, 21, 0.55);
+}
+
+#cs-notes-selbar {
+  position: fixed;
+  z-index: 10003;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: #111827;
+  color: #fff;
+  border-radius: 8px;
+  padding: 4px 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  font-size: 12px;
+}
+#cs-notes-selbar button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+#cs-notes-selbar button:hover {
+  background: #1d4ed8;
+}
+
+#cs-notes-pop {
+  position: fixed;
+  left: 50%;
+  top: 22%;
+  transform: translateX(-50%);
+  width: min(500px, calc(100vw - 32px));
+  background: #fff;
+  color: #1f2937;
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  z-index: 10004;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+#cs-notes-pop.open {
+  display: flex;
+}
+#cs-notes-pop .cn-pop-head {
+  padding: 10px 12px;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#cs-notes-pop .cn-pop-head b {
+  flex: 1;
+  font-size: 14px;
+  color: #111827;
+}
+#cs-notes-pop .cn-pop-head button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #6b7280;
+  padding: 0 4px;
+}
+#cs-notes-pop .cn-pop-quote {
+  display: none;
+  background: #fffbeb;
+  border-left: 3px solid #f59e0b;
+  color: #92400e;
+  font-size: 12px;
+  padding: 6px 8px;
+  margin: 8px 12px 0;
+  max-height: 72px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+#cs-notes-pop textarea {
+  width: calc(100% - 24px);
+  box-sizing: border-box;
+  min-height: 110px;
+  margin: 10px 12px 0;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px;
+  font: inherit;
+  color: #111827;
+  background: #fff;
+  resize: vertical;
+}
+#cs-notes-pop .cn-pop-ops {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 12px 12px;
+}
+#cs-notes-pop .cn-pop-ops button {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 13px;
+}
+#cs-notes-pop .cn-pop-ops button.cn-save {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+#cs-notes-pop .cn-pop-ops button.cn-save:hover {
+  background: #1d4ed8;
+}
+
+/* toast */
+#cs-notes-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  background: #111827;
+  color: #f9fafb;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  z-index: 10006;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+  max-width: 80vw;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+/* 深色模式 */
+.dark #cs-notes-panel {
+  background: #1b1f27;
+  color: #d1d5db;
+  border-color: #374151;
+}
+.dark #cs-notes-panel .cn-head {
+  background: #111827;
+  border-bottom-color: #374151;
+}
+.dark #cs-notes-panel .cn-head b {
+  color: #f9fafb;
+}
+.dark #cs-notes-panel .cn-tabs {
+  border-bottom-color: #374151;
+}
+.dark #cs-notes-panel .cn-item {
+  background: #232833;
+  border-color: #374151;
+}
+.dark #cs-notes-panel .cn-item .cn-text {
+  color: #f3f4f6;
+}
+.dark #cs-notes-panel .cn-item .cn-ops button {
+  background: #1b1f27;
+  color: #d1d5db;
+  border-color: #4b5563;
+}
+.dark #cs-notes-panel .cn-item .cn-ops button:hover {
+  background: #303643;
+}
+.dark #cs-notes-panel .cn-hint {
+  background: #111827;
+  color: #9ca3af;
+  border-top-color: #374151;
+}
+.dark #cs-notes-pop {
+  background: #1b1f27;
+  color: #d1d5db;
+}
+.dark #cs-notes-pop .cn-pop-head {
+  background: #111827;
+  border-bottom-color: #374151;
+}
+.dark #cs-notes-pop .cn-pop-head b {
+  color: #f9fafb;
+}
+.dark #cs-notes-pop textarea {
+  background: #111827;
+  color: #f3f4f6;
+  border-color: #4b5563;
+}
+.dark #cs-notes-pop .cn-pop-ops button {
+  background: #1b1f27;
+  color: #d1d5db;
+  border-color: #4b5563;
+}
+.dark .cs-note-mark {
+  background: rgba(250, 204, 21, 0.22);
+  border-bottom-color: rgba(250, 204, 21, 0.75);
+}

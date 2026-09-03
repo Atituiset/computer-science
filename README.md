@@ -1,6 +1,6 @@
 # Computer Science Notes
 
-一份基于 mdBook 的个人 CS 知识库，目标是对计算机科学的核心知识做**全面、深入、可工程化落地**的整理, 并以"一纵一横"的结构呈现: **导论卷**沿时间 / 抽象层级 / 形态 / 承接四视图搭骨架, **第零到第十三部分**按学科横切做工程级深度。
+一份基于 VitePress 的个人 CS 知识库，目标是对计算机科学的核心知识做**全面、深入、可工程化落地**的整理, 并以"一纵一横"的结构呈现: **导论卷**沿时间 / 抽象层级 / 形态 / 承接四视图搭骨架, **第零到第十三部分**按学科横切做工程级深度。
 
 > [!NOTE]
 > 在线版已部署到 GitHub Pages: <https://atituiset.github.io/computer-science/>
@@ -71,32 +71,34 @@
        → 密码学 → 信息论 → AI/ML → 元抽象（收束）
 ```
 
-`mdbook serve` 后左侧目录即为主线阅读序，每章开头都有"一句话 + 思想链 + 章节列表 + 读完应能回答"。
+左侧目录（由 `SUMMARY.md` 生成）即为主线阅读序，每章开头都有"一句话 + 思想链 + 章节列表 + 读完应能回答"。
 
 ## 本地预览
 
 ```bash
-cargo install mdbook mdbook-mermaid mdbook-alerts
-mdbook serve --open
+npm install
+npm run docs:dev     # 开发预览, 默认 http://localhost:5173
+npm run docs:build   # 产出静态站点到 .vitepress/dist
+npm run docs:preview # 本地预览构建产物
 ```
 
-默认监听 `http://localhost:3000`。
-
 > [!NOTE]
-> `book.toml` 当前启用三个 preprocessor：`alerts` (`> [!NOTE]` / `> [!WARNING]` 框)、`mermaid` (流程图)。若想加 linkcheck，可在 `book.toml` 增 `[preprocessor.linkcheck]` 后另装 `mdbook-linkcheck`。
+> 站点由 VitePress 驱动, 配置在 `.vitepress/config.mts`; 侧边栏与路由重写由 [`SUMMARY.md`](SUMMARY.md) 在构建期自动生成 (保持 mdBook 时代"改 SUMMARY 即改目录"的习惯)。
 
 **渲染特性**：
 
-- 数学公式：KaTeX 渲染，行内 `$ ... $` / 块级 `$$ ... $$`。
-- 流程图：mermaid v10 本地化嵌入（`mermaid.min.js` + `mermaid-init.js`）。
-- 代码高亮：mdBook 内置 highlight.js 配合 `language-xxx` 标注。
+- 数学公式：KaTeX 服务端渲染，行内 `$ ... $` / 块级 `$$ ... $$`。
+- 流程图：Mermaid 客户端渲染（` ```mermaid ` 代码块），随深浅主题自动切换配色。
+- 代码高亮：Shiki（GitHub Light / Dark 双主题）。
+- 提示框：GitHub 风格 `> [!NOTE]` / `> [!WARNING]` / `> [!TIP]` 原生支持。
+- 站内搜索、暗色模式、划词笔记工具开箱即用。
 
 ## 编写约定
 
 - **每章结构**：`TL;DR / 一句话` → `思想链`（ASCII 树从工程问题回溯到原理）→ 形式化定义 → 例子 → 多语言实现 → 提示框 → 文末"一页速查"。
 - **多语言实现**：Go / TypeScript / Python / C++ 至少两版；工业优化版另开小节。
 - **涉及分析处**给出形式化结论 + 直觉解释两版。
-- **重点结论**用 mdBook alerts 框出：
+- **重点结论**用 GitHub 风格 alerts 框出：
   - `> [!NOTE]` — 关键观察、跨章引用入口
   - `> [!WARNING]` — 反直觉、常见误用、踩坑警告
   - `> [!TIP]` — 速查表 / 速记口诀

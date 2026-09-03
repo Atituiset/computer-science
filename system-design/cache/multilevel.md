@@ -46,7 +46,7 @@
 - Cache size 受进程 RAM 限制, single process 不 persistentent. ** process 多副本 迫使 cache 不 fully coherent replicated, 负 cache 是sof
   consistency**.
 - 保护 process startup time。 e.g., fresh JVM 启动 cache 大都会 empty, hot load must warm up.
-- 内 cache size 多 GB (e.g., 4GB CPU-bound serve), 整 heap 4GB cache 包 single holder. <<sl允 graceful test>>.
+- 内 cache size 多 GB (e.g., 4GB CPU-bound serve), 整 heap 4GB cache 包 single holder. («still allow graceful test»).
 
 ### Eviction Policies
 

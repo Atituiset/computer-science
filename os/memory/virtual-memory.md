@@ -135,6 +135,6 @@ perf stat -e dTLB-load-misses,iTLB-load-misses ./yourapp
 - 4 级页表 = 用稀疏内容让物化内存变小;
 - TLB miss 是常被忽略的性能杀手, huge page 是工程上 mitigations;
 - 一次 `mov rax,[0x7ffe]` 最坏 200+ cycle, 因为翻译通路要全走一遍;
-- /proc/<pid>/{maps,smaps} 是入口起点.
+- `/proc/<pid>/{maps,smaps}` 是入口起点.
 
 下一节 → [分页、TLB、Huge Page](tlb-hugepage.md)

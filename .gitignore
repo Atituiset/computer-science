@@ -1,5 +1,9 @@
-# mdBook build 产物 (CI 会重新构建并推送到 gh-pages)
-book/
+# VitePress build 产物 (CI 会重新构建并推送到 gh-pages)
+.vitepress/dist/
+.vitepress/cache/
+
+# Playwright 调试产物
+.playwright-cli/
 
 # 系统 / 编辑器垃圾文件
 .DS_Store
